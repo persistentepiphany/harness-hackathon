@@ -81,8 +81,11 @@ micromamba (see README). The harness finds them through `PAH_CONDA_PREFIX`.
 
 - Verbose streaming: every stage emits events as it happens (start, finding, artifact, layer
   summary, end). Results are written to `runs/<id>/` the moment they exist, not at the end.
-- Every structure output from an executor gets a PyMOL session (`.pse`) and PNG renders. A run
-  whose structure outputs lack renders fails report generation.
+- Each run renders at most 10 structures with PyMOL (`.pse` and PNG, cap in `configs/profiles`):
+  the main structure first (medoid or top-ranked pose), then cluster representatives and top-ranked
+  poses, in parallel. Structures past the cap carry render status `skipped` with the reason; a
+  missing render of a selected structure fails report generation. Agentic workflows that need more
+  raise the cap per run (`--max-renders`, RunSettings `maxRenders`, MCP `max_renders`).
 - Every run writes a provenance document graph (`graph.json`, `graph.mmd`, `graph.svg`):
   sources, files, tools, checks, findings and the verdict, with sha256 checksums and versions.
 - Reports are generated from the run record only. Text is factual: values, thresholds with origin,

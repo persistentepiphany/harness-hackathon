@@ -704,7 +704,7 @@ export interface PoseThumbView {
   score: string | null;
   badge: { text: string; tone: 'pass' | 'warn' | 'stop' | 'muted' };
   /** `pending` while the report stage has not rendered this structure yet. */
-  status: 'rendered' | 'pending' | 'failed';
+  status: 'rendered' | 'pending' | 'failed' | 'skipped';
   /** The structure rendered first (medoid or top-ranked pose). */
   main: boolean;
 }

@@ -867,7 +867,7 @@ export interface RecordRender {
   /** Output checks already reported for the pose; empty while they are pending. */
   checks?: UiPoseCheck[];
   /** Render state: the main structure renders first, the rest in parallel afterwards. */
-  status?: 'rendered' | 'pending' | 'failed';
+  status?: 'rendered' | 'pending' | 'failed' | 'skipped';
   /** True for the structure rendered first (medoid or top-ranked pose; the reference when nothing was predicted). */
   main?: boolean;
 }
