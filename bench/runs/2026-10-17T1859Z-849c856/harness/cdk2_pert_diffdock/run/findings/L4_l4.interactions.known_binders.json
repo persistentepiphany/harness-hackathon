@@ -1,0 +1,139 @@
+{
+  "check_id": "l4.interactions.known_binders",
+  "layer": 4,
+  "gate": "pass",
+  "message": "diffdock/seed9/mode0 reproduces 1 of 9 ATP interactions: hbond TYR15A",
+  "measurements": [
+    {
+      "name": "key_interactions",
+      "value": 9,
+      "unit": null
+    },
+    {
+      "name": "reproduced",
+      "value": 1,
+      "unit": null
+    },
+    {
+      "name": "poses_reproducing_all",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "reproduced",
+      "value": 1,
+      "comparator": ">=",
+      "origin": "Specification layer 4: warn when no key interaction is reproduced",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "reference": "1B38_ATP_complex.pdb",
+    "reference_interactions": [
+      {
+        "type": "hbond",
+        "residue": "THR14A",
+        "distance_A": 2.63
+      },
+      {
+        "type": "hbond",
+        "residue": "THR14A",
+        "distance_A": 4.03
+      },
+      {
+        "type": "hbond",
+        "residue": "ASN132A",
+        "distance_A": 3.49
+      },
+      {
+        "type": "hbond",
+        "residue": "ASP145A",
+        "distance_A": 3.0
+      },
+      {
+        "type": "hbond",
+        "residue": "TYR15A",
+        "distance_A": 3.99
+      },
+      {
+        "type": "hbond",
+        "residue": "GLN131A",
+        "distance_A": 3.9
+      },
+      {
+        "type": "hbond",
+        "residue": "LEU83A",
+        "distance_A": 3.17
+      },
+      {
+        "type": "hbond",
+        "residue": "GLU81A",
+        "distance_A": 2.9
+      },
+      {
+        "type": "hbond",
+        "residue": "ASP145A",
+        "distance_A": 3.0
+      },
+      {
+        "type": "salt_bridge",
+        "residue": "LYS33A",
+        "distance_A": 5.03
+      },
+      {
+        "type": "salt_bridge",
+        "residue": "LYS33A",
+        "distance_A": 3.78
+      },
+      {
+        "type": "salt_bridge",
+        "residue": "LYS129A",
+        "distance_A": 3.68
+      },
+      {
+        "type": "salt_bridge",
+        "residue": "LYS129A",
+        "distance_A": 4.76
+      }
+    ],
+    "reproduced": [
+      "hbond TYR15A"
+    ],
+    "missing": [
+      "hbond ASN132A",
+      "hbond ASP145A",
+      "hbond GLN131A",
+      "hbond GLU81A",
+      "hbond LEU83A",
+      "hbond THR14A",
+      "salt_bridge LYS129A",
+      "salt_bridge LYS33A"
+    ],
+    "poses": [
+      {
+        "pose": "diffdock/seed7/mode0",
+        "reproduced": 0,
+        "of": 9
+      },
+      {
+        "pose": "diffdock/seed8/mode0",
+        "reproduced": 0,
+        "of": 9
+      },
+      {
+        "pose": "diffdock/seed9/mode0",
+        "reproduced": 1,
+        "of": 9
+      }
+    ],
+    "representative": "diffdock/seed9/mode0"
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "plip",
+    "version": "3.0.1"
+  },
+  "duration_s": 0.365
+}

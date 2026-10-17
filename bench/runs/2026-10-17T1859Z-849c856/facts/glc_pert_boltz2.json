@@ -1,0 +1,73 @@
+{
+  "executor": "boltz2",
+  "representative_pose": "boltz2/seed7/sample0",
+  "confidence": {
+    "ligand_iptm": 0.984,
+    "pocket_plddt": 97.8,
+    "confidence_score": 0.968
+  },
+  "posebusters": {
+    "passed": 19,
+    "total": 20,
+    "failed": [
+      "minimum_distance_to_protein"
+    ]
+  },
+  "interactions": [
+    "hbond ARG208A",
+    "hbond ASN181A",
+    "hbond ASN303A",
+    "hbond GLY182A",
+    "hbond GLY39A",
+    "hbond LEU184A",
+    "hbond LEU272A",
+    "hbond SER183A",
+    "hbond SER228A",
+    "hbond THR40A",
+    "hbond VAL274A",
+    "hydrophobic ILE154A",
+    "hydrophobic LEU184A",
+    "metal ASP38A",
+    "metal GLU64A",
+    "metal HIS63A",
+    "pi_cation ARG207A",
+    "salt_bridge ARG207A",
+    "salt_bridge ARG208A",
+    "salt_bridge HIS63A"
+  ],
+  "interactions_reference": [
+    "hbond ASN303A",
+    "hbond GLU114A",
+    "hbond GLU150A",
+    "hbond HIS49A",
+    "hbond THR40A",
+    "salt_bridge HIS63A"
+  ],
+  "key_interactions_recovered": 3,
+  "key_interactions_reference": 6,
+  "torsion_strain_kcal": 17.99,
+  "unlikely_torsions": 1,
+  "buried_unsatisfied_polars": 0,
+  "buried_charged_unsatisfied": 0,
+  "hydrophobic_complementarity": 0.562,
+  "n_seeds": 3,
+  "ensemble_poses": 3,
+  "ensemble_spread_A": 0.39,
+  "medoid_cluster_fraction": 1.0,
+  "cross_tool_rmsd_A": 7.479,
+  "harness_gates": {
+    "l4.posebusters": "stop",
+    "l4.torsion_strain": "warn",
+    "l4.interactions.fingerprint": "pass",
+    "l4.interactions.unsatisfied_polars": "pass",
+    "l4.interactions.hydrophobic": "pass",
+    "l4.interactions.known_binders": "pass",
+    "l4.minimisation_drift": "pass",
+    "l5.confidence.local": "pass",
+    "l5.sampling.seeds": "warn",
+    "l5.sampling.clusters": "pass",
+    "l5.agreement.cross_family": "warn",
+    "l5.controls.redocking": "stop"
+  },
+  "system": "glc_pert"
+}
