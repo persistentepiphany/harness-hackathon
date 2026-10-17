@@ -79,3 +79,68 @@ out/videos/a/work/publish.sh v16          # copies to out/videos/a/ and media/vi
 `record.sh` opens a fresh Chromium (from `/opt/pw-browsers`, 1440x800 viewport, default WebGL) per
 take with `cli.config.json`. Captions are in `captions.json`; pacing is in the `PACE` block of
 `record.tpl.js`.
+
+## Video B: product film
+
+`demo-b.mp4` is a 120.0 s edited film of the Harness web UI, cut to a 100 BPM music bed composed for it.
+`demo-b.srt` holds the same captions as the burned-in band, plus the opening question and the closing line.
+Video A is a real-time screen capture; video B rebuilds the product's screens as frame-driven Remotion
+components (same layout, tokens and fonts) and films them with a camera, so every frame is a function of time.
+
+| File | Format | Size |
+| --- | --- | --- |
+| `demo-b.mp4` | 1920x1080, 60 fps, H.264 (yuv420p, BT.709) + AAC 256 kb/s, faststart | 23.5 MB |
+| `demo-b.srt` | 17 cues, UTF-8 | 1.5 kB |
+
+### What it shows
+
+| Bars | Time | Scene | Data |
+| --- | --- | --- | --- |
+| 1-4 | 0:00 | "Does this prediction support the claim?" | none |
+| 5-7 | 0:10 | New run: the prompt is typed | the prompt sent to the live interpreter |
+| 8-10 | 0:17 | Sources: UniProt, RCSB PDB, AlphaFold DB, PubChem and PDB CCD records with sha256 | real, live lookups |
+| 11-13 | 0:24 | Quick setup: request, then eight decisions with their reasons | real, live interpreter |
+| 14-15 | 0:31 | Jobs: the run's six layers fill at their recorded speed | run ui-vina |
+| 16-19 | 0:36 | Job page: the log reaches the skipped minimisation check and the end of the run | run ui-vina |
+| 20-23 | 0:46 | Verdict: incomplete, scoped to "Pose within stated uncertainty" | run ui-vina |
+| 24-31 | 0:55 | Report: output support checks with measured value, threshold and origin; PoseBusters 20/20; seed spread | run ui-vina |
+| 32-37 | 1:14 | Ensemble: eight cells with PyMOL renders and numbers, then the Mol* overlay of the crystal and five poses | run ui-vina |
+| 38-44 | 1:29 | Agent monitor: one task streams its steps | prototype demo data |
+| 45-50 | 1:46 | 0.416 Å traced to its check, tools and source file; closing line; logo | run ui-vina |
+
+The run is `ui-vina` from 17 Oct 2026: AutoDock Vina 1.2.7 poses for benzamidine in trypsin (3PTB), five seeds,
+outputs supplied to the harness, which ran 39 checks over layers 0 to 5. Its values come from
+`web/tests/fixtures/live/ui-record-vina.json` and `log-vina.json`: PoseBusters 20 of 20 on all five poses,
+medoid 0.38 Å from the crystal ligand, the five seeds within 0.08 Å of the medoid, redocking control 0.416 Å.
+The verdict is incomplete because `l4.minimisation_drift` could not run (no OpenMM environment); the film shows that
+verdict and says why. The prompt's settings and the source records were captured from `pah serve` the same day.
+The agent task (KRAS and RAF1) is the prototype's mock data, and the film labels it as such. The ensemble's
+confidence colouring is disabled for Vina records, which carry no per-residue confidence, so the grid shows per-cell
+numbers instead. The job page shows the last fourteen log lines one per beat rather than at recorded speed; the clock
+on screen still shows each line's recorded time. A tag in the bottom right of every scene names its data.
+
+### How it was made
+
+The source is in `videos/` (Remotion 4.0.531, React 19.3.1, no Tailwind): `BRAND.md` holds the rules and
+`demo-b-prompt.md` the beat sheet. The music is synthesised by `scripts/music.py` (pad chords, a muted pluck
+arpeggio, a light kick and hats from bar 5, a sub bass from bar 14, a one-bar drop under the verdict). `scripts/beats.py`
+measured 99.999 BPM from the drum stem and the downbeats from the kick stem (grid spread 1.6 ms); every cut lands on a
+measured bar. Interface sounds (click, key, tick, chime, whoosh) are synthesised by `scripts/sfx.py` and placed only on
+on-screen events. The final render is a 60 fps master with JPEG frames (quality 95), converted to BT.709 and encoded
+by `scripts/render.ts --subframes 1 --jpeg` in 50 minutes on the shared 4-core machine; a 120 fps PNG master
+with motion blur was started first and stopped because it would have taken well over an hour.
+
+Checks on the delivered file (`scripts/verify.py`, ffmpeg `ebur128`): duration 120.000 s; frame 0 and canvas probes at
+50 s and 119.5 s decode to (247, 247, 243) against the canvas token #F7F7F4 (247, 247, 244), limited range, BT.709;
+integrated loudness -15.6 LUFS, loudness range 4.9 LU, true peak -1.8 dBFS.
+
+To rebuild:
+
+```bash
+cd videos && bun install && bash scripts/setup-assets.sh
+python3 scripts/extract-data.py           # values from the run fixtures
+bun run audio && bun run beats            # music, sounds, measured grid
+REMOTION_BROWSER_EXECUTABLE=/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell \
+  bun scripts/render.ts DemoB demo-b --duration 120 --poster 114 --subframes 1 --jpeg
+bun scripts/srt.ts
+```

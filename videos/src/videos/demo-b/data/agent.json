@@ -1,0 +1,204 @@
+{
+ "_source": "web/lib/mock/data.ts AGENT_TASKS (prototype demo data, mock mode only; no value comes from a computation)",
+ "tasks": [
+  {
+   "id": "agent_01",
+   "goal": "Decide whether the 12 Gnina poses for ABL1 · imatinib are valid",
+   "status": "done",
+   "steps": [
+    {
+     "kind": "thought",
+     "ms": 1400,
+     "text": "Pose validity is the ligand-pose task: PoseBusters, interaction chemistry, restrained minimisation and a redocking control. I will run all 12 poses through the harness and read the output-validity layer rather than the CNN score."
+    },
+    {
+     "kind": "tool",
+     "ms": 900,
+     "text": "harness.submit · ligand_pose × 12 · Boltz-2 + Gnina · 5 seeds · reference 1IEP"
+    },
+    {
+     "kind": "result",
+     "ms": 700,
+     "text": "12 jobs queued · 3 slots · redocking control shared"
+    },
+    {
+     "kind": "tool",
+     "ms": 2600,
+     "text": "harness.wait · jobs 1–3"
+    },
+    {
+     "kind": "report",
+     "ms": 800,
+     "text": "pose 01 · Narrowed · PoseBusters 20/20 · drift 0.6 Å · exposure 71"
+    },
+    {
+     "kind": "report",
+     "ms": 600,
+     "text": "pose 02 · Narrowed · PoseBusters 20/20 · 1 unsatisfied N–H"
+    },
+    {
+     "kind": "report",
+     "ms": 600,
+     "text": "pose 03 · Refused · minimum protein distance 1.6 Å · clash"
+    },
+    {
+     "kind": "thought",
+     "ms": 1600,
+     "text": "Pose 03 has a CNN score of 0.74, higher than pose 02, yet it clashes with Thr315. Confidence is not tracking geometry here, which is the failure mode the harness exists for. Continue with the remaining nine."
+    },
+    {
+     "kind": "tool",
+     "ms": 3200,
+     "text": "harness.wait · jobs 4–12"
+    },
+    {
+     "kind": "report",
+     "ms": 900,
+     "text": "9 jobs complete · 7 Narrowed · 2 Refused (poses 07, 11: stereocentre inverted; buried charge)"
+    },
+    {
+     "kind": "tool",
+     "ms": 1100,
+     "text": "harness.compare · poses vs crystal 1IEP · spyrmsd"
+    },
+    {
+     "kind": "result",
+     "ms": 700,
+     "text": "9/12 within 2.0 Å of the crystal pose · all 3 refused poses > 4 Å"
+    },
+    {
+     "kind": "conclusion",
+     "ms": 1200,
+     "text": "9 of 12 poses are physically valid and within stated uncertainty; 3 are refused at output validity. A confidence threshold of 0.7 would have accepted 11 of 12. Report and run records attached."
+    }
+   ],
+   "outcome": {
+    "label": "Completed",
+    "detail": "9 valid · 3 refused · confidence alone: 11 accepted",
+    "runs": 12,
+    "reports": 12
+   }
+  },
+  {
+   "id": "agent_02",
+   "goal": "Establish whether the KRAS · RAF1 interaction can be claimed from co-folding alone",
+   "status": "running",
+   "steps": [
+    {
+     "kind": "thought",
+     "ms": 1500,
+     "text": "Interaction discovery needs a complete decoy panel, a sticky control and a known positive before any comparative claim. First check what controls are available for KRAS in STRING and IntAct."
+    },
+    {
+     "kind": "tool",
+     "ms": 1000,
+     "text": "sources.query · STRING v12.0 · IntAct · P01116 · experiments channel"
+    },
+    {
+     "kind": "result",
+     "ms": 800,
+     "text": "41 experimentally supported partners · 6 length-matched non-cognate candidates in cache"
+    },
+    {
+     "kind": "thought",
+     "ms": 1400,
+     "text": "Six decoys is half the panel the task specification requires and no paralogs are included. I will submit the run anyway to read the interface metrics, expecting the controls check to stop the claim."
+    },
+    {
+     "kind": "tool",
+     "ms": 900,
+     "text": "harness.submit · interaction_discovery · Boltz-2 + Protenix · 5 seeds · reference 6VJJ"
+    },
+    {
+     "kind": "tool",
+     "ms": 4200,
+     "text": "harness.wait · run_20261017_e1d265"
+    },
+    {
+     "kind": "report",
+     "ms": 900,
+     "text": "Refused · paired MSA depth 11 < 32 · ipTM 0.71 within length-confound range · decoys 6/12"
+    },
+    {
+     "kind": "thought",
+     "ms": 1600,
+     "text": "Two independent stops. The alignment problem is fixable by pairing against the full ColabFoldDB snapshot; the decoy panel needs six more proteins from the same proteome matched on length and composition."
+    },
+    {
+     "kind": "tool",
+     "ms": 1300,
+     "text": "sources.query · UniProt proteome UP000005640 · length 160–220 · no STRING edge to P01116"
+    },
+    {
+     "kind": "result",
+     "ms": 800,
+     "text": "6 candidates selected · 2 paralogs added (HRAS, NRAS) · panel 12/12"
+    },
+    {
+     "kind": "tool",
+     "ms": 3800,
+     "text": "harness.submit · interaction_discovery · paired MSA regenerated · decoys 12 · sticky control added"
+    },
+    {
+     "kind": "report",
+     "ms": 900,
+     "text": "Narrowed · paired depth 48 · ipTM 0.74 · above 11/12 decoys · sticky control below"
+    },
+    {
+     "kind": "conclusion",
+     "ms": 1200,
+     "text": "The complex is plausible relative to controls. The permitted claim stops there; the harness does not establish that the proteins bind."
+    }
+   ],
+   "outcome": {
+    "label": "Completed",
+    "detail": "plausible relative to controls · 2 runs · panel rebuilt",
+    "runs": 2,
+    "reports": 2
+   }
+  },
+  {
+   "id": "agent_03",
+   "goal": "Rank the imatinib congeneric series against ABL1 and corroborate with docking",
+   "status": "queued",
+   "steps": [
+    {
+     "kind": "thought",
+     "ms": 1400,
+     "text": "Affinity ranking is permitted only as relative order within the series, with Boltz-2 affinity read on its own line and corroborated by Gnina scores and known actives from ChEMBL."
+    },
+    {
+     "kind": "tool",
+     "ms": 1000,
+     "text": "sources.query · ChEMBL 35 · CHEMBL941 analogues · target CHEMBL1862 · IC50"
+    },
+    {
+     "kind": "result",
+     "ms": 700,
+     "text": "12 series members · 9 with measured IC50 · 3 confirmed inactives"
+    },
+    {
+     "kind": "tool",
+     "ms": 4000,
+     "text": "harness.submit · affinity_ranking · Boltz-2 + Gnina · 8 seeds"
+    },
+    {
+     "kind": "report",
+     "ms": 900,
+     "text": "Narrowed · Kendall τ 0.82 across seeds · 2 members drift > 2 Å · ROC AUC 0.81 vs inactives"
+    },
+    {
+     "kind": "conclusion",
+     "ms": 1200,
+     "text": "Relative order is stable for 10 of 12 members; two are excluded for pose drift. No absolute affinity is reported."
+    }
+   ],
+   "outcome": {
+    "label": "Completed",
+    "detail": "10/12 ranked · τ 0.82 · AUC 0.81",
+    "runs": 1,
+    "reports": 1
+   }
+  }
+ ]
+}

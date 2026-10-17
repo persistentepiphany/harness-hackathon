@@ -1,0 +1,62 @@
+{
+ "_source": "POST /ui/interpret on pah serve (live, rule-based interpreter), captured 2026-10-17",
+ "text": "Benzamidine pose in trypsin with Vina, 5 seeds at pH 7.4, against 3PTB",
+ "settings": {
+  "task": "ligand_pose",
+  "tools": [
+   "vina"
+  ],
+  "target": "P00760",
+  "partner": "",
+  "ligand": "NC(=N)c1ccccc1",
+  "seeds": 5,
+  "ph": 7.4,
+  "reference": "3PTB",
+  "claim": "Pose within stated uncertainty"
+ },
+ "steps": [
+  {
+   "field": "task",
+   "value": "ligand_pose",
+   "because": "matched “pose”"
+  },
+  {
+   "field": "tools",
+   "value": [
+    "vina"
+   ],
+   "because": "named in the request"
+  },
+  {
+   "field": "target",
+   "value": "P00760",
+   "because": "“Trypsin” → UniProt P00760"
+  },
+  {
+   "field": "ligand",
+   "value": "NC(=N)c1ccccc1",
+   "because": "“benzamidine” → CCD BEN, PubChem 2332"
+  },
+  {
+   "field": "seeds",
+   "value": 5,
+   "because": "stated in the request"
+  },
+  {
+   "field": "ph",
+   "value": 7.4,
+   "because": "stated in the request"
+  },
+  {
+   "field": "reference",
+   "value": "3PTB",
+   "because": "PDB entry named in the request"
+  },
+  {
+   "field": "claim",
+   "value": "Pose within stated uncertainty",
+   "because": "the only claim this task is permitted to support"
+  }
+ ],
+ "interpreter": "rule-based"
+}
