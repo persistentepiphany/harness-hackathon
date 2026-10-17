@@ -1,0 +1,52 @@
+{
+  "check_id": "l3.exposure.pocket",
+  "layer": 3,
+  "gate": "pass",
+  "message": "no pre-cutoff holo entry with an analogue found (cutoff 2019-01-01)",
+  "measurements": [
+    {
+      "name": "cutoff",
+      "value": "2019-01-01",
+      "unit": null
+    },
+    {
+      "name": "entries_compared",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "max_similarity",
+      "value": null,
+      "unit": null
+    },
+    {
+      "name": "pocket_residues",
+      "value": 24,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "similarity",
+      "value": 50,
+      "comparator": "<=",
+      "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
+      "evidence_level": "published"
+    },
+    {
+      "name": "entries",
+      "value": 5,
+      "comparator": "<=",
+      "origin": "Harness budget: pre-cutoff holo entries compared per run",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "query": "boltz2/seed4/sample0",
+    "model": "diffdock",
+    "entries": []
+  },
+  "artifacts": [],
+  "tool": null,
+  "duration_s": 0.399
+}

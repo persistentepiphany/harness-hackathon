@@ -1,0 +1,85 @@
+{
+  "check_id": "l3.exposure.ligand_prevalence",
+  "layer": 3,
+  "gate": "pass",
+  "message": "1 PDB entries released before 2019-01-01 (diffdock cutoff) contain analogues of ligand above Tanimoto 0.9: B8D, ZB0, 2GS, ZB2, GU8, GU9",
+  "measurements": [
+    {
+      "name": "cutoff",
+      "value": "2019-01-01",
+      "unit": null
+    },
+    {
+      "name": "systems",
+      "value": 1,
+      "unit": null
+    },
+    {
+      "name": "analogue_components",
+      "value": 6,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "tanimoto",
+      "value": 0.9,
+      "comparator": ">",
+      "origin": "Specification layer 3: analogues above 0.9 Tanimoto (RDKit topological fingerprint)",
+      "evidence_level": "published"
+    },
+    {
+      "name": "systems",
+      "value": 100,
+      "comparator": "<=",
+      "origin": "Specification layer 3: prevalent when analogues occur in more than 100 training systems",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "ligands": [
+      {
+        "ligand": "ligand",
+        "systems": 1,
+        "components": [
+          {
+            "code": "B8D",
+            "tanimoto": 0.92,
+            "entries": 0
+          },
+          {
+            "code": "ZB0",
+            "tanimoto": 0.977,
+            "entries": 0
+          },
+          {
+            "code": "2GS",
+            "tanimoto": 0.929,
+            "entries": 1
+          },
+          {
+            "code": "ZB2",
+            "tanimoto": 0.929,
+            "entries": 0
+          },
+          {
+            "code": "GU8",
+            "tanimoto": 0.989,
+            "entries": 0
+          },
+          {
+            "code": "GU9",
+            "tanimoto": 0.989,
+            "entries": 0
+          }
+        ]
+      }
+    ]
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "RCSB search (chemical) + RDKit topological fingerprint",
+    "version": null
+  },
+  "duration_s": 0.0
+}

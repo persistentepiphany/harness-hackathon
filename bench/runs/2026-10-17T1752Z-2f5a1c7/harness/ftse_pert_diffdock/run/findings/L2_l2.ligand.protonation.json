@@ -1,0 +1,65 @@
+{
+  "check_id": "l2.ligand.protonation",
+  "layer": 2,
+  "gate": "warn",
+  "message": "ligand: 2 states; ligand: declared form Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)[C@@H](O)[C@H]1O differs from enumerated Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)([O-])O[P@](=O)([O-])OP(=O)([O-])O)[C@@H](O)[C@H]1O, Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)([O-])O[P@](=O)([O-])OP(=O)([O-])[O-])[C@@H](O)[C@H]1O",
+  "measurements": [
+    {
+      "name": "ph",
+      "value": 7.4,
+      "unit": null
+    },
+    {
+      "name": "max_states",
+      "value": 2,
+      "unit": null
+    },
+    {
+      "name": "declared_not_enumerated",
+      "value": 1,
+      "unit": null
+    },
+    {
+      "name": "max_tautomers",
+      "value": 3,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "ph_window",
+      "value": 1.0,
+      "comparator": "==",
+      "origin": "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    },
+    {
+      "name": "states",
+      "value": 1,
+      "comparator": "==",
+      "origin": "Specification layer 2: warn when more than one plausible state",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "ligands": [
+      {
+        "ligand": "ligand",
+        "declared": "Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)[C@@H](O)[C@H]1O",
+        "states": [
+          "Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)([O-])O[P@](=O)([O-])OP(=O)([O-])O)[C@@H](O)[C@H]1O",
+          "Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)([O-])O[P@](=O)([O-])OP(=O)([O-])[O-])[C@@H](O)[C@H]1O"
+        ],
+        "n_states": 2,
+        "declared_in_states": false,
+        "tautomers": 3
+      }
+    ]
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "dimorphite_dl",
+    "version": "2.1.0"
+  },
+  "duration_s": 0.064
+}

@@ -1,0 +1,105 @@
+{
+  "check_id": "l4.interactions.known_binders",
+  "layer": 4,
+  "gate": "warn",
+  "message": "diffdock/seed4/mode0 reproduces none of 6 BGC interactions",
+  "measurements": [
+    {
+      "name": "key_interactions",
+      "value": 6,
+      "unit": null
+    },
+    {
+      "name": "reproduced",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "poses_reproducing_all",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "reproduced",
+      "value": 1,
+      "comparator": ">=",
+      "origin": "Specification layer 4: warn when no key interaction is reproduced",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "reference": "2VWH_BGC_complex.pdb",
+    "reference_interactions": [
+      {
+        "type": "hbond",
+        "residue": "THR40A",
+        "distance_A": 3.48
+      },
+      {
+        "type": "hbond",
+        "residue": "ASN303A",
+        "distance_A": 3.26
+      },
+      {
+        "type": "hbond",
+        "residue": "THR40A",
+        "distance_A": 3.02
+      },
+      {
+        "type": "hbond",
+        "residue": "HIS49A",
+        "distance_A": 3.0
+      },
+      {
+        "type": "hbond",
+        "residue": "GLU114A",
+        "distance_A": 3.71
+      },
+      {
+        "type": "hbond",
+        "residue": "GLU150A",
+        "distance_A": 2.45
+      },
+      {
+        "type": "salt_bridge",
+        "residue": "HIS63A",
+        "distance_A": 4.33
+      }
+    ],
+    "reproduced": [],
+    "missing": [
+      "hbond ASN303A",
+      "hbond GLU114A",
+      "hbond GLU150A",
+      "hbond HIS49A",
+      "hbond THR40A",
+      "salt_bridge HIS63A"
+    ],
+    "poses": [
+      {
+        "pose": "diffdock/seed4/mode0",
+        "reproduced": 0,
+        "of": 6
+      },
+      {
+        "pose": "diffdock/seed5/mode0",
+        "reproduced": 0,
+        "of": 6
+      },
+      {
+        "pose": "diffdock/seed6/mode0",
+        "reproduced": 0,
+        "of": 6
+      }
+    ],
+    "representative": "diffdock/seed4/mode0"
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "plip",
+    "version": "3.0.1"
+  },
+  "duration_s": 0.287
+}

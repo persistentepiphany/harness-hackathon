@@ -1,0 +1,443 @@
+flowchart LR
+    accTitle: Provenance graph for run ligand_pose-6e55bdbc91bf
+    accDescr: Source records and files feed the checks that read them; each check contributes its gate to the verdict.
+    n0["verdict: stop"]
+    n1["rcsb_files 2VWH"]
+    n2["ccd BGC"]
+    n3["rcsb 2VWH"]
+    n4["rcsb_search chem:C([C@@H]1[C@H]([C@@H]([C@H]([C@@H](O1)O)O)O)O)O"]
+    n5["ccd 3MK"]
+    n6["ccd 4GL"]
+    n7["ccd 4N2"]
+    n8["ccd A1EKO"]
+    n9["ccd AFD"]
+    n10["ccd ALL"]
+    n11["ccd BMA"]
+    n12["ccd GIV"]
+    n13["ccd GL0"]
+    n14["ccd GLA"]
+    n15["ccd GLC"]
+    n16["ccd GUP"]
+    n17["ccd GXL"]
+    n18["ccd MAN"]
+    n19["ccd SDY"]
+    n20["ccd SHD"]
+    n21["ccd WOO"]
+    n22["ccd Z0F"]
+    n23["ccd Z2D"]
+    n24["ccd Z6H"]
+    n25["ccd Z8H"]
+    n26["ccd Z8T"]
+    n27["ccd ZCD"]
+    n28["ccd ZEE"]
+    n29["rcsb_search comp:3MK:2019-01-01"]
+    n30["rcsb_search comp:4GL:2019-01-01"]
+    n31["rcsb_search comp:4N2:2019-01-01"]
+    n32["rcsb_search comp:A1EKO:2019-01-01"]
+    n33["rcsb_search comp:AFD:2019-01-01"]
+    n34["rcsb_search comp:ALL:2019-01-01"]
+    n35["rcsb_search comp:BGC:2019-01-01"]
+    n36["rcsb_search comp:BMA:2019-01-01"]
+    n37["rcsb_search comp:GIV:2019-01-01"]
+    n38["rcsb_search comp:GL0:2019-01-01"]
+    n39["rcsb_search comp:GLA:2019-01-01"]
+    n40["rcsb_search comp:GLC:2019-01-01"]
+    n41["rcsb_search comp:GUP:2019-01-01"]
+    n42["rcsb_search comp:GXL:2019-01-01"]
+    n43["rcsb_search comp:MAN:2019-01-01"]
+    n44["rcsb_search comp:SDY:2019-01-01"]
+    n45["rcsb_search comp:SHD:2019-01-01"]
+    n46["rcsb_search comp:WOO:2019-01-01"]
+    n47["rcsb_search comp:Z0F:2019-01-01"]
+    n48["rcsb_search comp:Z2D:2019-01-01"]
+    n49["rcsb_search comp:Z6H:2019-01-01"]
+    n50["rcsb_search comp:Z8H:2019-01-01"]
+    n51["rcsb_search comp:Z8T:2019-01-01"]
+    n52["rcsb_search comp:ZCD:2019-01-01"]
+    n53["rcsb_search comp:ZEE:2019-01-01"]
+    n54["rcsb_search seq0.9:2019-01-01:357"]
+    n55["rcsb_search seq0.95:2019-01-01:357"]
+    n56["rcsb_search seq0.4:2019-01-01:357"]
+    n57["2VWH.cif"]
+    n58["complex.pdb"]
+    n59["ligand.sdf"]
+    n60["complex.pdb"]
+    n61["ligand.sdf"]
+    n62["complex.pdb"]
+    n63["ligand.sdf"]
+    n64["complex.pdb"]
+    n65["ligand.sdf"]
+    n66["complex.pdb"]
+    n67["ligand.sdf"]
+    n68["complex.pdb"]
+    n69["ligand.sdf"]
+    n70["complex.pdb"]
+    n71["ligand.sdf"]
+    n72["complex.pdb"]
+    n73["ligand.sdf"]
+    n74["complex.pdb"]
+    n75["ligand.sdf"]
+    n76["complex.pdb"]
+    n77["ligand.sdf"]
+    n78["complex.pdb"]
+    n79["ligand.sdf"]
+    n80["complex.pdb"]
+    n81["ligand.sdf"]
+    n82["complex.pdb"]
+    n83["ligand.sdf"]
+    n84["complex.pdb"]
+    n85["ligand.sdf"]
+    n86["complex.pdb"]
+    n87["ligand.sdf"]
+    n88["complex.pdb"]
+    n89["ligand.sdf"]
+    n90["complex.pdb"]
+    n91["ligand.sdf"]
+    n92["complex.pdb"]
+    n93["ligand.sdf"]
+    n94["complex.pdb"]
+    n95["ligand.sdf"]
+    n96["complex.pdb"]
+    n97["ligand.sdf"]
+    n98["complex.pdb"]
+    n99["ligand.sdf"]
+    n100["complex.pdb"]
+    n101["ligand.sdf"]
+    n102["complex.pdb"]
+    n103["ligand.sdf"]
+    n104["complex.pdb"]
+    n105["ligand.sdf"]
+    n106["complex.pdb"]
+    n107["ligand.sdf"]
+    n108["complex.pdb"]
+    n109["ligand.sdf"]
+    n110["complex.pdb"]
+    n111["ligand.sdf"]
+    n112["complex.pdb"]
+    n113["ligand.sdf"]
+    n114["complex.pdb"]
+    n115["ligand.sdf"]
+    n116["complex.pdb"]
+    n117["ligand.sdf"]
+    n118["glc_wt_model_0.cif"]
+    n119["ligand.sdf"]
+    n120["glc_wt_model_0.cif"]
+    n121["ligand.sdf"]
+    n122["glc_wt_model_0.cif"]
+    n123["ligand.sdf"]
+    n124["l2.msa.depth<br/>skip"]
+    n125["l2.context.cofactors<br/>stop"]
+    n126["l2.pocket.resolved<br/>pass"]
+    n127["gemmi"]
+    n128["l2.receptor.state<br/>pass"]
+    n129["l2.receptor.protonation<br/>warn"]
+    n130["propka 3.5.1"]
+    n131["l2.ligand.protonation<br/>pass"]
+    n132["dimorphite_dl 2.1.0"]
+    n133["l2.ligand.conformers<br/>pass"]
+    n134["rdkit"]
+    n135["l2.docking.box<br/>warn"]
+    n136["l3.model.training_cutoff<br/>pass"]
+    n137["l3.exposure.pocket<br/>skip"]
+    n138["l3.exposure.ligand_prevalence<br/>warn"]
+    n139["RCSB search (chemical) + RDKit topological fingerprint"]
+    n140["l3.exposure.sequence<br/>pass"]
+    n141["RCSB search (sequence, MMseqs2)"]
+    n142["l3.regime.modality<br/>pass"]
+    n143["l3.metric.endpoint<br/>pass"]
+    n144["l4.posebusters<br/>stop"]
+    n145["posebusters 0.6.5"]
+    n146["l4.torsion_strain<br/>warn"]
+    n147["rdkit MMFF94"]
+    n148["l4.interactions.fingerprint<br/>pass"]
+    n149["plip 3.0.1"]
+    n150["l4.interactions.unsatisfied_polars<br/>pass"]
+    n151["freesasa 2.2.1"]
+    n152["l4.interactions.hydrophobic<br/>pass"]
+    n153["l4.interactions.known_binders<br/>warn"]
+    n154["l4.minimisation_drift<br/>pass"]
+    n155["openmm 8.6.1"]
+    n156["l5.confidence.local<br/>pass"]
+    n157["l5.sampling.seeds<br/>pass"]
+    n158["l5.sampling.clusters<br/>warn"]
+    n159["spyrmsd 0.9.0"]
+    n160["l5.agreement.cross_family<br/>warn"]
+    n161["l5.controls.redocking<br/>stop"]
+    n1 -->|produced| n57
+    n124 -->|decided| n0
+    n1 -->|used| n125
+    n2 -->|used| n125
+    n125 -->|decided| n0
+    n1 -->|used| n126
+    n127 -->|ran| n126
+    n126 -->|decided| n0
+    n1 -->|used| n128
+    n128 -->|decided| n0
+    n130 -->|ran| n129
+    n129 -->|decided| n0
+    n132 -->|ran| n131
+    n131 -->|decided| n0
+    n134 -->|ran| n133
+    n133 -->|decided| n0
+    n1 -->|used| n135
+    n135 -->|decided| n0
+    n3 -->|used| n136
+    n136 -->|decided| n0
+    n1 -->|used| n137
+    n4 -->|used| n137
+    n5 -->|used| n137
+    n6 -->|used| n137
+    n7 -->|used| n137
+    n8 -->|used| n137
+    n9 -->|used| n137
+    n10 -->|used| n137
+    n2 -->|used| n137
+    n11 -->|used| n137
+    n12 -->|used| n137
+    n13 -->|used| n137
+    n14 -->|used| n137
+    n15 -->|used| n137
+    n16 -->|used| n137
+    n17 -->|used| n137
+    n18 -->|used| n137
+    n19 -->|used| n137
+    n20 -->|used| n137
+    n21 -->|used| n137
+    n22 -->|used| n137
+    n23 -->|used| n137
+    n24 -->|used| n137
+    n25 -->|used| n137
+    n26 -->|used| n137
+    n27 -->|used| n137
+    n28 -->|used| n137
+    n29 -->|used| n137
+    n30 -->|used| n137
+    n31 -->|used| n137
+    n32 -->|used| n137
+    n33 -->|used| n137
+    n34 -->|used| n137
+    n35 -->|used| n137
+    n36 -->|used| n137
+    n37 -->|used| n137
+    n38 -->|used| n137
+    n39 -->|used| n137
+    n40 -->|used| n137
+    n41 -->|used| n137
+    n42 -->|used| n137
+    n43 -->|used| n137
+    n44 -->|used| n137
+    n45 -->|used| n137
+    n46 -->|used| n137
+    n47 -->|used| n137
+    n48 -->|used| n137
+    n49 -->|used| n137
+    n50 -->|used| n137
+    n51 -->|used| n137
+    n52 -->|used| n137
+    n53 -->|used| n137
+    n54 -->|used| n137
+    n137 -->|decided| n0
+    n139 -->|ran| n138
+    n138 -->|decided| n0
+    n55 -->|used| n140
+    n56 -->|used| n140
+    n141 -->|ran| n140
+    n140 -->|decided| n0
+    n1 -->|used| n142
+    n142 -->|decided| n0
+    n143 -->|decided| n0
+    n145 -->|ran| n144
+    n144 -->|decided| n0
+    n147 -->|ran| n146
+    n146 -->|decided| n0
+    n1 -->|used| n148
+    n149 -->|ran| n148
+    n148 -->|decided| n0
+    n151 -->|ran| n150
+    n150 -->|decided| n0
+    n151 -->|ran| n152
+    n152 -->|decided| n0
+    n1 -->|used| n153
+    n149 -->|ran| n153
+    n153 -->|decided| n0
+    n155 -->|ran| n154
+    n154 -->|decided| n0
+    n156 -->|decided| n0
+    n157 -->|decided| n0
+    n1 -->|used| n158
+    n159 -->|ran| n158
+    n158 -->|decided| n0
+    n1 -->|used| n160
+    n159 -->|ran| n160
+    n160 -->|decided| n0
+    n161 -->|decided| n0
+    classDef source fill:#56B4E9,stroke:#333,color:#111
+    classDef file fill:#CC79A7,stroke:#333,color:#111
+    classDef tool fill:#F0E442,stroke:#333,color:#111
+    classDef verdict fill:#0072B2,stroke:#333,color:#111
+    classDef pass fill:#009E73,stroke:#333,color:#111
+    classDef warn fill:#E69F00,stroke:#333,color:#111
+    classDef stop fill:#D55E00,stroke:#333,color:#111
+    classDef skip fill:#999999,stroke:#333,color:#111
+    class n0 verdict
+    class n1 source
+    class n2 source
+    class n3 source
+    class n4 source
+    class n5 source
+    class n6 source
+    class n7 source
+    class n8 source
+    class n9 source
+    class n10 source
+    class n11 source
+    class n12 source
+    class n13 source
+    class n14 source
+    class n15 source
+    class n16 source
+    class n17 source
+    class n18 source
+    class n19 source
+    class n20 source
+    class n21 source
+    class n22 source
+    class n23 source
+    class n24 source
+    class n25 source
+    class n26 source
+    class n27 source
+    class n28 source
+    class n29 source
+    class n30 source
+    class n31 source
+    class n32 source
+    class n33 source
+    class n34 source
+    class n35 source
+    class n36 source
+    class n37 source
+    class n38 source
+    class n39 source
+    class n40 source
+    class n41 source
+    class n42 source
+    class n43 source
+    class n44 source
+    class n45 source
+    class n46 source
+    class n47 source
+    class n48 source
+    class n49 source
+    class n50 source
+    class n51 source
+    class n52 source
+    class n53 source
+    class n54 source
+    class n55 source
+    class n56 source
+    class n57 file
+    class n58 file
+    class n59 file
+    class n60 file
+    class n61 file
+    class n62 file
+    class n63 file
+    class n64 file
+    class n65 file
+    class n66 file
+    class n67 file
+    class n68 file
+    class n69 file
+    class n70 file
+    class n71 file
+    class n72 file
+    class n73 file
+    class n74 file
+    class n75 file
+    class n76 file
+    class n77 file
+    class n78 file
+    class n79 file
+    class n80 file
+    class n81 file
+    class n82 file
+    class n83 file
+    class n84 file
+    class n85 file
+    class n86 file
+    class n87 file
+    class n88 file
+    class n89 file
+    class n90 file
+    class n91 file
+    class n92 file
+    class n93 file
+    class n94 file
+    class n95 file
+    class n96 file
+    class n97 file
+    class n98 file
+    class n99 file
+    class n100 file
+    class n101 file
+    class n102 file
+    class n103 file
+    class n104 file
+    class n105 file
+    class n106 file
+    class n107 file
+    class n108 file
+    class n109 file
+    class n110 file
+    class n111 file
+    class n112 file
+    class n113 file
+    class n114 file
+    class n115 file
+    class n116 file
+    class n117 file
+    class n118 file
+    class n119 file
+    class n120 file
+    class n121 file
+    class n122 file
+    class n123 file
+    class n124 skip
+    class n125 stop
+    class n126 pass
+    class n127 tool
+    class n128 pass
+    class n129 warn
+    class n130 tool
+    class n131 pass
+    class n132 tool
+    class n133 pass
+    class n134 tool
+    class n135 warn
+    class n136 pass
+    class n137 skip
+    class n138 warn
+    class n139 tool
+    class n140 pass
+    class n141 tool
+    class n142 pass
+    class n143 pass
+    class n144 stop
+    class n145 tool
+    class n146 warn
+    class n147 tool
+    class n148 pass
+    class n149 tool
+    class n150 pass
+    class n151 tool
+    class n152 pass
+    class n153 warn
+    class n154 pass
+    class n155 tool
+    class n156 pass
+    class n157 pass
+    class n158 warn
+    class n159 tool
+    class n160 warn
+    class n161 stop
