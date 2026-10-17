@@ -167,6 +167,52 @@ Minimal changes from the prototype, in `web/lib/format.ts`:
 - Fractions keep the denominator (`implemented 13/41`).
 - Missing values render as an en dash in muted ink, never as 0.
 
+## Tools drive the display
+
+Nothing in the UI is written for a particular executor. Every tool-specific label, metric, column,
+docking card and log line comes from the tool register that `GET /tools` returns, and from the
+`tools` list of the record being shown. Adding an executor to `configs/executors.yaml` (with its
+`outputs` block) must make it selectable and displayable with no UI code change.
+
+```ts
+interface ToolOutput {            // one parsed field the executor reports (docs/EXECUTORS.md)
+  key: string;                    // e.g. "confidence_score", "CNNscore", "minimizedAffinity"
+  label: string;                  // e.g. "Confidence", "CNN pose score", "Vina score"
+  unit?: string;                  // e.g. "kcal/mol", "Å", "pK"
+  kind: 'confidence' | 'interface' | 'affinity' | 'score' | 'rmsd' | 'plddt' | 'pae' | 'other';
+  scope: 'global' | 'interface' | 'ligand' | 'pose' | 'residue';
+  range?: [number, number];
+  higherIsBetter?: boolean;
+  rankingOnly?: boolean;          // shown on its own line below the accent rule, never as pose quality
+  note?: string;                  // e.g. "log10(IC50 µM); lower is stronger"
+}
+interface Tool {
+  id: string; name: string; family: 'co-folding' | 'docking'; version: string | null;
+  role: string; available: boolean; note?: string; licence?: string; repo?: string;
+  runtime?: { profiles: string[]; gpu?: string; accel?: boolean };   // from configs/runtimes.yaml
+  outputs: ToolOutput[];
+  dockingParams?: { key: string; label: string; unit?: string; default?: string }[];
+}
+```
+
+Rules for the screens:
+- Executor chips group by `family` and show `available`/`note` from the register.
+- Metric tables, ensemble columns, stat cards and figure legends are built from the `outputs` of
+  the tools in the record. A metric with `rankingOnly` goes under the accent rule.
+- Agreement matrices, seed plots and log lines label methods with `Tool.name` from the record.
+- A tool missing from the register still renders with its id as the name and no metric columns.
+- Mock mode uses the same `Tool` shape (`web/lib/mock` adds `outputs` to the prototype's `TOOLS`).
+
+## Deployment
+
+Default deployment is Modal (`configs/profiles/modal.yaml`). `deploy/modal/api_app.py` serves
+`pah.api.app:create_app` as an ASGI web endpoint with the `pah-runs` and `pah-cache` volumes mounted
+at `/runs` and `/cache`. One container (`max_containers=1`, concurrent inputs) so live tails and
+background runs share a process; the volume is committed after each run and on every write.
+Executors run on GPU through `deploy/modal/executors_app.py`. The web UI is deployed to Vercel
+(`web/vercel.json`) with `HARNESS_API_URL` set to the Modal endpoint, and can also be served from
+Modal (`deploy/modal/web_app.py`, Next.js standalone build) when no Vercel token is configured.
+
 ## Testing hooks for agents
 
 Every job card, layer cell, check row, log line and verdict carries `data-testid` and `data-state`
