@@ -1,6 +1,6 @@
 # Tool register (specification section "Tool register"), check-layer and infrastructure tools.
 # Executors (co-folding and docking engines) are declared in executors.yaml.
-# install.route: pypi | conda | github_release | licence | system
+# install.route: pypi | conda | pah_fetch (configs/externals.yaml) | licence | system
 version: 1
 tools:
   - id: rdkit
@@ -115,8 +115,20 @@ tools:
     role: pocket prediction
     layers: [2]
     mvp: true
-    install: {route: github_release, package: rdk/p2rank}
+    install: {route: pah_fetch, package: p2rank}
     probe: {kind: binary, executable: prank, args: ["-v"]}
+  - id: mmseqs
+    role: sequence search for MSA depth and sequence exposure
+    layers: [2, 3]
+    mvp: true
+    install: {route: pah_fetch, package: mmseqs}
+    probe: {kind: binary, executable: mmseqs, args: [version]}
+  - id: foldseek
+    role: structural search for exposure
+    layers: [3]
+    mvp: true
+    install: {route: pah_fetch, package: foldseek}
+    probe: {kind: binary, executable: foldseek, args: [version]}
   - id: java
     role: runtime for P2Rank
     layers: [2]

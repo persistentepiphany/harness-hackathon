@@ -21,11 +21,6 @@ def test_catalog_builds_every_category(profile: Profile) -> None:
     assert {"uniprot", "rdkit", "boltz2.weights", "humanizer.local"} <= set(ids)
 
 
-def test_catalog_rejects_unknown_category(profile: Profile) -> None:
-    with httpx.Client() as client, pytest.raises(ValueError, match="unknown categories"):
-        build_catalog(ProbeContext(client=client, profile=profile), ["nope"])
-
-
 def test_unknown_probe_kind(profile: Profile) -> None:
     with httpx.Client() as client, pytest.raises(ValueError, match="unknown probe kind"):
         build_probe("x", "s", {"kind": "telepathy"}, ProbeContext(client=client, profile=profile))
@@ -81,3 +76,38 @@ def test_probe_exception_becomes_error(tmp_path: Path) -> None:
 
     report = Doctor(EventBus("d", [])).run({"x": [Boom(id="z", category="x", target="t")]}, "local")
     assert report.results[0].status is ProbeStatus.ERROR
+
+
+def test_catalog_tolerates_bad_entries(tmp_path: Path, profile: Profile) -> None:
+    (tmp_path / "sources.yaml").write_text(
+        "sources:\n"
+        "  - {id: good, probe: {kind: http, url: 'https://h/'}}\n"
+        "  - {id: noprobe}\n"
+        "  - {id: badkind, probe: {kind: telepathy}}\n"
+        "  - {id: nourl, probe: {kind: http}}\n"
+    )
+    with httpx.Client() as client:
+        catalog = build_catalog(
+            ProbeContext(client=client, profile=profile),
+            ["sources", "tools", "nope"],
+            base=tmp_path,
+        )
+    kinds = {p.id: p.kind for p in catalog["sources"]}
+    assert kinds == {"good": "http", "noprobe": "config", "badkind": "config", "nourl": "config"}
+    assert [p.kind for p in catalog["tools"]] == ["config"]  # tools.yaml missing in tmp_path
+    assert [p.kind for p in catalog["nope"]] == ["config"]
+    report = Doctor(EventBus("d", [])).run({"sources": catalog["sources"][1:]}, "local")
+    assert {r.status for r in report.results} == {ProbeStatus.ERROR}
+
+
+def test_binary_search_includes_tools_dir(profile: Profile) -> None:
+    with httpx.Client() as client:
+        ctx = ProbeContext(client=client, profile=profile)
+    assert ctx.search_dirs[0].name == "bin" and ctx.search_dirs[0].parent.name == ".tools"
+
+
+def test_fetchable_tool_missing_detail_names_command(profile: Profile) -> None:
+    with httpx.Client() as client:
+        tools = build_catalog(ProbeContext(client=client, profile=profile), ["tools"])["tools"]
+    mmseqs = next(p for p in tools if p.id == "mmseqs")
+    assert getattr(mmseqs, "hint", "") == "install with `pah fetch --only mmseqs`"

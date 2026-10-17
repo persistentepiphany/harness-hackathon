@@ -215,6 +215,7 @@ class BinaryProbe(_Base):
     executable: str = ""
     args: tuple[str, ...] = ()
     search_dirs: tuple[Path, ...] = ()
+    hint: str = ""
     runner: Runner = run_command
     timeout: float = 30.0
     which: Callable[[str, str | None], str | None] = field(
@@ -227,7 +228,10 @@ class BinaryProbe(_Base):
         path = os.pathsep.join([*(str(d) for d in self.search_dirs), os.environ.get("PATH", "")])
         found = self.which(self.executable, path)
         if not found:
-            return self._result(ProbeStatus.MISSING, f"{self.executable} not on PATH", started)
+            hint = f"; {self.hint}" if self.hint else ""
+            return self._result(
+                ProbeStatus.MISSING, f"{self.executable} not on PATH{hint}", started
+            )
         try:
             proc = self.runner([found, *self.args], self.timeout)
         except subprocess.TimeoutExpired:
@@ -285,3 +289,14 @@ class ManualProbe(_Base):
             if value and Path(value).expanduser().exists():
                 return self._result(ProbeStatus.OK, f"{self.env_var}={value}")
         return self._result(ProbeStatus.MANUAL, self.note)
+
+
+@dataclass
+class ConfigErrorProbe(_Base):
+    """Stands in for a registry entry that could not be built, so the rest still runs."""
+
+    error: str = ""
+    kind: ClassVar[str] = "config"
+
+    def run(self) -> ProbeResult:
+        return self._result(ProbeStatus.ERROR, f"config: {self.error}")
