@@ -302,8 +302,10 @@ def figures(res: Path, table: list[dict[str, Any]], stats: dict[str, Any]) -> No
 def _save(fig: Any, stem: Path, rows: list[dict[str, Any]]) -> None:
     import matplotlib.pyplot as plt
 
-    fig.savefig(stem.with_suffix(".png"), dpi=200)
-    fig.savefig(stem.with_suffix(".svg"))
+    # Fixed metadata and element ids, so a rerun on the same data writes the same bytes.
+    fig.savefig(stem.with_suffix(".png"), dpi=200, metadata={"Software": None})
+    with plt.rc_context({"svg.hashsalt": stem.name}):
+        fig.savefig(stem.with_suffix(".svg"), metadata={"Date": None})
     plt.close(fig)
     if rows:
         with stem.with_suffix(".csv").open("w", newline="") as fh:
