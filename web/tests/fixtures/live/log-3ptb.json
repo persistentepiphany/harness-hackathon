@@ -1,0 +1,674 @@
+[
+    {
+        "seq": 1,
+        "ts": "2026-10-17T15:30:49.784750Z",
+        "t": "0.0s",
+        "layer": null,
+        "kind": "log",
+        "text": "run  profile=local offline=False cache=/home/user/harness-hackathon/cache",
+        "plain": "profile=local offline=False cache=/home/user/harness-hackathon/cache."
+    },
+    {
+        "seq": 2,
+        "ts": "2026-10-17T15:30:49.804696Z",
+        "t": "0.0s",
+        "layer": null,
+        "kind": "run",
+        "text": "run  start  task=ligand_pose layers=0,1,2,3,4,5 claim='Pose within stated uncertainty'",
+        "plain": "Run started: task ligand_pose, layers 0, 1, 2, 3, 4, 5."
+    },
+    {
+        "seq": 3,
+        "ts": "2026-10-17T15:30:49.811240Z",
+        "t": "0.0s",
+        "layer": 0,
+        "kind": "layer",
+        "text": "L0  start  provenance: 3 checks",
+        "plain": "Layer 0, provenance, started: 3 checks."
+    },
+    {
+        "seq": 4,
+        "ts": "2026-10-17T15:30:49.851657Z",
+        "t": "0.0s",
+        "layer": 0,
+        "kind": "check",
+        "result": "pass",
+        "text": "L0  l0.sources.resolved  pass  8 identifiers resolved to 7 records  [identifiers=8, failed=0, records=7, cache_hits=7]  39 ms",
+        "plain": "Every declared identifier resolves to a source record with checksum: 8 identifiers resolved to 7 records (pass)."
+    },
+    {
+        "seq": 5,
+        "ts": "2026-10-17T15:30:49.854624Z",
+        "t": "0.0s",
+        "layer": 0,
+        "kind": "check",
+        "result": "pass",
+        "text": "L0  l0.cross.uniprot_seqres  pass  223 residues agree across 1 mapped segments  [segments=1, residues_compared=223, mismatches=0, declared_mutations=0, declaration_errors=0]  0 ms",
+        "plain": "UniProt sequence agrees with PDB SEQRES through the SIFTS mapping: 223 residues agree across 1 mapped segments (pass)."
+    },
+    {
+        "seq": 6,
+        "ts": "2026-10-17T15:30:50.072721Z",
+        "t": "0.3s",
+        "layer": 0,
+        "kind": "check",
+        "result": "pass",
+        "text": "L0  l0.cross.ligand_inchikey  pass  2 InChIKey comparisons identical  [comparisons=2, mismatches=0, metal_skeleton_only=0]  210 ms",
+        "plain": "Declared ligand SMILES matches its CCD or PubChem record by InChIKey: 2 InChIKey comparisons identical (pass)."
+    },
+    {
+        "seq": 7,
+        "ts": "2026-10-17T15:30:50.074300Z",
+        "t": "0.3s",
+        "layer": 0,
+        "kind": "layer",
+        "text": "L0  end  provenance: pass=3  263 ms",
+        "plain": "Layer 0, provenance, finished in 263 ms: 3 checks, 3 pass, 0 warn, 0 stop, 0 skip.",
+        "result": "pass"
+    },
+    {
+        "seq": 8,
+        "ts": "2026-10-17T15:30:50.074530Z",
+        "t": "0.3s",
+        "layer": 1,
+        "kind": "layer",
+        "text": "L1  start  input integrity: 10 checks",
+        "plain": "Layer 1, input integrity, started: 10 checks."
+    },
+    {
+        "seq": 9,
+        "ts": "2026-10-17T15:30:50.075052Z",
+        "t": "0.3s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.sequence.matches_record  pass  1 sequences identical to their records  [proteins=1, differing=0]  0 ms",
+        "plain": "Sequence given to the run matches the declared source record: 1 sequences identical to their records (pass)."
+    },
+    {
+        "seq": 10,
+        "ts": "2026-10-17T15:30:50.076019Z",
+        "t": "0.3s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.sequence.no_truncation_substitution  pass  1 sequences have no truncation, substitution or non-standard residue  [substitutions=0, n_truncation=0, c_truncation=0, internal_deletions=0, insertions=0, non_standard=0]  1 ms",
+        "plain": "No silent truncation, substitution or non-standard residue: 1 sequences have no truncation, substitution or non-standard residue (pass)."
+    },
+    {
+        "seq": 11,
+        "ts": "2026-10-17T15:30:50.076648Z",
+        "t": "0.3s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.msa.integrity  pass  1 MSAs match their chains  [msas=1, query_only=0, query_mismatch=0, shared_across_chains=0]  0 ms",
+        "plain": "MSA belongs to its chain, is not query-only and is not shared across chains: 1 MSAs match their chains (pass)."
+    },
+    {
+        "seq": 12,
+        "ts": "2026-10-17T15:30:50.078312Z",
+        "t": "0.3s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.ligand.sanitization  pass  1 ligands sanitised  [ligands=1, failed=0, metal_disconnected=0, max_abs_charge=0]  1 ms",
+        "plain": "Ligand parses, valences are correct and charges are within range: 1 ligands sanitised (pass)."
+    },
+    {
+        "seq": 13,
+        "ts": "2026-10-17T15:30:50.080540Z",
+        "t": "0.3s",
+        "layer": 1,
+        "kind": "check",
+        "result": "warn",
+        "text": "L1  l1.ligand.stereo_defined  warn  1 stereo elements undefined  [stereo_elements=1, undefined=1, unparsed=0]  2 ms",
+        "plain": "Stereocentres and double-bond geometry explicitly defined: 1 stereo elements undefined (warn)."
+    },
+    {
+        "seq": 14,
+        "ts": "2026-10-17T15:30:50.082063Z",
+        "t": "0.3s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.ligand.identity  pass  2 ligand identities identical  [comparisons=2, mismatches=0, metal_skeleton_only=0]  1 ms",
+        "plain": "Ligand given to the run matches its database record by InChIKey: 2 ligand identities identical (pass)."
+    },
+    {
+        "seq": 15,
+        "ts": "2026-10-17T15:30:50.162358Z",
+        "t": "0.4s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.receptor.chains  pass  1 chains present; 223 residues agree with SEQRES numbering  [chains_declared=1, chains_missing=0, residues_checked=223, numbering_mismatches=0]  80 ms",
+        "plain": "Receptor complete, chains and residue numbering as declared: 1 chains present; 223 residues agree with SEQRES numbering (pass)."
+    },
+    {
+        "seq": 16,
+        "ts": "2026-10-17T15:30:50.163968Z",
+        "t": "0.4s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.receptor.altlocs  pass  no alternate locations  [altloc_residues=0, altloc_atoms=0]  1 ms",
+        "plain": "Alternate locations resolved deliberately: no alternate locations (pass)."
+    },
+    {
+        "seq": 17,
+        "ts": "2026-10-17T15:30:50.164462Z",
+        "t": "0.4s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.context.composition  pass  1 proteins match reference stoichiometry  [proteins=1, mismatched=0]  0 ms",
+        "plain": "Chain composition and stoichiometry match the declared assembly: 1 proteins match reference stoichiometry (pass)."
+    },
+    {
+        "seq": 18,
+        "ts": "2026-10-17T15:30:50.164931Z",
+        "t": "0.4s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.provenance.model_config  pass  model provenance recorded: executor=boltz2, version=2.2.1, checkpoint=boltz2_conf.ckpt, database_snapshot=colabfold_envdb_202108  [required=4, missing=0, seeds=5]  0 ms",
+        "plain": "Model version, checkpoint and database snapshot recorded and consistent: model provenance recorded: executor=boltz2, version=2.2.1, checkpoint=boltz2_conf.ckpt, database_snapshot=colabfold_envdb_202108 (pass)."
+    },
+    {
+        "seq": 19,
+        "ts": "2026-10-17T15:30:50.165174Z",
+        "t": "0.4s",
+        "layer": 1,
+        "kind": "layer",
+        "text": "L1  end  input integrity: pass=9 warn=1  91 ms",
+        "plain": "Layer 1, input integrity, finished in 91 ms: 10 checks, 9 pass, 1 warn, 0 stop, 0 skip.",
+        "result": "warn"
+    },
+    {
+        "seq": 20,
+        "ts": "2026-10-17T15:30:50.165319Z",
+        "t": "0.4s",
+        "layer": 2,
+        "kind": "layer",
+        "text": "L2  start  input adequacy: 8 checks",
+        "plain": "Layer 2, input adequacy, started: 8 checks."
+    },
+    {
+        "seq": 21,
+        "ts": "2026-10-17T15:30:50.172669Z",
+        "t": "0.4s",
+        "layer": 2,
+        "kind": "check",
+        "result": "skip",
+        "text": "L2  l2.msa.depth  skip  check not registered",
+        "plain": "l2.msa.depth is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 22,
+        "ts": "2026-10-17T15:30:50.173634Z",
+        "t": "0.4s",
+        "layer": 2,
+        "kind": "check",
+        "result": "skip",
+        "text": "L2  l2.context.cofactors  skip  check not registered",
+        "plain": "l2.context.cofactors is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 23,
+        "ts": "2026-10-17T15:30:50.174019Z",
+        "t": "0.4s",
+        "layer": 2,
+        "kind": "check",
+        "result": "skip",
+        "text": "L2  l2.pocket.resolved  skip  check not registered",
+        "plain": "l2.pocket.resolved is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 24,
+        "ts": "2026-10-17T15:30:50.174313Z",
+        "t": "0.4s",
+        "layer": 2,
+        "kind": "check",
+        "result": "skip",
+        "text": "L2  l2.receptor.state  skip  check not registered",
+        "plain": "l2.receptor.state is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 25,
+        "ts": "2026-10-17T15:30:50.174640Z",
+        "t": "0.4s",
+        "layer": 2,
+        "kind": "check",
+        "result": "skip",
+        "text": "L2  l2.receptor.protonation  skip  check not registered",
+        "plain": "l2.receptor.protonation is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 26,
+        "ts": "2026-10-17T15:30:50.174992Z",
+        "t": "0.4s",
+        "layer": 2,
+        "kind": "check",
+        "result": "skip",
+        "text": "L2  l2.ligand.protonation  skip  check not registered",
+        "plain": "l2.ligand.protonation is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 27,
+        "ts": "2026-10-17T15:30:50.175304Z",
+        "t": "0.4s",
+        "layer": 2,
+        "kind": "check",
+        "result": "skip",
+        "text": "L2  l2.ligand.conformers  skip  check not registered",
+        "plain": "l2.ligand.conformers is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 28,
+        "ts": "2026-10-17T15:30:50.175703Z",
+        "t": "0.4s",
+        "layer": 2,
+        "kind": "check",
+        "result": "skip",
+        "text": "L2  l2.docking.box  skip  check not registered",
+        "plain": "l2.docking.box is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 29,
+        "ts": "2026-10-17T15:30:50.175880Z",
+        "t": "0.4s",
+        "layer": 2,
+        "kind": "layer",
+        "text": "L2  end  input adequacy: skip=8  11 ms",
+        "plain": "Layer 2, input adequacy, finished in 11 ms: 8 checks, 0 pass, 0 warn, 0 stop, 8 skip.",
+        "result": "skip"
+    },
+    {
+        "seq": 30,
+        "ts": "2026-10-17T15:30:50.176004Z",
+        "t": "0.4s",
+        "layer": 3,
+        "kind": "layer",
+        "text": "L3  start  applicability: 6 checks",
+        "plain": "Layer 3, applicability, started: 6 checks."
+    },
+    {
+        "seq": 31,
+        "ts": "2026-10-17T15:30:50.176312Z",
+        "t": "0.4s",
+        "layer": 3,
+        "kind": "check",
+        "result": "skip",
+        "text": "L3  l3.model.training_cutoff  skip  check not registered",
+        "plain": "l3.model.training_cutoff is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 32,
+        "ts": "2026-10-17T15:30:50.176589Z",
+        "t": "0.4s",
+        "layer": 3,
+        "kind": "check",
+        "result": "skip",
+        "text": "L3  l3.exposure.pocket  skip  check not registered",
+        "plain": "l3.exposure.pocket is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 33,
+        "ts": "2026-10-17T15:30:50.176856Z",
+        "t": "0.4s",
+        "layer": 3,
+        "kind": "check",
+        "result": "skip",
+        "text": "L3  l3.exposure.ligand_prevalence  skip  check not registered",
+        "plain": "l3.exposure.ligand_prevalence is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 34,
+        "ts": "2026-10-17T15:30:50.177076Z",
+        "t": "0.4s",
+        "layer": 3,
+        "kind": "check",
+        "result": "skip",
+        "text": "L3  l3.exposure.sequence  skip  check not registered",
+        "plain": "l3.exposure.sequence is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 35,
+        "ts": "2026-10-17T15:30:50.177372Z",
+        "t": "0.4s",
+        "layer": 3,
+        "kind": "check",
+        "result": "skip",
+        "text": "L3  l3.regime.modality  skip  check not registered",
+        "plain": "l3.regime.modality is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 36,
+        "ts": "2026-10-17T15:30:50.177625Z",
+        "t": "0.4s",
+        "layer": 3,
+        "kind": "check",
+        "result": "skip",
+        "text": "L3  l3.metric.endpoint  skip  check not registered",
+        "plain": "l3.metric.endpoint is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 37,
+        "ts": "2026-10-17T15:30:50.177783Z",
+        "t": "0.4s",
+        "layer": 3,
+        "kind": "layer",
+        "text": "L3  end  applicability: skip=6  2 ms",
+        "plain": "Layer 3, applicability, finished in 2 ms: 6 checks, 0 pass, 0 warn, 0 stop, 6 skip.",
+        "result": "skip"
+    },
+    {
+        "seq": 38,
+        "ts": "2026-10-17T15:30:50.177910Z",
+        "t": "0.4s",
+        "layer": 4,
+        "kind": "layer",
+        "text": "L4  start  output validity: 6 checks",
+        "plain": "Layer 4, output validity, started: 6 checks."
+    },
+    {
+        "seq": 39,
+        "ts": "2026-10-17T15:30:50.178190Z",
+        "t": "0.4s",
+        "layer": 4,
+        "kind": "check",
+        "result": "skip",
+        "text": "L4  l4.posebusters  skip  check not registered",
+        "plain": "l4.posebusters is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 40,
+        "ts": "2026-10-17T15:30:50.179262Z",
+        "t": "0.4s",
+        "layer": 4,
+        "kind": "check",
+        "result": "skip",
+        "text": "L4  l4.torsion_strain  skip  check not registered",
+        "plain": "l4.torsion_strain is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 41,
+        "ts": "2026-10-17T15:30:50.179524Z",
+        "t": "0.4s",
+        "layer": 4,
+        "kind": "check",
+        "result": "skip",
+        "text": "L4  l4.interactions.fingerprint  skip  check not registered",
+        "plain": "l4.interactions.fingerprint is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 42,
+        "ts": "2026-10-17T15:30:50.179969Z",
+        "t": "0.4s",
+        "layer": 4,
+        "kind": "check",
+        "result": "skip",
+        "text": "L4  l4.interactions.unsatisfied_polars  skip  check not registered",
+        "plain": "l4.interactions.unsatisfied_polars is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 43,
+        "ts": "2026-10-17T15:30:50.180235Z",
+        "t": "0.4s",
+        "layer": 4,
+        "kind": "check",
+        "result": "skip",
+        "text": "L4  l4.interactions.known_binders  skip  check not registered",
+        "plain": "l4.interactions.known_binders is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 44,
+        "ts": "2026-10-17T15:30:50.180499Z",
+        "t": "0.4s",
+        "layer": 4,
+        "kind": "check",
+        "result": "skip",
+        "text": "L4  l4.minimisation_drift  skip  check not registered",
+        "plain": "l4.minimisation_drift is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 45,
+        "ts": "2026-10-17T15:30:50.180660Z",
+        "t": "0.4s",
+        "layer": 4,
+        "kind": "layer",
+        "text": "L4  end  output validity: skip=6  3 ms",
+        "plain": "Layer 4, output validity, finished in 3 ms: 6 checks, 0 pass, 0 warn, 0 stop, 6 skip.",
+        "result": "skip"
+    },
+    {
+        "seq": 46,
+        "ts": "2026-10-17T15:30:50.180792Z",
+        "t": "0.4s",
+        "layer": 5,
+        "kind": "layer",
+        "text": "L5  start  output support: 5 checks",
+        "plain": "Layer 5, output support, started: 5 checks."
+    },
+    {
+        "seq": 47,
+        "ts": "2026-10-17T15:30:50.181073Z",
+        "t": "0.4s",
+        "layer": 5,
+        "kind": "check",
+        "result": "skip",
+        "text": "L5  l5.confidence.local  skip  check not registered",
+        "plain": "l5.confidence.local is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 48,
+        "ts": "2026-10-17T15:30:50.181487Z",
+        "t": "0.4s",
+        "layer": 5,
+        "kind": "check",
+        "result": "skip",
+        "text": "L5  l5.sampling.seeds  skip  check not registered",
+        "plain": "l5.sampling.seeds is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 49,
+        "ts": "2026-10-17T15:30:50.181815Z",
+        "t": "0.4s",
+        "layer": 5,
+        "kind": "check",
+        "result": "skip",
+        "text": "L5  l5.sampling.clusters  skip  check not registered",
+        "plain": "l5.sampling.clusters is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 50,
+        "ts": "2026-10-17T15:30:50.182070Z",
+        "t": "0.4s",
+        "layer": 5,
+        "kind": "check",
+        "result": "skip",
+        "text": "L5  l5.agreement.cross_family  skip  check not registered",
+        "plain": "l5.agreement.cross_family is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 51,
+        "ts": "2026-10-17T15:30:50.182323Z",
+        "t": "0.4s",
+        "layer": 5,
+        "kind": "check",
+        "result": "skip",
+        "text": "L5  l5.controls.redocking  skip  check not registered",
+        "plain": "l5.controls.redocking is not implemented in this harness; skipped."
+    },
+    {
+        "seq": 52,
+        "ts": "2026-10-17T15:30:50.182482Z",
+        "t": "0.4s",
+        "layer": 5,
+        "kind": "layer",
+        "text": "L5  end  output support: skip=5  2 ms",
+        "plain": "Layer 5, output support, finished in 2 ms: 5 checks, 0 pass, 0 warn, 0 stop, 5 skip.",
+        "result": "skip"
+    },
+    {
+        "seq": 53,
+        "ts": "2026-10-17T15:30:50.185820Z",
+        "t": "0.4s",
+        "layer": null,
+        "kind": "run",
+        "text": "run  end  verdict=incomplete stops=0 warnings=1 incomplete=25  0.4 s",
+        "plain": "Run finished after 0.4 s with verdict incomplete: 0 stops, 1 warning, 25 incomplete."
+    },
+    {
+        "seq": 54,
+        "ts": "2026-10-17T15:30:50.202061Z",
+        "t": "0.4s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  record.json",
+        "plain": "Wrote record.json.",
+        "path": "record.json",
+        "url": "/runs/ui-3ptb/files/record.json"
+    },
+    {
+        "seq": 55,
+        "ts": "2026-10-17T15:30:50.202251Z",
+        "t": "0.4s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  provenance.json",
+        "plain": "Wrote provenance.json.",
+        "path": "provenance.json",
+        "url": "/runs/ui-3ptb/files/provenance.json"
+    },
+    {
+        "seq": 56,
+        "ts": "2026-10-17T15:30:50.212366Z",
+        "t": "0.4s",
+        "layer": null,
+        "kind": "log",
+        "text": "report  start  renders, figures, provenance graph, markdown",
+        "plain": "Stage report started: renders, figures, provenance graph, markdown."
+    },
+    {
+        "seq": 57,
+        "ts": "2026-10-17T15:30:59.849508Z",
+        "t": "10.0s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/3PTB_overview.png (render)",
+        "plain": "Wrote renders/3PTB_overview.png.",
+        "path": "renders/3PTB_overview.png",
+        "url": "/runs/ui-3ptb/files/renders/3PTB_overview.png"
+    },
+    {
+        "seq": 58,
+        "ts": "2026-10-17T15:30:59.896448Z",
+        "t": "10.1s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/3PTB_pocket.png (render)",
+        "plain": "Wrote renders/3PTB_pocket.png.",
+        "path": "renders/3PTB_pocket.png",
+        "url": "/runs/ui-3ptb/files/renders/3PTB_pocket.png"
+    },
+    {
+        "seq": 59,
+        "ts": "2026-10-17T15:30:59.910142Z",
+        "t": "10.1s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/3PTB.pse (session)",
+        "plain": "Wrote renders/3PTB.pse.",
+        "path": "renders/3PTB.pse",
+        "url": "/runs/ui-3ptb/files/renders/3PTB.pse"
+    },
+    {
+        "seq": 60,
+        "ts": "2026-10-17T15:31:02.310114Z",
+        "t": "12.5s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  figures/gates_by_layer.svg (figure)",
+        "plain": "Wrote figures/gates_by_layer.svg.",
+        "path": "figures/gates_by_layer.svg",
+        "url": "/runs/ui-3ptb/files/figures/gates_by_layer.svg"
+    },
+    {
+        "seq": 61,
+        "ts": "2026-10-17T15:31:02.310698Z",
+        "t": "12.5s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  figures/gates_by_layer.csv (data)",
+        "plain": "Wrote figures/gates_by_layer.csv.",
+        "path": "figures/gates_by_layer.csv",
+        "url": "/runs/ui-3ptb/files/figures/gates_by_layer.csv"
+    },
+    {
+        "seq": 62,
+        "ts": "2026-10-17T15:31:02.444790Z",
+        "t": "12.6s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  graph.json (graph)",
+        "plain": "Wrote graph.json.",
+        "path": "graph.json",
+        "url": "/runs/ui-3ptb/files/graph.json"
+    },
+    {
+        "seq": 63,
+        "ts": "2026-10-17T15:31:02.445253Z",
+        "t": "12.6s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  graph.mmd (graph)",
+        "plain": "Wrote graph.mmd.",
+        "path": "graph.mmd",
+        "url": "/runs/ui-3ptb/files/graph.mmd"
+    },
+    {
+        "seq": 64,
+        "ts": "2026-10-17T15:31:02.445497Z",
+        "t": "12.6s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  graph.svg (graph)",
+        "plain": "Wrote graph.svg.",
+        "path": "graph.svg",
+        "url": "/runs/ui-3ptb/files/graph.svg"
+    },
+    {
+        "seq": 65,
+        "ts": "2026-10-17T15:31:02.455124Z",
+        "t": "12.7s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  report.md (report)",
+        "plain": "Wrote report.md.",
+        "path": "report.md",
+        "url": "/runs/ui-3ptb/files/report.md"
+    },
+    {
+        "seq": 66,
+        "ts": "2026-10-17T15:31:02.456750Z",
+        "t": "12.7s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  report.json (report)",
+        "plain": "Wrote report.json.",
+        "path": "report.json",
+        "url": "/runs/ui-3ptb/files/report.json"
+    },
+    {
+        "seq": 67,
+        "ts": "2026-10-17T15:31:02.457782Z",
+        "t": "12.7s",
+        "layer": null,
+        "kind": "log",
+        "text": "report  end  10 files  12.2 s",
+        "plain": "Stage report finished: 10 files.",
+        "result": "pass"
+    }
+]

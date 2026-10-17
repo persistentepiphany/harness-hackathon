@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import threading
 from collections.abc import AsyncIterator, Callable, Sequence
 from concurrent.futures import ThreadPoolExecutor
@@ -127,6 +128,12 @@ def create_app(profile: Profile, allow_origins: Sequence[str] = ()) -> FastAPI:
             allow_headers=["*"],
         )
     jobs = JobStore()
+    try:  # web UI routes under /ui (docs/UI.md); native routes serve without them
+        from pah.webui import install_ui
+    except ImportError as exc:
+        logging.getLogger(__name__).warning("ui routes not mounted: %s", exc)
+    else:
+        install_ui(app, profile, jobs)
 
     def _run_dir(job_id: str) -> Path:
         try:
@@ -249,11 +256,14 @@ def create_app(profile: Profile, allow_origins: Sequence[str] = ()) -> FastAPI:
 
     @app.get("/runs/{job_id}/files/{rel:path}")
     def files(job_id: str, rel: str) -> FileResponse:
-        root = _run_dir(job_id).resolve()
-        target = (root / rel).resolve()
-        if not target.is_relative_to(root) or not target.is_file():
-            raise HTTPException(404, "file not found in run directory")
-        return FileResponse(target)
+        from pah.webui.store import RunStore, file_headers, media_type
+
+        root = _run_dir(job_id)  # 400 for an invalid run id
+        try:  # no `..`, absolute paths or symlinks that leave the run directory
+            target = RunStore(root.parent).resolve_file(job_id, rel)
+        except (ValueError, LookupError, OSError) as exc:
+            raise HTTPException(404, "file not found in run directory") from exc
+        return FileResponse(target, media_type=media_type(target), headers=file_headers(target))
 
     return app
 

@@ -319,8 +319,10 @@ def serve(
     import uvicorn
 
     from pah.interfaces.api import create_app
+    from pah.webui.settings import DEFAULT_CORS_ORIGINS, add_cors
 
-    app_ = create_app(_profile(profile, OutputFormat.console), allow_origins=cors or ())
+    app_ = create_app(_profile(profile, OutputFormat.console))
+    add_cors(app_, cors or DEFAULT_CORS_ORIGINS)  # exact origins and `*` patterns
     uvicorn.run(app_, host=host, port=port, log_level="info")
 
 
