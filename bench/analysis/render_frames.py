@@ -158,14 +158,34 @@ def structure_frame(render: Path, title: str, rows: list[tuple[str, str]], tag: 
     img.paste(pic, (40, 60))
     d = ImageDraw.Draw(img)
     x = 840
+    avail = W - x - 40
     d.text((x, 70), tag.upper(), fill=tag_colour, font=_font(18))
     d.text((x, 100), title, fill=INK, font=_font(28))
     y = 160
+    vf = _font(20, mono=True)
     for label, value in rows:
         d.text((x, y), label.upper(), fill=MUTED, font=_font(14))
-        d.text((x, y + 20), value, fill=INK, font=_font(20, mono=True))
-        y += 62
+        y += 22
+        for line in _wrap_px(d, value, vf, avail):
+            d.text((x, y), line, fill=INK, font=vf)
+            y += 26
+        y += 14
     return img
+
+
+def _wrap_px(draw: Any, text: str, font: Any, width: int) -> list[str]:
+    """Greedy word wrap to a pixel width, so long values do not run past the panel edge."""
+    words, lines, cur = text.split(), [], ""
+    for word in words:
+        trial = f"{cur} {word}".strip()
+        if cur and draw.textlength(trial, font=font) > width:
+            lines.append(cur)
+            cur = word
+        else:
+            cur = trial
+    if cur:
+        lines.append(cur)
+    return lines or [""]
 
 
 def text_panel(title: str, body: str, eyebrow: str) -> Any:
