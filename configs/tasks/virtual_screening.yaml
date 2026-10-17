@@ -1,0 +1,21 @@
+# Specification: "Virtual screening" (docking).
+id: virtual_screening
+title: Virtual screening
+families: [docking]
+claim: Enrichment over decoys, not individual affinities
+required_inputs: [ligands]
+status: implemented
+layers:
+  0: [l0.sources.resolved, l0.cross.ligand_inchikey]
+  1:
+    - l1.ligand.sanitization
+    - l1.ligand.stereo_defined
+    - l1.ligand.identity
+    - l1.receptor.chains
+    - l1.receptor.altlocs
+    - l1.provenance.model_config
+  2: [l2.ligand.protonation, l2.library.properties, l2.receptor.protonation, l2.docking.box]
+  3: [l3.exposure.ligand_prevalence, l3.metric.endpoint]
+  4: [l4.score.distribution, l4.interactions.top_hits]
+  5: [l5.controls.decoys_property_matched, l5.enrichment]
+controls: [property_matched_decoys, confirmed_inactives]

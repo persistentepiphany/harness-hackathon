@@ -1,0 +1,21 @@
+# Specification: "Interaction discovery" (co-folding).
+id: interaction_discovery
+title: Interaction discovery
+families: [cofolding]
+claim: Plausible relative to controls, never that the proteins bind
+required_inputs: [proteins]
+status: implemented
+layers:
+  0: [l0.sources.resolved, l0.cross.uniprot_seqres]
+  1:
+    - l1.sequence.matches_record
+    - l1.sequence.no_truncation_substitution
+    - l1.msa.integrity
+    - l1.context.composition
+    - l1.provenance.model_config
+  2: [l2.msa.depth, l2.msa.pairing, l2.msa.paralog_ambiguity, l2.disorder]
+  3: [l3.model.training_cutoff, l3.exposure.sequence, l3.regime.modality, l3.metric.endpoint]
+  4: [l4.interface.chemistry, l4.structure.topology, l4.structure.clashes]
+  5: [l5.confidence.length_confound, l5.sampling.seeds, l5.controls.decoys, l5.controls.sticky, l5.controls.known_positive]
+escalate: [l2.msa.pairing]
+controls: [decoy_partners, sticky_control, known_positive]
