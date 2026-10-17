@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
+from collections import Counter
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
@@ -70,10 +73,31 @@ def _resolve(run_dir: Path, artifact: Artifact) -> Path:
     return p if p.is_absolute() else run_dir / p
 
 
+def render_stems(artifacts: Sequence[Artifact]) -> dict[str, str]:
+    """Output file stem per rendered structure. A structure keeps its own file stem unless
+    another one shares it (every docking pose may be `complex.pdb`); those take their path
+    inside the run directory, so no render overwrites another."""
+    paths = [a.path for a in artifacts if a.kind in RENDERED_KINDS]
+    counts = Counter(Path(p).stem for p in paths)
+    stems: dict[str, str] = {}
+    for p in paths:
+        stem = Path(p).stem
+        if counts[stem] > 1:
+            stem = "_".join(Path(p).with_suffix("").parts)
+        stems[p] = re.sub(r"[^A-Za-z0-9_.-]", "_", stem)
+    return stems
+
+
 def render_structures(
-    record: RunRecord, run_dir: Path, renderer: Renderer | None = None
+    record: RunRecord,
+    run_dir: Path,
+    renderer: Renderer | None = None,
+    on_result: Callable[[RenderResult], None] | None = None,
 ) -> list[RenderResult]:
+    """Renders every structure artifact. `on_result` is called after each structure, so the
+    files can be announced while later structures are still rendering."""
     renderer = renderer or PymolRenderer()
+    stems = render_stems(record.artifacts)
     out_dir = run_dir / "renders"
     out_dir.mkdir(parents=True, exist_ok=True)
     ligands = [
@@ -84,7 +108,7 @@ def render_structures(
         if a.kind not in RENDERED_KINDS:
             continue
         overlay = ligands if a.kind is ArtifactKind.PREDICTION_STRUCTURE else []
-        stem = out_dir / Path(a.path).stem
+        stem = out_dir / stems[a.path]
         try:
             raw = renderer.render(_resolve(run_dir, a), overlay, stem)
             pngs = raw.get("pngs", {})
@@ -100,6 +124,8 @@ def render_structures(
             )
         except (RuntimeError, subprocess.TimeoutExpired, OSError, ValueError, KeyError) as exc:
             results.append(RenderResult(structure=a, error=f"{type(exc).__name__}: {exc}"))
+        if on_result is not None:
+            on_result(results[-1])
     return results
 
 
@@ -117,6 +143,7 @@ def require_renders(record: RunRecord, results: list[RenderResult]) -> None:
 
 def figure_entries(results: list[RenderResult], rel_to: Path) -> list[FigureEntry]:
     entries = []
+    stems = render_stems([r.structure for r in results])
     for r in results:
         if r.error:
             continue
@@ -126,7 +153,7 @@ def figure_entries(results: list[RenderResult], rel_to: Path) -> list[FigureEntr
             organic = f"; organic components {', '.join(r.organic)}" if r.organic else ""
             entries.append(
                 FigureEntry(
-                    id=f"render_{Path(r.structure.path).stem}_{view}",
+                    id=f"render_{stems[r.structure.path]}_{view}",
                     kind="render",
                     path=str(png.relative_to(rel_to)),
                     caption=(

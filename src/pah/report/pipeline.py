@@ -15,7 +15,13 @@ from pah.report.builder import build_batch_report, build_run_report
 from pah.report.graph import write_graph
 from pah.report.markdown import batch_markdown, run_markdown
 from pah.report.model import BatchReport, BatchTargetRow, RunReport
-from pah.report.renders import Renderer, figure_entries, render_structures, require_renders
+from pah.report.renders import (
+    Renderer,
+    RenderResult,
+    figure_entries,
+    render_structures,
+    require_renders,
+)
 from pah.report.style import StyleIssue, lint
 
 Emit = Callable[[Path, ArtifactKind, str], None]
@@ -61,13 +67,16 @@ def write_run_report(
         produced.append(_artifact(path, kind, run_dir, label))
         emit(path, kind, label)
 
-    results = render_structures(record, run_dir, renderer) if render else []
-    require_renders(record, results)
-    for r in results:
+    def announce(r: RenderResult) -> None:
         for png in r.pngs.values():
             note(png, ArtifactKind.RENDER, r.structure.label)
         if r.session:
             note(r.session, ArtifactKind.SESSION, r.structure.label)
+
+    # Each structure's files are announced as soon as it is rendered: a run with many poses
+    # spends minutes here, and a client following events.jsonl sees progress throughout.
+    results = render_structures(record, run_dir, renderer, on_result=announce) if render else []
+    require_renders(record, results)
     figure = figs.gates_by_layer(record, run_dir / "figures", run_dir)
     note(run_dir / figure.path, ArtifactKind.FIGURE, figure.id)
     if figure.data_path:

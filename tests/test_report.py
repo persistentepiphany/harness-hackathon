@@ -112,3 +112,25 @@ def test_style_lint_rules() -> None:
 def test_readme_passes_style_lint() -> None:
     readme = (Path(__file__).resolve().parents[1] / "README.md").read_text()
     assert lint(readme) == []
+
+
+def test_render_stems_disambiguate_shared_file_names() -> None:
+    from pah.core.models import Artifact, ArtifactKind
+    from pah.report.renders import render_stems
+
+    def art(path: str, kind: ArtifactKind = ArtifactKind.PREDICTION_STRUCTURE) -> Artifact:
+        return Artifact(path=path, kind=kind, sha256="0" * 64, size_bytes=1)
+
+    stems = render_stems(
+        [
+            art("artifacts/sources/3PTB.cif", ArtifactKind.SOURCE_STRUCTURE),
+            art("predictions/00_vina/vina/seed0/mode1/complex.pdb"),
+            art("predictions/00_vina/vina/seed1/mode1/complex.pdb"),
+            art("artifacts/sources/ligand.sdf", ArtifactKind.INPUT_LIGAND),
+        ]
+    )
+    assert stems["artifacts/sources/3PTB.cif"] == "3PTB"
+    assert stems["predictions/00_vina/vina/seed0/mode1/complex.pdb"] == (
+        "predictions_00_vina_vina_seed0_mode1_complex"
+    )
+    assert len(set(stems.values())) == 3 and "artifacts/sources/ligand.sdf" not in stems
