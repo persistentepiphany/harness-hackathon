@@ -1,0 +1,355 @@
+{
+  "$defs": {
+    "LigandInput": {
+      "additionalProperties": false,
+      "properties": {
+        "ccd": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ccd"
+        },
+        "copies": {
+          "default": 1,
+          "title": "Copies",
+          "type": "integer"
+        },
+        "file": {
+          "anyOf": [
+            {
+              "format": "path",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SDF or MOL file as given to the executor",
+          "title": "File"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "pubchem_cid": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pubchem Cid"
+        },
+        "smiles": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Smiles"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "LigandInput",
+      "type": "object"
+    },
+    "ModelInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Checkpoint"
+        },
+        "database_snapshot": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Database Snapshot"
+        },
+        "executor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Executor"
+        },
+        "seeds": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Seeds",
+          "type": "array"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        }
+      },
+      "title": "ModelInfo",
+      "type": "object"
+    },
+    "ProteinInput": {
+      "additionalProperties": false,
+      "properties": {
+        "chain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Chain"
+        },
+        "copies": {
+          "default": 1,
+          "title": "Copies",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "msa": {
+          "anyOf": [
+            {
+              "format": "path",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A3M alignment paired with this chain",
+          "title": "Msa"
+        },
+        "mutations": {
+          "default": [],
+          "description": "Intended substitutions in UniProt numbering, e.g. L99A",
+          "items": {
+            "type": "string"
+          },
+          "title": "Mutations",
+          "type": "array"
+        },
+        "pdb_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pdb Id"
+        },
+        "sequence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sequence exactly as given to the executor",
+          "title": "Sequence"
+        },
+        "uniprot": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Uniprot"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "ProteinInput",
+      "type": "object"
+    },
+    "ReceptorInput": {
+      "additionalProperties": false,
+      "properties": {
+        "altloc_policy": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Declared altloc handling, e.g. 'A' or 'highest_occupancy'",
+          "title": "Altloc Policy"
+        },
+        "chains": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Chains",
+          "type": "array"
+        },
+        "file": {
+          "anyOf": [
+            {
+              "format": "path",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File"
+        },
+        "pdb_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pdb Id"
+        }
+      },
+      "title": "ReceptorInput",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/persistentepiphany/harness-hackathon/schemas/manifest.json",
+  "additionalProperties": false,
+  "properties": {
+    "claim": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Claim"
+    },
+    "ligands": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/LigandInput"
+      },
+      "title": "Ligands",
+      "type": "array"
+    },
+    "model": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ModelInfo"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "ph": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ph"
+    },
+    "proteins": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ProteinInput"
+      },
+      "title": "Proteins",
+      "type": "array"
+    },
+    "receptor": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ReceptorInput"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "task": {
+      "title": "Task",
+      "type": "string"
+    }
+  },
+  "required": [
+    "task"
+  ],
+  "title": "Manifest",
+  "type": "object"
+}
