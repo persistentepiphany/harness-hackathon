@@ -12,8 +12,9 @@
 # Arguments after `--` on the command line are appended verbatim.
 #
 # `verified` records what was checked from the development sandbox (no GPU there): `pins` means
-# versions, entry points and flags were read from the pinned wheel or kit source; `reachable`
-# means the download URL answered. Nothing here has been run on a GPU yet.
+# versions, entry points and flags were read from the pinned wheel, upstream source or kit source;
+# `reachable` means the download URL answered; `installed` means the install route ran here.
+# Nothing here has been run on a GPU yet.
 version: 1
 
 # Where things live per deployment profile (names match configs/profiles/).
@@ -54,7 +55,7 @@ kit_defaults:
 # Base image for rendered native images (pip and binary routes).
 native_image:
   base: nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04
-  uv_installer: https://astral.sh/uv/0.9.5/install.sh
+  uv_tarball: https://github.com/astral-sh/uv/releases/download/0.9.5/uv-x86_64-unknown-linux-gnu.tar.gz
 
 executors:
   # ---------------------------------------------------------------- co-folding
@@ -83,7 +84,7 @@ executors:
                 --out_dir, "{out_dir}", --seeds, "{seed}", --diffusion_samples, "{samples}"]
       outputs_kit: {structures: "by_seed/*/s*/**/*.cif", confidence: "by_seed/*/s*/**/confidence_*.json"}
       outputs_off: {structures: "boltz_results_*/predictions/*/*.cif", confidence: "boltz_results_*/predictions/*/confidence_*.json"}
-    verified: [pins]
+    verified: [pins, reachable]
 
   - id: boltz1
     tool: Boltz-1
@@ -142,7 +143,7 @@ executors:
       pip: ["protenix==2.0.0"]
       env: {PROTENIX_ROOT_DIR: "{weights}"}
       fetch_weights: null
-      fetch_note: "checkpoint/protenix-v2.pt is not served by upstream (HTTP 403); place it by hand (sha256 8f931f9774a396b67033d0e58628e1834f4a1448165e04254b40a780b0c0d599)."
+      fetch_note: "Per the protenix_v2 kit STOCK.md, upstream answers HTTP 403 for checkpoint/protenix-v2.pt; place it by hand (sha256 8f931f9774a396b67033d0e58628e1834f4a1448165e04254b40a780b0c0d599)."
       command: [protenix, pred, --input, "{input}", --out_dir, "{out_dir}", --seeds, "{seed}", --sample, "{samples}",
                 --model_name, protenix-v2]
       outputs: {structures: "*/seed_*/predictions/*_sample_*.cif", confidence: "*/seed_*/predictions/*_summary_confidence_sample_*.json"}
@@ -155,6 +156,7 @@ executors:
       env: {PROTENIX_ROOT_DIR: "{weights}"}
       command: [bash, "{kit_dir}/run.sh", pred, --config, "{card}", --mode, "{mode}", --input, "{input}",
                 --out_dir, "{out_dir}", --seeds, "{seed}", --sample, "{samples}", --model_name, protenix-v2]
+      check: [bash, "{kit_dir}/run.sh", check, --config, "{card}"]
       outputs_kit: {structures: "*/seed_*/predictions/*_sample_*.cif", confidence: "*/seed_*/predictions/*_summary_confidence_sample_*.json"}
       outputs_off: {structures: "*/seed_*/predictions/*_sample_*.cif", confidence: "*/seed_*/predictions/*_summary_confidence_sample_*.json"}
     verified: [pins]
@@ -234,7 +236,7 @@ executors:
       outputs_kit: {structures: "*/seed-*_sample-*/*_model.cif", confidence: "*/seed-*_sample-*/*_summary_confidences.json"}
       outputs_off: {structures: "*/seed-*_sample-*/*_model.cif", confidence: "*/seed-*_sample-*/*_summary_confidences.json"}
       note: Inputs carry MSAs and templates inline; the kit always passes --norun_data_pipeline.
-    verified: [pins]
+    verified: [pins, reachable]
 
   - id: colabfold
     tool: ColabFold (AlphaFold2-multimer v3)
@@ -247,7 +249,7 @@ executors:
       pip: ["colabfold[alphafold]==1.6.1", "jax[cuda12]"]
       pip_note: jax is unpinned on this route; the kit image pins the exact stack (kit STOCK.md, Stack).
       env: {}
-      fetch_weights: [python, -m, colabfold.download, "{weights}"]
+      fetch_weights: [python, -c, "from pathlib import Path; from colabfold.download import download_alphafold_params as d; [d(m, Path('{weights}')) for m in ('alphafold2_multimer_v3', 'alphafold2_ptm')]"]
       command: [colabfold_batch, "{input}", "{out_dir}", --random-seed, "{seed}", --data, "{weights}"]
       outputs: {structures: "*_unrelaxed_rank_*.pdb", confidence: "*_scores_rank_*.json"}
     accel:
@@ -255,13 +257,13 @@ executors:
       stock: colabfold 1.6.1 with alphafold-colabfold 2.3.13
       configs: [a100, h100, h200]
       modes: ["off", exact, fast, big]
-      min_driver: 580
+      min_driver: 550
       env: {COLABFOLD_OPT_DATA_DIR: "{weights}"}
       command: [bash, "{kit_dir}/run.sh", pred, --config, "{card}", --mode, "{mode}", "{input}", "{out_dir}",
                 --random-seed, "{seed}"]
       outputs_kit: {structures: "*_unrelaxed_rank_*.pdb", confidence: "*_scores_rank_*.json"}
       outputs_off: {structures: "*_unrelaxed_rank_*.pdb", confidence: "*_scores_rank_*.json"}
-    verified: [pins]
+    verified: [pins, reachable]
 
   - id: openfold3
     tool: OpenFold3 (preview-2)
@@ -277,19 +279,19 @@ executors:
       fetch_note: of3-p2-155k.pt from https://openfold.s3.amazonaws.com/staging/of3-p2-155k.pt (kit STOCK.md, Pin).
       command: [run_openfold, predict, --query-json, "{input}", --output-dir, "{out_dir}",
                 --inference-ckpt-path, "{weights}/of3-p2-155k.pt"]
-      outputs: {structures: "**/*.cif", confidence: "**/*confidences*.json"}
+      outputs: {structures: "*/seed_*/*_model.cif", confidence: "*/seed_*/*_confidences_aggregated.json"}
     accel:
       kit: openfold3
       stock: openfold3 0.4.1 (tag 0.4.1, d12f5955)
       configs: [a100, h100, h200, b200, b300]
       modes: ["off", exact, fast, big]
-      min_driver: 580
+      min_driver: 570
       env: {OPENFOLD3_CKPT: "{weights}/of3-p2-155k.pt"}
       command: [bash, "{kit_dir}/run.sh", pred, --config, "{card}", --mode, "{mode}", --query-json, "{input}",
                 --output-dir, "{out_dir}"]
-      outputs_kit: {structures: "**/*.cif", confidence: "**/*confidences*.json"}
-      outputs_off: {structures: "**/*.cif", confidence: "**/*confidences*.json"}
-    verified: [pins]
+      outputs_kit: {structures: "*/seed_*/*_model.cif", confidence: "*/seed_*/*_confidences_aggregated.json"}
+      outputs_off: {structures: "*/seed_*/*_model.cif", confidence: "*/seed_*/*_confidences_aggregated.json"}
+    verified: [pins, reachable]
 
   # ---------------------------------------------------------------- docking
   - id: diffdock
@@ -304,13 +306,13 @@ executors:
         workdir: /home/appuser/DiffDock
       host_probe: /home/appuser/DiffDock/inference.py
       fetch_weights: null
-      fetch_note: Score and confidence models download into ./workdir on first run (GitHub release v1.1); ESM2 weights from dl.fbaipublicfiles.com.
+      fetch_note: inference.py downloads the score and confidence models from the GitHub release when ./workdir lacks them (inference.py:123-135 at 85c49b6). Whether the image ships them was not checked.
       command: [micromamba, run, -n, diffdock, python, -m, inference, --config, default_inference_args.yaml,
                 --protein_path, "{receptor}", --ligand_description, "{ligand}", --complex_name, "{name}",
                 --out_dir, "{out_dir}", --samples_per_complex, "{samples}"]
       outputs: {poses: "*/rank*_confidence*.sdf"}
     accel: null
-    verified: [reachable]
+    verified: [pins, reachable]
 
   - id: gnina
     tool: Gnina
@@ -347,7 +349,7 @@ executors:
                 --out, "{out_dir}/out.pdbqt", --seed, "{seed}", --exhaustiveness, "{exhaustiveness}"]
       outputs: {poses: "out.pdbqt"}
     accel: null
-    verified: [reachable]
+    verified: [reachable, installed]
 
   - id: autodock_gpu
     tool: AutoDock-GPU (AutoDock4 scoring) with AutoGrid4
@@ -362,7 +364,7 @@ executors:
           steps:
             - apt-get update && apt-get install -y --no-install-recommends git make g++ curl bzip2 ca-certificates && rm -rf /var/lib/apt/lists/*
             - git clone https://github.com/ccsb-scripps/AutoDock-GPU /opt/AutoDock-GPU && git -C /opt/AutoDock-GPU checkout e63e6f6280ebfad18caa3e8f48afdc269e79e063
-            - cd /opt/AutoDock-GPU && make DEVICE=CUDA NUMWI=128 GPU_INCLUDE_PATH=/usr/local/cuda/include GPU_LIBRARY_PATH=/usr/local/cuda/lib64 && cp bin/autodock_gpu_128wi /usr/local/bin/
+            - cd /opt/AutoDock-GPU && GPU_INCLUDE_PATH=/usr/local/cuda/include GPU_LIBRARY_PATH=/usr/local/cuda/lib64 make DEVICE=CUDA NUMWI=128 && cp bin/autodock_gpu_128wi /usr/local/bin/
             - curl -fsSL https://micro.mamba.pm/api/micromamba/linux-64/2.3.3 | tar -xj -C /usr/local bin/micromamba
             - micromamba create -y -p /opt/autogrid -c conda-forge -c bioconda autogrid=4.2.6 && ln -s /opt/autogrid/bin/autogrid4 /usr/local/bin/autogrid4
         tag: autodock-gpu:v1.6

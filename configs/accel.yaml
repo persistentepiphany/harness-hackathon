@@ -19,7 +19,8 @@ policy: auto
 mode: fast
 # A kit that cannot engage prints "[<kit>-opt] NOT ACTIVE: <reason>" and exits with this code.
 not_active_exit_code: 3
-# Kits refuse GPUs below compute capability 8.0.
+# Below compute capability 8.0 the boltz2 kit refuses the GPU and af3_jax `fast`/`big` exit 3
+# (kit READMEs); the runner treats 8.0 as the floor for every kit.
 min_compute_capability: 8.0
 # GPU to kit card config. Name rules are tried first, then compute capability rules (highest
 # first). The first config the kit ships is used; `run.sh check` decides whether it engages.

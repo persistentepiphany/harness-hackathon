@@ -153,7 +153,10 @@ def native_steps(reg: RuntimeRegistry, rt: ExecutorRuntime) -> tuple[str, list[s
         "&& rm -rf /var/lib/apt/lists/*"
     )
     if native.kind == "pip":
-        uv = f"curl -LsSf {reg.native_image.uv_installer} | env UV_INSTALL_DIR=/usr/local/bin sh"
+        uv = (
+            f"curl -fsSL {reg.native_image.uv_tarball} "
+            "| tar -xz -C /usr/local/bin --strip-components=1"
+        )
         pip = " ".join(shlex.quote(p) for p in native.pip)
         return base, [
             apt,

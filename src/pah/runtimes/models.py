@@ -142,7 +142,7 @@ class KitDefaults(_Model):
 
 class NativeImageDefaults(_Model):
     base: str
-    uv_installer: str
+    uv_tarball: str
 
 
 class RuntimeRegistry(_Model):
