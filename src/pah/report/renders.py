@@ -6,8 +6,7 @@ import json
 import re
 import subprocess
 import sys
-from collections import Counter
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
@@ -73,19 +72,12 @@ def _resolve(run_dir: Path, artifact: Artifact) -> Path:
     return p if p.is_absolute() else run_dir / p
 
 
-def render_stems(artifacts: Sequence[Artifact]) -> dict[str, str]:
-    """Output file stem per rendered structure. A structure keeps its own file stem unless
-    another one shares it (every docking pose may be `complex.pdb`); those take their path
-    inside the run directory, so no render overwrites another."""
-    paths = [a.path for a in artifacts if a.kind in RENDERED_KINDS]
-    counts = Counter(Path(p).stem for p in paths)
-    stems: dict[str, str] = {}
-    for p in paths:
-        stem = Path(p).stem
-        if counts[stem] > 1:
-            stem = "_".join(Path(p).with_suffix("").parts)
-        stems[p] = re.sub(r"[^A-Za-z0-9_.-]", "_", stem)
-    return stems
+def render_stem(a: Artifact) -> str:
+    """File stem for an artifact's renders: the pose id for predictions (several executors write
+    every pose as `complex.pdb`), otherwise the file stem."""
+    if a.kind is ArtifactKind.PREDICTION_STRUCTURE and a.label:
+        return re.sub(r"[^A-Za-z0-9_.-]+", "_", a.label).strip("_")
+    return Path(a.path).stem
 
 
 def render_structures(
@@ -97,7 +89,6 @@ def render_structures(
     """Renders every structure artifact. `on_result` is called after each structure, so the
     files can be announced while later structures are still rendering."""
     renderer = renderer or PymolRenderer()
-    stems = render_stems(record.artifacts)
     out_dir = run_dir / "renders"
     out_dir.mkdir(parents=True, exist_ok=True)
     ligands = [
@@ -108,7 +99,7 @@ def render_structures(
         if a.kind not in RENDERED_KINDS:
             continue
         overlay = ligands if a.kind is ArtifactKind.PREDICTION_STRUCTURE else []
-        stem = out_dir / stems[a.path]
+        stem = out_dir / render_stem(a)
         try:
             raw = renderer.render(_resolve(run_dir, a), overlay, stem)
             pngs = raw.get("pngs", {})
@@ -143,7 +134,6 @@ def require_renders(record: RunRecord, results: list[RenderResult]) -> None:
 
 def figure_entries(results: list[RenderResult], rel_to: Path) -> list[FigureEntry]:
     entries = []
-    stems = render_stems([r.structure for r in results])
     for r in results:
         if r.error:
             continue
@@ -153,7 +143,7 @@ def figure_entries(results: list[RenderResult], rel_to: Path) -> list[FigureEntr
             organic = f"; organic components {', '.join(r.organic)}" if r.organic else ""
             entries.append(
                 FigureEntry(
-                    id=f"render_{stems[r.structure.path]}_{view}",
+                    id=f"render_{render_stem(r.structure)}_{view}",
                     kind="render",
                     path=str(png.relative_to(rel_to)),
                     caption=(

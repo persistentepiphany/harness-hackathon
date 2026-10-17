@@ -305,6 +305,17 @@ def reference_inchikeys(ctx: CheckContext, lig: LigandInput) -> dict[str, str]:
 
 
 def read_a3m(path: Path) -> list[tuple[str, str]]:
+    """Records of an A3M file, or of a Boltz MSA CSV (`key,sequence`; key -1 means unpaired,
+    other keys pair rows across chains and become the header `key=<k>`)."""
+    if path.suffix.lower() == ".csv":
+        import csv
+
+        with path.open(newline="") as fh:
+            return [
+                (f"key={row['key']}", row["sequence"].strip())
+                for row in csv.DictReader(fh)
+                if row.get("sequence")
+            ]
     records: list[tuple[str, str]] = []
     header: str | None = None
     parts: list[str] = []

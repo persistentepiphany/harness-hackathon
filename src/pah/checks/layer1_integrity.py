@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from pah.checks import outputs, resolve
-from pah.core.check import Check, CheckContext, SkipReason, register
+from pah.core.check import Check, CheckContext, GateKind, SkipReason, register
 from pah.core.models import Finding, Gate, Layer, Threshold, ToolRef
 from pah.sources import SourceUnavailableError
 
@@ -327,6 +327,7 @@ class LigandStereo(Check):
     layer = Layer.INTEGRITY
     title = "Stereocentres and double-bond geometry explicitly defined"
     requires_modules = ("rdkit",)
+    gate_kind = GateKind.WARN
 
     def applies(self, ctx: CheckContext) -> str | None:
         return None if _ligands(ctx) else "no ligand declared"
@@ -560,6 +561,7 @@ class ReceptorAltlocs(Check):
     layer = Layer.INTEGRITY
     title = "Alternate locations resolved deliberately"
     requires_modules = ("gemmi",)
+    gate_kind = GateKind.WARN
 
     def applies(self, ctx: CheckContext) -> str | None:
         r = ctx.manifest.receptor

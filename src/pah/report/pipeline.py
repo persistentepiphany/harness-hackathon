@@ -8,11 +8,13 @@ from collections.abc import Callable, Sequence
 from datetime import datetime
 from pathlib import Path
 
+from pah.api.adapter import ui_outcome, ui_record
 from pah.core.engine import RunRecord
 from pah.core.models import Artifact, ArtifactKind
 from pah.report import figures as figs
 from pah.report.builder import build_batch_report, build_run_report
 from pah.report.graph import write_graph
+from pah.report.html import render_batch_html, render_html, visible_text
 from pah.report.markdown import batch_markdown, run_markdown
 from pah.report.model import BatchReport, BatchTargetRow, RunReport
 from pah.report.renders import (
@@ -81,6 +83,12 @@ def write_run_report(
     note(run_dir / figure.path, ArtifactKind.FIGURE, figure.id)
     if figure.data_path:
         note(run_dir / figure.data_path, ArtifactKind.DATA, figure.id)
+    ui = ui_record(run_dir)
+    stats_figs, figure_errors = figs.stats_figures(ui["stats"], run_dir / "figures", run_dir)
+    for f in stats_figs:
+        note(run_dir / f.path, ArtifactKind.FIGURE, f.id)
+        if f.data_path:
+            note(run_dir / f.data_path, ArtifactKind.DATA, f.id)
     graph = write_graph(record, run_dir)
     for p in graph.values():
         note(p, ArtifactKind.GRAPH, "provenance graph")
@@ -88,20 +96,35 @@ def write_run_report(
         title = load_task(record.task).title
     except (OSError, ValueError):
         title = record.task
+    ui_path = run_dir / "ui_record.json"
+    ui_path.write_text(json.dumps(ui, indent=2))
+    emit(ui_path, ArtifactKind.REPORT, "ui record")
     report = build_run_report(
         record,
         task_title=title,
-        figures=[figure, *figure_entries(results, run_dir)],
+        figures=[figure, *stats_figs, *figure_entries(results, run_dir)],
         graph={k: str(p.relative_to(run_dir)) for k, p in graph.items()},
         extra_artifacts=produced,
-        render_errors=[f"{r.structure.path}: {r.error}" for r in results if r.error],
+        render_errors=[
+            *(f"{r.structure.path}: {r.error}" for r in results if r.error),
+            *figure_errors,
+        ],
     )
-    md = run_markdown(report)
+    md = run_markdown(report, ui)
     (run_dir / "report.md").write_text(md)
     emit(run_dir / "report.md", ArtifactKind.REPORT, "markdown")
+    page = render_html(
+        ui,
+        figures=report.figures,
+        files=report.artifacts,
+        limitations=report.limitations,
+        errors=report.render_errors,
+    )
+    (run_dir / "report.html").write_text(page)
+    emit(run_dir / "report.html", ArtifactKind.REPORT, "html")
     (run_dir / "report.json").write_text(report.model_dump_json(indent=2))
     emit(run_dir / "report.json", ArtifactKind.REPORT, "json")
-    return report, lint(md)
+    return report, [*lint(md), *lint(visible_text(page))]
 
 
 def write_batch_report(
@@ -140,9 +163,18 @@ def write_batch_report(
     md = batch_markdown(report)
     (batch_dir / "batch_report.md").write_text(md)
     emit(batch_dir / "batch_report.md", ArtifactKind.REPORT, "markdown")
+    outcomes = {t.name: ui_outcome(t.verdict) for t in report.targets if t.verdict}
+    links = {
+        t.name: f"{t.name}/report.html"
+        for t in report.targets
+        if (batch_dir / t.name / "report.html").is_file()
+    }
+    page = render_batch_html(report, outcomes=outcomes, links=links, figures=figures)
+    (batch_dir / "batch_report.html").write_text(page)
+    emit(batch_dir / "batch_report.html", ArtifactKind.REPORT, "html")
     (batch_dir / "batch_report.json").write_text(report.model_dump_json(indent=2))
     emit(batch_dir / "batch_report.json", ArtifactKind.REPORT, "json")
-    return report, lint(md)
+    return report, [*lint(md), *lint(visible_text(page))]
 
 
 def load_batch_targets(batch_dir: Path) -> list[BatchTargetRow]:

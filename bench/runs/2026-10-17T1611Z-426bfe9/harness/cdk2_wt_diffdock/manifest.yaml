@@ -1,0 +1,38 @@
+task: ligand_pose
+claim: Predicted pose of ATP in CDK2 is valid
+ph: 7.4
+proteins:
+- id: protein
+  sequence: XMENFQKVEKIGEGTYGVVYKARNKLTGEVVALKKIRLDTETEGVPSTAIREISLLKELNHPNIVKLLDVIHTENKLYLVFEFLHQDLKKFMDASALTGIPLPLIKSYLFQLLQGLAFCHSHRVLHRDLKPQNLLINTEGAIKLADFGLARAFGVPVRTYTHEVVTLWYRAPEILLGCKYYSTAVDIWSLGCIFAEMVTRRALFPGDSEIDQLFRIFRTLGTPDEVVWPGVTSMPDYKPSFPKWARQDFSKVVPPLDEDGRSLLSQMLHYDPNKRISAKAALAHPFFQDVTKPVPHLRL
+ligands:
+- id: ligand
+  smiles: c1nc(c2c(n1)n(cn2)[C@H]3[C@@H]([C@@H]([C@H](O3)CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)O)O)N
+receptor:
+  pdb_id: 1B38
+  chains:
+  - A
+reference:
+  pdb_id: 1B38
+  ligand: ATP
+  chain: A
+model:
+  executor: diffdock
+  version: v1.1.3
+  checkpoint: diffdock-l
+  database_snapshot: null
+  seeds: &id001
+  - 1
+  - 2
+  - 3
+predictions:
+- executor: diffdock
+  path: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/predictions/cdk2_wt/diffdock
+  ligand: ligand
+  role: primary
+  seeds: *id001
+  receptor: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/prep/cdk2_wt/rec.pdb
+- executor: boltz2
+  path: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/predictions/cdk2_wt/boltz2
+  ligand: ligand
+  role: secondary
+  seeds: *id001

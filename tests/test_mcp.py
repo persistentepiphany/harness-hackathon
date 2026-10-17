@@ -62,7 +62,7 @@ def test_run_streams_progress_and_returns_verdict(offline_profile: Profile) -> N
     assert len(progress) == 13 and progress[-1][1] == 13
 
     report = _call(server, "pah_get_report", {"run_id": summary["run_id"]})
-    assert "## Summary" in report.content[0].text
+    assert "## Layers" in report.content[0].text
 
     stops = _payload(
         _call(server, "pah_get_findings", {"run_id": summary["run_id"], "gate": "warn"})
@@ -102,3 +102,26 @@ def test_resources(offline_profile: Profile) -> None:
     task, schema = asyncio.run(go())
     assert json.loads(task)["claim"] == "Pose within stated uncertainty"
     assert "proteins" in json.loads(schema)["properties"]
+
+
+def test_ui_record_resource_and_html_report(profile: Profile) -> None:
+    pytest.importorskip("numpy")
+    pytest.importorskip("matplotlib")
+    from pah.config import resolve_path
+    from pah.report import write_run_report
+    from tests.conftest import FakeRenderer
+    from tests.synthetic import write_synthetic_run
+
+    run = write_synthetic_run(resolve_path(profile.runs_dir) / "synthetic")
+    write_run_report(run, renderer=FakeRenderer())
+    server = build_server(profile)
+
+    async def go() -> str:
+        async with Client(server) as client:
+            res = await client.read_resource("pah://runs/synthetic/ui_record.json")
+            return res.contents[0].text  # type: ignore[union-attr]
+
+    ui = json.loads(asyncio.run(go()))
+    assert ui["source"] == "pah" and ui["verdict"]["outcome"] == "narrowed"
+    html = _call(server, "pah_get_report", {"run_id": "synthetic", "format": "html"})
+    assert 'data-testid="verdict"' in html.content[0].text

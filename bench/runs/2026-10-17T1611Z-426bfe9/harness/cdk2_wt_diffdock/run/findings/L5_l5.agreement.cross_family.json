@@ -1,0 +1,57 @@
+{
+  "check_id": "l5.agreement.cross_family",
+  "layer": 5,
+  "gate": "pass",
+  "message": "diffdock vs crystal 1B38 0.791 Å (decisive)",
+  "measurements": [
+    {
+      "name": "methods",
+      "value": 1,
+      "unit": null
+    },
+    {
+      "name": "comparisons",
+      "value": 1,
+      "unit": null
+    },
+    {
+      "name": "disagreeing",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "rmsd_to_crystal_A",
+      "value": 0.791,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "rmsd",
+      "value": 2.0,
+      "comparator": "<=",
+      "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 Å",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "comparisons": [
+      {
+        "method": "diffdock",
+        "vs": "crystal 1B38",
+        "value": 0.791,
+        "unit": "Å",
+        "weight": "decisive"
+      }
+    ],
+    "medoids": {
+      "diffdock": "diffdock/seed3/mode0"
+    }
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "spyrmsd",
+    "version": null
+  },
+  "duration_s": 0.034
+}

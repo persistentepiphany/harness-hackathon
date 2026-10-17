@@ -22,11 +22,20 @@ def test_run_report_files_and_content(clean_run: Path) -> None:
         emit=lambda p, k, _label: emitted.append((p.name, k.value)),
     )
     assert issues == []
-    for name in ("report.md", "report.json", "graph.json", "graph.mmd", "graph.svg"):
+    for name in (
+        "report.md",
+        "report.html",
+        "report.json",
+        "ui_record.json",
+        "graph.json",
+        "graph.mmd",
+        "graph.svg",
+    ):
         assert (clean_run / name).is_file(), name
     assert (clean_run / "figures" / "gates_by_layer.svg").is_file()
     assert (clean_run / "figures" / "gates_by_layer.csv").read_text().startswith("layer,pass")
     assert ("report.md", "report") in emitted and ("3PTB_overview.png", "render") in emitted
+    assert ("report.html", "report") in emitted and ("ui_record.json", "report") in emitted
 
     record = RunRecord.model_validate_json((clean_run / "record.json").read_text())
     in_report = {f.check_id for s in report.sections for f in s.findings}
@@ -41,17 +50,22 @@ def test_run_report_files_and_content(clean_run: Path) -> None:
 
     md = (clean_run / "report.md").read_text()
     for heading in (
-        "## Summary",
-        "## Inputs",
-        "## Results by layer",
+        "# Run report · Ligand pose in a known pocket",
+        "## Layers",
         "## Figures",
+        "## Structures",
+        "## L0 Provenance",
+        "## L1 Input integrity",
+        "#### Checks",
         "## Provenance",
+        "## Thresholds",
         "## Limitations",
         "## Files",
-        "### Thresholds",
     ):
         assert heading in md, heading
+    assert "**Narrowed** for the claim" in md
     assert "l1.ligand.stereo_defined" in md and "P00760" in md
+    assert "`undefined 1 == 0`" in md and "| L3 Applicability | not run |" in md
 
 
 def test_report_is_deterministic_apart_from_files(clean_run: Path) -> None:
@@ -112,25 +126,3 @@ def test_style_lint_rules() -> None:
 def test_readme_passes_style_lint() -> None:
     readme = (Path(__file__).resolve().parents[1] / "README.md").read_text()
     assert lint(readme) == []
-
-
-def test_render_stems_disambiguate_shared_file_names() -> None:
-    from pah.core.models import Artifact, ArtifactKind
-    from pah.report.renders import render_stems
-
-    def art(path: str, kind: ArtifactKind = ArtifactKind.PREDICTION_STRUCTURE) -> Artifact:
-        return Artifact(path=path, kind=kind, sha256="0" * 64, size_bytes=1)
-
-    stems = render_stems(
-        [
-            art("artifacts/sources/3PTB.cif", ArtifactKind.SOURCE_STRUCTURE),
-            art("predictions/00_vina/vina/seed0/mode1/complex.pdb"),
-            art("predictions/00_vina/vina/seed1/mode1/complex.pdb"),
-            art("artifacts/sources/ligand.sdf", ArtifactKind.INPUT_LIGAND),
-        ]
-    )
-    assert stems["artifacts/sources/3PTB.cif"] == "3PTB"
-    assert stems["predictions/00_vina/vina/seed0/mode1/complex.pdb"] == (
-        "predictions_00_vina_vina_seed0_mode1_complex"
-    )
-    assert len(set(stems.values())) == 3 and "artifacts/sources/ligand.sdf" not in stems

@@ -5,8 +5,11 @@ description: Run the prediction assurance harness on co-folding or docking input
 
 # Prediction assurance harness
 
-The harness decides whether inputs (and, from milestone 3, outputs) of a co-folding or docking
-run can support a declared claim. Layers 0 (provenance) and 1 (input integrity) are implemented.
+The harness decides whether the inputs and outputs of a co-folding or docking run can support a
+declared claim. All six layers are implemented: 0 provenance, 1 input integrity, 2 input
+adequacy, 3 applicability, 4 output validity, 5 output support. Layers 4 and 5 need a
+`predictions:` block in the manifest (executor id and output path; see `examples/3ptb_vina/`).
+`pah dock <manifest> --out DIR` docks the ligand with local Vina and writes such a manifest.
 
 ## Interfaces
 
@@ -26,8 +29,7 @@ run can support a declared claim. Layers 0 (provenance) and 1 (input integrity) 
 4. Read `verdict`, `stops` and `warnings` from the result. `stop` means the claim is not
    supported by these inputs; `incomplete` means a check could not run.
 5. Fetch the report: `pah_get_report(run_id)`. It is factual (values, thresholds with origin,
-   provenance). To turn it into prose, apply
-   `third_party/skills/claude-scientific-writer/skills/scientific-writing/SKILL.md` and
-   `third_party/skills/humanizer/SKILL.md`, adding no claims beyond the report.
+   provenance). To turn it into prose, use the `pah-report` skill (it loads
+   `scientific-writing` and `humanizer`) and check the text with `pah lint`.
 6. Several targets: `pah_batch(batch_path="examples/batches/validation.yaml")`, then
    `pah_get_report(batch_id)` for the comparative table and gate matrix.

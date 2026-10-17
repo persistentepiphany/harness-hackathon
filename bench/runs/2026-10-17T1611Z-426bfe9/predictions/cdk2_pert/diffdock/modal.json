@@ -1,0 +1,99 @@
+{
+  "system": "cdk2_pert",
+  "executor": "diffdock",
+  "version": "v1.1.3",
+  "image": "rbgcsail/diffdock:v1.1.3@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0",
+  "runs": [
+    {
+      "replicate": 1,
+      "argv": [
+        "/home/appuser/bin/micromamba",
+        "run",
+        "-n",
+        "diffdock",
+        "python",
+        "-m",
+        "inference",
+        "--config",
+        "default_inference_args.yaml",
+        "--protein_path",
+        "/tmp/diffdock/cdk2_pert/rec.pdb",
+        "--ligand_description",
+        "c1nc(c2c(n1)n(cn2)[C@H]3[C@@H]([C@@H]([C@H](O3)CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)O)O)N",
+        "--complex_name",
+        "cdk2_pert",
+        "--out_dir",
+        "/tmp/diffdock/cdk2_pert/seed_1",
+        "--samples_per_complex",
+        "10"
+      ],
+      "rc": 0,
+      "seconds": 74.1,
+      "tail": "Generating ESM language model embeddings\nProcessing 1 of 1 batches (1 sequences)\n/home/appuser/micromamba/envs/diffdock/lib/python3.9/site-packages/Bio/pairwise2.py:278: BiopythonDeprecationWarning: Bio.pairwise2 has been deprecated, and we intend to remove it in a future release of Biopython. As an alternative, please consider using Bio.Align.PairwiseAligner as a replacement, and contact the Biopython developers if you still need the Bio.pairwise2 module.\n  warnings.warn(\n\n0it [00:00, ?it/s]/home/appuser/DiffDock/datasets/parse_chi.py:91: RuntimeWarning: invalid value encountered in cast\n  Y = indices.astype(int)\n[2026-Oct-17 16:39:46 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 3: 1 / 10 samples failed\n[2026-Oct-17 16:39:48 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 4: 1 / 10 samples failed\n[2026-Oct-17 16:39:49 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 5: 1 / 10 samples failed\n[2026-Oct-17 16:39:50 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 6: 1 / 10 samples failed\n[2026-Oct-17 16:39:52 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 7: 1 / 10 samples failed\n[2026-Oct-17 16:39:53 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 8: 1 / 10 samples failed\n[2026-Oct-17 16:39:55 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 9: 1 / 10 samples failed\n[2026-Oct-17 16:39:56 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 10: 1 / 10 samples failed\n[2026-Oct-17 16:39:57 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 11: 1 / 10 samples failed\n[2026-Oct-17 16:39:58 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 12: 1 / 10 samples failed\n[2026-Oct-17 16:39:59 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 13: 1 / 10 samples failed\n[2026-Oct-17 16:40:00 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 14: 1 / 10 samples failed\n[2026-Oct-17 16:40:01 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 15: 1 / 10 samples failed\n[2026-Oct-17 16:40:02 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 16: 1 / 10 samples failed\n[2026-Oct-17 16:40:02 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 17: 1 / 10 samples failed\n[2026-Oct-17 16:40:03 UTC] WARNING -Complex ['cdk2_pert'] Batch 1 Inference Iteration 18: 1 / 10 samples failed\n\n1it [00:35, 35.38s/it]\n1it [00:35, 35.38s/it]\n"
+    },
+    {
+      "replicate": 2,
+      "argv": [
+        "/home/appuser/bin/micromamba",
+        "run",
+        "-n",
+        "diffdock",
+        "python",
+        "-m",
+        "inference",
+        "--config",
+        "default_inference_args.yaml",
+        "--protein_path",
+        "/tmp/diffdock/cdk2_pert/rec.pdb",
+        "--ligand_description",
+        "c1nc(c2c(n1)n(cn2)[C@H]3[C@@H]([C@@H]([C@H](O3)CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)O)O)N",
+        "--complex_name",
+        "cdk2_pert",
+        "--out_dir",
+        "/tmp/diffdock/cdk2_pert/seed_2",
+        "--samples_per_complex",
+        "10"
+      ],
+      "rc": 0,
+      "seconds": 70.8,
+      "tail": "Generating ESM language model embeddings\nProcessing 1 of 1 batches (1 sequences)\n/home/appuser/micromamba/envs/diffdock/lib/python3.9/site-packages/Bio/pairwise2.py:278: BiopythonDeprecationWarning: Bio.pairwise2 has been deprecated, and we intend to remove it in a future release of Biopython. As an alternative, please consider using Bio.Align.PairwiseAligner as a replacement, and contact the Biopython developers if you still need the Bio.pairwise2 module.\n  warnings.warn(\n\n0it [00:00, ?it/s]/home/appuser/DiffDock/datasets/parse_chi.py:91: RuntimeWarning: invalid value encountered in cast\n  Y = indices.astype(int)\n\n1it [00:36, 36.49s/it]\n1it [00:36, 36.49s/it]\n"
+    },
+    {
+      "replicate": 3,
+      "argv": [
+        "/home/appuser/bin/micromamba",
+        "run",
+        "-n",
+        "diffdock",
+        "python",
+        "-m",
+        "inference",
+        "--config",
+        "default_inference_args.yaml",
+        "--protein_path",
+        "/tmp/diffdock/cdk2_pert/rec.pdb",
+        "--ligand_description",
+        "c1nc(c2c(n1)n(cn2)[C@H]3[C@@H]([C@@H]([C@H](O3)CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)O)O)N",
+        "--complex_name",
+        "cdk2_pert",
+        "--out_dir",
+        "/tmp/diffdock/cdk2_pert/seed_3",
+        "--samples_per_complex",
+        "10"
+      ],
+      "rc": 0,
+      "seconds": 70.0,
+      "tail": "Generating ESM language model embeddings\nProcessing 1 of 1 batches (1 sequences)\n/home/appuser/micromamba/envs/diffdock/lib/python3.9/site-packages/Bio/pairwise2.py:278: BiopythonDeprecationWarning: Bio.pairwise2 has been deprecated, and we intend to remove it in a future release of Biopython. As an alternative, please consider using Bio.Align.PairwiseAligner as a replacement, and contact the Biopython developers if you still need the Bio.pairwise2 module.\n  warnings.warn(\n\n0it [00:00, ?it/s]/home/appuser/DiffDock/datasets/parse_chi.py:91: RuntimeWarning: invalid value encountered in cast\n  Y = indices.astype(int)\n\n1it [00:36, 36.40s/it]\n1it [00:36, 36.40s/it]\n"
+    }
+  ],
+  "gpu": "NVIDIA A100-SXM4-40GB, 610.57.04, 40960 MiB",
+  "env": {
+    "MODAL_IMAGE_ID": "im-x9zfDmm5IJzmQ6ydao7RUw",
+    "MODAL_TASK_ID": "ta-01M55BNYE8T0J0AM7JH0HQJM0R",
+    "MODAL_REGION": "us-west"
+  },
+  "volume_file": {
+    "path": "/results/cdk2_pert_diffdock.tar.gz",
+    "bytes": 59493
+  }
+}
