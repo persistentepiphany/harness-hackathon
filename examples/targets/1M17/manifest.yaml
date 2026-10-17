@@ -1,0 +1,29 @@
+# 1M17 AQ4: EGFR kinase domain + erlotinib
+task: ligand_pose
+claim: Pose within stated uncertainty
+proteins:
+- id: P00533_e1
+  uniprot: P00533
+  pdb_id: 1M17
+  chain: A
+  sequence: SGEAPNQALLRILKETEFKKIKVLGSGAFGTVYKGLWIPEGEKVKIPVAIKELREATSPKANKEILDEAYVMASVDNPHVCRLLGICLTSTVQLITQLMPFGCLLDYVREHKDNIGSQYLLNWCVQIAKGMNYLEDRRLVHRDLAARNVLVKTPQHVKITDFGLAKLLGAEEKEYHAEGGKVPIKWMALESILHRIYTHQSDVWSYGVTVWELMTFGSKPYDGIPASEISSILEKGERLPQPPICTIDVYMIMVKCWMIDADSRPKFRELIIEFSKMARDPQRYLVIQGDERMHLPSPTDSNFYRALMDEEDMDDVVDADEYLIPQQG
+  copies: 1
+ligands:
+- id: aq4
+  ccd: AQ4
+  smiles: COCCOc1cc2c(cc1OCCOC)ncnc2Nc3cccc(c3)C#C
+  file: AQ4.sdf
+receptor:
+  pdb_id: 1M17
+  chains:
+  - A
+model:
+  executor: boltz2
+  version: 2.2.1
+  checkpoint: boltz2_conf.ckpt
+  seeds:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4

@@ -1,0 +1,52 @@
+{
+  "$id": "https://github.com/persistentepiphany/harness-hackathon/schemas/batch_spec.json",
+  "additionalProperties": false,
+  "properties": {
+    "layers": {
+      "default": [
+        0,
+        1
+      ],
+      "items": {
+        "type": "integer"
+      },
+      "title": "Layers",
+      "type": "array"
+    },
+    "name": {
+      "default": "batch",
+      "title": "Name",
+      "type": "string"
+    },
+    "offline": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Offline"
+    },
+    "report": {
+      "default": true,
+      "title": "Report",
+      "type": "boolean"
+    },
+    "targets": {
+      "items": {
+        "format": "path",
+        "type": "string"
+      },
+      "title": "Targets",
+      "type": "array"
+    }
+  },
+  "required": [
+    "targets"
+  ],
+  "title": "BatchSpec",
+  "type": "object"
+}

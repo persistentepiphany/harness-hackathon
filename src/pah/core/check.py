@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
@@ -11,6 +12,8 @@ from typing import Any, ClassVar, TypeVar
 
 from pah.core.manifest import Manifest
 from pah.core.models import (
+    Artifact,
+    ArtifactKind,
     Finding,
     Gate,
     Layer,
@@ -18,6 +21,7 @@ from pah.core.models import (
     Provenance,
     Threshold,
     ToolRef,
+    provenance_id,
 )
 from pah.core.task import TaskSpec
 from pah.sources import Sources
@@ -46,14 +50,49 @@ class CheckContext:
     run_dir: Path
     state: dict[str, Any] = field(default_factory=dict)
     provenance: list[Provenance] = field(default_factory=list)
+    artifacts: list[Artifact] = field(default_factory=list)
+    usage: dict[str, list[str]] = field(default_factory=dict)
+    current_check: str | None = None
 
     def record(self, *items: Provenance) -> None:
+        """Adds source records to the run's provenance and marks them used by the current check."""
         for p in items:
             if all(
                 (q.sha256, q.url, q.accession) != (p.sha256, p.url, p.accession)
                 for q in self.provenance
             ):
                 self.provenance.append(p)
+            self.use(p)
+
+    def use(self, p: Provenance) -> None:
+        if self.current_check is None:
+            return
+        used = self.usage.setdefault(self.current_check, [])
+        pid = provenance_id(p)
+        if pid not in used:
+            used.append(pid)
+
+    def add_artifact(
+        self, path: Path, kind: ArtifactKind, label: str = "", derived_from: tuple[str, ...] = ()
+    ) -> Artifact:
+        """Registers a file with its checksum. Repeated registration of one path is ignored."""
+        rel = (
+            str(path.relative_to(self.run_dir)) if path.is_relative_to(self.run_dir) else str(path)
+        )
+        for a in self.artifacts:
+            if a.path == rel:
+                return a
+        data = path.read_bytes()
+        artifact = Artifact(
+            path=rel,
+            kind=kind,
+            sha256=hashlib.sha256(data).hexdigest(),
+            size_bytes=len(data),
+            label=label,
+            derived_from=derived_from,
+        )
+        self.artifacts.append(artifact)
+        return artifact
 
     def artifact_path(self, name: str) -> Path:
         path = self.run_dir / "artifacts" / name

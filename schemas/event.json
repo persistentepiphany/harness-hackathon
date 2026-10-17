@@ -1,0 +1,62 @@
+{
+  "$defs": {
+    "EventKind": {
+      "enum": [
+        "run_start",
+        "stage_start",
+        "progress",
+        "result",
+        "finding",
+        "artifact",
+        "stage_end",
+        "run_end",
+        "log"
+      ],
+      "title": "EventKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/persistentepiphany/harness-hackathon/schemas/event.json",
+  "additionalProperties": false,
+  "description": "One unit of streamed output. Sinks render or forward events as they arrive.",
+  "properties": {
+    "data": {
+      "additionalProperties": true,
+      "title": "Data",
+      "type": "object"
+    },
+    "kind": {
+      "$ref": "#/$defs/EventKind"
+    },
+    "message": {
+      "title": "Message",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "seq": {
+      "title": "Seq",
+      "type": "integer"
+    },
+    "stage": {
+      "title": "Stage",
+      "type": "string"
+    },
+    "ts": {
+      "format": "date-time",
+      "title": "Ts",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "seq",
+    "kind",
+    "stage",
+    "message"
+  ],
+  "title": "Event",
+  "type": "object"
+}

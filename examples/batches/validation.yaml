@@ -1,0 +1,16 @@
+# Validation batch: the PDB entries used to test layers 0 and 1 on live data.
+# Run with: pah batch examples/batches/validation.yaml
+name: validation
+layers: [0, 1]
+halt: false        # run layer 1 even after a layer 0 stop, to list every fault
+targets:
+  - ../3ptb_ligand_pose/manifest.yaml
+  - ../3ptb_faulty_inputs/manifest.yaml
+  - ../targets/1STP/manifest.yaml
+  - ../targets/1HSG/manifest.yaml
+  - ../targets/2RH1/manifest.yaml
+  - ../targets/4HHB/manifest.yaml
+  - ../targets/1M17/manifest.yaml
+  - ../targets/3HTB/manifest.yaml
+  - ../targets/4HHB_interaction/manifest.yaml
+  - ../targets/1M17_screening/manifest.yaml

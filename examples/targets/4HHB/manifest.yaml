@@ -1,0 +1,38 @@
+# 4HHB HEM: haemoglobin tetramer, two UniProt entities, iron ligand
+task: ligand_pose
+claim: Pose within stated uncertainty
+proteins:
+- id: P69905_e1
+  uniprot: P69905
+  pdb_id: 4HHB
+  chain: A
+  sequence: VLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSHGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR
+  copies: 2
+- id: P68871_e2
+  uniprot: P68871
+  pdb_id: 4HHB
+  chain: B
+  sequence: VHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH
+  copies: 2
+ligands:
+- id: hem
+  ccd: HEM
+  smiles: Cc1c2n3c(c1CCC(=O)O)C=C4C(=C(C5=[N]4[Fe]36[N]7=C(C=C8N6C(=C5)C(=C8C)C=C)C(=C(C7=C2)C)C=C)C)CCC(=O)O
+  file: HEM.sdf
+receptor:
+  pdb_id: 4HHB
+  chains:
+  - A
+  - B
+  - C
+  - D
+model:
+  executor: boltz2
+  version: 2.2.1
+  checkpoint: boltz2_conf.ckpt
+  seeds:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4

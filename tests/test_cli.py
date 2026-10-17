@@ -90,9 +90,13 @@ def test_run_example_offline_jsonl(tmp_path) -> None:  # type: ignore[no-untyped
     events = [json.loads(line) for line in result.stdout.splitlines()]
     findings = [e for e in events if e["kind"] == "finding"]
     assert len(findings) == 13
-    assert events[-4]["kind"] == "run_end"
-    assert events[-4]["data"]["verdict"]["outcome"] == "pass_with_warnings"
+    run_end = next(e for e in events if e["kind"] == "run_end")
+    assert run_end["data"]["verdict"]["outcome"] == "pass_with_warnings"
     assert (out / "record.json").is_file() and len(list((out / "findings").iterdir())) == 13
+    artifacts = [e["data"]["path"] for e in events if e["kind"] == "artifact"]
+    assert any(a.endswith("report.md") for a in artifacts)
+    assert events.index(run_end) < max(i for i, e in enumerate(events) if e["kind"] == "artifact")
+    assert (out / "report.json").is_file() and (out / "graph.mmd").is_file()
 
 
 def test_run_faulty_example_strict_exits_1(tmp_path) -> None:  # type: ignore[no-untyped-def]
@@ -117,3 +121,36 @@ def test_tasks_and_checks_listing() -> None:
     assert any(r["id"] == "ligand_pose" and r["implemented"] >= 13 for r in rows)
     checks = runner.invoke(app, ["checks"])
     assert "l0.sources.resolved" in checks.stdout and "l1.msa.integrity" in checks.stdout
+
+
+def test_report_command_regenerates(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    profile = _offline_profile(tmp_path)
+    out = tmp_path / "run"
+    runner.invoke(
+        app,
+        [
+            "run",
+            "examples/3ptb_ligand_pose/manifest.yaml",
+            "--profile",
+            str(profile),
+            "--out",
+            str(out),
+            "--no-report",
+        ],
+    )
+    assert not (out / "report.md").exists()
+    result = runner.invoke(app, ["report", str(out), "--format", "jsonl"])
+    assert result.exit_code == 0, result.output
+    assert (out / "report.md").is_file()
+
+
+def test_report_command_bad_path(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    result = runner.invoke(app, ["report", str(tmp_path)])
+    assert result.exit_code == 2
+
+
+def test_schema_command(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    result = runner.invoke(app, ["schema", "--out", str(tmp_path)])
+    assert result.exit_code == 0
+    data = json.loads((tmp_path / "run_report.json").read_text())
+    assert "verdict" in data["properties"]

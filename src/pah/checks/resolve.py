@@ -8,7 +8,7 @@ from typing import Any, TypeVar
 
 from pah.core.check import CheckContext
 from pah.core.manifest import LigandInput, ProteinInput
-from pah.core.models import Gate, Threshold
+from pah.core.models import ArtifactKind, Gate, Provenance, Threshold, provenance_id
 from pah.sources.clients import (
     ChemComp,
     PdbEntry,
@@ -45,14 +45,12 @@ def threshold(
 
 
 def _memo(ctx: CheckContext, key: str, fetch: Any) -> Any:
-    def run() -> Any:
-        record = fetch()
-        prov = getattr(record, "provenance", None)
-        if prov is not None:
-            ctx.record(prov)
-        return record
-
-    return ctx.memo(key, run)
+    """Fetches once per run; every access marks the record as used by the current check."""
+    record = ctx.memo(key, fetch)
+    prov = getattr(record, "provenance", None)
+    if prov is not None:
+        ctx.record(prov)
+    return record
 
 
 def uniprot(ctx: CheckContext, accession: str) -> UniProtEntry:
@@ -80,14 +78,21 @@ def pubchem(ctx: CheckContext, cid: int) -> PubChemCompound:
 
 
 def mmcif_path(ctx: CheckContext, pdb_id: str) -> Path:
-    def fetch() -> Path:
+    def fetch() -> tuple[Path, Provenance]:
         payload = ctx.sources.rcsb.mmcif(pdb_id)
-        ctx.record(payload.provenance)
         path = ctx.artifact_path(f"sources/{pdb_id.upper()}.cif")
         path.write_bytes(payload.data)
-        return path
+        ctx.add_artifact(
+            path,
+            ArtifactKind.SOURCE_STRUCTURE,
+            label=f"{pdb_id.upper()} mmCIF",
+            derived_from=(provenance_id(payload.provenance),),
+        )
+        return path, payload.provenance
 
-    return ctx.memo(f"mmcif:{pdb_id.upper()}", fetch)
+    path, prov = ctx.memo(f"mmcif:{pdb_id.upper()}", fetch)
+    ctx.record(prov)
+    return path
 
 
 def sifts_segments(ctx: CheckContext, p: ProteinInput) -> list[SiftsSegment]:

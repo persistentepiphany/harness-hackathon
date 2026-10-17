@@ -1,0 +1,36 @@
+# 3HTB JZ4: T4 lysozyme L99A engineered mutant (engineered substitutions declared)
+task: ligand_pose
+claim: Pose within stated uncertainty
+proteins:
+- id: P00720_e1
+  uniprot: P00720
+  pdb_id: 3HTB
+  chain: A
+  sequence: MNIFEMLRIDEGLRLKIYKDTEGYYTIGIGHLLTKSPDLNAAKSELDKAIGRNCNGVITKDEAEKLFNQDVDAAVRGILRNAKLKPVYDSLDAVRRCAAINQVFQMGETGVAGFTNSLRMLQQKRWDEAAVNLAKSRWYNQTPDRAKRVITTFRTGTWDAYKNL
+  copies: 1
+  mutations:
+  - R12G
+  - S38D
+  - L99A
+  - M102Q
+  - I137R
+  - N144D
+ligands:
+- id: jz4
+  ccd: JZ4
+  smiles: CCCc1ccccc1O
+  file: JZ4.sdf
+receptor:
+  pdb_id: 3HTB
+  chains:
+  - A
+model:
+  executor: boltz2
+  version: 2.2.1
+  checkpoint: boltz2_conf.ckpt
+  seeds:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4

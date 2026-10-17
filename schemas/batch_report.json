@@ -1,0 +1,300 @@
+{
+  "$defs": {
+    "BatchTargetRow": {
+      "properties": {
+        "counts": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "object"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error"
+        },
+        "manifest": {
+          "title": "Manifest",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "report_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Report Path"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Run Id"
+        },
+        "task": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Task"
+        },
+        "verdict": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Verdict"
+        }
+      },
+      "required": [
+        "name",
+        "manifest",
+        "run_id",
+        "task",
+        "verdict"
+      ],
+      "title": "BatchTargetRow",
+      "type": "object"
+    },
+    "CheckSummary": {
+      "properties": {
+        "check_id": {
+          "title": "Check Id",
+          "type": "string"
+        },
+        "counts": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "object"
+        },
+        "layer": {
+          "title": "Layer",
+          "type": "integer"
+        },
+        "targets_stop": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Targets Stop",
+          "type": "array"
+        },
+        "targets_warn": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Targets Warn",
+          "type": "array"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "check_id",
+        "title",
+        "layer",
+        "counts"
+      ],
+      "title": "CheckSummary",
+      "type": "object"
+    },
+    "FigureEntry": {
+      "properties": {
+        "alt": {
+          "title": "Alt",
+          "type": "string"
+        },
+        "caption": {
+          "title": "Caption",
+          "type": "string"
+        },
+        "data_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data Path"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "description": "figure | render",
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "session_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Path"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "path",
+        "caption",
+        "alt"
+      ],
+      "title": "FigureEntry",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/persistentepiphany/harness-hackathon/schemas/batch_report.json",
+  "properties": {
+    "batch_id": {
+      "title": "Batch Id",
+      "type": "string"
+    },
+    "check_summary": {
+      "items": {
+        "$ref": "#/$defs/CheckSummary"
+      },
+      "title": "Check Summary",
+      "type": "array"
+    },
+    "checks": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Checks",
+      "type": "array"
+    },
+    "figures": {
+      "items": {
+        "$ref": "#/$defs/FigureEntry"
+      },
+      "title": "Figures",
+      "type": "array"
+    },
+    "finished_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Finished At"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "matrix": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "type": "object"
+      },
+      "description": "target -> check -> gate",
+      "title": "Matrix",
+      "type": "object"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "pah_version": {
+      "title": "Pah Version",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "targets": {
+      "items": {
+        "$ref": "#/$defs/BatchTargetRow"
+      },
+      "title": "Targets",
+      "type": "array"
+    },
+    "verdict_counts": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Verdict Counts",
+      "type": "object"
+    }
+  },
+  "required": [
+    "batch_id",
+    "name",
+    "started_at",
+    "finished_at",
+    "pah_version",
+    "targets",
+    "checks",
+    "matrix",
+    "check_summary",
+    "verdict_counts",
+    "figures",
+    "limitations"
+  ],
+  "title": "BatchReport",
+  "type": "object"
+}
