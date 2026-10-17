@@ -1,11 +1,16 @@
 """Slide deck for one benchmark run, built with .claude/skills/presentation-skill.
 
     python bench/analysis/deck.py --run-id <id> [--system cdk2] [--executor boltz2]
+    python bench/analysis/deck.py --run-id <id> --review <run>/deck/visual_judgment.json
 
 Writes <run>/deck/outline.json from results/stats.json, the fact files and the renders, then runs
 the skill's `present.py finalize` (build, render, QA) to <run>/results/deck.pptx. Every number on a
 slide is read from the run's files; speaker notes hold the longer explanation (human-pace: at most
 about 30 words of body text per slide).
+
+The skill requires a visual review of the rendered slides. After inspecting deck/qa/renders, write
+the judgment as visual_judgment_v1 JSON and pass it with --review: it is bound to the deck and
+render hashes (deck/visual_review_receipt.json) and a strict QA pass requires it.
 """
 
 from __future__ import annotations
@@ -13,6 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -109,8 +115,13 @@ def outline(run: Path, system: str, executor: str) -> dict[str, Any]:
             "type": "content",
             "role": "comparison",
             "variant": "comparison-2col",
-            "title": f"One perturbed prediction, two views ({m_pert['protein'].split(' (')[0]}, "
-            f"{EXEC[executor]})",
+            "title": "One perturbed prediction, two views",
+            "subtitle": f"{m_pert['protein'].split(' (')[0]}, {EXEC[executor]}, "
+            + (
+                f"{len(m_pert['mutations'])} contacts to glycine"
+                if m_pert["mutations"]
+                else f"{len(m_pert['methylated_oxygens'])} hydroxyls methylated"
+            ),
             "left": {
                 "title": "Score only",
                 "bullets": [f"Confidence: {conf}", f"Wild type: {conf_wt}"],
@@ -126,10 +137,11 @@ def outline(run: Path, system: str, executor: str) -> dict[str, Any]:
                 "type": "content",
                 "role": "evidence",
                 "variant": "scientific-figure",
-                "title": "The ligand stays in a pocket whose contacts are gone",
+                "title": "Medoid poses, wild type and perturbed",
+                "subtitle": f"{m_pert['protein'].split(' (')[0]}, {EXEC[executor]}",
                 "figures": panels,
                 "figure_layout": "panel-grid",
-                "caption": "PyMOL renders of the medoid poses, same view per panel.",
+                "caption": "Each panel oriented on its ligand; grey: residues ≤ 5 Å.",
             }
         )
     slides += [
@@ -137,7 +149,7 @@ def outline(run: Path, system: str, executor: str) -> dict[str, Any]:
             "type": "content",
             "role": "table",
             "variant": "table",
-            "title": "Confusion counts, pooled over both executors",
+            "title": "Confusion counts, executors pooled",
             "table": {
                 "headers": [
                     "Arm",
@@ -174,15 +186,13 @@ def outline(run: Path, system: str, executor: str) -> dict[str, Any]:
             "title": "Balanced accuracy with 95% intervals",
             "assets": {"hero_image": str(figs / "balanced_accuracy.png")},
             "sidebar_sections": [
+                {"title": "Score only, pooled", "body": _ba(allb["A"])},
+                {"title": "Fact file, pooled", "body": _ba(allb["B"])},
                 {
-                    "title": "Pooled",
-                    "body": f"Score only {_ba(allb['A'])}; fact file {_ba(allb['B'])}",
-                },
-                {
-                    "title": "McNemar",
-                    "body": f"Exact p {allb['mcnemar']['p_exact']} "
-                    f"({allb['mcnemar']['b_right_a_wrong']} for, "
-                    f"{allb['mcnemar']['a_right_b_wrong']} against)",
+                    "title": "McNemar exact p",
+                    "body": f"{allb['mcnemar']['p_exact']}; discordant "
+                    f"{allb['mcnemar']['b_right_a_wrong']} and "
+                    f"{allb['mcnemar']['a_right_b_wrong']}",
                 },
             ],
             "caption": "Bootstrap over predictions; dashed line at 0.5.",
@@ -201,7 +211,12 @@ def outline(run: Path, system: str, executor: str) -> dict[str, Any]:
             "role": "evidence",
             "variant": "scientific-figure",
             "title": "Decision per prediction",
-            "figures": [{"path": str(figs / "decisions.png"), "label": "A"}],
+            "figures": [
+                {
+                    "path": str(figs / "decisions.png"),
+                    "title": "Ground truth and majority verdict per prediction",
+                }
+            ],
             "figure_layout": "panel-grid",
             "caption": "B2 Boltz-2, DD DiffDock-L. V valid, I invalid.",
             "notes": f"Score only kept {allb['A']['fp']} of {allb['n_invalid']} invalid "
@@ -215,17 +230,17 @@ def outline(run: Path, system: str, executor: str) -> dict[str, Any]:
             "left": {
                 "title": "Measured",
                 "bullets": [
-                    f"{stats['n_predictions']} predictions of 4 systems, 2 executors",
-                    "Every prompt and response recorded",
-                    "Ground truth fixed before any decision",
+                    f"{stats['n_predictions']} predictions, 2 executors",
+                    "Every prompt and response logged",
+                    "Ground truth fixed in advance",
                 ],
             },
             "right": {
                 "title": "Not established",
                 "bullets": [
-                    "A statistical difference between arms",
-                    "Binding loss beyond the source studies",
-                    "Effect of prompt length alone",
+                    "A significant difference",
+                    "Loss of binding (assumed)",
+                    "Effect of prompt length",
                 ],
             },
             "notes": "Eight systems per executor support a demonstration, not a statistical "
@@ -259,32 +274,66 @@ def outline(run: Path, system: str, executor: str) -> dict[str, Any]:
     }
 
 
+def _skill(script: str, *args: str) -> subprocess.CompletedProcess[str]:
+    cmd = ["python3", str(SKILL / "scripts" / "python_runtime.py"), str(SKILL / "scripts" / script)]
+    proc = subprocess.run([*cmd, *args], cwd=SKILL, capture_output=True, text=True)
+    print(proc.stdout[-3000:], proc.stderr[-2000:])
+    return proc
+
+
+def bind_review(run: Path, review: Path) -> None:
+    """Bind a visual judgment of the rendered slides to the built deck and require it in a strict
+    QA pass. The deck is not rebuilt: a rebuild changes its hash and voids the receipt."""
+
+    deck, pptx = run / "deck", run / "results" / "deck.pptx"
+    receipt = deck / "visual_review_receipt.json"
+    if _skill(
+        "visual_review_receipt.py", "create", "--input", str(pptx),
+        "--renders-dir", str(deck / "qa" / "renders"), "--review", str(review),
+        "--output", str(receipt),
+    ).returncode:  # fmt: skip
+        sys.exit("visual review receipt not created")
+    gate = _skill(
+        "qa_gate.py", "--input", str(pptx), "--outline", str(deck / "outline.json"),
+        "--outdir", str(deck / "qa_bound"), "--style-preset", "lab-report", "--strict-geometry",
+        "--fail-on-geometry-warnings", "--fail-on-whitespace-warnings", "--run-visual-review",
+        "--fail-on-visual-review-warnings", "--fail-on-design-warnings", "--accessibility",
+        "--strict-accessibility", "--accessibility-min-body-pt", "16",
+        "--accessibility-min-support-pt", "13", "--accessibility-min-metadata-pt", "9",
+        "--visual-review-receipt", str(receipt), "--require-bound-visual-review",
+    )  # fmt: skip
+    if gate.returncode:
+        sys.exit(f"strict QA with the bound visual review failed; see {deck / 'qa_bound'}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--run-id", required=True)
     ap.add_argument("--system", default="cdk2")
     ap.add_argument("--executor", default="boltz2")
+    ap.add_argument(
+        "--review",
+        type=Path,
+        help="visual_judgment_v1 JSON written after inspecting deck/qa/renders; binds it to the "
+        "existing deck instead of building",
+    )
     args = ap.parse_args()
     run = REPO / "bench" / "runs" / args.run_id
+    if args.review:
+        bind_review(run, args.review.resolve())
+        return
     deck = run / "deck"
     deck.mkdir(parents=True, exist_ok=True)
     (deck / "outline.json").write_text(
         json.dumps(outline(run, args.system, args.executor), indent=2)
     )
-    cmd = [
-        "python3",
-        str(SKILL / "scripts" / "python_runtime.py"),
-        str(SKILL / "scripts" / "present.py"),
-        "finalize",
-        "--outline",
-        str(deck / "outline.json"),
-        "--output",
-        str(run / "results" / "deck.pptx"),
-        "--qa-dir",
-        str(deck / "qa"),
-    ]
-    proc = subprocess.run(cmd, cwd=SKILL, capture_output=True, text=True)
-    print(proc.stdout[-3000:], proc.stderr[-2000:])
+    proc = _skill(
+        "present.py", "finalize", "--outline", str(deck / "outline.json"),
+        "--output", str(run / "results" / "deck.pptx"), "--qa-dir", str(deck / "qa"),
+    )  # fmt: skip
+    if proc.returncode:
+        sys.exit(f"presentation-skill finalize failed ({proc.returncode}); see {deck / 'qa'}")
+    print(f"deck built; inspect {deck / 'qa' / 'renders'} and bind the review with --review")
 
 
 if __name__ == "__main__":
