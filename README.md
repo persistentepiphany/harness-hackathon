@@ -9,10 +9,104 @@ returns pass, warn, stop or skip with the values and thresholds behind it. The d
 
 ## Status
 
-Milestone 1 is done. It covers the package skeleton, the event stream, and `pah doctor`, which
-checks that every data source, check tool, executor repository, model weight file and writing
-skill is reachable from the host it runs on. Layer checks, executor adapters, reports, the MCP
-server and the HTTP API come next (see [Roadmap](#roadmap)).
+Milestones 1 and 2 are done.
+
+| Milestone | Delivered |
+| --- | --- |
+| 1 | Package skeleton, event stream, `pah doctor` (reachability of sources, tools, weights, skills), `pah fetch` |
+| 2 | Engine, run manifest, task specifications, Layer 0 source clients with a sha256 content cache and offline mode, Layer 0 and Layer 1 checks, `pah run` |
+
+Layers 2 to 5, executor adapters, reports, the MCP server and the HTTP API come next
+(see [Roadmap](#roadmap)).
+
+## Run
+
+```bash
+.venv/bin/pah run examples/3ptb_ligand_pose/manifest.yaml            # layers 0 and 1
+.venv/bin/pah run examples/3ptb_ligand_pose/manifest.yaml --offline  # cache only, no network
+.venv/bin/pah run examples/3ptb_faulty_inputs/manifest.yaml --no-halt
+.venv/bin/pah run <manifest> --format jsonl                          # one JSON event per line
+.venv/bin/pah tasks                                                  # task specifications
+.venv/bin/pah checks                                                 # registered checks
+```
+
+A manifest names the task, the claim, and the inputs as given to the executor: protein
+accessions, PDB chain and sequence, MSA file, ligand SMILES, CCD code, PubChem CID or SDF file,
+the receptor and the model version. The engine runs each layer in order. It prints every finding
+the moment the check returns and writes it to `runs/<run-id>/findings/` at the same time.
+Each layer ends with a count line. A stop in a pre-run layer skips the later layers unless
+`--no-halt` is given.
+
+| File in `runs/<run-id>/` | Contents |
+| --- | --- |
+| `events.jsonl` | Every event in order |
+| `findings/L<n>_<check>.json` | One finding: gate, measurements, thresholds with origin, evidence |
+| `record.json` | Run record: manifest, findings, provenance, tool versions, verdict |
+| `provenance.json` | Every source record used: source, accession, release, URL, sha256, size |
+| `artifacts/sources/` | Fetched files, for example the receptor mmCIF |
+
+| Verdict | Condition |
+| --- | --- |
+| `pass` | Every applicable check passed |
+| `pass_with_warnings` | No stop, at least one warn |
+| `stop` | At least one stop; the claim is not supported by these inputs |
+| `incomplete` | A check could not run because a tool was missing, it raised an error, or it is not registered |
+
+A check that does not apply to the inputs (no MSA declared, no receptor) is skipped as
+`not_applicable` and does not affect the verdict. A task can turn specific warnings into stops
+for its claim (`escalate` in the task file).
+
+### Sources and cache
+
+Every record fetched for a run goes through a content-addressed cache (`cache/` by default,
+set by the profile). Each payload is stored under its sha256 and indexed by request, with
+source, accession, release, URL, size and retrieval time. A cached object that fails its
+checksum is treated as missing. With `--offline`, or `offline: true` in the profile as on CSF3
+compute nodes, a cache miss is a stop finding in `l0.sources.resolved`. The run never falls
+back to the network.
+
+| Client | Records |
+| --- | --- |
+| UniProt REST | Sequence, entry and sequence version, MD5, release (`X-UniProt-Release`) |
+| RCSB data API | Entry revision, release dates, resolution, method; CCD descriptors (InChIKey, SMILES) |
+| RCSB file service | mmCIF |
+| PDBe API | Entity sequences (SEQRES), bound ligands; SIFTS UniProt mappings |
+| PubChem PUG REST | InChIKey, SMILES |
+| AlphaFold DB | Entry, model version, sequence checksum |
+
+### Checks in layers 0 and 1
+
+| Check | Gate on failure | What it compares |
+| --- | --- | --- |
+| `l0.sources.resolved` | stop | Every declared identifier resolves to a record with checksum |
+| `l0.cross.uniprot_seqres` | stop | UniProt sequence against PDB SEQRES over the SIFTS-mapped range |
+| `l0.cross.ligand_inchikey` | stop | InChIKey of the declared SMILES against CCD and PubChem |
+| `l1.sequence.matches_record` | stop | Sequence given to the run against the record (SIFTS range when a PDB chain is declared) |
+| `l1.sequence.no_truncation_substitution` | stop | N- and C-terminal truncation, substitutions, deletions, insertions, non-standard residues |
+| `l1.msa.integrity` | stop | MSA query equals the chain, alignment is not query-only, one file is not shared by different chains |
+| `l1.ligand.sanitization` | stop; warn above net charge ±2 | RDKit chemistry problems, valence, radicals |
+| `l1.ligand.stereo_defined` | warn | Unassigned stereocentres and double bonds |
+| `l1.ligand.identity` | stop | InChIKey of the ligand file (3D stereo assigned) against CCD and PubChem |
+| `l1.receptor.chains` | stop | Declared chains present; residue names against SEQRES at each label_seq position |
+| `l1.receptor.altlocs` | warn | Alternate locations present without a declared `altloc_policy` |
+| `l1.context.composition` | stop | Declared copies against the chains of the reference entity (co-folding tasks) |
+| `l1.provenance.model_config` | stop | Executor, version, checkpoint (co-folding) and database snapshot (with an MSA) recorded |
+
+Every threshold in a finding carries its origin, either the specification section or "harness
+default, not yet calibrated", and an evidence level.
+
+### Examples
+
+`examples/3ptb_ligand_pose/` is a ligand pose run on PDB 3PTB: bovine trypsin (UniProt
+P00760) with benzamidine (CCD BEN, PubChem 2332). Run live or offline, it gives 12 passes and
+one warning: the amidine C=N bond in the SDF has no assigned geometry.
+`examples/3ptb_faulty_inputs/` has seven planted faults and gives seven stops:
+- a sequence with five N-terminal residues removed and three substitutions, failing two checks
+- a query-only MSA
+- a benzylamine SMILES declared as CCD BEN, failing the layer 0 and layer 1 identity checks
+- a chain B that the entry does not have
+- a missing checkpoint and database snapshot
+The MSA in the clean example is synthetic test data.
 
 ## Install
 
@@ -45,6 +139,7 @@ buckets. `pah fetch` downloads them on the end user's host, as declared in
 | Asset | Source | Default | Note |
 | --- | --- | --- | --- |
 | `p2rank` | GitHub release `rdk/p2rank` | yes | Links `prank` into `.tools/bin` |
+| `p2rank_source` | `git clone` and Gradle build | fallback | Runs only when the `p2rank` release download fails; needs Java 17+ |
 | `mmseqs` | mmseqs.com static build | yes | Links `mmseqs` |
 | `foldseek` | mmseqs.com static build | yes | Links `foldseek` |
 | `plinder_index`, `pinder_index` | `gs://plinder`, `gs://pinder` | yes | Needs `gcloud auth login`; skipped when gcloud is absent |
@@ -55,8 +150,8 @@ buckets. `pah fetch` downloads them on the end user's host, as declared in
 
 Downloads go to a `.part` file and are renamed only when complete, with the sha256 recorded in
 `.tools/externals.lock.json`. Archives are checked for paths that leave the target directory
-before extraction. Assets already present are skipped unless `--force` is given. The doctor
-finds fetched binaries in `.tools/bin`.
+before extraction. Assets already present are skipped unless `--force` is given. Fetched
+binaries get small wrapper scripts in `.tools/bin`, which the doctor searches.
 
 ## Doctor
 
@@ -120,21 +215,21 @@ The image installs the same extras as `pyproject.toml` and the same conda packag
 
 ## Results from the development sandbox
 
-`pah doctor --profile local` on 2026-10-17 gave 101 probes: 88 ok, 4 blocked, 3 http_error,
-4 missing, 2 manual.
+`pah doctor --profile local` on 2026-10-17, after `pah fetch`, gave 101 probes: 95 ok,
+3 http_error, 1 missing, 2 manual.
 
 | Probe | Status | Cause | Fix |
 | --- | --- | --- | --- |
-| `colabfold_db` | blocked | `opendata.mmseqs.org` not on the egress allowlist | Allow the host |
-| `mmseqs_binaries` | blocked | `mmseqs.com` not on the allowlist | Allow the host, or `pah fetch` on the end user's host |
-| `protenix.weights` | blocked | `protenix.tos-cn-beijing.volces.com` not on the allowlist | Allow the host, or `pah fetch --only protenix_weights` |
-| `readthedocs_api.remote` | blocked | `app.readthedocs.org` not on the allowlist | Allow `app.readthedocs.org` and `*.readthedocs.io` |
 | `plinder`, `pinder` | http_error | Google Cloud Storage refuses anonymous reads | `gcloud auth login`, then `pah fetch` |
 | `gnina.release` | http_error | The session's GitHub scope covers git reads, not release downloads | `pah fetch --only gnina` on the executor host |
-| `p2rank`, `mmseqs`, `foldseek` | missing | Release or static-binary hosts not reachable here | `pah fetch` on the end user's host |
 | `molprobity` | missing | Ships with Phenix (academic licence) | Install Phenix where licensed |
 | `alphafold3.weights` | manual | Weights issued by request | Set `PAH_AF3_WEIGHTS` |
 | `pydock.licence` | manual | Academic licence, no public source | Set `PAH_PYDOCK_HOME` |
+
+`pah fetch` installed MMseqs2 and Foldseek from mmseqs.com. P2Rank's release download was
+refused here, so the `p2rank_source` fallback cloned and built it (P2Rank 2.6-alpha.8). On
+the 3PTB receptor, its top-ranked pocket lists residues A57, A189 to A192, A195, A214 to A216
+and A219.
 
 The check tools were also run on a real complex (PDB 3PTB, trypsin with benzamidine) fetched
 live from RCSB. All passed.
@@ -175,11 +270,14 @@ That path needs only the output parser for the tool.
 
 | Path | Contents |
 | --- | --- |
-| `src/pah/core/` | Models and the event bus |
+| `src/pah/core/` | Models, event bus, manifest, task specs, check registry, engine, verdict policy |
+| `src/pah/sources/` | Content-addressed cache, cached HTTP, Layer 0 source clients |
+| `src/pah/checks/` | Shared check library (`layer0_provenance.py`, `layer1_integrity.py`) |
 | `src/pah/doctor/` | Probes, catalog, runner, report |
 | `src/pah/externals/` | `pah fetch`: downloader, installers per asset kind, lock file |
 | `src/pah/interfaces/` | CLI (MCP server and HTTP API to follow) |
-| `configs/` | Sources, tools, executors, externals and deployment profiles as YAML |
+| `configs/` | Sources, tools, executors, externals, task specifications and deployment profiles as YAML |
+| `examples/` | Run manifests |
 | `deploy/csf3/`, `deploy/modal/` | Slurm and Modal entry points |
 | `environment/conda.yml` | Conda-only tools |
 | `third_party/skills/` | Pinned writing, figure and documentation skills ([sources](third_party/skills/SOURCES.md)) |
@@ -191,14 +289,14 @@ That path needs only the output parser for the tool.
 make check     # ruff, ruff format --check, mypy --strict, pytest
 ```
 
-Tests do not use the network. Live tests carry the `network` marker and are excluded by
-`make check`.
+Tests do not use the network. Source responses recorded from the public APIs live in
+`tests/fixtures/sources/` and are served by `tests/fakeweb.py`. Live tests carry the `network`
+marker and are excluded by `make check`.
 
 ## Roadmap
 
 | Milestone | Scope |
 | --- | --- |
-| 2 | Engine, task specifications, Layer 0 source clients with sha256 cache and offline mode, Layer 1 checks |
 | 3 | Layer 2 to 5 checks, executor adapters, Slurm and Modal backends |
 | 4 | Reports: PyMOL renders for every structure output, figures, provenance graph, text from the run record |
 | 5 | MCP server and HTTP API with an SSE event stream and JSON schemas for the frontend |

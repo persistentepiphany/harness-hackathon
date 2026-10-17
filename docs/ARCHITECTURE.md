@@ -40,11 +40,11 @@ flowchart LR
 
     classDef built fill:#dcfce7,stroke:#16a34a,color:#14532d
     classDef planned fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
-    class cli,bus,sinks built
-    class mcp,api,engine,record,sources,checks,executors,backends,report planned
+    class cli,bus,sinks,engine,record,sources,checks built
+    class mcp,api,executors,backends,report planned
 ```
 
-Green: implemented in milestone 1. Blue: planned.
+Green: implemented (milestones 1 and 2). Blue: planned. The check library covers layers 0 and 1.
 
 ## Extension points
 
@@ -56,8 +56,8 @@ a file and a YAML entry. Core modules are not edited.
 | `Probe` | `pah.doctor.catalog.register(kind)` | `configs/{sources,tools,executors}.yaml` | 1 |
 | `Sink` | passed to `EventBus` | none | 1 |
 | `Installer` | `pah.externals.installers.INSTALLERS` keyed by asset kind | `configs/externals.yaml` | 1 |
-| `SourceClient` | source registry keyed by `id` | `configs/sources.yaml` | 2 |
-| `Check` | check registry keyed by `check_id` | `configs/tasks/*.yaml` | 2 |
+| `SourceClient` | `pah.sources.clients.Sources` facade | `configs/sources.yaml` | 2 |
+| `Check` | `pah.core.check.register`, keyed by `check_id` | `configs/tasks/*.yaml` | 2 |
 | `Executor` | executor registry keyed by `id` | `configs/executors.yaml`, `docs/EXECUTORS.md` | 3 |
 | `Backend` | backend registry keyed by profile `backend` | `configs/profiles/*.yaml` | 3 |
 | `Renderer` | report renderers | none | 4 |
@@ -106,3 +106,34 @@ It never falls back to a fresh fetch.
 | Probe | Exception caught by the runner; recorded as `error` |
 | Fetch asset | Recorded as `blocked`, `failed`, `skipped` or `manual`; next asset proceeds; no partial files |
 | Profile or output directory | Command stops with exit code 2 and a one-line message |
+
+## Engine
+
+```mermaid
+sequenceDiagram
+    accTitle: One run through the engine
+    accDescr: The CLI loads the manifest and task, the engine runs each layer's checks in order, each check reads sources through the cache, and every finding is streamed and written before the next check starts.
+
+    participant CLI as pah run
+    participant E as Engine
+    participant C as Check
+    participant S as Sources + cache
+    participant B as Event bus
+    CLI->>E: manifest, task, layers
+    loop each layer
+        E->>B: stage_start
+        loop each check id in the task
+            E->>C: applies? tools present?
+            C->>S: fetch records (cache first)
+            S-->>C: record + provenance
+            C-->>E: finding
+            E->>B: finding (and findings/L<n>_<id>.json)
+        end
+        E->>B: stage_end (counts)
+    end
+    E->>B: run_end (verdict)
+    E-->>CLI: record.json, provenance.json
+```
+
+Check failures never stop the engine. An exception, a missing module or an unregistered id
+becomes a skip finding with its reason, and the verdict becomes `incomplete`.

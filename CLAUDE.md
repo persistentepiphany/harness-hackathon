@@ -31,7 +31,12 @@ make check                     # ruff + mypy + pytest
 .venv/bin/pah doctor           # reachability of sources, tools, weights, skills
 .venv/bin/pah doctor --profile csf3 --dry-run
 .venv/bin/pah fetch            # binaries and data from configs/externals.yaml
+.venv/bin/pah run examples/3ptb_ligand_pose/manifest.yaml   # layers 0-1, streamed findings
+.venv/bin/pah tasks && .venv/bin/pah checks
 ```
+
+Adding a check: subclass `pah.core.check.Check` in `src/pah/checks/layer<n>_*.py`, decorate with
+`@register`, give every threshold an origin (`resolve.threshold`), list its id in the task YAML.
 
 Conda-only tools (openff-toolkit, fpocket, p2rank) live in `.tools/conda-env`, installed with
 micromamba (see README). The harness finds them through `PAH_CONDA_PREFIX`.
