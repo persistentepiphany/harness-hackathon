@@ -11,7 +11,7 @@ run record becomes the UI record, and how live and mock data are switched.
 
 | Process | Command | Port |
 | --- | --- | --- |
-| HTTP API | `.venv/bin/pah serve --port 8000` (FastAPI + SSE, `pah[api]` extra) | 8000 |
+| HTTP API | `.venv/bin/pah serve --port 8000` (upstream FastAPI app + `/ui` routes, `pah[api]` extra) | 8000 |
 | Web UI | `cd web && npm run dev` or `npm run build && npm start` | 3000 |
 
 The browser only talks to the Next.js origin. Next.js proxies `/api/harness/:path*` to
@@ -32,36 +32,49 @@ knows which mode is active.
 
 ## Endpoints
 
-All responses are JSON unless marked SSE. Errors are `{"error": {"code": str, "message": str}}` with
-a 4xx or 5xx status. Paths are relative to the API root.
+The API is the harness's own FastAPI app, `pah.interfaces.api:create_app(profile, allow_origins)`,
+started with `pah serve`. Its native routes stay as they are (`POST /runs` with a manifest,
+`GET /runs/{id}` job view, `GET /runs/{id}/events` raw event SSE, `GET /runs/{id}/report`,
+`GET /runs/{id}/findings`, `GET /runs/{id}/files/{rel}`, `POST /batches`, `/tasks`, `/checks`,
+`/schemas/{name}`, `/health`). The UI routes live in `pah.webui` and are mounted on the same app
+under the `/ui` prefix with `app.include_router(pah.webui.ui_router(profile, jobs))`, so they share
+the upstream `JobStore` and run pipeline (`pah.service.run_manifest`: checks, reports, PyMOL renders,
+provenance graph). The UI reads from disk (`runs/<id>/`), so runs started by the CLI, the MCP
+server, a batch or an agent appear and stream the same way as runs started from the UI.
+
+All responses are JSON unless marked SSE. UI route errors are `{"error": {"code", "message"}}`.
+The web client calls `/api/harness/ui/...`; files go through the native
+`/api/harness/runs/{id}/files/{rel}`.
 
 | Method and path | Returns | Notes |
 | --- | --- | --- |
-| `GET /health` | `{ok, version, runs_dir, mode: "live"}` | |
-| `GET /jobs` | `Job[]`, newest first | One per directory in `runs_dir` that has `events.jsonl` |
-| `GET /jobs/{id}` | `Job` | |
-| `GET /jobs/{id}/log` | SSE of `LogLine` | Replays the file, then tails it until `run_end`; `?format=json` returns `LogLine[]` |
-| `GET /runs/{id}/record` | `UiRunRecord` | Built from `record.json`, or from `events.jsonl` while the run is still going |
-| `GET /runs/{id}/files/{path}` | file bytes | Only paths inside `runs/<id>/`; no `..`, no symlinks out |
-| `POST /runs` | `{jobId, runId}` (202) | Body `RunSettings`; runs the engine in a background thread |
-| `POST /interpret` | `{settings: RunSettings, steps: Step[]}` | Rule-based port of `interpretRun()`; `steps[i] = {field, value, because}` |
-| `GET /entities?q=` | `EntityGroup[]` | Same shape as `lookupEntities()`, resolved through `pah.sources` clients |
-| `GET /catalog` | `{proteins[], ligands[]}` | From `configs/catalog.yaml` |
-| `GET /tools` | `Tool[]` | Executors from `configs/executors.yaml` with availability |
-| `GET /tasks` | `Task[]` | Task specs with `implemented/checks` counts, mapped to UI task ids |
-| `POST /uploads` | `{files: [{name, size, sha256, kind, status, detail}]}` | Multipart; stored under `runs/uploads/` |
-| `GET /agent/tasks` | `AgentTask[]` | From `runs/agent-*/task.json` + `steps.jsonl` |
-| `POST /agent/tasks` | `AgentTask` (201) | Body `{goal}` |
-| `POST /agent/tasks/{id}/steps` | `AgentStep` (201) | Body `{kind, text, ms?, data?}` |
-| `POST /agent/tasks/{id}/finish` | `AgentTask` | Body `{status: "done" or "failed", outcome}` |
-| `GET /agent/tasks/{id}/steps` | SSE of `AgentStep` | Replays, then tails until the task finishes |
+| `GET /health` | upstream health | Native route |
+| `GET /ui/jobs` | `Job[]`, newest first | One per directory in `runs_dir` with `events.jsonl` (batches and `agent-*` excluded) |
+| `GET /ui/jobs/{id}` | `Job` | |
+| `GET /ui/jobs/{id}/log` | SSE of `LogLine` | Replays the file, then tails it until `run_end`; `?format=json` returns `LogLine[]` |
+| `GET /ui/runs/{id}/record` | `UiRunRecord` | Built from `record.json`, or from `events.jsonl` while the run is still going |
+| `GET /runs/{id}/files/{rel}` | file bytes | Native route; only paths inside `runs/<id>/` |
+| `POST /ui/runs` | `{jobId, runId}` (202) | Body `RunSettings`; built into a manifest, started through the upstream `JobStore` |
+| `POST /ui/interpret` | `{settings: RunSettings, steps: Step[]}` | Rule-based port of `interpretRun()`; `steps[i] = {field, value, because}` |
+| `GET /ui/entities?q=` | `EntityGroup[]` | Same shape as `lookupEntities()`, resolved through `pah.sources` clients |
+| `GET /ui/catalog` | `{proteins[], ligands[]}` | From `configs/catalog.yaml` |
+| `GET /ui/tools` | `Tool[]` | Executors from `configs/executors.yaml` with outputs and availability |
+| `GET /ui/tasks` | `Task[]` | Task specs with `implemented/checks` counts, mapped to UI task ids |
+| `GET /ui/examples` | example manifests | `examples/**/manifest.yaml` with task and claim |
+| `POST /ui/uploads` | `{files: [{name, size, sha256, kind, status, detail}]}` | Multipart; stored under `runs/uploads/` |
+| `GET /ui/agent/tasks` | `AgentTask[]` | From `runs/agent-*/task.json` + `steps.jsonl` |
+| `POST /ui/agent/tasks` | `AgentTask` (201) | Body `{goal}` |
+| `POST /ui/agent/tasks/{id}/steps` | `AgentStep` (201) | Body `{kind, text, ms?, data?}` |
+| `POST /ui/agent/tasks/{id}/finish` | `AgentTask` | Body `{status: "done" or "failed", outcome}` |
+| `GET /ui/agent/tasks/{id}/steps` | SSE of `AgentStep` | Replays, then tails until the task finishes |
 
 SSE frames: `event: line` (or `step`) with one JSON object in `data`, `event: end` when the stream is
 finished, and a `: ping` comment every 15 s. Each frame carries `id: <seq>` so `Last-Event-ID` resumes.
 
-An agent under test reports what it is doing either through `POST /agent/tasks/...` or by running
+An agent under test reports what it is doing either through `POST /ui/agent/tasks/...` or by running
 `pah agent-log start|step|finish`, which appends to the same files. A run the agent starts with
-`pah run` (any interface) appears in `/jobs` and streams live, because the API tails `events.jsonl`.
+`pah run`, `pah batch` or the MCP server appears in `/ui/jobs` and streams live, because the UI
+routes tail `events.jsonl`.
 
 ## Shapes
 
@@ -132,7 +145,7 @@ interface UiRunRecord {          // run-record.schema.json, with the additions m
 
 ## Harness record to UI record
 
-The adapter (`src/pah/api/adapter.py`) reads `runs/<id>/record.json`, `events.jsonl`,
+The adapter (`src/pah/webui/adapter.py`) reads `runs/<id>/record.json`, `events.jsonl`,
 `provenance.json`, `findings/` and `renders/`. It never invents values.
 
 | UI field | Harness source |
@@ -149,7 +162,7 @@ The adapter (`src/pah/api/adapter.py`) reads `runs/<id>/record.json`, `events.js
 | `sources` | `provenance.json`: `source_id`, `accession`, `release` (or `"n/a"`), `sha256`, `retrieved_at`, `extra.cache == "hit"` |
 | `stats` | Empty until layers 4 and 5 produce values. The UI shows "not computed" for a missing block |
 | `structures` | Every `.cif`/`.pdb`/`.sdf` under `artifacts/`, served through `/runs/{id}/files/...` |
-| `renders` | `renders/<stem>.png` and `.pse` written by `pah render` |
+| `renders` | Render artifacts in `record.json` (`ArtifactKind` render entries from `pah.report.renders`: PNG views and `.pse` session per structure) |
 
 Checks that are listed in the task but not registered appear with `result: skip` and
 `skipReason: unknown_check`. The UI shows them in the check list as `not implemented` and counts
@@ -206,7 +219,7 @@ Rules for the screens:
 ## Deployment
 
 Default deployment is Modal (`configs/profiles/modal.yaml`). `deploy/modal/api_app.py` serves
-`pah.api.app:create_app` as an ASGI web endpoint with the `pah-runs` and `pah-cache` volumes mounted
+`pah.interfaces.api:create_app` as an ASGI web endpoint with the `pah-runs` and `pah-cache` volumes mounted
 at `/runs` and `/cache`. One container (`max_containers=1`, concurrent inputs) so live tails and
 background runs share a process; the volume is committed after each run and on every write.
 Executors run on GPU through `deploy/modal/executors_app.py`. The web UI is deployed to Vercel
