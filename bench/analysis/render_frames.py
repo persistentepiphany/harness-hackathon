@@ -31,7 +31,7 @@ W, H, FPS = 1280, 720, 30
 INK, INK2, MUTED, CANVAS, LINE = "#1A1A18", "#55554F", "#8B8B85", "#F7F7F4", "#E6E6E1"
 ACCENT, PASS, STOP = "#B07E2C", "#3B8A58", "#C4513B"
 
-PYMOL_SCRIPT = r'''
+PYMOL_SCRIPT = r"""
 import json, sys
 from pymol import cmd
 a = json.loads(sys.argv[1])
@@ -69,7 +69,7 @@ n = int(a["frames"])
 for i in range(n):
     cmd.turn("y", 360.0 / n)
     cmd.png(a["out"] % i, width=a["w"], height=a["h"], dpi=150, ray=1)
-'''
+"""
 
 
 def _font(size: int, mono: bool = False) -> Any:
@@ -206,12 +206,16 @@ def main() -> None:
     frames.mkdir(parents=True)
     film = Film(frames)
 
-    q = ("Does an agent given the harness fact file tell valid from invalid poses better than "
-         "the same agent given only the model's confidence score?")
+    q = (
+        "Does an agent given the harness fact file tell valid from invalid poses better than "
+        "the same agent given only the model's confidence score?"
+    )
     film.add(card([(q, 34, INK, False)], "Perturbation benchmark"), 2.5 + hold(q))
-    design = ("Four systems (FtsE, CDK2, MEK1, glucose dehydrogenase), each wild type and "
-              "perturbed. Boltz-2 and DiffDock-L, three seeds each. Every prediction judged "
-              "twice by GLM: score only, then the harness fact file.")
+    design = (
+        "Four systems (FtsE, CDK2, MEK1, glucose dehydrogenase), each wild type and "
+        "perturbed. Boltz-2 and DiffDock-L, three seeds each. Every prediction judged "
+        "twice by GLM: score only, then the harness fact file."
+    )
     film.add(card([(design, 26, INK2, False)], "Design"), hold(design))
 
     facts = {}
@@ -244,8 +248,9 @@ def main() -> None:
                     if meta["methylated_oxygens"] else ""))]  # fmt: skip
         tag = "wild type" if state == "wt" else "perturbed"
         title = f"{meta['protein']} · {meta['ligand_code']}"
-        film.add_sequence([structure_frame(r, title, rows, tag,
-                                           PASS if state == "wt" else STOP) for r in renders])
+        film.add_sequence(
+            [structure_frame(r, title, rows, tag, PASS if state == "wt" else STOP) for r in renders]
+        )
 
     pa = prompt("A", facts["pert"])
     pb = prompt("B", facts["pert"])
@@ -254,14 +259,24 @@ def main() -> None:
 
     figs = run / "results" / "figures"
     allb = stats["arms"]["all"]
-    cap = (f"Pooled balanced accuracy: score only {allb['A']['balanced_accuracy']}, fact file "
-           f"{allb['B']['balanced_accuracy']}; McNemar exact p {allb['mcnemar']['p_exact']}")
+    cap = (
+        f"Pooled balanced accuracy: score only {allb['A']['balanced_accuracy']}, fact file "
+        f"{allb['B']['balanced_accuracy']}; McNemar exact p {allb['mcnemar']['p_exact']}"
+    )
     film.add(figure_frame(figs / "balanced_accuracy.png", "Balanced accuracy", cap), hold(cap, 6))
-    film.add(figure_frame(figs / "confusion.png", "Confusion matrices, pooled",
-                          f"{allb['n']} predictions with ground truth"), 6.0)
-    limits = ("Eight systems support a demonstration, not a statistical claim. Perturbed systems "
-              "are negatives by construction. The arms differ in prompt length as well as "
-              "content.")
+    film.add(
+        figure_frame(
+            figs / "confusion.png",
+            "Confusion matrices, pooled",
+            f"{allb['n']} predictions with ground truth",
+        ),
+        6.0,
+    )
+    limits = (
+        "Eight systems support a demonstration, not a statistical claim. Perturbed systems "
+        "are negatives by construction. The arms differ in prompt length as well as "
+        "content."
+    )
     film.add(card([(limits, 26, INK2, False)], "What this does not establish"), hold(limits) + 2)
     out = run / "results" / "walkthrough.mp4"
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS), "-i",
