@@ -315,10 +315,9 @@ def _register_subcommands() -> None:
 
     app.add_typer(runtimes_app, name="runtimes")
 
-    from pah.interfaces import cli_agent, cli_render, cli_serve
+    from pah.interfaces import cli_agent
 
-    for module in (cli_serve, cli_render, cli_agent):
-        module.register(app)
+    cli_agent.register(app)
 
 
 _register_subcommands()
