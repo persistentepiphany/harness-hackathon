@@ -8,6 +8,7 @@ import json
 import time
 from collections import Counter
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -15,7 +16,16 @@ from pydantic import BaseModel, Field
 from pah import __version__
 from pah.core.check import CHECKS, CheckContext, SkipReason
 from pah.core.events import EventBus
-from pah.core.models import EventKind, Finding, Gate, Layer, Provenance, utcnow
+from pah.core.models import (
+    Artifact,
+    ArtifactKind,
+    EventKind,
+    Finding,
+    Gate,
+    Layer,
+    Provenance,
+    utcnow,
+)
 from pah.core.policy import Verdict, decide
 from pah.core.task import PRE_RUN_LAYERS
 
@@ -43,6 +53,10 @@ class RunRecord(BaseModel):
     tool_versions: dict[str, str] = Field(default_factory=dict)
     findings: list[Finding] = Field(default_factory=list)
     provenance: list[Provenance] = Field(default_factory=list)
+    artifacts: list[Artifact] = Field(default_factory=list)
+    usage: dict[str, list[str]] = Field(
+        default_factory=dict, description="check id -> provenance ids it read"
+    )
     verdict: Verdict | None = None
 
 
@@ -92,6 +106,7 @@ class Engine:
             task=task.id,
             layers=list(layers),
         )
+        self._register_inputs()
         halted_by: str | None = None
         for layer in layers:
             ids = task.layers.get(layer, ())
@@ -122,6 +137,8 @@ class Engine:
             if stops and self._halt_on_stop and layer in PRE_RUN_LAYERS and not halted_by:
                 halted_by = stops[0]
         record.provenance = list(ctx.provenance)
+        record.artifacts = list(ctx.artifacts)
+        record.usage = {k: list(v) for k, v in ctx.usage.items()}
         record.tool_versions = self._tool_versions(record.findings)
         scope = f"layers {','.join(map(str, layers))}"
         record.verdict = decide(claim, scope, record.findings)
@@ -137,7 +154,28 @@ class Engine:
         )
         return record
 
+    def _register_inputs(self) -> None:
+        """Records the files given to the run (receptor, ligands, MSAs) with their checksums."""
+        m = self._ctx.manifest
+        files: list[tuple[Path, ArtifactKind, str]] = []
+        if m.receptor and m.receptor.file:
+            files.append((m.path(m.receptor.file), ArtifactKind.INPUT_STRUCTURE, "receptor"))
+        files += [
+            (m.path(lig.file), ArtifactKind.INPUT_LIGAND, lig.id) for lig in m.ligands if lig.file
+        ]
+        files += [(m.path(p.msa), ArtifactKind.INPUT_MSA, p.id) for p in m.proteins if p.msa]
+        for path, kind, label in files:
+            if path.is_file():
+                self._ctx.add_artifact(path, kind, label=label)
+
     def _run_check(self, cid: str, layer: int) -> Finding:
+        self._ctx.current_check = cid
+        try:
+            return self._run_check_inner(cid, layer)
+        finally:
+            self._ctx.current_check = None
+
+    def _run_check_inner(self, cid: str, layer: int) -> Finding:
         cls = CHECKS.get(cid)
         if cls is None:
             return _skipped(cid, layer, SkipReason.UNKNOWN_CHECK, "check not registered")

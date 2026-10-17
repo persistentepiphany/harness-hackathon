@@ -113,3 +113,33 @@ class Event(_Frozen):
     message: str
     ts: datetime = Field(default_factory=utcnow)
     data: dict[str, Any] = Field(default_factory=dict)
+
+
+def provenance_id(p: Provenance) -> str:
+    """Stable short identifier for a source record within a run."""
+    return f"{p.source_id}:{p.accession}:{p.sha256[:12]}"
+
+
+class ArtifactKind(StrEnum):
+    INPUT_STRUCTURE = "input_structure"
+    INPUT_LIGAND = "input_ligand"
+    INPUT_MSA = "input_msa"
+    SOURCE_STRUCTURE = "source_structure"
+    PREDICTION_STRUCTURE = "prediction_structure"
+    RENDER = "render"
+    SESSION = "session"
+    FIGURE = "figure"
+    DATA = "data"
+    GRAPH = "graph"
+    REPORT = "report"
+
+
+class Artifact(_Frozen):
+    """A file used or produced by a run. Paths inside the run directory are relative to it."""
+
+    path: str
+    kind: ArtifactKind
+    sha256: str
+    size_bytes: int
+    label: str = ""
+    derived_from: tuple[str, ...] = ()
