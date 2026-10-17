@@ -159,7 +159,7 @@ margin-top:2px}
 border-bottom:1px solid var(--line3);color:var(--ink2);overflow-wrap:anywhere}
 .data td:first-child{color:var(--ink)}
 .data tfoot td{font-weight:500;color:var(--ink);border-bottom:0;padding-top:8px}
-.data tr.rule td{border-top:1px solid var(--accent)}
+.data tr.rule td{border-top:2px solid var(--accent)}
 .data tr[data-state=separate] td{color:var(--ink2)}
 .block-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
 margin-bottom:8px}
@@ -218,7 +218,7 @@ html,body{background:#fff;font-size:9.5pt}
 .mono,.v,td.m,.data td,.checks .ev,.checks .cmp,.prov td,.files td,.pb-item,.matrix{font-size:8pt}
 .checks td{padding:5px 8px 5px 0}.checks .name{font-size:9pt}.checks .id{font-size:7.5pt}
 .meta{gap:6px 22px;font-size:9pt}
-section.layer.page{break-before:page}
+section.layer.newpage{break-before:page}
 .section-head,.block-head,.layer-intro{break-after:avoid}
 .keys{grid-template-columns:repeat(7,minmax(0,1fr));gap:10px}
 .strip .name{font-size:8.5pt}.strip .sub{font-size:7pt}
@@ -642,7 +642,7 @@ def _layer(
         parts.append(_figures(figs, numbers, assets_rel))
         if layer.get("checks"):
             parts.append(_checks(layer["checks"]))
-    cls = "layer ran" + (" page" if first or blocks or figs else "") if ran else "layer"
+    cls = "layer ran" + (" newpage" if first or blocks or figs else "") if ran else "layer"
     return (
         f'<section class="{cls}" id="layer-{i}" data-testid="layer" data-layer="{i}" '
         f'data-state="{e(status)}">{"".join(p for p in parts if p)}</section>'
