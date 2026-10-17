@@ -197,14 +197,24 @@ the same way:
 | `verdict.assessedClaim` | `Inputs fit to run` for a pre-run check, `null` for a full run |
 | `verdict.statement` | Names the evaluated and pending layers and the stops and warnings, e.g. `Pre-run check: layers 0-3 evaluated; layers 4-5 pending predictions. 1 check warned in layer 1: l1.ligand.protonation.` |
 | `checks[].skipReason` | `pending_input` for a layer 4-5 skip whose evidence says there are no predictions; `not_applicable` stays for checks that do not apply to the tools (no MSA for Vina) |
-| `dimensions` | Checks grouped as `inputs` (L0-L2), `applicability` (L3), `geometry`, `physics`, `interactions`, `confidence`, `support` (L4-L5 by check id prefix, table `dimensions` in `configs/catalog.yaml`). `certainty` is the weakest evidence level among the thresholds of the non-skip checks |
+| `checks[].category`, `standing`, `decisive` | From `configs/standing.yaml` (the engine's stamp on the finding first). `decisive`: a stop from the check may set the verdict alone; a stop the policy downgraded carries `downgraded`, `originalGate`, `policyReason` (from `evidence.policy`) and is listed in `verdict.downgraded` |
+| `checks[].sources` | `RecordSource.id`s the check read (record.json `usage`, the inverse of `usedBy`) |
+| `dimensions` | Six verdict dimensions from `configs/standing.yaml` `dimensions`: `inputs` (provenance and identity, structural completeness, chemical state), `exposure` (applicability, including the l3.metric.endpoint stop), `physical_validity`, `chemical_plausibility` (interaction chemistry), `stability` (sampling and stability), `corroboration` (corroboration and controls). `certainty` is the weakest standing (definitional, published, inherited, uncalibrated) among the dimension's non-skip checks; `decisive` lists its decisive checks. Empty when the table is absent |
 | `toolVersions` | One row per tool in the record or in a finding: `exercised` is true when a non-skip finding names the tool, false when the tool is only declared |
 | `execution` | Execution events (`data.stage == "execute"`) aggregated per executor: last `phase`, `gpu`, `route`, `routeNote`, `startedAt`, `elapsedMs`, per-seed `{seed, phase, ms}`. `Job.execution` is the same list; each event is also a `LogLine` of kind `exec` |
-| `stats.pae` | `{status: 'na', reason}` when no selected tool declares a PAE output in `configs/executors.yaml`; absent while not computed |
-| `stats.status.agreement` | `{status: 'na', reason}` with one executor; method agreement needs two |
+| `stats.status` | Why a block is absent, `{status: 'na' or 'pending', reason}` per block: `pae` is `na` when no executor of the run declares a PAE output in `configs/executors.yaml`, `agreement` is `na` with one executor; blocks of a pre-run are `pending predictions` |
+| `renders[]` pose fields | For a predicted pose: `executor`, `seed`, `rank` (docking mode or sample), `pose`, `score` (first output of the executor that the pose reports, with unit) and `checks` (output checks reported for the pose, from `evidence.poses[]`; `reported` when the row has no pass/fail). `poseChecks` lists the same per pose |
+| `sourceSummary` | `l0.sources.resolved` counts (identifiers, records, failed, cache hits) and the receptor chains present (`l1.receptor.chains`) |
 
-`GET /ui/tools` rows carry `endpoints` (`configs/models.yaml` `models[*].endpoints`); `GET /ui/tasks`
-rows carry `endpoint` (`task_endpoints`) and `compatibleTools` (tools whose endpoints include it).
+`GET /ui/tools` rows carry `endpoints` (`configs/models.yaml` `models[*].endpoints`) and the dispatch
+route from `configs/dispatch.yaml`: `route` (`modal`, `local`, `none`), `dispatchable`, `gpu`,
+`dispatchApp`, `dispatchReason`. A Modal-routed tool is `available` with a note naming the app (the
+host probe does not apply); route `none` is not available and the note gives the reason.
+`GET /ui/tasks` rows carry `endpoint` (`task_endpoints`), `compatibleTools` (executor ids whose
+endpoints include it), `quickSetup` and `group` (`configs/catalog.yaml`). `GET /ui/catalog` carries
+`prompts`, sample requests that map onto Quick setup tasks. `GET /ui/glossary` lists every executor
+output key (label, unit, kind, the executor note as `what`, `producedBy`), every registered layer 4-5
+check (title, modules, thresholds from `configs/thresholds.yaml`) and the per-pose physics fields.
 `POST /ui/interpret` never swaps a tool the user named: when the tool lacks the task endpoint, or a
 required input (a ligand series for screening or ranking, a partner for protein-protein docking)
 is missing, the result keeps the choice and lists the problem in `warnings` and in a `steps` entry.

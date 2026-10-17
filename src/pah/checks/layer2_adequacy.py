@@ -71,6 +71,7 @@ def _msa_proteins(ctx: CheckContext) -> list[Any]:
 class MsaDepth(Check):
     id = "l2.msa.depth"
     layer = Layer.ADEQUACY
+    gate_kind = GateKind.WARN
     title = "Alignment depth, distinct sequences, Neff and gap fraction"
     requires_modules = ("numpy",)
 
@@ -168,6 +169,7 @@ def _complex_with_msas(ctx: CheckContext) -> str | None:
 class MsaPairing(Check):
     id = "l2.msa.pairing"
     layer = Layer.ADEQUACY
+    gate_kind = GateKind.WARN
     title = "Paired alignment depth for complexes, species pairing"
 
     def applies(self, ctx: CheckContext) -> str | None:
@@ -209,6 +211,7 @@ class MsaPairing(Check):
 class MsaParalogAmbiguity(Check):
     id = "l2.msa.paralog_ambiguity"
     layer = Layer.ADEQUACY
+    gate_kind = GateKind.WARN
     title = "Paralog ambiguity in pairing"
 
     def applies(self, ctx: CheckContext) -> str | None:
@@ -246,6 +249,7 @@ class MsaParalogAmbiguity(Check):
 class Disorder(Check):
     id = "l2.disorder"
     layer = Layer.ADEQUACY
+    gate_kind = GateKind.WARN
     title = "Disorder in the region of interest"
 
     def applies(self, ctx: CheckContext) -> str | None:
@@ -309,6 +313,7 @@ def _needs_site(ctx: CheckContext) -> str | None:
 class Cofactors(Check):
     id = "l2.context.cofactors"
     layer = Layer.ADEQUACY
+    gate_kind = GateKind.WARN
     title = "Required cofactors, ions and partners present"
     requires_modules = ("gemmi", "numpy")
 
@@ -724,6 +729,7 @@ class LigandProtonation(Check):
 class LigandConformers(Check):
     id = "l2.ligand.conformers"
     layer = Layer.ADEQUACY
+    gate_kind = GateKind.WARN
     title = "Ligand conformers generated and minimised"
     requires_modules = ("rdkit",)
 
@@ -818,6 +824,7 @@ def docking_box(ctx: CheckContext) -> tuple[Any, Any, str] | None:
 class DockingBoxCheck(Check):
     id = "l2.docking.box"
     layer = Layer.ADEQUACY
+    gate_kind = GateKind.WARN
     title = "Docking box encloses the pocket with margin"
     requires_modules = ("gemmi", "numpy")
 
@@ -909,6 +916,7 @@ class DockingBoxCheck(Check):
 class PocketDetectionAgreement(Check):
     id = "l2.pocket.detection_agreement"
     layer = Layer.ADEQUACY
+    gate_kind = GateKind.WARN
     title = "Pocket detection agrees with the known site"
     requires_modules = ("gemmi", "numpy")
 
@@ -993,6 +1001,7 @@ def _run_fpocket(binary: str, receptor: Path, ctx: CheckContext) -> list[Any]:
 class LibraryProperties(Check):
     id = "l2.library.properties"
     layer = Layer.ADEQUACY
+    gate_kind = GateKind.WARN
     title = "Library physicochemical properties"
     requires_modules = ("rdkit",)
 

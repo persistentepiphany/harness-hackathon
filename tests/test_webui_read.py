@@ -464,7 +464,8 @@ def test_tools_tasks_and_catalog_routes(client: TestClient) -> None:
     assert tools["boltz2"]["runtime"]["gpu"] == "required" and tools["boltz2"]["version"]
     assert tools["pydock"]["outputs"] == [] and "UNVERIFIED" in tools["pydock"]["outputsNote"]
     assert tools["alphafold3"]["aliases"] == ["af3"]
-    assert all(t["available"] is False for t in tools.values())  # no executor here
+    # no executor on this host: only Modal-routed ones (configs/dispatch.yaml) are available
+    assert all(t["available"] is (t["route"] == "modal") for t in tools.values())
 
     tasks = {t["id"]: t for t in client.get("/ui/tasks").json()}
     assert tasks["pose_known_pocket"]["pah"] == "ligand_pose"

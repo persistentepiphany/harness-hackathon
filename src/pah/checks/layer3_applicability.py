@@ -184,7 +184,7 @@ def analogues(ctx: CheckContext, smiles: str, cutoff: str) -> dict[str, Any]:
 class LigandPrevalence(Check):
     id = "l3.exposure.ligand_prevalence"
     layer = Layer.APPLICABILITY
-    gate_kind = GateKind.WARN
+    gate_kind = GateKind.REPORTED
     title = "Ligand analogues in pre-cutoff training systems"
     requires_modules = ("rdkit",)
 
@@ -213,10 +213,9 @@ class LigandPrevalence(Check):
             f"{worst['systems']} PDB entries released before {cutoff} ({model} cutoff) "
             f"contain analogues of {worst['ligand']} above Tanimoto {th[0].value}: {codes}"
         )
-        gate = Gate.WARN if prevalent else Gate.PASS
-        return self.finding(
-            gate, msg, measurements=m, thresholds=th, evidence={"ligands": rows}, tool=tool
-        )
+        ev: dict[str, Any] = {"ligands": rows, "prevalent": prevalent, "gating": False}
+        msg += f"; {'prevalent' if prevalent else 'not prevalent'} (exposure context, not gating)"
+        return self.finding(Gate.PASS, msg, measurements=m, thresholds=th, evidence=ev, tool=tool)
 
 
 @register
@@ -317,7 +316,7 @@ def _with_coords(mol: Any, xyz: Any) -> Any:
 class PocketExposure(Check):
     id = "l3.exposure.pocket"
     layer = Layer.APPLICABILITY
-    gate_kind = GateKind.WARN
+    gate_kind = GateKind.REPORTED
     title = "Pocket similarity to pre-cutoff complexes (SuCOS times pocket coverage)"
     requires_modules = ("rdkit", "gemmi", "numpy")
 
@@ -381,8 +380,11 @@ class PocketExposure(Check):
             f"max similarity {best['similarity']} to {best['entry']} ({best['ligand']}, "
             f"SuCOS {best['sucos']}, coverage {best['coverage']}), released before {cutoff}"
         )
-        gate = Gate.WARN if best["similarity"] > float(th[0].value) else Gate.PASS
-        return self.finding(gate, msg, measurements=m, thresholds=th, evidence=ev)
+        high = best["similarity"] > float(th[0].value)
+        ev["stratum"] = f"{'above' if high else 'at or below'} {th[0].value}"
+        ev["gating"] = False
+        msg += f"; stratum {ev['stratum']} (stratification only, not gating)"
+        return self.finding(Gate.PASS, msg, measurements=m, thresholds=th, evidence=ev)
 
     def _candidates(
         self, ctx: CheckContext, smiles: str, seq: str | None, cutoff: str, limit: int

@@ -195,7 +195,8 @@ def test_configured_threshold_has_origin() -> None:
     from pah.checks.outputs import configured, model_entry
 
     th = configured("l5.controls.redocking", "rmsd")
-    assert th.value == 2.0 and "Specification" in th.origin
+    # published origin (user's threshold list, 17 Oct 2026): Runs N' Poses, not the specification
+    assert th.value == 2.0 and "Škrinjar et al. 2025" in th.origin
     assert model_entry("boltz2")["training_cutoff"] == "2023-06-01"
     assert model_entry("vina")["learned"] is False
 
@@ -218,7 +219,9 @@ def test_ligand_prevalence_counts_pre_cutoff_entries(tmp_path: Path) -> None:
     m = load_manifest(ROOT / "examples/3ptb_ligand_pose/manifest.yaml")
     m = m.model_copy(update={"model": ModelInfo(executor="boltz2", version="2.2.1")})
     f = _run(_context(tmp_path, m, SearchWeb()), (3,))["l3.exposure.ligand_prevalence"]
-    assert f.gate.value == "warn"
+    # published definition used as exposure context only (configs/standing.yaml role context)
+    assert f.gate.value == "pass" and f.evidence["prevalent"] == ["benzamidine"]
+    assert f.evidence["gating"] is False
     m_ = {x.name: x.value for x in f.measurements}
     assert m_["systems"] == 150 and m_["cutoff"] == "2023-06-01"
     assert [c["code"] for c in f.evidence["ligands"][0]["components"]] == ["BEN"]

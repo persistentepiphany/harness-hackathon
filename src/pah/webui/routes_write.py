@@ -7,12 +7,16 @@ checks, reports, PyMOL renders and the provenance graph are the same for every i
 
 `runs/<id>/job.json` records what the UI needs before and around the run:
     {id, runId, status: queued|running|done|failed, name, task (UI id), pahTask, taskName,
-     tools, executor, lookups, executors: "not run (checks only)", seeds, layers, halt,
-     profile, serverProfile, settings, manifest, notes, createdAt, startedAt, finishedAt,
-     verdict, reportError, error}
+     tools, executor, lookups, executors: "not run (checks only)" | "run (configs/dispatch.yaml)",
+     execute, execution: UiExecution[], executionDenied, seeds, layers, halt, profile,
+     serverProfile, settings, manifest, notes, createdAt, startedAt, finishedAt, verdict,
+     reportError, error}
 `events.jsonl` exists (empty) from submission. When the job starts, one log event with seq 0
-states that executors are not run and lists the manifest decisions; the run's own events follow
-from seq 1.
+states whether executors run and lists the manifest decisions. With `execute: true` the execute
+stage (`pah.webui.execute`) follows with one event per phase change (`stage: execute`), writes
+the outputs under `predictions/<executor>/` and adds them to the manifest's `predictions`; the
+run's own events then continue the sequence. An executor that cannot run (not authorised, not
+deployed, inputs missing) is recorded as `skipped` with the reason and the checks still run.
 """
 
 from __future__ import annotations
@@ -21,7 +25,7 @@ import json
 import os
 import tempfile
 import threading
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -38,6 +42,7 @@ from pah.core.models import Event, EventKind
 from pah.webui import persistence
 from pah.webui.manifest_builder import (
     EXECUTORS_NOT_RUN,
+    EXECUTORS_RUN,
     RunPlan,
     RunSettings,
     SettingsError,
@@ -48,6 +53,7 @@ from pah.webui.manifest_builder import (
 
 if TYPE_CHECKING:
     from pah.interfaces.api import JobStore
+    from pah.webui.execute import DispatchConfig, Dispatcher
 
 ClientFactory = Callable[[], httpx.Client]
 MAX_UPLOAD_FILES = 20
@@ -110,20 +116,31 @@ def _last_seq(events: Path) -> int | None:
     return None
 
 
+_EVENTS_LOCK = threading.Lock()
+
+
 def append_event(run_dir: Path, run_id: str, message: str, **data: Any) -> Event:
     """Appends one log event after the last one in events.jsonl (seq 0 in an empty file)."""
+    return write_event(run_dir, run_id, message, data)
+
+
+def write_event(
+    run_dir: Path, run_id: str, message: str, data: Mapping[str, Any], *, stage: str = "job"
+) -> Event:
+    """`append_event` with the data as a mapping (keys may include `message` or `stage`)."""
     path = run_dir / "events.jsonl"
-    last = _last_seq(path)
-    event = Event(
-        run_id=run_id,
-        seq=0 if last is None else last + 1,
-        kind=EventKind.LOG,
-        stage="job",
-        message=message,
-        data=data,
-    )
-    with path.open("a", encoding="utf-8") as fh:
-        fh.write(event.model_dump_json() + "\n")
+    with _EVENTS_LOCK:
+        last = _last_seq(path)
+        event = Event(
+            run_id=run_id,
+            seq=0 if last is None else last + 1,
+            kind=EventKind.LOG,
+            stage=stage,
+            message=message,
+            data=dict(data),
+        )
+        with path.open("a", encoding="utf-8") as fh:
+            fh.write(event.model_dump_json() + "\n")
     return event
 
 
@@ -131,15 +148,49 @@ class RunSubmitter:
     """Validates UI settings, prepares the run directory and starts the run on the JobStore."""
 
     def __init__(
-        self, profile: Profile, jobs: JobStore, client_factory: ClientFactory | None = None
+        self,
+        profile: Profile,
+        jobs: JobStore,
+        client_factory: ClientFactory | None = None,
+        dispatchers: Mapping[str, Dispatcher] | None = None,
     ) -> None:
         self.profile = profile
         self.jobs = jobs
         self.client_factory = client_factory or _default_client
+        self.dispatchers = dispatchers
         root = repo_root()
         self.examples_dir = root / "examples" if root and (root / "examples").is_dir() else None
 
-    def submit(self, settings: RunSettings) -> dict[str, str]:
+    @staticmethod
+    def dispatch_config() -> tuple[DispatchConfig | None, str | None]:
+        from pah.webui.execute import load_dispatch
+
+        try:
+            return load_dispatch(), None
+        except (OSError, ValueError, TypeError, KeyError) as exc:
+            return None, f"configs/dispatch.yaml unusable: {type(exc).__name__}: {exc}"
+
+    def _denied(self, plan: RunPlan, headers: Mapping[str, str]) -> str | None:
+        """Why this run may not start executors, or None when it may (or does not ask to)."""
+        from pah.webui.execute import ExecDeniedError, check_exec_token
+
+        if not plan.execute:
+            return None
+        if plan.manifest is None:
+            return "example manifests run as-is; executors are not dispatched for them"
+        cfg, err = self.dispatch_config()
+        if cfg is None:
+            return err
+        try:
+            lower = {k.lower(): v for k, v in headers.items()}
+            check_exec_token(cfg.guard, self.profile.name, lower.get(cfg.guard.header.lower()))
+        except ExecDeniedError as exc:
+            return str(exc)
+        return None
+
+    def submit(
+        self, settings: RunSettings, headers: Mapping[str, str] | None = None
+    ) -> dict[str, str]:
         """Returns {jobId, runId} once job.json and an empty events.jsonl exist.
 
         Raises SettingsError for settings that cannot become a run.
@@ -149,6 +200,7 @@ class RunSubmitter:
         from pah.service import run_dir_for
 
         plan = plan_run(settings, server_profile=self.profile.name, examples_dir=self.examples_dir)
+        denied = self._denied(plan, headers or {})
         run_id = new_run_id(plan.pah_task)
         run_dir = run_dir_for(self.profile, run_id)
         if plan.manifest is not None:
@@ -160,14 +212,14 @@ class RunSubmitter:
         (run_dir / "events.jsonl").touch()
         if plan.manifest is not None:
             self._write_manifest(run_dir, plan.manifest)
-        job_file = JobFile(run_dir / "job.json", self._job_record(run_id, plan))
+        job_file = JobFile(run_dir / "job.json", self._job_record(run_id, plan, denied))
         self.jobs.start(
             Job(id=run_id, kind="run"),
-            lambda sinks: self._work(plan, run_id, run_dir, job_file, sinks),
+            lambda sinks: self._work(plan, run_id, run_dir, job_file, sinks, denied),
         )
         return {"jobId": run_id, "runId": run_id}
 
-    def _job_record(self, run_id: str, plan: RunPlan) -> dict[str, Any]:
+    def _job_record(self, run_id: str, plan: RunPlan, denied: str | None) -> dict[str, Any]:
         manifest = "manifest.yaml"
         if plan.manifest_path is not None:
             root = repo_root()
@@ -184,7 +236,10 @@ class RunSubmitter:
             "tools": list(plan.tools),
             "executor": plan.executor,
             "lookups": list(plan.lookups),
-            "executors": EXECUTORS_NOT_RUN,
+            "executors": EXECUTORS_RUN if plan.execute and denied is None else EXECUTORS_NOT_RUN,
+            "execute": plan.execute,
+            "execution": [],
+            "executionDenied": denied,
             "seeds": plan.seeds,
             "layers": list(plan.layers),
             "halt": plan.halt,
@@ -206,8 +261,81 @@ class RunSubmitter:
         header = "# Built by pah.webui from run settings; see job.json for the decisions.\n"
         _atomic_text(run_dir / "manifest.yaml", header + yaml.safe_dump(manifest, sort_keys=False))
 
+    def _execute(
+        self,
+        plan: RunPlan,
+        manifest: dict[str, Any] | None,
+        run_id: str,
+        run_dir: Path,
+        job: JobFile,
+        denied: str | None,
+    ) -> dict[str, Any] | None:
+        """Runs the selected executors; returns the manifest with their predictions."""
+        from pah.sources import CachedHttp, ContentCache, Sources
+        from pah.webui.catalog import load_executors
+        from pah.webui.execute import (
+            ExecuteStage,
+            LocalVinaDispatcher,
+            ModalDispatcher,
+            UnavailableDispatcher,
+        )
+
+        def emit(message: str, data: Mapping[str, Any]) -> None:
+            write_event(run_dir, run_id, message, data, stage="execute")
+
+        names = {e.id: e.name for e in load_executors()}
+        cfg, err = self.dispatch_config()
+        if manifest is None or cfg is None or denied is not None:
+            rows = []
+            for eid in plan.executors:
+                reason = denied or err or "execution unavailable"
+                emit(f"execute {eid}: skipped ({reason})",
+                     {"stage": "execute", "executor": eid, "phase": "skipped", "gpu": None,
+                      "route": None, "routeNote": None, "seed": None, "elapsedMs": None,
+                      "message": reason})  # fmt: skip
+                rows.append({"executor": eid, "name": names.get(eid, eid), "phase": "skipped",
+                             "seeds": [], "message": reason})  # fmt: skip
+            job.update(execution=rows)
+            return manifest
+        dispatchers = self.dispatchers or {
+            "modal": UnavailableDispatcher(
+                f"profile {self.profile.name} is offline; Modal dispatch needs the network"
+            )
+            if self.profile.offline
+            else ModalDispatcher(cfg.modal, cfg.guard.poll_s),
+            "local": LocalVinaDispatcher(self.profile),
+        }
+        stage = ExecuteStage(
+            cfg, dispatchers, emit, on_change=lambda rows: job.update(execution=rows)
+        )
+        cache = ContentCache(resolve_path(self.profile.cache_dir))
+        with self.client_factory() as client:
+            sources = Sources(CachedHttp(client, cache, offline=self.profile.offline))
+
+            def structures(pdb_id: str) -> bytes:
+                return bytes(sources.rcsb.mmcif(pdb_id).data)
+
+            outcome = stage.run(
+                manifest,
+                plan.executors,
+                run_id,
+                run_dir,
+                structures=structures,
+                manifest_path=run_dir / "manifest.yaml",
+                names=names,
+            )
+        job.update(execution=outcome.executions)
+        self._write_manifest(run_dir, outcome.manifest)
+        return outcome.manifest
+
     def _work(
-        self, plan: RunPlan, run_id: str, run_dir: Path, job: JobFile, sinks: Sequence[Sink]
+        self,
+        plan: RunPlan,
+        run_id: str,
+        run_dir: Path,
+        job: JobFile,
+        sinks: Sequence[Sink],
+        denied: str | None = None,
     ) -> dict[str, Any]:
         from pah.service import RunOptions, run_manifest
         from pah.sources import CachedHttp, ContentCache, Sources
@@ -227,17 +355,25 @@ class RunSubmitter:
                 source = plan.manifest_path
             job.update(notes=notes)
             tools = ", ".join(plan.tools) or "none selected"
+            executing = plan.execute and denied is None
+            executors = EXECUTORS_RUN if executing else EXECUTORS_NOT_RUN
             append_event(
                 run_dir,
                 run_id,
-                f"executors {EXECUTORS_NOT_RUN}: {tools}; layers "
-                f"{','.join(map(str, plan.layers))} run as CPU checks"
+                f"executors {executors}: {tools}; layers "
+                f"{','.join(map(str, plan.layers))} run as checks"
                 + (f". {'; '.join(notes)}" if notes else ""),
-                executors=EXECUTORS_NOT_RUN,
+                executors=executors,
                 tools=list(plan.tools),
                 notes=notes,
                 job_profile=plan.profile,
             )
+            if plan.execute:
+                executed = self._execute(
+                    plan, source if isinstance(source, dict) else None, run_id, run_dir, job, denied
+                )
+                if executed is not None:
+                    source = executed
             options = RunOptions(layers=plan.layers, halt=plan.halt, report=True)
             result = run_manifest(
                 source,
@@ -247,6 +383,7 @@ class RunSubmitter:
                 run_id=run_id,
                 run_dir=run_dir,
                 base_dir=run_dir,
+                seq_start=_last_seq(run_dir / "events.jsonl") or 0,
             )
             summary = result.summary()
             job.update(
@@ -304,11 +441,15 @@ def _examples(examples_dir: Path | None) -> list[dict[str, Any]]:
 
 
 def build_router(
-    profile: Profile, jobs: JobStore, *, client_factory: ClientFactory | None = None
+    profile: Profile,
+    jobs: JobStore,
+    *,
+    client_factory: ClientFactory | None = None,
+    dispatchers: Mapping[str, Dispatcher] | None = None,
 ) -> APIRouter:
-    """Routes relative to /ui."""
+    """Routes relative to /ui. `dispatchers` replaces the executor dispatchers (tests)."""
     router = APIRouter()
-    submitter = RunSubmitter(profile, jobs, client_factory)
+    submitter = RunSubmitter(profile, jobs, client_factory, dispatchers)
     factory = client_factory or _default_client
     runs_dir = resolve_path(profile.runs_dir)
 
@@ -325,7 +466,7 @@ def build_router(
             return _error(422, "invalid", "body must be a RunSettings object")
         try:
             settings = parse_settings(body)
-            return await run_in_threadpool(submitter.submit, settings)
+            return await run_in_threadpool(submitter.submit, settings, dict(request.headers))
         except SettingsError as exc:
             return _error(422, "invalid_settings", str(exc))
 
@@ -339,7 +480,8 @@ def build_router(
             return _error(422, "invalid", "body must be {text: string}")
         out = await run_in_threadpool(interpret_request, text)
         steps = out.pop("steps")
-        return {"settings": out, "steps": steps, "interpreter": "rule-based"}
+        warnings = out.pop("warnings", [])
+        return {"settings": out, "steps": steps, "warnings": warnings, "interpreter": "rule-based"}
 
     @router.get("/entities")
     async def entities(q: str = "") -> list[dict[str, Any]]:

@@ -31,7 +31,17 @@ TRYPSIN = {
 }
 
 
+class _Offline:
+    """Dispatcher for tests that do not exercise execution: nothing leaves the process."""
+
+    def run(self, job: Any, progress: Any) -> dict[str, Any]:
+        from pah.webui.execute import DispatchUnavailableError
+
+        raise DispatchUnavailableError("test: no dispatch")
+
+
 def _client(profile: Profile, **kw: Any) -> TestClient:
+    kw.setdefault("dispatchers", {"modal": _Offline(), "local": _Offline()})
     app = FastAPI()
     app.include_router(routes_write.build_router(profile, JobStore(), **kw), prefix="/ui")
     return TestClient(app)
@@ -190,3 +200,55 @@ def test_mounted_on_upstream_app(offline_profile: Profile) -> None:
     assert _wait(offline_profile, run_id)["status"] == "done"
     assert client.get(f"/runs/{run_id}").json()["status"] == "done"  # upstream job view
     assert client.post("/ui/tools").status_code == 501
+
+
+def test_execute_run_dispatches_and_assesses_predictions(offline_profile: Profile) -> None:
+    from tests.test_webui_execute import FakeBoltz
+
+    fake = FakeBoltz()
+    client = _client(offline_profile, dispatchers={"modal": fake})
+    body = {**TRYPSIN, "tools": ["boltz2"], "seeds": 2, "execute": True, "layers": [0, 1, 4, 5]}
+    r = client.post("/ui/runs", json=body)
+    assert r.status_code == 202, r.text
+    run_id = r.json()["runId"]
+    queued = _job(offline_profile, run_id)
+    assert queued["execute"] is True and queued["executors"] == "run (configs/dispatch.yaml)"
+    job = _wait(offline_profile, run_id)
+    assert job["status"] == "done", job
+    (row,) = job["execution"]
+    assert row["executor"] == "boltz2" and row["phase"] == "done" and row["route"] == "kit"
+    assert [s["seed"] for s in row["seeds"]] == [0, 1]
+    events = _events(offline_profile, run_id)
+    seqs = [e["seq"] for e in events]
+    assert seqs == sorted(seqs) and len(set(seqs)) == len(seqs)
+    execute = [e for e in events if e["stage"] == "execute"]
+    assert execute[0]["data"]["phase"] == "queued" and execute[-1]["data"]["phase"] == "done"
+    assert all(e["data"]["executor"] == "boltz2" for e in execute)
+    assert max(e["seq"] for e in execute) < min(e["seq"] for e in events if e["stage"] == "run")
+    record = json.loads((Path(offline_profile.runs_dir) / run_id / "record.json").read_text())
+    (pred,) = record["manifest"]["predictions"]
+    assert pred["path"] == "predictions/boltz2" and pred["seeds"] == [0, 1]
+    l4 = [f for f in record["findings"] if f["layer"] in (4, "L4") and f["gate"] != "skip"]
+    assert l4, "layer 4 evaluated the dispatched poses"
+
+
+def test_execute_without_token_skips_executors(
+    offline_profile: Profile, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from tests.test_webui_execute import FakeBoltz
+
+    monkeypatch.setenv("PAH_EXEC_TOKEN", "s3cret")
+    fake = FakeBoltz()
+    client = _client(offline_profile, dispatchers={"modal": fake})
+    body = {**TRYPSIN, "tools": ["boltz2"], "seeds": 1, "execute": True, "layers": [0, 1]}
+    run_id = client.post("/ui/runs", json=body).json()["runId"]
+    job = _wait(offline_profile, run_id)
+    assert job["status"] == "done" and "X-Pah-Exec-Token" in job["executionDenied"]
+    assert job["executors"] == "not run (checks only)" and not fake.jobs
+    (row,) = job["execution"]
+    assert row["phase"] == "skipped"
+    skipped = [e for e in _events(offline_profile, run_id) if e["stage"] == "execute"]
+    assert [e["data"]["phase"] for e in skipped] == ["skipped"]
+    ok = client.post("/ui/runs", json=body, headers={"X-Pah-Exec-Token": "s3cret"})
+    assert _wait(offline_profile, ok.json()["runId"])["executionDenied"] is None
+    assert len(fake.jobs) == 1

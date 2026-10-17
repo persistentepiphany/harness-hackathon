@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any, ClassVar
 
 from pah.checks import outputs, resolve
-from pah.core.check import Check, CheckContext, register
+from pah.core.check import Check, CheckContext, GateKind, register
 from pah.core.models import Finding, Gate, Layer, ToolRef
 
 SPEC_L5 = "Specification, Layer 5 (output support)"
@@ -80,6 +80,7 @@ def _confidence(pose: Any) -> float | None:
 class LocalConfidence(Check):
     id = "l5.confidence.local"
     layer = Layer.SUPPORT
+    gate_kind = GateKind.REPORTED
     title = "Confidence restricted to the pocket; per-model thresholds"
     requires_modules = ("gemmi", "numpy")
 
@@ -386,6 +387,7 @@ def _version(module: str) -> str | None:
 class RankStability(Check):
     id = "l5.sampling.rank_stability"
     layer = Layer.SUPPORT
+    gate_kind = GateKind.WARN
     title = "Ranking stability across seeds (Kendall tau)"
     requires_modules = ("scipy",)
 
@@ -431,6 +433,7 @@ class RankStability(Check):
 class CrossFamilyAgreement(Check):
     id = "l5.agreement.cross_family"
     layer = Layer.SUPPORT
+    gate_kind = GateKind.WARN
     title = "Agreement between methods, weighted by independence"
     requires_modules = ("spyrmsd", "numpy", "rdkit")
 
@@ -522,6 +525,7 @@ class CrossFamilyAgreement(Check):
 class PhysicsAgreement(Check):
     id = "l5.agreement.physics"
     layer = Layer.SUPPORT
+    gate_kind = GateKind.WARN
     title = "Co-folding pose against physics-based docking"
     requires_modules = ("spyrmsd", "numpy", "rdkit")
 
@@ -552,6 +556,7 @@ class PhysicsAgreement(Check):
 class SiteConsistency(Check):
     id = "l5.agreement.site_consistency"
     layer = Layer.SUPPORT
+    gate_kind = GateKind.WARN
     title = "Predicted site consistent across samples and with the known site"
     requires_modules = ("spyrmsd", "numpy", "rdkit")
 
@@ -591,7 +596,10 @@ class Redocking(Check):
         return outputs.needs_predictions(ctx)
 
     def run(self, ctx: CheckContext) -> Finding:
-        th = (outputs.configured(self.id, "rmsd", measurement="rmsd_A"),)
+        th = (
+            outputs.configured(self.id, "rmsd", measurement="rmsd_A"),
+            outputs.configured(self.id, "lddt_pli", measurement="lddt_pli"),
+        )
         sets = outputs.control_sets(ctx, "redocking")
         ref = outputs.reference_ligand(ctx)
         if not sets:
@@ -619,13 +627,19 @@ class Redocking(Check):
                 )
         top = min((r for r in rows if r["rank"] == 0), key=lambda r: r["rmsd_A"] or 99)
         best = min(rows, key=lambda r: r["rmsd_A"] or 99)
-        m = {"rmsd_A": top["rmsd_A"], "best_sampled_rmsd_A": best["rmsd_A"], "poses": len(rows)}
+        m = {
+            "rmsd_A": top["rmsd_A"],
+            "lddt_pli": None,
+            "best_sampled_rmsd_A": best["rmsd_A"],
+            "poses": len(rows),
+        }
         ev = {
             "rmsd_A": top["rmsd_A"],
             "pose": top["pose"],
             "reference": f"{ref.code} in {ref.source}",
             "poses": rows,
             "executor": sets[0].executor,
+            "lddt_pli": "not computed (OpenStructure not installed); RMSD criterion applied alone",
         }
         if (top["rmsd_A"] or 99) > float(th[0].value):
             return self.finding(
@@ -638,7 +652,8 @@ class Redocking(Check):
             )
         return self.finding(
             Gate.PASS,
-            f"top redocked pose {top['pose']} at {top['rmsd_A']} Å from {ref.code} in {ref.source}",
+            f"top redocked pose {top['pose']} at {top['rmsd_A']} Å from {ref.code} in "
+            f"{ref.source}; LDDT-PLI not computed",
             measurements=m,
             thresholds=th,
             evidence=ev,
@@ -683,6 +698,7 @@ class RmsdToCrystal(Check):
 class LengthConfound(Check):
     id = "l5.confidence.length_confound"
     layer = Layer.SUPPORT
+    gate_kind = GateKind.WARN
     title = "Partner-length confound of ipTM"
 
     def applies(self, ctx: CheckContext) -> str | None:
@@ -714,6 +730,7 @@ class LengthConfound(Check):
 class InterfaceConfidence(Check):
     id = "l5.confidence.interface"
     layer = Layer.SUPPORT
+    gate_kind = GateKind.REPORTED
     title = "Interface confidence (ipTM and interface PAE)"
 
     def applies(self, ctx: CheckContext) -> str | None:

@@ -20,8 +20,10 @@ from pah.webui import ui_error
 from pah.webui.adapter import (
     LogLineConverter,
     checks_registry,
+    compatible_tools,
     load_state,
     loglines,
+    task_endpoint,
     task_spec,
     to_job,
     to_ui_record,
@@ -79,12 +81,14 @@ def ui_tasks() -> list[dict[str, Any]]:
             for t in catalog.tasks
         ]
         families = {t.id: t.family for t in catalog.tools}
+        quick = {t.id: (t.quick_setup, t.group) for t in catalog.tasks}
     except Exception as exc:  # no catalog: one entry per task spec
         log.info("catalog not loadable, tasks from specs only: %s", exc)
         entries = [
             (ui_task_id(r["id"]), r["id"], r["title"], r["title"], [], []) for r in rows.values()
         ]
         families = {}
+        quick = {}
     out: list[dict[str, Any]] = []
     for uid, pah_id, name, long, default_tools, inputs in entries:
         row = rows.get(pah_id)
@@ -95,7 +99,8 @@ def ui_tasks() -> list[dict[str, Any]]:
         spec_families = [
             {"cofolding": "co-folding"}.get(str(f), str(f)) for f in row.get("families") or ()
         ]
-        group = families.get(default_tools[0]) if default_tools else None
+        quick_setup, catalog_group = quick.get(uid, (False, None))
+        group = catalog_group or (families.get(default_tools[0]) if default_tools else None)
         out.append(
             {
                 "id": uid,
@@ -105,6 +110,9 @@ def ui_tasks() -> list[dict[str, Any]]:
                 "group": group or (spec_families[0] if spec_families else None),
                 "families": spec_families,
                 "defaultTools": default_tools,
+                "quickSetup": quick_setup,
+                "endpoint": task_endpoint(pah_id),
+                "compatibleTools": compatible_tools(pah_id),
                 "inputs": inputs,
                 "kind": task_kind(inputs) if inputs else None,
                 "claim": row.get("claim"),
@@ -137,6 +145,7 @@ def ui_catalog() -> dict[str, Any]:
         "proteins": [p.model_dump(by_alias=True) for p in catalog.proteins],
         "ligands": [x.model_dump(by_alias=True) for x in catalog.ligands],
         "defaults": catalog.defaults.model_dump(by_alias=True),
+        "prompts": list(catalog.prompts),
     }
 
 
@@ -280,5 +289,11 @@ def build_router(profile: Profile, jobs: JobStore) -> APIRouter:
     @router.get("/catalog")
     def catalog() -> dict[str, Any]:
         return ui_catalog()
+
+    @router.get("/glossary")
+    def glossary() -> dict[str, Any]:
+        from pah.webui.glossary import build_glossary
+
+        return build_glossary()
 
     return router

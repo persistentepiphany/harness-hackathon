@@ -121,6 +121,27 @@ def checks_registry() -> Mapping[str, Any]:
     return CHECKS
 
 
+@lru_cache(maxsize=4)
+def _standing_cached(path: str, mtime: float) -> scope_of.StandingTable:
+    try:
+        raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError, yaml.YAMLError) as exc:
+        log.info("standing.yaml not readable: %s", exc)
+        return scope_of.EMPTY_STANDING
+    return scope_of.standing_table(raw if isinstance(raw, dict) else {})
+
+
+def standing() -> scope_of.StandingTable:
+    """configs/standing.yaml (category, standing, decisive per check); empty when absent.
+    Keyed by the file's mtime, so an edited table is read again."""
+    path = config_dir() / "standing.yaml"
+    try:
+        mtime = path.stat().st_mtime
+    except OSError:
+        return scope_of.EMPTY_STANDING
+    return _standing_cached(str(path), mtime)
+
+
 @lru_cache(maxsize=64)
 def _task_cached(base: str, task_id: str) -> TaskSpec | None:
     try:
@@ -317,6 +338,53 @@ def record_tool(executor_id: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
     return out
 
 
+@lru_cache(maxsize=4)
+def _dispatch_cached(base: str) -> dict[str, Any]:
+    try:
+        raw = load_yaml("dispatch.yaml", Path(base))
+    except (OSError, ValueError, yaml.YAMLError) as exc:
+        log.info("dispatch.yaml not readable: %s", exc)
+        return {}
+    return raw if isinstance(raw, dict) else {}
+
+
+DISPATCH_ROUTES = frozenset({"modal", "local"})
+
+
+def dispatch_info(executor_id: str) -> dict[str, Any]:
+    """How a UI run with `execute: true` runs the executor (configs/dispatch.yaml): `route`
+    (modal, local, none or null without an entry), `gpu`, `dispatchable` and the reason."""
+    cfg = _dispatch_cached(str(config_dir()))
+    entry = _dict(_dict(cfg.get("executors")).get(executor_id))
+    route = str(entry["route"]) if entry.get("route") else None
+    out: dict[str, Any] = {
+        "route": route,
+        "dispatchable": route in DISPATCH_ROUTES,
+        "gpu": str(entry["gpu"]) if entry.get("gpu") else None,
+    }
+    if entry.get("reason"):
+        out["dispatchReason"] = str(entry["reason"])
+    if route == "modal":
+        prefix = str(_dict(cfg.get("modal")).get("app_prefix") or "pah-gpu-")
+        out["dispatchApp"] = f"{prefix}{executor_id}"
+    return out
+
+
+def tool_availability(executor_id: str, profile_name: str | None) -> tuple[bool, str]:
+    """Availability for a UI run. A Modal-routed executor runs remotely, so the host probe does
+    not apply; a local or unrouted one is probed on this host; route none is not available."""
+    d = dispatch_info(executor_id)
+    if d["route"] == "modal":
+        gpu = f" on {d['gpu']}" if d["gpu"] else ""
+        return True, f"runs remotely: Modal app {d.get('dispatchApp')}{gpu} (configs/dispatch.yaml)"
+    if d["route"] == "none":
+        return False, f"not dispatchable: {d.get('dispatchReason') or 'route none'}"
+    ok, note = availability(executor_id, profile_name)
+    if d["route"] == "local":
+        note = f"runs in the API process (route local); {note}"
+    return ok, note
+
+
 def tool_register(
     profile_name: str | None, aliases: Mapping[str, list[str]] | None = None
 ) -> list[dict[str, Any]]:
@@ -326,9 +394,10 @@ def tool_register(
     for row in rows:
         eid = str(row["id"])
         tool = record_tool(eid, rows)
-        ok, note = availability(eid, profile_name)
+        ok, note = tool_availability(eid, profile_name)
         tool["available"] = ok
         tool["note"] = note
+        tool.update(dispatch_info(eid))
         for key in ("licence", "repo"):
             if row.get(key):
                 tool[key] = str(row[key])
@@ -739,6 +808,7 @@ def ui_check(f: Mapping[str, Any], task: TaskSpec | None) -> dict[str, Any]:
             "origin": str(t0.get("origin", "")),
             "evidenceLevel": str(t0.get("evidence_level", "")),
         }
+        table = standing()
         out["thresholds"] = [
             {
                 "name": t.get("name"),
@@ -746,6 +816,7 @@ def ui_check(f: Mapping[str, Any], task: TaskSpec | None) -> dict[str, Any]:
                 "comparator": t.get("comparator"),
                 "origin": t.get("origin"),
                 "evidenceLevel": t.get("evidence_level"),
+                "standing": scope_of.threshold_standing(cid, str(t.get("name")), table),
                 **({"measurement": str(t["measurement"])} if t.get("measurement") else {}),
             }
             for t in thresholds
@@ -759,6 +830,7 @@ def ui_check(f: Mapping[str, Any], task: TaskSpec | None) -> dict[str, Any]:
     reason = scope_of.skip_reason(f)
     if reason:
         out["skipReason"] = reason
+    out.update(scope_of.check_labels(f, cid, standing()))
     if evidence.get("escalated_by_task"):
         out["escalated"] = True
     artifacts = [str(a) for a in f.get("artifacts") or ()]
@@ -768,7 +840,13 @@ def ui_check(f: Mapping[str, Any], task: TaskSpec | None) -> dict[str, Any]:
 
 
 def _pending_check(cid: str, task: TaskSpec | None) -> dict[str, Any]:
-    return {"id": cid, "name": _title(cid), "gate": failure_gate(cid, task), "result": "pending"}
+    return {
+        "id": cid,
+        "name": _title(cid),
+        "gate": failure_gate(cid, task),
+        "result": "pending",
+        **scope_of.check_labels(None, cid, standing()),
+    }
 
 
 def _counts(checks: list[dict[str, Any]]) -> dict[str, int]:
@@ -841,6 +919,11 @@ def _summary(
     return out
 
 
+def used_sources(check_id: str, sources: list[dict[str, Any]]) -> list[str]:
+    """RecordSource ids the check read (record.json `usage`, as RecordSource.usedBy)."""
+    return [str(r["id"]) for r in sources if r.get("id") and check_id in (r.get("usedBy") or ())]
+
+
 def ui_layers(state: RunState, sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for meta in LAYERS:
@@ -853,6 +936,8 @@ def ui_layers(state: RunState, sources: list[dict[str, Any]]) -> list[dict[str, 
             checks += [
                 _pending_check(c, state.task) for c in state.task.layers.get(i, ()) if c not in seen
             ]
+        for c in checks:
+            c["sources"] = used_sources(str(c["id"]), sources)
         layer: dict[str, Any] = {
             **meta,
             "status": status,
@@ -1399,6 +1484,7 @@ def ui_verdict(state: RunState, sc: scope_of.Scope | None = None) -> dict[str, A
         "incomplete": incomplete,
         "notApplicable": na,
         "pending": list(sc.pending),
+        "downgraded": [str(x) for x in _dict(v).get("downgraded") or ()],
         "assessedClaim": sc.assessed_claim(outcome),
         "engineOutcome": OUTCOMES.get(str(v.get("outcome"))) if v else None,
     }
@@ -1454,34 +1540,22 @@ def ui_run_meta(state: RunState) -> dict[str, Any]:
     return out
 
 
-def _catalog_tables() -> tuple[list[scope_of.DimensionDef], dict[str, list[str]]]:
-    """Dimension table and certainty levels from configs/catalog.yaml (empty when unreadable)."""
-    try:
-        from pah.webui.catalog import load_catalog
-
-        cat = load_catalog()
-    except Exception as exc:  # fail soft: the record renders without dimensions
-        log.info("catalog not loadable for dimensions: %s", exc)
-        return [], {}
-    table = {str(k): [str(x) for x in v] for k, v in cat.certainty.items()}
-    return scope_of.dimension_defs(list(cat.dimensions)), table
-
-
 def ui_dimensions(state: RunState, layers: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Checks grouped by what they test. Task checks of an unselected layer count as pending."""
-    defs, table = _catalog_tables()
-    if not defs:
+    """Verdict dimensions from the check categories (configs/standing.yaml). Task checks of an
+    unselected layer count as pending."""
+    table = standing()
+    if not table.dimensions:
         return []
-    pairs: list[tuple[int, Mapping[str, Any]]] = [
-        (int(layer["i"]), c) for layer in layers for c in layer["checks"]
-    ]
-    seen = {str(c.get("id")) for _, c in pairs}
+    checks: list[Mapping[str, Any]] = [c for layer in layers for c in layer["checks"]]
+    seen = {str(c.get("id")) for c in checks}
     if state.task is not None and state.status == "done":
-        for i, ids in state.task.layers.items():
+        for ids in state.task.layers.values():
             for cid in ids:
                 if cid not in seen:
-                    pairs.append((int(i), {"id": cid, "result": "pending"}))
-    return scope_of.dimensions(pairs, defs, table)
+                    checks.append(
+                        {"id": cid, "result": "pending", **scope_of.check_labels(None, cid, table)}
+                    )
+    return scope_of.dimensions(checks, table)
 
 
 def ui_execution(state: RunState) -> list[dict[str, Any]]:

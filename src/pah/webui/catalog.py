@@ -76,8 +76,6 @@ class Catalog(_Entry):
     tools: tuple[CatalogTool, ...] = ()
     tasks: tuple[CatalogTask, ...] = ()
     prompts: tuple[str, ...] = ()
-    dimensions: tuple[dict[str, Any], ...] = ()
-    certainty: dict[str, tuple[str, ...]] = Field(default_factory=dict)
 
     def protein(self, accession: str) -> CatalogProtein | None:
         acc = accession.upper()

@@ -91,17 +91,20 @@ def has_outputs(
     events: Sequence[Mapping[str, Any]],
     harness_executed: Iterable[str] = (),
 ) -> bool:
-    """Whether the run holds (or is producing) executor outputs."""
+    """Whether the run holds (or is producing) executor outputs. An executor counts while its
+    latest execution event is queued, building, running or done; one that ended skipped or
+    failed produced nothing."""
     if _dicts(manifest.get("predictions")):
         return True
     if any(str(a.get("kind")) == "prediction_structure" for a in artifacts):
         return True
     if any(True for _ in harness_executed):
         return True
+    last: dict[str, str] = {}
     for e in execution_events(events):
-        if str(_dict(e.get("data")).get("phase")) in _ACTIVE_PHASES:
-            return True
-    return False
+        data = _dict(e.get("data"))
+        last[str(data.get("executor"))] = str(data.get("phase"))
+    return any(phase in _ACTIVE_PHASES for phase in last.values())
 
 
 # ---------------------------------------------------------------- scope and outcome
@@ -251,68 +254,126 @@ def scoped_statement(
     return text
 
 
-# ---------------------------------------------------------------- dimensions
+# ---------------------------------------------------------------- standing and dimensions
+
+
+STANDINGS = ("definitional", "published", "inherited", "uncalibrated")
 
 
 @dataclass(frozen=True)
 class DimensionDef:
     id: str
     label: str
-    layers: tuple[int, ...] = ()
-    prefixes: tuple[str, ...] = ()
+    categories: tuple[str, ...] = ()
 
 
-def dimension_defs(rows: Sequence[Mapping[str, Any]]) -> list[DimensionDef]:
-    out: list[DimensionDef] = []
-    for r in rows:
-        if not r.get("id"):
-            continue
-        out.append(
-            DimensionDef(
-                id=str(r["id"]),
-                label=str(r.get("label") or r["id"]),
-                layers=tuple(int(x) for x in r.get("layers") or () if isinstance(x, int)),
-                prefixes=tuple(str(x) for x in r.get("prefixes") or ()),
-            )
+@dataclass(frozen=True)
+class StandingTable:
+    """configs/standing.yaml: category, standing and decisive flag per check, the categories,
+    the verdict dimensions built from them, and the standings strongest first."""
+
+    checks: Mapping[str, Mapping[str, Any]]
+    categories: Mapping[str, Mapping[str, Any]]
+    dimensions: tuple[DimensionDef, ...]
+    order: tuple[str, ...] = STANDINGS
+    policy: str | None = None
+
+    def entry(self, check_id: str) -> Mapping[str, Any]:
+        return _dict(self.checks.get(check_id))
+
+    def dimension_of(self, category: str | None) -> str | None:
+        if not category:
+            return None
+        named = _dict(self.categories.get(category)).get("dimension")
+        if named:
+            return str(named)
+        return next((d.id for d in self.dimensions if category in d.categories), None)
+
+
+EMPTY_STANDING = StandingTable(checks={}, categories={}, dimensions=())
+
+
+def standing_table(raw: Mapping[str, Any]) -> StandingTable:
+    """Parses configs/standing.yaml; unknown or malformed rows are left out."""
+    categories = {str(c["id"]): c for c in _dicts(raw.get("categories")) if c.get("id")}
+    dims = tuple(
+        DimensionDef(
+            id=str(d["id"]),
+            label=str(d.get("label") or d["id"]),
+            categories=tuple(str(x) for x in d.get("categories") or ()),
         )
+        for d in _dicts(raw.get("dimensions"))
+        if d.get("id")
+    )
+    order = tuple(
+        str(s["id"]) if isinstance(s, dict) else str(s)
+        for s in raw.get("standings") or ()
+        if (isinstance(s, dict) and s.get("id")) or isinstance(s, str)
+    )
+    checks = {str(k): v for k, v in _dict(raw.get("checks")).items() if isinstance(v, dict)}
+    policy = raw.get("policy")
+    return StandingTable(
+        checks=checks,
+        categories=categories,
+        dimensions=dims,
+        order=order or STANDINGS,
+        policy=str(policy) if policy else None,
+    )
+
+
+def check_labels(
+    finding: Mapping[str, Any] | None, check_id: str, table: StandingTable
+) -> dict[str, Any]:
+    """`category`, `standing` and `decisive` of a check: the engine's stamp on the finding
+    first, else configs/standing.yaml. Null when neither names it."""
+    f = finding or {}
+    entry = table.entry(check_id)
+    category = f.get("category") or entry.get("category")
+    standing = f.get("standing") or entry.get("standing")
+    decisive = entry.get("decisive")
+    out: dict[str, Any] = {
+        "category": str(category) if category else None,
+        "standing": str(standing) if standing else None,
+        "decisive": bool(decisive) if isinstance(decisive, bool) else None,
+    }
+    if out["category"]:
+        label = _dict(table.categories.get(out["category"])).get("label")
+        if label:
+            out["categoryLabel"] = str(label)
+    policy = _dict(_dict(f.get("evidence")).get("policy"))
+    if policy.get("original_gate"):
+        out["downgraded"] = True
+        out["originalGate"] = str(policy["original_gate"])
+        if policy.get("reason"):
+            out["policyReason"] = str(policy["reason"])
     return out
 
 
-def dimension_of(check_id: str, layer: int | None, defs: Sequence[DimensionDef]) -> str | None:
-    """Longest matching check id prefix, else the first dimension that lists the layer."""
-    best: tuple[int, str] | None = None
-    for d in defs:
-        for p in d.prefixes:
-            if check_id.startswith(p) and (best is None or len(p) > best[0]):
-                best = (len(p), d.id)
-    if best is not None:
-        return best[1]
-    return next((d.id for d in defs if layer is not None and layer in d.layers), None)
+def threshold_standing(check_id: str, name: str, table: StandingTable) -> str | None:
+    value = _dict(table.entry(check_id).get("thresholds")).get(name)
+    return str(value) if value else None
 
 
-def certainty_of(levels: Iterable[str], table: Mapping[str, Sequence[str]]) -> str:
-    """Weakest certainty among threshold evidence levels; `none` without thresholds."""
-    lookup = {str(level): str(c) for c, ls in table.items() for level in ls}
-    found = [lookup.get(str(level), "uncalibrated") for level in levels]
+def weakest(standings: Iterable[str], order: Sequence[str]) -> str:
+    """Weakest standing (latest in `order`); `none` when there is none."""
+    rank = {s: i for i, s in enumerate(order)}
+    found = [s for s in standings if s]
     if not found:
         return "none"
-    return min(found, key=lambda c: _CERTAINTY_RANK.get(c, 0))
+    return max(found, key=lambda s: rank.get(s, len(order)))
 
 
-def dimensions(
-    checks: Sequence[tuple[int, Mapping[str, Any]]],
-    defs: Sequence[DimensionDef],
-    certainty_table: Mapping[str, Sequence[str]],
-) -> list[dict[str, Any]]:
-    """UiDimension rows from (layer, UiCheck) pairs. A pending check is a `pending` result or
-    a skip with skipReason `pending_input`."""
-    groups: dict[str, list[Mapping[str, Any]]] = {d.id: [] for d in defs}
-    for layer, c in checks:
-        did = dimension_of(str(c.get("id")), layer, defs)
-        if did is not None:
+def dimensions(checks: Sequence[Mapping[str, Any]], table: StandingTable) -> list[dict[str, Any]]:
+    """UiDimension rows from UiChecks that carry `category` and `standing`. A pending check
+    is a `pending` result or a skip with skipReason `pending_input`. `certainty` is the weakest
+    standing among the dimension's non-skip checks."""
+    groups: dict[str, list[Mapping[str, Any]]] = {d.id: [] for d in table.dimensions}
+    for c in checks:
+        did = table.dimension_of(c.get("category"))
+        if did in groups:
             groups[did].append(c)
     out: list[dict[str, Any]] = []
-    for d in defs:
+    for d in table.dimensions:
         rows = groups[d.id]
         passed = sum(1 for c in rows if c.get("result") in {"pass", "reported"})
         warned = sum(1 for c in rows if c.get("result") == "warn")
@@ -330,24 +391,20 @@ def dimensions(
             result = "pass"
         else:
             result = "na"
-        levels = [
-            str(t.get("evidenceLevel") or "")
-            for c in rows
-            if c.get("result") not in {"skip", "pending"}
-            for t in c.get("thresholds") or ()
-            if isinstance(t, dict)
-        ]
+        ran = [c for c in rows if c.get("result") not in {"skip", "pending"}]
         out.append(
             {
                 "id": d.id,
                 "label": d.label,
+                "categories": list(d.categories),
                 "result": result,
                 "checks": len(rows),
                 "passed": passed,
                 "warned": warned,
                 "stopped": stopped,
                 "pending": pending,
-                "certainty": certainty_of(levels, certainty_table),
+                "certainty": weakest((str(c.get("standing") or "") for c in ran), table.order),
+                "decisive": [str(c.get("id")) for c in rows if c.get("decisive")],
                 "checkIds": [str(c.get("id")) for c in rows],
             }
         )

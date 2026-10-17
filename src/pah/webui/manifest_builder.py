@@ -30,6 +30,7 @@ from pah.webui.catalog import (
 
 ALL_LAYERS = (0, 1, 2, 3, 4, 5)
 EXECUTORS_NOT_RUN = "not run (checks only)"
+EXECUTORS_RUN = "run (configs/dispatch.yaml)"
 UNIPROT = re.compile(r"[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}")
 PDB_ID = re.compile(r"[0-9][A-Z0-9]{3}")
 _CID = re.compile(r"(?:cid[:\s]*)?(\d{1,12})", re.IGNORECASE)
@@ -66,6 +67,11 @@ class RunSettings(BaseModel):
         None, description="Checkpoint the executor will use; default from configs/executors.yaml"
     )
     database_snapshot: str | None = Field(None, description="Sequence database snapshot for MSAs")
+    execute: bool = Field(
+        True,
+        description="Run the selected executors (GPU ones on Modal, Vina here) before the checks; "
+        "an executor that cannot run is recorded as skipped",
+    )
 
     @field_validator(
         "task", "target", "partner", "ligand", "reference", "name", "claim", "manifest", "profile",
@@ -142,6 +148,12 @@ class RunPlan:
     manifest_path: Path | None = None
     manifest: dict[str, Any] | None = None
     notes: list[str] = field(default_factory=list)
+    execute: bool = False
+
+    @property
+    def executors(self) -> tuple[str, ...]:
+        """Selected tools that are executors (lookups such as SIFTS are not run)."""
+        return tuple(t for t in self.tools if t not in self.lookups)
 
 
 def _example_path(value: str, examples_dir: Path | None) -> Path:
@@ -271,6 +283,7 @@ def plan_run(
             settings=settings,
             manifest_path=path,
             notes=notes,
+            execute=settings.execute,
         )
 
     task = cat.task(settings.task)
@@ -362,6 +375,7 @@ def plan_run(
         settings=settings,
         manifest=manifest,
         notes=notes,
+        execute=settings.execute,
     )
 
 

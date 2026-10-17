@@ -163,10 +163,7 @@ def interpret_request(
                 skipped = cat.task(task_id)
                 name = skipped.name.lower() if skipped else task_id
                 if not any(task_id in w for w in warnings):
-                    warnings.append(
-                        f"request matches {name} ({task_id}), which Quick setup does not "
-                        "offer; use manual setup for it"
-                    )
+                    warnings.append(f"{name} ({task_id}): manual setup only")
                 continue
             task = task_id
             break
@@ -205,8 +202,7 @@ def interpret_request(
             continue
         if endpoint not in endpoints_of(tool):
             warnings.append(
-                f"{tool} does not produce {endpoint}, the endpoint {task_name} needs "
-                "(configs/models.yaml); kept as named, layer 3 l3.metric.endpoint will stop it"
+                f"{tool} does not produce {endpoint} for {task_name}; l3.metric.endpoint will stop"
             )
 
     prots = [p for p in cat.proteins if any(n in t for n in p.names)]
@@ -233,10 +229,7 @@ def interpret_request(
     smiles = next((s for s in _SMILES_RUN.findall(text) if _SMILES_HINT.search(s)), None)
     ligand = ""
     if "series" in takes:
-        warnings.append(
-            f"{task_name} ranks a ligand series; the run settings carry one ligand, so the "
-            "ranking checks have one member until a series is supplied"
-        )
+        warnings.append(f"{task_name} needs a ligand series; one ligand supplied")
     if takes and not ({"ligand", "series"} & takes):
         pass
     elif task != "interaction_discovery":
@@ -296,7 +289,7 @@ def interpret_request(
             else f"no task specification found for {task}",
         }
     )
-    steps += [{"field": "warning", "value": w, "because": w} for w in warnings]
+    steps += [{"field": "warning", "value": w, "because": ""} for w in warnings]
     return {
         "warnings": warnings,
         "task": task,

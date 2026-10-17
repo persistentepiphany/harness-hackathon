@@ -17,6 +17,19 @@ from pathlib import Path
 from typing import Any
 
 
+def _versions() -> dict[str, str]:
+    """Versions of the packages that ran, read from the environment's metadata."""
+    from importlib.metadata import PackageNotFoundError, version
+
+    out = {}
+    for dist in ("openmm", "openff-toolkit", "openmmforcefields", "pdbfixer", "rdkit"):
+        try:
+            out[dist] = version(dist)
+        except PackageNotFoundError:
+            continue
+    return out
+
+
 def main(args: dict[str, Any]) -> dict[str, Any]:
     import numpy as np
     import openmm
@@ -84,6 +97,7 @@ def main(args: dict[str, Any]) -> dict[str, Any]:
         "energy_after_kJ": round(e1.value_in_unit(unit.kilojoule_per_mole), 1),
         "converged": True,
         "openmm": openmm.__version__,
+        "versions": _versions(),
         "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, "
         "protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS",
     }

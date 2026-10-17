@@ -30,8 +30,6 @@ def test_checks_that_never_stop_do_not_declare_stop() -> None:
 
     reg = checks_registry()
     warn = (
-        "l3.exposure.ligand_prevalence",
-        "l3.exposure.pocket",
         "l3.regime.modality",
         "l3.exposure.chemotype",
         "l2.receptor.state",
@@ -41,8 +39,10 @@ def test_checks_that_never_stop_do_not_declare_stop() -> None:
     for cid in warn:
         assert reg[cid].gate_kind is GateKind.WARN, cid
         assert failure_gate(cid, None) == "Warn"
-    assert reg["l3.exposure.sequence"].gate_kind is GateKind.REPORTED
-    assert failure_gate("l3.exposure.sequence", None) == "Reported"
+    # context and stratification only (configs/standing.yaml role context): reported, never warn
+    for cid in ("l3.exposure.sequence", "l3.exposure.ligand_prevalence", "l3.exposure.pocket"):
+        assert reg[cid].gate_kind is GateKind.REPORTED, cid
+        assert failure_gate(cid, None) == "Reported"
 
 
 def test_threshold_names_its_measurement_and_the_adapter_copies_it() -> None:

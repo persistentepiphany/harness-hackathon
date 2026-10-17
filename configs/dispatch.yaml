@@ -21,11 +21,12 @@
 version: 1
 
 guard:
-  # A run with execute: true needs the header when the variable is set on the server. Profiles in
-  # require_token_profiles refuse execution when the variable is not set at all.
+  # A run with execute: true needs the header when the variable is set on the server (the web
+  # proxy adds it from its own environment). Profiles in require_token_profiles refuse execution
+  # when the variable is not set at all; empty means the token is optional everywhere.
   token_env: PAH_EXEC_TOKEN
   header: X-Pah-Exec-Token
-  require_token_profiles: [modal]
+  require_token_profiles: []
   max_concurrent_gpu_runs: 1
   max_seeds: 5
   # Seconds between polls of a running function (progress and completion).

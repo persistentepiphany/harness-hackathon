@@ -160,17 +160,40 @@ PROFILE_DATA = _profile()
 MODAL = PROFILE_DATA["modal"]
 API = MODAL["api"]
 
+# Conda-only tools from environment/conda.yml (OpenMM, PDBFixer, openmmforcefields and OpenFF for
+# l4.minimisation_drift; cctbx MolProbity, reduce and probe for l4.molprobity; fpocket, Java, APBS)
+# live in their own prefix, as locally (.tools/conda-env) and on CSF3. Checks find it through
+# PAH_CONDA_PREFIX, which matches `conda_prefix` in configs/profiles/modal.yaml. The MolProbity
+# reference data is installed by `pah fetch --only molprobity_data`; --strict fails the build when
+# that asset fails, so a missing tool cannot pass silently.
+CONDA_PREFIX = "/opt/conda"
+CONDA_SPEC = "/tmp/pah-conda.yml"
+MICROMAMBA_URL = "https://micro.mamba.pm/api/micromamba/linux-64/2.9.0"
+MAMBA = "MAMBA_ROOT_PREFIX=/opt/mamba micromamba"
+CONDA_APT = ("bzip2", "git")
+
 image = (
     modal.Image.debian_slim(python_version="3.12")
-    .apt_install(*APT_PACKAGES)
+    .apt_install(*APT_PACKAGES, *CONDA_APT)
+    .add_local_file(REPO / "environment" / "conda.yml", CONDA_SPEC, copy=True)
+    .run_commands(
+        f"curl -fsSL {MICROMAMBA_URL} | tar -xj -C /usr/local bin/micromamba",
+        f"{MAMBA} create -y -p {CONDA_PREFIX} -f {CONDA_SPEC}",
+        f"{MAMBA} clean -a -y",
+    )
     .uv_pip_install(*_pip_requirements())
     .add_local_dir(REPO, REMOTE_REPO, copy=True, ignore=IGNORE)
-    .run_commands(f"python -m pip install --no-cache-dir --no-deps -e {REMOTE_REPO}")
+    .run_commands(
+        f"python -m pip install --no-cache-dir --no-deps -e {REMOTE_REPO}",
+        f"cd {REMOTE_REPO} && PAH_CONFIG_DIR={REMOTE_REPO}/configs PAH_CONDA_PREFIX={CONDA_PREFIX} "
+        f"pah fetch --profile {PROFILE} --only molprobity_data --strict",
+    )
     .workdir(REMOTE_REPO)
     .env(
         {
             "PAH_CONFIG_DIR": f"{REMOTE_REPO}/configs",
             "PAH_PROFILE": PROFILE,
+            "PAH_CONDA_PREFIX": CONDA_PREFIX,
             "MPLBACKEND": "Agg",
             "PYTHONUNBUFFERED": "1",
         }

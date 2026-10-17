@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from pah.checks import outputs, resolve
-from pah.core.check import Check, CheckContext, SkipReason, register
+from pah.core.check import Check, CheckContext, GateKind, SkipReason, register
 from pah.core.models import Finding, Gate, Layer, ToolRef
 
 SPEC_L4 = "Specification, Layer 4 (output validity)"
@@ -263,6 +263,7 @@ def strain_energy(mol: Any, n_conf: int = 20) -> float | None:
 class TorsionStrain(Check):
     id = "l4.torsion_strain"
     layer = Layer.VALIDITY
+    gate_kind = GateKind.WARN
     title = "Torsional strain of the ligand pose"
     requires_modules = ("rdkit",)
 
@@ -461,6 +462,7 @@ def _crystal_complex(ctx: CheckContext) -> Path | None:
 class InteractionFingerprint(Check):
     id = "l4.interactions.fingerprint"
     layer = Layer.VALIDITY
+    gate_kind = GateKind.WARN
     title = "Interaction fingerprint (PLIP)"
     requires_modules = ("plip", "openbabel")
 
@@ -519,6 +521,7 @@ class InteractionFingerprint(Check):
 class KnownBinders(Check):
     id = "l4.interactions.known_binders"
     layer = Layer.VALIDITY
+    gate_kind = GateKind.WARN
     title = "Interactions of the crystal ligand reproduced by the pose"
     requires_modules = ("plip", "openbabel", "gemmi")
 
@@ -589,6 +592,7 @@ POLAR = {"N", "O"}
 class UnsatisfiedPolars(Check):
     id = "l4.interactions.unsatisfied_polars"
     layer = Layer.VALIDITY
+    gate_kind = GateKind.WARN
     title = "Buried ligand polar atoms without a hydrogen-bond partner"
     requires_modules = ("freesasa", "gemmi", "rdkit")
 
@@ -695,6 +699,7 @@ NONPOLAR = {"C", "S", "Cl", "Br", "I"}
 class HydrophobicComplementarity(Check):
     id = "l4.interactions.hydrophobic"
     layer = Layer.VALIDITY
+    gate_kind = GateKind.WARN
     title = "Hydrophobic complementarity of buried ligand surface"
     requires_modules = ("freesasa", "gemmi", "rdkit")
 
@@ -787,18 +792,27 @@ WORKER = Path(__file__).with_name("minimise_worker.py")
 class MinimisationDrift(Check):
     id = "l4.minimisation_drift"
     layer = Layer.VALIDITY
+    gate_kind = GateKind.WARN
     title = "Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF)"
     requires_modules = ("rdkit",)
 
     def applies(self, ctx: CheckContext) -> str | None:
         return _ligand_outputs(ctx)
 
+    def _missing(self, message: str) -> Finding:
+        """Skip that still names the tool that would run (OpenMM in the conda prefix)."""
+        return self.finding(
+            Gate.SKIP,
+            message,
+            evidence={"skip_reason": SkipReason.TOOL_MISSING.value},
+            tool=ToolRef(name="openmm"),
+        )
+
     def run(self, ctx: CheckContext) -> Finding:
         py = _worker_python()
         if py is None:
-            return self.skip(
-                SkipReason.TOOL_MISSING,
-                "conda environment with OpenMM and OpenFF not found (PAH_CONDA_PREFIX)",
+            return self._missing(
+                "conda environment with OpenMM and OpenFF not found (PAH_CONDA_PREFIX)"
             )
         th = (outputs.configured(self.id, "drift"),)
         limit = float(th[0].value)
@@ -820,7 +834,7 @@ class MinimisationDrift(Check):
             if proc.returncode != 0:
                 tail = (proc.stderr or proc.stdout).strip().splitlines()[-1:] or ["no output"]
                 if "ModuleNotFoundError" in tail[0]:
-                    return self.skip(SkipReason.TOOL_MISSING, f"minimisation worker: {tail[0]}")
+                    return self._missing(f"minimisation worker: {tail[0]}")
                 rows.append({"pose": pose.id, "error": tail[0]})
                 continue
             rows.append({"pose": pose.id, **json.loads(out.read_text())})
@@ -838,7 +852,13 @@ class MinimisationDrift(Check):
             "poses_over": sum(1 for r in done if r["drift_A"] > limit),
             "failed": len(rows) - len(done),
         }
-        ev = {"representative": rep, "poses": rows, "method": rr.get("method")}
+        ev = {
+            "representative": rep,
+            "poses": rows,
+            "method": rr.get("method"),
+            "versions": rr.get("versions"),
+            "python": str(py),
+        }
         tool = ToolRef(name="openmm", version=rr.get("openmm"))
         if rr["drift_A"] > limit:
             return self.finding(
@@ -903,6 +923,7 @@ def _bonded(c: Any) -> bool:
 class StructureClashes(Check):
     id = "l4.structure.clashes"
     layer = Layer.VALIDITY
+    gate_kind = GateKind.WARN
     title = "Steric clashes (heavy-atom clashscore approximation)"
     requires_modules = ("gemmi",)
 
@@ -972,6 +993,7 @@ def _segment_distance(p: Any, q: Any) -> Any:
 class StructureTopology(Check):
     id = "l4.structure.topology"
     layer = Layer.VALIDITY
+    gate_kind = GateKind.WARN
     title = "Chains not topologically entangled"
     requires_modules = ("gemmi", "numpy")
 
@@ -1031,6 +1053,7 @@ class StructureTopology(Check):
 class InterfaceChemistry(Check):
     id = "l4.interface.chemistry"
     layer = Layer.VALIDITY
+    gate_kind = GateKind.WARN
     title = "Interface buried area, contacts and salt bridges"
     requires_modules = ("freesasa", "gemmi")
 
@@ -1107,45 +1130,7 @@ class InterfaceChemistry(Check):
         }
 
 
-@register
-class MolProbity(Check):
-    id = "l4.molprobity"
-    layer = Layer.VALIDITY
-    title = "MolProbity clashscore, Ramachandran and rotamer outliers"
-
-    def applies(self, ctx: CheckContext) -> str | None:
-        return outputs.needs_predictions(ctx)
-
-    def run(self, ctx: CheckContext) -> Finding:
-        import shutil
-
-        exe = shutil.which("phenix.molprobity") or shutil.which("molprobity.molprobity")
-        if exe is None:
-            return self.skip(
-                SkipReason.TOOL_MISSING,
-                "phenix.molprobity not on PATH; the "
-                "heavy-atom clash approximation is l4.structure.clashes",
-            )
-        pose = _structures(ctx)[0]
-        proc = subprocess.run(
-            [exe, str(pose.structure)],
-            capture_output=True,
-            text=True,
-            timeout=1800,
-            cwd=str(pose.structure.parent),
-        )
-        values: dict[str, Any] = {}
-        for line in proc.stdout.splitlines():
-            for key in ("Clashscore", "Ramachandran outliers", "Rotamer outliers"):
-                if line.strip().startswith(key):
-                    values[key.lower().replace(" ", "_")] = line.split("=")[-1].strip()
-        gate = Gate.PASS if proc.returncode == 0 else Gate.WARN
-        return self.finding(
-            gate,
-            ", ".join(f"{k} {v}" for k, v in values.items()) or "no summary parsed",
-            measurements=values,
-            tool=ToolRef(name="molprobity"),
-        )
+# l4.molprobity lives in layer4_molprobity.py (MolProbity from cctbx in the conda prefix).
 
 
 SCORE_KEYS = (
@@ -1167,6 +1152,7 @@ def _score_key(pose: Any) -> str | None:
 class ScoreDistribution(Check):
     id = "l4.score.distribution"
     layer = Layer.VALIDITY
+    gate_kind = GateKind.WARN
     title = "Score distribution of the screened library"
 
     def applies(self, ctx: CheckContext) -> str | None:
@@ -1216,6 +1202,7 @@ class ScoreDistribution(Check):
 class TopHitInteractions(Check):
     id = "l4.interactions.top_hits"
     layer = Layer.VALIDITY
+    gate_kind = GateKind.WARN
     title = "Interactions of the top-ranked hits"
     requires_modules = ("plip", "openbabel")
 

@@ -1,0 +1,148 @@
+# Gate policy and the two labels of every check: category (what it examines) and standing (what
+# its decisive threshold rests on). This table is authoritative for record.json, report.html and
+# the web UI; the engine applies it when it combines findings (pah.core.standing).
+#
+# Row fields
+#   category   one of `categories` below
+#   standing   definitional | published | inherited | uncalibrated
+#   decisive   true when a stop from this check may set the verdict to stop (refused) on its own
+#   role       decide  (a stop stands)
+#              narrow  (a stop is rewritten to warn, recorded in evidence.policy)
+#              context (a stop or warn is rewritten to pass and reported, recorded in evidence.policy)
+#   status     built | not_built
+#   thresholds optional map of threshold name -> standing, for checks whose thresholds differ
+#   notes      what the classification rests on
+# A registered check missing from this table is treated as standing `undeclared`, role narrow.
+version: 1
+decided: "2026-10-17"
+policy: >-
+  Only a published threshold may, on its own, drive a verdict to refused. Inherited and
+  uncalibrated thresholds may warn or narrow a claim, never decide it alone. Integrity checks that
+  test exact equality (zero sequence mismatches, identical InChIKeys) are definitional, not
+  empirical, so they keep their stop gates. PoseBusters (inherited) keeps decision power for
+  physical validity, its criteria applied in their intended role. Corroboration and stability rest
+  on uncalibrated thresholds, so they only narrow until the benchmark gives them published or
+  reproduced standing.
+
+standings:  # strongest first
+  - {id: definitional, label: Definitional, note: "An exact test (equality, presence, zero count); needs no calibration"}
+  - {id: published, label: Published, note: "Threshold taken from a named publication or benchmark"}
+  - {id: inherited, label: Inherited, note: "A tool's own criterion, applied in the role the tool defines it for"}
+  - {id: uncalibrated, label: Uncalibrated, note: "Harness default with no calibration behind it"}
+
+roles:
+  - {id: decide, label: "May decide", note: "A stop from this check refuses the claim"}
+  - {id: narrow, label: "Narrows only", note: "A stop becomes a warning that narrows the claim"}
+  - {id: context, label: "Context only", note: "Reported; never warns or stops"}
+
+categories:
+  - {id: provenance_identity, label: "Provenance and identity", dimension: inputs}
+  - {id: structural_completeness, label: "Structural completeness", dimension: inputs}
+  - {id: chemical_state, label: "Chemical state", dimension: inputs}
+  - {id: applicability, label: Applicability, dimension: exposure}
+  - {id: physical_validity, label: "Physical validity", dimension: physical_validity}
+  - {id: interaction_chemistry, label: "Interaction chemistry", dimension: chemical_plausibility}
+  - {id: sampling_stability, label: "Sampling and stability", dimension: stability}
+  - {id: corroboration_controls, label: "Corroboration and controls", dimension: corroboration}
+
+dimensions:
+  - {id: inputs, label: Inputs, categories: [provenance_identity, structural_completeness, chemical_state]}
+  - {id: exposure, label: Exposure, categories: [applicability], note: "Includes the endpoint stop (l3.metric.endpoint)"}
+  - {id: physical_validity, label: "Physical validity", categories: [physical_validity]}
+  - {id: chemical_plausibility, label: "Chemical plausibility", categories: [interaction_chemistry]}
+  - {id: stability, label: Stability, categories: [sampling_stability]}
+  - {id: corroboration, label: "Corroboration and physical response", categories: [corroboration_controls]}
+
+checks:
+  # Provenance and identity
+  l0.sources.resolved: {category: provenance_identity, standing: definitional, decisive: true, role: decide, status: built, notes: "Every declared identifier resolves to a record with a checksum (presence test)"}
+  l0.cross.uniprot_seqres: {category: provenance_identity, standing: definitional, decisive: true, role: decide, status: built, notes: "Zero mismatches between UniProt and SEQRES through SIFTS (exact equality)"}
+  l0.cross.ligand_inchikey: {category: provenance_identity, standing: definitional, decisive: true, role: decide, status: built, notes: "Identical InChIKeys (exact equality); the metal skeleton-only match warns"}
+  l1.sequence.matches_record: {category: provenance_identity, standing: definitional, decisive: true, role: decide, status: built, notes: "Sequence equals the declared record (exact equality)"}
+  l1.sequence.no_truncation_substitution: {category: provenance_identity, standing: definitional, decisive: true, role: decide, status: built, notes: "No truncation, substitution or non-standard residue (exact equality)"}
+  l1.ligand.identity: {category: provenance_identity, standing: definitional, decisive: true, role: decide, status: built, notes: "Identical InChIKeys between the run ligand and its record"}
+  l1.msa.integrity: {category: provenance_identity, standing: definitional, decisive: true, role: decide, status: built, notes: "MSA query equals its chain, not query-only, not shared across chains"}
+  l1.provenance.model_config: {category: provenance_identity, standing: definitional, decisive: true, role: decide, status: built, notes: "Model version, checkpoint and database snapshot recorded (presence test)"}
+
+  # Structural completeness
+  l1.receptor.chains: {category: structural_completeness, standing: definitional, decisive: true, role: decide, status: built, notes: "Chains and numbering as declared (exact equality)"}
+  l1.receptor.altlocs: {category: structural_completeness, standing: definitional, decisive: true, role: decide, status: built, notes: "Alternate locations resolved deliberately; warns"}
+  l1.context.composition: {category: structural_completeness, standing: definitional, decisive: true, role: decide, status: built, notes: "Chain composition and stoichiometry match the declared assembly (exact equality)"}
+  l2.pocket.resolved: {category: structural_completeness, standing: definitional, decisive: true, role: decide, status: built, thresholds: {missing_pocket_residues: definitional, pocket_distance: uncalibrated}, notes: "Definitional for missing pocket residues; the 6 Å pocket radius is uncalibrated. Stops only through the ligand_pose task escalation"}
+  l2.context.cofactors: {category: structural_completeness, standing: inherited, decisive: false, role: narrow, status: built, thresholds: {pocket_distance: inherited}, notes: "PLIP binding-site radius 7.5 Å replaces the earlier 8 Å harness radius; the 5 Å radius had no source and is dropped. Warn only"}
+  l2.receptor.state: {category: structural_completeness, standing: definitional, decisive: true, role: decide, status: built, notes: "Apo or holo classification from the declared entry; warns"}
+  l2.msa.depth: {category: structural_completeness, standing: uncalibrated, decisive: false, role: narrow, status: built, thresholds: {sequences: definitional, neff: uncalibrated, gap_fraction: uncalibrated}, notes: "Neff 30 is a trend from Jumper et al. 2021, not a calibrated cut-off; a query-only alignment is also stopped by l1.msa.integrity"}
+  l2.msa.pairing: {category: structural_completeness, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Not in the 2026-10-17 table; classified from its uncalibrated threshold"}
+  l2.msa.paralog_ambiguity: {category: structural_completeness, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Not in the 2026-10-17 table; classified from its uncalibrated threshold"}
+  l2.disorder: {category: structural_completeness, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Existing UniProt disorder fraction at an uncalibrated 0.2; the extended disorder annotation (MobiDB, DisProt, pocket region) is not yet built"}
+  l2.context.waters_metals: {category: structural_completeness, standing: inherited, decisive: false, role: narrow, status: not_built, thresholds: {metal_distance: inherited, bridging_distance: uncalibrated}, notes: "Waters and metals retained deliberately; being built by the checks module"}
+  l2.pocket.detection_agreement: {category: structural_completeness, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Not in the 2026-10-17 table; classified from its uncalibrated threshold"}
+
+  # Chemical state
+  l1.ligand.sanitization: {category: chemical_state, standing: definitional, decisive: true, role: decide, status: built, thresholds: {abs_net_charge: uncalibrated}, notes: "Parse and valence failures stop (definitional); net charge beyond 2 warns (uncalibrated)"}
+  l1.ligand.stereo_defined: {category: chemical_state, standing: definitional, decisive: true, role: decide, status: built, notes: "Undefined stereocentres counted exactly; warns"}
+  l2.ligand.protonation: {category: chemical_state, standing: inherited, decisive: false, role: narrow, status: built, notes: "Dimorphite-DL enumeration window"}
+  l2.receptor.protonation: {category: chemical_state, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "pKa within 1 unit of the stated pH"}
+  l2.ligand.conformers: {category: chemical_state, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Ten ETKDG conformers as default; the twenty-conformer docking preparation figure is dropped"}
+  l2.docking.box: {category: chemical_state, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Contact radius 4 Å and margin 2 Å; warn only"}
+  l2.library.properties: {category: chemical_state, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Not in the 2026-10-17 table; classified from its uncalibrated threshold"}
+
+  # Applicability
+  l3.model.training_cutoff: {category: applicability, standing: definitional, decisive: true, role: decide, status: built, notes: "Training cutoff recorded (presence test)"}
+  l3.metric.endpoint: {category: applicability, standing: definitional, decisive: true, role: decide, status: built, notes: "Endpoint fits the tool; the endpoint stop of the Exposure dimension"}
+  l3.exposure.pocket: {category: applicability, standing: published, decisive: false, role: context, status: built, notes: "SuCOS-pocket similarity is a published measure used for stratification only; the warning above 50 is dropped"}
+  l3.exposure.ligand_prevalence: {category: applicability, standing: published, decisive: false, role: context, status: built, notes: "Published definition (Tanimoto above 0.9 in more than 100 training systems); exposure context"}
+  l3.exposure.sequence: {category: applicability, standing: published, decisive: false, role: context, status: built, notes: "Published as a weak secondary measure; reported only"}
+  l3.exposure.chemotype: {category: applicability, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Not in the 2026-10-17 table; applies the prevalence count to Murcko scaffolds, which is not the published definition"}
+  l3.regime.modality: {category: applicability, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Modality and token count against the training crop"}
+
+  # Physical validity
+  l4.posebusters: {category: physical_validity, standing: inherited, decisive: true, role: decide, status: built, notes: "PoseBusters criteria applied in their intended role; the one inherited check that keeps decision power. Tolerances recorded through the PoseBusters version"}
+  l4.molprobity: {category: physical_validity, standing: inherited, decisive: false, role: narrow, status: built, notes: "MolProbity geometry (cctbx criteria); warn only, severe results included"}
+  l4.torsion_strain: {category: physical_validity, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "RDKit torsion strain; the strain energy has no cut-off attached and the 16.1 kcal/mol StrainRelief cut-off is not applied to it"}
+  l4.strain_relief: {category: physical_validity, standing: inherited, decisive: false, role: narrow, status: not_built, notes: "StrainRelief 16.1 kcal/mol, warn only; deferred with StrainRelief"}
+  l4.minimisation_drift: {category: physical_validity, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Drift beyond 2 Å under restrained minimisation"}
+  l4.receptor.conformational_state: {category: physical_validity, standing: uncalibrated, decisive: false, role: narrow, status: not_built, notes: "Receptor conformational state; not yet built"}
+  l4.structure.clashes: {category: physical_validity, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Not in the 2026-10-17 table; heavy-atom approximation of the MolProbity clashscore"}
+  l4.structure.topology: {category: physical_validity, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Not in the 2026-10-17 table; classified from its uncalibrated threshold"}
+
+  # Interaction chemistry
+  l4.interactions.fingerprint: {category: interaction_chemistry, standing: inherited, decisive: false, role: narrow, status: built, notes: "PLIP interaction geometry, recorded through the PLIP version"}
+  l4.interactions.known_binders: {category: interaction_chemistry, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Needs PDBe-KB or BioLiP2 binders for calibration"}
+  l4.interactions.unsatisfied_polars: {category: interaction_chemistry, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Burial and hydrogen-bond distance are harness rules"}
+  l4.interactions.hydrophobic: {category: interaction_chemistry, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Anchored on 3PTB only"}
+  l4.interactions.top_hits: {category: interaction_chemistry, standing: inherited, decisive: false, role: narrow, status: built, notes: "Not in the 2026-10-17 table; PLIP interactions of the top-ranked hits"}
+  l4.interface.chemistry: {category: interaction_chemistry, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Not in the 2026-10-17 table; classified from its uncalibrated threshold"}
+
+  # Sampling and stability
+  l5.sampling.seeds: {category: sampling_stability, standing: definitional, decisive: true, role: decide, status: built, thresholds: {seeds_cofolding: uncalibrated, seeds_docking: uncalibrated}, notes: "Duplicated outputs across seeds stop (exact equality); fewer than the default five seeds warns (uncalibrated)"}
+  l5.sampling.clusters: {category: sampling_stability, standing: published, decisive: true, role: decide, status: built, thresholds: {cluster_rmsd: published, site_distance: published, largest_fraction: uncalibrated}, notes: "Site placement at 2.5 Å and pose accuracy at 2 Å are published and may gate; the medoid cluster fraction is uncalibrated and warns. The check does not stop at present"}
+  l5.sampling.rank_stability: {category: sampling_stability, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Ranking stability by Kendall tau has no published cut-off"}
+  l5.sampling.single_repeat: {category: sampling_stability, standing: definitional, decisive: false, role: narrow, status: not_built, notes: "A result carried by one repeat is flagged; being built by the checks module; stability narrows only"}
+  l5.sampling.ranking_separated: {category: sampling_stability, standing: published, decisive: false, role: context, status: not_built, notes: "Sampling reported separately from ranking at 2 Å; being built by the checks module"}
+  l5.sampling.cluster_rank_stability: {category: sampling_stability, standing: uncalibrated, decisive: false, role: context, status: not_built, notes: "Kendall tau over pose clusters with no cut-off; being built by the checks module"}
+  l5.agreement.site_consistency: {category: sampling_stability, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Not in the 2026-10-17 table; half-of-samples rule is uncalibrated"}
+  l4.score.distribution: {category: sampling_stability, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Not in the 2026-10-17 table; flags a degenerate score distribution"}
+
+  # Corroboration and controls
+  l5.controls.redocking: {category: corroboration_controls, standing: published, decisive: true, role: decide, status: built, thresholds: {rmsd: published, lddt_pli: published}, notes: "Ligand RMSD below 2 Å with LDDT-PLI above 0.8; LDDT-PLI is recorded as not computed until OpenStructure is installed"}
+  l5.rmsd_to_crystal: {category: corroboration_controls, standing: published, decisive: true, role: decide, status: built, notes: "Not in the 2026-10-17 table; pose accuracy at 2 Å against the experimental reference"}
+  l5.dockq_reference: {category: corroboration_controls, standing: published, decisive: true, role: decide, status: not_built, notes: "DockQ classes 0.23, 0.49 and 0.80 (Basu and Wallner 2016; FoldBench); the registered placeholder stops only when the experimental complex is absent"}
+  l5.perturbation.response: {category: corroboration_controls, standing: published, decisive: false, role: narrow, status: not_built, notes: "Published protocol (Gly, Phe and Miyata substitution within 3.5 Å, apo control); defines the test, retention rates are a sanity check"}
+  l5.agreement.cross_family: {category: corroboration_controls, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Disagreement beyond 2 Å between methods"}
+  l5.agreement.physics: {category: corroboration_controls, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Not in the 2026-10-17 table; reuses the cross-family threshold"}
+  l5.confidence.local: {category: corroboration_controls, standing: inherited, decisive: false, role: context, status: built, notes: "Model confidence (pLDDT, ipTM, CNNscore) against per-model thresholds; context only"}
+  l5.confidence.interface: {category: corroboration_controls, standing: inherited, decisive: false, role: context, status: built, notes: "Not in the 2026-10-17 table; ipTM about 0.75 for Chai-1 and 0.99 for Protenix, reported only"}
+  l5.confidence.length_confound: {category: corroboration_controls, standing: uncalibrated, decisive: false, role: narrow, status: built, notes: "Not in the 2026-10-17 table; classified from its uncalibrated threshold"}
+  l5.controls.decoys: {category: corroboration_controls, standing: definitional, decisive: true, role: decide, status: built, thresholds: {decoys: uncalibrated}, notes: "Not in the 2026-10-17 table; stops only when the task-required control is absent; panel size warns"}
+  l5.controls.decoys_property_matched: {category: corroboration_controls, standing: definitional, decisive: true, role: decide, status: built, notes: "Not in the 2026-10-17 table; stops only when the task-required control is absent"}
+  l5.controls.known_positive: {category: corroboration_controls, standing: definitional, decisive: true, role: decide, status: built, notes: "Not in the 2026-10-17 table; stops only when the task-required control is absent; evaluation warns"}
+  l5.controls.sticky: {category: corroboration_controls, standing: definitional, decisive: true, role: decide, status: built, notes: "Not in the 2026-10-17 table; stops only when the task-required control is absent; evaluation warns"}
+  l5.controls.actives_inactives: {category: corroboration_controls, standing: definitional, decisive: true, role: decide, status: built, notes: "Not in the 2026-10-17 table; stops only when the task-required control is absent; evaluation warns"}
+  l5.controls.known_sites: {category: corroboration_controls, standing: definitional, decisive: true, role: decide, status: built, notes: "Placeholder; stops because the control input is not defined in the manifest"}
+  l5.controls.non_cognate: {category: corroboration_controls, standing: definitional, decisive: true, role: decide, status: built, notes: "Placeholder; stops because the control input is not defined in the manifest"}
+  l5.controls.scrambled: {category: corroboration_controls, standing: definitional, decisive: true, role: decide, status: built, notes: "Placeholder; stops because the control input is not defined in the manifest"}
+  l5.controls.wild_type_noise_floor: {category: corroboration_controls, standing: definitional, decisive: true, role: decide, status: built, notes: "Placeholder; stops because the control input is not defined in the manifest"}
+  l5.refolding_consistency: {category: corroboration_controls, standing: definitional, decisive: true, role: decide, status: built, notes: "Placeholder; stops because the refolding run is not defined in the manifest"}
+  l5.scaffold_pose_consistency: {category: sampling_stability, standing: definitional, decisive: true, role: decide, status: built, notes: "Placeholder; stops because the series poses are not defined in the manifest"}
+  l5.enrichment: {category: corroboration_controls, standing: definitional, decisive: true, role: decide, status: built, thresholds: {auc: uncalibrated}, notes: "Not in the 2026-10-17 table; stops only without decoys; AUC below 0.7 warns"}

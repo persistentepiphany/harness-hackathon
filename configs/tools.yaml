@@ -87,6 +87,12 @@ tools:
     mvp: true
     install: {route: conda, package: openff-toolkit-base, channel: conda-forge}
     probe: {kind: conda_python, module: openff.toolkit}
+  - id: openmm_conda
+    role: OpenMM, PDBFixer and openmmforcefields for the minimisation worker (l4.minimisation_drift)
+    layers: [4]
+    mvp: true
+    install: {route: conda, package: "openmm=8.6.1 pdbfixer=1.12 openmmforcefields=0.16.0", channel: conda-forge}
+    probe: {kind: conda_python, module: openmmforcefields.generators}
   - id: spyrmsd
     role: symmetry-aware RMSD and clustering
     layers: [5]
@@ -136,11 +142,23 @@ tools:
     install: {route: conda, package: openjdk, channel: conda-forge}
     probe: {kind: binary, executable: java, args: ["-version"]}
   - id: molprobity
-    role: protein geometry (Phenix)
+    role: protein geometry (cctbx mmtbx MolProbity; reference data from pah fetch molprobity_data)
     layers: [4]
-    mvp: false
-    install: {route: licence, package: phenix}
-    probe: {kind: binary, executable: phenix.molprobity, args: ["--version"]}
+    mvp: true
+    install: {route: conda, package: cctbx-base=2026.1, channel: conda-forge}
+    probe: {kind: binary, executable: molprobity.molprobity, args: ["--help"], expect: "Usage: phenix.molprobity", hint: "pah fetch --only molprobity_data adds the Top8000 data and registers reduce and probe"}
+  - id: reduce
+    role: hydrogen addition for MolProbity (Richardson lab)
+    layers: [4]
+    mvp: true
+    install: {route: conda, package: reduce=4.15, channel: bioconda}
+    probe: {kind: binary, executable: reduce, args: ["-version"], expect: "reduce"}
+  - id: probe
+    role: all-atom contacts for the MolProbity clashscore (Richardson lab)
+    layers: [4]
+    mvp: true
+    install: {route: conda, package: probe=2.18, channel: bioconda}
+    probe: {kind: binary, executable: probe, args: ["-version"], expect: "probe"}
   - id: apbs
     role: electrostatics
     layers: [4]
