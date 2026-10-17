@@ -2,13 +2,15 @@
 
 An agent decides whether a predicted pose is valid, once from the model's confidence score alone
 and once from the harness fact file, across matched wild-type and perturbed systems from
-published failure cases. Design and targets are fixed in `config/targets.yaml` before any run.
+published failure cases. The design is fixed in `config/targets.yaml` before any run; each run
+copies it to `runs/<id>/config/targets.yaml` with that run's seeds, and every later stage reads
+the run's own copy, so a recorded run states the design it used.
 
 | Factor | Levels |
 | --- | --- |
 | System | FtsE (8X61, ATP), CDK2 (1B38, ATP), MEK1 (7XLP, FZC), glucose dehydrogenase (2VWH, BGC) |
 | State | wild type; perturbed (contacts within 3.5 Å to glycine, or three glucose hydroxyls methylated) |
-| Executor | Boltz-2 2.2.1, DiffDock-L v1.1.3; seeds 1, 2, 3 |
+| Executor | Boltz-2 2.2.1, DiffDock-L v1.1.3; three seeds per run, set per run (`--seeds`) |
 | Agent information | confidence score only; harness fact file (GLM-4.6 through Z.AI, temperature 0, 3 repeats) |
 
 Ground truth by construction: a perturbed system is invalid; a wild-type system is valid when the

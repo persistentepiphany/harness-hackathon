@@ -1,12 +1,13 @@
 """Run the whole perturbation benchmark once and record its scores.
 
-    python bench/run_pipeline.py --seeds 4,5,6            # a new run with its own seeds
+    python bench/run_pipeline.py --seeds 7,8,9            # a new run with its own seeds
     python bench/run_pipeline.py --run-id <id> --from checks   # resume an existing run
 
 Writes the run's design to runs/<id>/config/targets.yaml (targets.yaml with the given seeds), then
 runs prep, Modal predictions, harness checks, agent decisions, scoring, the report, the deck and
 the video, and appends one row per scope to bench/scores.csv. A failing stage stops the run and is
-recorded in runs/<id>/pipeline.json; nothing is scored from a partial run.
+recorded in runs/<id>/pipeline.json; nothing is scored from a partial run. The deck it builds
+still needs its visual review bound afterwards (see bench/README.md).
 """
 
 from __future__ import annotations

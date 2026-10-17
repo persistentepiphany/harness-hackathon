@@ -17,6 +17,16 @@ or explained beyond what the records say.
 
 For a batch, start from `batch_report.json` and open each target's `ui_record.json`.
 
+For a perturbation benchmark run under `bench/runs/<id>/`, the layout differs: benchmark-level
+values are in `results/stats.json` (per-arm balanced accuracy with intervals, McNemar, repeat
+agreement), `results/truth.csv` (ground truth and the majority verdict per prediction),
+`results/decisions.csv` and `facts/<system>_<state>_<executor>.json` (exactly what the agent was
+shown). Figures with their CSV files are in `results/figures/`, the design in
+`config/targets.yaml`, and every prompt and response in `agent/calls.jsonl`. Each prediction's own
+harness run sits at `harness/<system>_<executor>/run/`, with the usual `ui_record.json`,
+`record.json` and renders. `truth/` holds the RMSD to the deposited ligand: it is the label, never
+something the agent saw, so never present it as evidence the agent used.
+
 ## Skills to load
 
 - `scientific-writing` for structure and register (methods before results, one claim per
@@ -36,6 +46,9 @@ For a batch, start from `batch_report.json` and open each target's `ui_record.js
 - A skipped check is reported as skipped with its reason. An unknown or not-run check is never
   described as passed.
 - Training exposure is context: it narrows what the result shows about generalisation.
+- For a benchmark run, lead with the named per-system cases and give the pooled accuracy with its
+  interval afterwards; four systems per state do not support a claim of effect. Say which run an
+  example comes from by its run id, not by an ordinal such as "the third run".
 - No adjectives about quality, no "robust", "promising", "excellent", no em dashes, no bold-label
   lists.
 
