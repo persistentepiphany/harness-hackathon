@@ -156,15 +156,16 @@ def call(client: httpx.Client, base_url: str, model: str, user: str) -> dict[str
         ],
         "response_format": {"type": "json_object"},
     }
-    for attempt in range(4):
+    for attempt in range(8):
         r = client.post(
             f"{base_url}/chat/completions",
             json=body,
             headers={"Authorization": f"Bearer {os.environ['ZAI_API_KEY']}"},
         )
         if r.status_code == 200:
-            return {"request": body, "response": r.json()}
-        time.sleep(2 ** (attempt + 1))
+            return {"request": body, "response": r.json(), "attempts": attempt + 1}
+        # 429 is the endpoint's request rate limit: wait longer each time, up to a minute.
+        time.sleep(min(60, 5 * 2**attempt) if r.status_code == 429 else 2 ** (attempt + 1))
     return {"request": body, "error": f"HTTP {r.status_code}: {r.text[:500]}"}
 
 
