@@ -45,7 +45,12 @@ export function EnsembleTable({ record, members, selected, onSelect, className }
             role="button"
             tabIndex={0}
             onClick={() => onSelect(m.id)}
-            onKeyDown={(ev) => (ev.key === 'Enter' || ev.key === ' ') && onSelect(m.id)}
+            onKeyDown={(ev) => {
+              if (ev.key !== 'Enter' && ev.key !== ' ') return;
+              // Space selects the row without scrolling the page
+              ev.preventDefault();
+              onSelect(m.id);
+            }}
             className={clsx('grid cursor-pointer gap-1.5 border-b border-line3 px-3 py-1.5 font-mono text-[11.5px] hover:bg-canvas', on && 'bg-canvas')}
             style={grid}
             data-testid="ensemble-row"

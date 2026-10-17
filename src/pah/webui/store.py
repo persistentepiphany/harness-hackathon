@@ -110,6 +110,7 @@ async def tail_jsonl(
     end_grace: float = 3.0,
     stale_after: float | None = 600.0,
     stop: Callable[[], Awaitable[bool]] | None = None,
+    job_status: Callable[[], str | None] | None = None,
 ) -> AsyncIterator[dict[str, Any]]:
     """Yields every event in `path` from the start, then new ones as they are appended.
 
@@ -118,6 +119,8 @@ async def tail_jsonl(
     open, then until the file has been quiet for `end_grace` seconds, so the artifact events
     written after the verdict are included. It also stops once the file has not changed for
     `stale_after` seconds. `stop` is awaited between polls (for example a client disconnect).
+    `job_status` reads the job's status (job.json): a failed or done job ends the tail once the
+    file is quiet, and a queued job never goes stale while it waits for a slot.
     """
     waited = 0.0
     while not path.is_file():
@@ -130,6 +133,8 @@ async def tail_jsonl(
     ended = False
     open_stages: set[str] = set()
     last_data = time.monotonic()
+    status: str | None = None
+    status_at = -1.0e9
     while True:
         try:
             size = path.stat().st_size
@@ -161,7 +166,11 @@ async def tail_jsonl(
         settled = quiet >= end_grace or time.monotonic() - last_data >= end_grace
         if ended and not open_stages and settled:
             return
-        if stale_after is not None and quiet >= stale_after:
+        if job_status is not None and time.monotonic() - status_at >= 1.0:
+            status, status_at = job_status(), time.monotonic()
+        if status in {"failed", "done"} and settled and not (ended and open_stages):
+            return
+        if stale_after is not None and quiet >= stale_after and status != "queued":
             return
         if stop is not None and await stop():
             return
@@ -184,9 +193,10 @@ class RunStore:
         return self.runs_dir / run_id
 
     def run_dir(self, run_id: str) -> Path:
-        """Existing run directory, resolved inside runs_dir."""
+        """Existing run directory, resolved inside runs_dir. Directories that are not runs
+        (uploads, agent logs, doctor and batch directories) are not found."""
         path = self.path_for(run_id)
-        if not path.is_dir():
+        if run_id in SKIP_NAMES or run_id.startswith(SKIP_PREFIXES) or not path.is_dir():
             raise RunNotFoundError(run_id)
         if path.resolve().parent != self._root():
             raise UnsafePathError(f"run {run_id!r} resolves outside {self.runs_dir}")
@@ -273,7 +283,8 @@ class RunStore:
         stale_after: float | None = 600.0,
         stop: Callable[[], Awaitable[bool]] | None = None,
     ) -> AsyncIterator[dict[str, Any]]:
-        """Replays then tails `events.jsonl` of a run that may not exist yet."""
+        """Replays then tails `events.jsonl` of a run that may not exist yet; job.json's status
+        ends it for a failed job and keeps a queued one from going stale."""
         return tail_jsonl(
             self.events_path(run_id),
             poll=poll,
@@ -281,4 +292,11 @@ class RunStore:
             end_grace=end_grace,
             stale_after=stale_after,
             stop=stop,
+            job_status=lambda: self.job_status(run_id),
         )
+
+    def job_status(self, run_id: str) -> str | None:
+        """`status` of runs/<id>/job.json (UI runs), or None."""
+        data = read_json(self.path_for(run_id) / "job.json")
+        status = data.get("status") if isinstance(data, dict) else None
+        return str(status) if isinstance(status, str) else None

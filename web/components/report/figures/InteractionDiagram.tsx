@@ -4,7 +4,7 @@
 
 import clsx from 'clsx';
 import { fmtNum } from '@/lib/format';
-import { blockSource, interactionNodes, ligandLabel, sourceLabel } from '@/lib/selectors/report';
+import { blockSource, interactionKnownText, interactionNodes, interactionPoseText, ligandLabel, sourceLabel } from '@/lib/selectors/report';
 import { NotComputed } from '../parts';
 import { FigureCaption, type FigureProps } from './common';
 
@@ -19,8 +19,7 @@ export function InteractionDiagram({ record, list = true, diagram = true, captio
   const print = variant === 'print';
   const nodes = interactionNodes(record);
   if (!record.stats.interactions) return <NotComputed what="interactions" print={print} className={className} />;
-  const known = nodes.filter((n) => n.known).length;
-  const summary = `${known}/${nodes.length} seen in known complexes`;
+  const summary = interactionKnownText(record);
   const label = ligandLabel(record);
   return (
     <div className={className} data-testid="figure-interactions" title={sourceLabel(blockSource(record, 'interactions'))}>
@@ -48,10 +47,10 @@ export function InteractionDiagram({ record, list = true, diagram = true, captio
         {list && (
           <div className={clsx('flex flex-col font-mono', print ? 'gap-px text-[8.5pt]' : 'gap-1 text-[11.5px]')}>
             {nodes.map((n) => (
-              <div key={`${n.residue}-${n.type}`} className="grid grid-cols-[54px_minmax(0,1fr)_40px_40px] gap-2 text-ink2" data-testid="interaction-row">
+              <div key={`${n.residue}-${n.type}`} className="grid grid-cols-[54px_minmax(0,1fr)_48px_40px] gap-2 text-ink2" data-testid="interaction-row">
                 <span className="text-ink">{n.residue}</span>
                 <span style={{ color: n.stroke }}>{n.type}</span>
-                <span className="text-right">{fmtNum(n.distance)}</span>
+                <span className="text-right">{fmtNum(n.distance, 'Å')}</span>
                 <span className="text-right text-muted">{n.known ? 'known' : 'new'}</span>
               </div>
             ))}
@@ -60,7 +59,7 @@ export function InteractionDiagram({ record, list = true, diagram = true, captio
       </div>
       {caption && (
         <FigureCaption no={figNo} print={print}>
-          Interaction fingerprint (PLIP) of the medoid pose; {summary}.
+          Interaction fingerprint (PLIP) of {interactionPoseText(record)}; {summary}.
         </FigureCaption>
       )}
     </div>

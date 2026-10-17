@@ -3,11 +3,11 @@
 // Single-job view (prototype `isRun` block): header with live elapsed time, layer strip, live log,
 // executors with docking parameters, inputs and the verdict once the job is done.
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { ErrorState, Spinner } from '@/components/ui';
 import { useJob, useJobLog, useRunRecord, useTasks, useTools } from '@/lib/hooks';
 import { checkTotals, jobError, layerCells, layerStrip, verdictMeta } from '@/lib/selectors/jobs';
-import { currentStep, executorRows, inputLines, runHeaderModel, runStatus, verdictCounts } from '@/lib/selectors/run';
+import { currentStep, executorRows, inputLines, jobVerdictCounts, runEndLine, runHeaderModel, runStatus } from '@/lib/selectors/run';
 import { ExecutorList } from './ExecutorList';
 import { JobInputs, JobVerdict } from './JobSide';
 import { LayerStrip } from './LayerStrip';
@@ -22,14 +22,33 @@ export function JobScreen({ jobId }: { jobId: string | null }) {
   const log = useJobLog(jobId);
   const register = useTools();
   const tasks = useTasks();
-  const elapsed = useElapsed(job.data);
+  // the run_end line: the clock stops at its time and the job and record are read again at once
+  const runEnd = useMemo(() => runEndLine(log.data), [log.data]);
+  const elapsed = useElapsed(job.data, runEnd?.ms);
 
   // a queued live run may not have a record yet: read it again once the job starts or ends
   const status = job.data?.status;
   const reloadRecord = record.reload;
+  const reloadJob = job.reload;
   useEffect(() => {
     if (status === 'running' || status === 'done' || status === 'failed') reloadRecord();
   }, [status, reloadRecord]);
+  const runEndSeq = runEnd?.seq;
+  useEffect(() => {
+    if (runEndSeq === undefined) return;
+    reloadJob();
+    reloadRecord();
+  }, [runEndSeq, reloadJob, reloadRecord]);
+
+  // the log stream ended without the run ending (`stale` for a job waiting for a slot, `missing`
+  // before events.jsonl exists): open it again while the job is queued or running
+  const { ended: logEnded, endReason, restart: restartLog } = log;
+  useEffect(() => {
+    if (!logEnded || !endReason || endReason === 'run_end') return;
+    if (status !== 'queued' && status !== 'running') return;
+    const t = setTimeout(restartLog, 2000);
+    return () => clearTimeout(t);
+  }, [logEnded, endReason, status, restartLog]);
 
   if (!job.data) {
     return (
@@ -67,14 +86,15 @@ export function JobScreen({ jobId }: { jobId: string | null }) {
           emptyText={j.status === 'queued' ? 'Waiting for a slot.' : log.loading ? 'Connecting to the log.' : 'No log lines yet.'}
           status={log.ended ? 'ended' : log.status}
           error={log.error}
+          sources={rec?.sources}
         />
         <div className="flex flex-col gap-[22px]">
           <ExecutorList rows={executorRows(j, rec, register.data)} />
           <JobInputs lines={inputLines(rec, j)} />
           {showRecordError && <ErrorState error={record.error} title="Run record unavailable" onRetry={record.reload} />}
-          {done && <JobVerdict meta={verdictMeta(outcome)} outcome={outcome} claim={rec?.claim ?? ''} counts={verdictCounts(totals)} />}
+          {done && <JobVerdict meta={verdictMeta(outcome)} outcome={outcome} claim={rec?.claim ?? ''} counts={jobVerdictCounts(j, rec, totals)} />}
           {j.status === 'failed' && (
-            <JobVerdict meta={{ label: 'Failed', tone: 'stop' }} outcome="failed" claim={rec?.claim ?? ''} counts={verdictCounts(totals)} error={err} />
+            <JobVerdict meta={{ label: 'Failed', tone: 'stop' }} outcome="failed" claim={rec?.claim ?? ''} counts={jobVerdictCounts(j, rec, totals)} error={err} />
           )}
         </div>
       </div>

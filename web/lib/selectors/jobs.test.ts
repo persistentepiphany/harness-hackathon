@@ -28,6 +28,7 @@ const load = <T,>(name: string): T | null => {
 const liveJobs = load<Job[]>('jobs.json') ?? [];
 const rec3ptb = load<UiRunRecord>('ui-record-3ptb.json');
 const recFaulty = load<UiRunRecord>('ui-record-faulty.json');
+const recVina = load<UiRunRecord>('ui-record-vina.json');
 const doneJob = (outcome: string) => liveJobs.find((j) => j.verdict === outcome && j.layers.every((l) => l.done));
 
 describe('worstResult / verdictMeta / jobsSummary', () => {
@@ -219,5 +220,25 @@ describe('queued live job without a record', () => {
     const running: Job = { ...job, status: 'running', checksDone: 4, checksTotal: 38, layerIdx: 1, progress: 0.5 };
     expect(checksLine(running, null).text).toBe('4 of 38 checks');
     expect(layerCells(running, null)[1]).toMatchObject({ state: 'running', pct: 50 });
+  });
+});
+
+describe('incomplete layers', () => {
+  it.runIf(!!recVina)('mutes a passing layer whose skip left the verdict incomplete', () => {
+    const r = recVina as UiRunRecord;
+    const cells = layerCells(null, r);
+    const l4 = cells[4];
+    expect(l4.incomplete).toEqual(['l4.minimisation_drift']);
+    const strip = layerStrip(cells)[4];
+    expect(strip.incomplete).toEqual(['l4.minimisation_drift']);
+    expect(strip.title.startsWith('incomplete: l4.minimisation_drift')).toBe(true);
+    if (l4.result === 'pass') expect(strip.bar).toBe('var(--color-faint)');
+    expect(cells.filter((c) => c.i !== 4).every((c) => c.incomplete.length === 0)).toBe(true);
+  });
+  it('takes the check ids from the job when the API sends them', () => {
+    const job = { status: 'done', layerIdx: 6, progress: 1, layers: [0, 1, 2, 3, 4, 5].map((i) => ({ i, result: 'pass', done: true, ...(i === 2 ? { incomplete: ['l2.x'] } : {}) })) } as unknown as Job;
+    const seg = jobSegments(layerCells(job, null));
+    expect(seg[2]).toMatchObject({ incomplete: ['l2.x'], color: 'var(--color-faint)', title: 'incomplete: l2.x' });
+    expect(seg[1].incomplete).toEqual([]);
   });
 });

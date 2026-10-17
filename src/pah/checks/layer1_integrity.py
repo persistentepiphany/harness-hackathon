@@ -366,7 +366,11 @@ class LigandStereo(Check):
                 f"no sanitised structure for {', '.join(unparsed)}; see l1.ligand.sanitization",
             )
         n_undef = sum(len(r["undefined"]) for r in rows)
-        th = (resolve.threshold("undefined_stereo", 0, "==", SPEC_L1, "published"),)
+        th = (
+            resolve.threshold(
+                "undefined_stereo", 0, "==", SPEC_L1, "published", measurement="undefined"
+            ),
+        )
         tool = ToolRef(name="rdkit", version=rdBase.rdkitVersion)
         measurements = {
             "stereo_elements": sum(r["stereo_elements"] for r in rows),
@@ -677,7 +681,11 @@ class ModelProvenance(Check):
             required.append("database_snapshot")
         values = m.model_dump() if m else {}
         missing = [k for k in required if not values.get(k)]
-        th = (resolve.threshold("missing_fields", 0, "==", SPEC_L1, "published"),)
+        th = (
+            resolve.threshold(
+                "missing_fields", 0, "==", SPEC_L1, "published", measurement="missing"
+            ),
+        )
         measurements = {
             "required": len(required),
             "missing": len(missing),

@@ -139,9 +139,12 @@ export function poll<T>(h: WatchHandlers<T>, p: PollOptions<T>): Unsubscribe {
 
 const anyActive = (items: { status: string }[]) => items.some((j) => j.status === 'running' || j.status === 'queued');
 
-/** A record still being written: run status running/queued, or a layer running or pending. */
+/**
+ * A record still being written: run status running/queued, a layer running or pending, or a
+ * finished run whose report stage (renders, figures, graph) is still running.
+ */
 export function isRecordActive(r: UiRunRecord): boolean {
-  if (r.status === 'done' || r.status === 'failed') return false;
+  if (r.status === 'done' || r.status === 'failed') return r.report?.status === 'running';
   return r.status === 'running' || r.status === 'queued' || r.layers.some((l) => l.status === 'running' || l.status === 'pending');
 }
 
@@ -175,7 +178,8 @@ export function createLiveHarnessApi(opts: LiveOptions = {}): HarnessApi {
     watchJob: (id, h) =>
       poll(h, {
         fetch: (signal) => http.get<Job>(`/ui/jobs/${enc(id)}`, { signal }),
-        nextDelay: (job) => (job.status === 'running' || job.status === 'queued' ? 2000 : null),
+        // a done job keeps polling while its report stage runs, so reportStatus settles
+        nextDelay: (job) => (job.status === 'running' || job.status === 'queued' || job.reportStatus === 'running' ? 2000 : null),
       }),
 
     getJobLog: (id, o) => http.get<LogLine[]>(`/ui/jobs/${enc(id)}/log`, { signal: o?.signal, query: { format: 'json' } }),
@@ -189,7 +193,7 @@ export function createLiveHarnessApi(opts: LiveOptions = {}): HarnessApi {
         fetch: (signal) => http.get<UiRunRecord>(`/ui/runs/${enc(runId)}/record`, { signal }),
         nextDelay: (r) => {
           if (!isRecordActive(r)) return null;
-          const key = JSON.stringify(r.layers.map((l) => [l.status, l.checks.length]));
+          const key = JSON.stringify([r.layers.map((l) => [l.status, l.checks.length]), r.report?.status, r.renders?.length ?? 0]);
           unchanged = key === last ? unchanged + 1 : 0;
           last = key;
           return unchanged > 15 ? 10000 : 2000;

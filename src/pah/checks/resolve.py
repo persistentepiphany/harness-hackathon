@@ -32,8 +32,15 @@ CANONICAL = frozenset("ACDEFGHIKLMNPQRSTVWY")
 
 
 def threshold(
-    name: str, value: Any, comparator: str, origin: str, level: str = "uncalibrated"
+    name: str,
+    value: Any,
+    comparator: str,
+    origin: str,
+    level: str = "uncalibrated",
+    *,
+    measurement: str | None = None,
 ) -> Threshold:
+    """A threshold with its origin; `measurement` names the measurement it is compared with."""
     return Threshold.model_validate(
         {
             "name": name,
@@ -41,6 +48,7 @@ def threshold(
             "comparator": comparator,
             "origin": origin,
             "evidence_level": level,
+            "measurement": measurement,
         }
     )
 

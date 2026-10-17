@@ -20,7 +20,26 @@ REMOTE_REPO = "/root/harness"
 # Inside the container this file is mounted at /root/doctor_app.py; the checkout is at REMOTE_REPO.
 REPO = Path(__file__).resolve().parents[2] if modal.is_local() else Path(REMOTE_REPO)
 EXTRAS = ("checks", "report", "mcp", "api", "modal")
-IGNORE = [".venv", ".tools", "runs", "cache", ".git", "third_party/skills/*/.git", "**/__pycache__"]
+IGNORE = [
+    ".venv",
+    ".tools",
+    "runs",
+    "cache",
+    ".git",
+    "third_party/skills/*/.git",
+    "**/__pycache__",
+    # build output and media are not part of the install; **/ also matches nested copies
+    "web",
+    "node_modules",
+    "**/node_modules",
+    "out",
+    "videos",
+    "media",
+    "bench",
+    ".claude",
+    ".playwright*",
+    "**/.env*",
+]
 
 
 def _pip_requirements() -> list[str]:

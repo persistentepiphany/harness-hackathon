@@ -41,10 +41,20 @@ def rdkit_module(name: str) -> Any:
     return importlib.import_module(f"rdkit.Chem.{name}")
 
 
-def configured(check_id: str, name: str) -> Threshold:
-    """Threshold from configs/thresholds.yaml with its origin and evidence level."""
+def configured(check_id: str, name: str, *, measurement: str | None = None) -> Threshold:
+    """Threshold from configs/thresholds.yaml with its origin and evidence level.
+
+    `measurement` names the measurement the check compares with it, when the names differ.
+    """
     row = _thresholds()[check_id][name]
-    return resolve.threshold(name, row["value"], row["comparator"], row["origin"], row["evidence"])
+    return resolve.threshold(
+        name,
+        row["value"],
+        row["comparator"],
+        row["origin"],
+        row["evidence"],
+        measurement=measurement,
+    )
 
 
 def value(check_id: str, name: str) -> Any:

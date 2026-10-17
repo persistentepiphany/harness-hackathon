@@ -63,8 +63,16 @@ describe('live fixtures', () => {
   it.skipIf(!rec3ptb)('ui-record-3ptb.json fits UiRunRecord', () => {
     checkRecord(rec3ptb!);
     expect(isRecordActive(rec3ptb!)).toBe(false);
+    // a finished run keeps polling while its report stage runs
+    expect(isRecordActive({ ...rec3ptb!, report: { status: 'running' } })).toBe(true);
+    expect(isRecordActive({ ...rec3ptb!, report: { status: 'done' } })).toBe(false);
     const stereo = rec3ptb!.layers[1].checks.find((c) => c.id === 'l1.ligand.stereo_defined');
-    if (stereo) expect(measuredVsThreshold(stereo)).toBe('undefined 1 == 0');
+    if (stereo) {
+      // the threshold names its measurement (Threshold.measurement); fixtures written before that carry no link and pair nothing
+      const linked = { ...stereo, thresholds: stereo.thresholds?.map((t) => ({ ...t, measurement: 'undefined' })) };
+      expect(measuredVsThreshold(linked)).toBe('undefined 1 == 0');
+      expect(measuredVsThreshold(stereo)).toBe(stereo.thresholds?.[0]?.measurement ? 'undefined 1 == 0' : null);
+    }
   });
 
   it.skipIf(!recFaulty)('ui-record-faulty.json fits UiRunRecord', () => {

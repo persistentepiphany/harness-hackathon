@@ -30,6 +30,8 @@ export interface JobLayer {
   i: number;
   result: Result | null;
   done: boolean;
+  /** Live API: checks of the layer whose skip leaves the verdict incomplete (tool missing, error). */
+  incomplete?: string[];
 }
 
 export interface Job {
@@ -224,6 +226,9 @@ export interface EntityGroup {
   /** Resolver latency in ms (mock: simulated). */
   ms: number;
   rows: [string, string][];
+  /** Live API and mock: 'error' when the source returned nothing (see `message`). */
+  status?: 'ok' | 'error';
+  message?: string;
 }
 
 export interface CatalogProtein {
@@ -334,6 +339,8 @@ export interface ThresholdDef {
   comparator: string;
   origin: string;
   evidenceLevel: string;
+  /** Live API: name of the measurement the check compared with this threshold, when it differs. */
+  measurement?: string;
 }
 
 export interface UiCheck {
@@ -582,6 +589,19 @@ export interface StatsSource {
   [key: string]: unknown;
 }
 
+export interface UiPae {
+  path?: string;
+  url?: string;
+  format?: string;
+  pose?: string;
+  matrix?: number[][];
+  tokens?: number;
+  binned?: number;
+  lines?: string[];
+  block?: { rows: [number, number]; cols: [number, number] };
+  max?: number;
+}
+
 export interface UiStats {
   seeds?: SeedStat[];
   agreement?: AgreementRow[];
@@ -600,6 +620,13 @@ export interface UiStats {
   enrichment?: string | null;
   sitePlacement?: string;
   poseAccuracy?: string;
+  /** Live API: pose the interaction fingerprint was taken from (representative pose id). */
+  interactionsPose?: string;
+  /**
+   * Live API: PAE of the top-ranked pose (l5.confidence.local evidence.pae): the saved .npy file
+   * and its matrix in Å (rounded to 0.01; above 512 tokens, means of `binned` x `binned` blocks).
+   */
+  pae?: UiPae;
   /** Live API: source of each block, keyed by block name (or `block.field`). */
   provenance?: Record<string, StatsSource>;
   [key: string]: unknown;

@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { makeRunRecord, PRESET_JOBS, TOOLS } from '@/lib/mock/data';
+import { paeFromStats } from '@/components/report/figures/pae';
 import { toolById } from '@/lib/tools';
 import type { UiRunRecord } from '@/lib/types';
 import {
@@ -27,9 +28,13 @@ import {
   isNotImplemented,
   layerNav,
   medoidClusterPopulation,
+  memberColumns,
+  memberValueText,
   metricRows,
   physicsTable,
+  poseLabel,
   rmsdCell,
+  runDurationMs,
   seedConfidenceLabel,
   statCards,
   stripPositions,
@@ -110,6 +115,21 @@ describe('structures', () => {
     expect(t.filter((x) => x.kind === 'seed').every((x) => x.load.length === 0)).toBe(true);
     expect(defaultStructureId(t)).toBe('medoid');
     expect(structureCaption(mock, t[1], t)).toMatch(/s1000 · RMSD to medoid 0\.0/);
+    // overlay caption counts predicted members, and only those with coordinates as drawn
+    expect(structureCaption(mock, t[t.length - 1], t)).toBe('1IEP + predicted · 0 of 8 structures with coordinates');
+    // docking labels already start with the tool name
+    const pose = t.find((x) => x.kind === 'docking');
+    expect(structureCaption(mock, pose, t)).toMatch(/^Gnina 1 · RMSD to medoid/);
+  });
+
+  it.runIf(!!live3ptb && !!liveVina)('keeps the declared reference and drops exposure comparators', () => {
+    const t = structureTargets(live3ptb as UiRunRecord, { assetUrl });
+    expect(t.map((x) => x.label)).toEqual(['3PTB']);
+    const v = structureTargets(liveVina as UiRunRecord, { assetUrl });
+    expect(v.filter((x) => x.kind === 'crystal').map((x) => x.label)).toEqual(['3PTB']);
+    expect(v[v.length - 1].kind).toBe('overlay');
+    const cap = structureCaption(liveVina as UiRunRecord, v[v.length - 1], v);
+    expect(cap).toBe(`3PTB + predicted · ${v.filter((x) => x.kind !== 'overlay' && x.kind !== 'crystal').length} structures`);
   });
 
   it.runIf(!!live3ptb)('loads the live crystal structure from the files route, never from the network', () => {
@@ -301,5 +321,91 @@ describe('flagged residues', () => {
   it('parses three-letter residues with numbers and chains, ignoring other words', () => {
     const rec = { layers: [{ checks: [{ id: 'a', result: 'warn', evidence: 'pKa within 1.0 of pH 7.4: HIS57A pKa 7.46, ASP189A pKa 6.49 · seed0 mode1' }, { id: 'b', result: 'pass', evidence: 'GLU12' }, { id: 'c', result: 'stop', evidence: 'amide NH, 4.1 Å from Glu286' }] }] } as unknown as UiRunRecord;
     expect(flaggedResidues(rec).map((x) => `${x.name}${x.num}${x.chain ?? ''}`)).toEqual(['HIS57A', 'ASP189A', 'GLU286']);
+  });
+});
+
+describe('run duration', () => {
+  it('uses the record timestamps, as the job page, and falls back to the layer sum', () => {
+    const layers = [{ durationMs: 1000 }, { durationMs: 2000 }] as UiRunRecord['layers'];
+    const rec = { layers, record: { startedAt: '2026-10-17T17:12:30.294383Z', finishedAt: '2026-10-17T17:12:37.572924Z' } } as unknown as UiRunRecord;
+    expect(runDurationMs(rec)).toBe(7278);
+    expect(runDurationMs({ layers, record: {} } as unknown as UiRunRecord)).toBe(3000);
+  });
+});
+
+describe.runIf(!!liveVina)('ensemble summary and columns (live Vina record)', () => {
+  const r = liveVina as UiRunRecord;
+  it('leaves the crystal out of the RMSD-to-medoid distribution and keeps counts as integers', () => {
+    const rows = summaryRows(r);
+    const rmsd = rows.find((x) => x.id === 'rmsd');
+    const crystal = r.stats.ensemble?.find((e) => e.kind === 'crystal');
+    const preds = (r.stats.ensemble ?? []).filter((e) => e.kind !== 'medoid' && e.kind !== 'crystal' && typeof e.rmsdToMedoid === 'number');
+    expect(rmsd?.stats.n).toBe(preds.length);
+    if (crystal && typeof crystal.rmsdToMedoid === 'number') expect(rmsd?.stats.max).toBeLessThan(crystal.rmsdToMedoid);
+    expect(rows.find((x) => x.id === 'posebusters')?.integer).toBe(true);
+    // the medoid is matched by pose id, so live physics rows get the medoid ring
+    expect(rows.find((x) => x.id === 'strain')?.medoidValue).toBeTypeOf('number');
+  });
+  it('shows RMSD to the reference for redocking members and units on other outputs', () => {
+    const m = ensembleMembers(r, structureTargets(r, { assetUrl }));
+    const cols = memberColumns(m);
+    const ref = cols.find((c) => c.id === 'ref');
+    expect(ref?.title).toBe('RMSD to the crystal reference (Å)');
+    const red = m.find((x) => x.label.startsWith('redocking'));
+    if (red && red.rmsdToReference !== null) expect(ref?.text(red)).toBe(red.rmsdToReference.toFixed(1));
+    const other = cols.find((c) => c.id.startsWith('out:rmsd'));
+    const medoid = m.find((x) => x.kind === 'medoid');
+    if (other && medoid) expect(other.text(medoid)).toMatch(/\u2009Å$/);
+  });
+});
+
+describe('overlay legend values', () => {
+  it('names the metric of each value', () => {
+    const conf = { key: 'iptm', label: 'ipTM', value: 0.9, kind: 'interface' } as unknown as Parameters<typeof memberValueText>[0]['confidence'];
+    expect(memberValueText({ confidence: conf, rmsd: 0.9, kind: 'seed' })).toBe('ipTM 0.9');
+    expect(memberValueText({ confidence: null, rmsd: 0.94, kind: 'crystal' })).toBe('RMSD 0.9\u2009Å');
+    expect(memberValueText({ confidence: null, rmsd: 0, kind: 'medoid' })).toBe('–');
+  });
+});
+
+describe('PAE block (live API shape)', () => {
+  it('reads the matrix pae_block embeds next to the file, and nothing from a file reference alone', () => {
+    const base = mock;
+    const withMatrix = { ...base, stats: { ...base.stats, pae: { path: 'predictions/pae.npy', url: '/runs/x/files/predictions/pae.npy', format: 'npy', matrix: [[0.5, 4], [4, 0.5]], tokens: 2 } } } as UiRunRecord;
+    expect(paeFromStats(withMatrix)?.matrix).toEqual([[0.5, 4], [4, 0.5]]);
+    const fileOnly = { ...base, stats: { ...base.stats, pae: { path: 'predictions/pae.npy', url: '/x', format: 'npy' } } } as UiRunRecord;
+    expect(paeFromStats(fileOnly)).toBeNull();
+  });
+});
+
+describe('seed spread labels and per-pose keys', () => {
+  it('labels per pose, keys by pose and keeps only the first of overlapping labels', () => {
+    expect(poseLabel({ seed: 3 })).toBe('s3');
+    expect(poseLabel({ seed: 3, sample: 2 })).toBe('s3.2');
+    expect(poseLabel({ pose: 'vina/seed9/mode0' })).toBe('vina/seed9/mode0');
+    const seeds = [
+      { seed: 1, sample: 0, pose: 'a', rmsdToMedoid: 1.0, cluster: 1, confidence: 0.8 },
+      { seed: 1, sample: 1, pose: 'b', rmsdToMedoid: 1.05, cluster: 1, confidence: 0.8 },
+      { seed: 2, sample: 0, pose: 'c', rmsdToMedoid: 6.0, cluster: 2, confidence: 0.6 },
+    ];
+    const rec = { ...mock, stats: { ...mock.stats, seeds } } as UiRunRecord;
+    const { points } = seedSpreadPoints(rec);
+    expect(points.map((p) => p.key)).toEqual(['a', 'b', 'c']);
+    expect(points.map((p) => p.label)).toEqual(['s1', 's1.1', 's2']);
+    expect(points.map((p) => p.showLabel)).toEqual([true, false, true]);
+  });
+  it('keys physics rows by pose so repeated seeds stay distinct', () => {
+    const phys = [
+      { seed: 0, sample: 0, pose: 'p0', drift: 1 },
+      { seed: 0, sample: 1, pose: 'p1', drift: 2 },
+      { pose: 'p2', drift: 3 },
+    ];
+    const rec = { ...mock, stats: { ...mock.stats, physics: phys } } as UiRunRecord;
+    const t = physicsTable(rec);
+    expect(t?.rows.map((r) => [r.key, r.seed])).toEqual([
+      ['p0', 's0'],
+      ['p1', 's0.1'],
+      ['p2', 'p2'],
+    ]);
   });
 });

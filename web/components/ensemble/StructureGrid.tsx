@@ -56,7 +56,9 @@ function useInView(ids: string[]) {
             if (e.isIntersecting) next.add(id);
             else next.delete(id);
           }
-          return next;
+          // same membership: keep the previous set, so React skips the render
+          const changed = next.size !== prev.size || Array.from(next).some((id) => !prev.has(id));
+          return changed ? next : prev;
         });
       },
       { rootMargin: '200px 0px' },
@@ -67,13 +69,24 @@ function useInView(ids: string[]) {
     // ids identity changes every render; the joined key is the dependency
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ids.join('|')]);
-  const ref = (id: string) => (el: Element | null) => {
-    const prev = nodes.current.get(id);
-    if (prev && prev !== el) observer.current?.unobserve(prev);
-    if (el) {
-      nodes.current.set(id, el);
-      observer.current?.observe(el);
-    } else nodes.current.delete(id);
+  // one stable ref callback per id: a new callback each render would unobserve and observe the
+  // cell again, and every observe delivers a fresh entry (a render per frame)
+  const [callbacks] = useState(() => new Map<string, (el: Element | null) => void>());
+  const ref = (id: string) => {
+    let cb = callbacks.get(id);
+    if (!cb) {
+      cb = (el: Element | null) => {
+        const prev = nodes.current.get(id);
+        if (prev && prev !== el) observer.current?.unobserve(prev);
+        if (el) {
+          if (prev === el) return;
+          nodes.current.set(id, el);
+          observer.current?.observe(el);
+        } else nodes.current.delete(id);
+      };
+      callbacks.set(id, cb);
+    }
+    return cb;
   };
   return { inView, ref };
 }

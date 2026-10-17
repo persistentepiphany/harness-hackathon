@@ -1,7 +1,8 @@
 'use client';
 
 // Files: drop zone with a hidden file input. Files are POSTed to /ui/uploads; each chip shows the
-// parse status the API returns (prototype `files`, without the simulated parsing).
+// parse status the API returns (prototype `files`, without the simulated parsing). Uploads are
+// stored only: the run settings carry no file references yet, so a note under the zone says so.
 
 import clsx from 'clsx';
 import { useRef, useState } from 'react';
@@ -106,6 +107,11 @@ export function DropZone({ files, onFiles, onRemove }: DropZoneProps) {
           </div>
         )}
       </div>
+      {files.length > 0 && (
+        <div className="mt-1.5 text-[11.5px] text-muted" data-testid="drop-zone-note">
+          Stored, not used by the run: the run reads the target, ligand and reference named below.
+        </div>
+      )}
     </div>
   );
 }

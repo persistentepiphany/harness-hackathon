@@ -13,6 +13,7 @@ import {
   fmtSha,
   measuredVsThreshold,
   pairMeasurement,
+  thresholdText,
   tallyResults,
 } from '@/lib/format';
 
@@ -81,15 +82,28 @@ describe('counts and fractions', () => {
 });
 
 describe('measuredVsThreshold', () => {
-  it('pairs by name containment (undefined / undefined_stereo)', () => {
+  it('pairs with the measurement the threshold names (undefined_stereo -> undefined)', () => {
     const check = {
       measurements: [
         { name: 'stereo_elements', value: 1, unit: null },
         { name: 'undefined', value: 1, unit: null },
       ],
-      thresholds: [{ name: 'undefined_stereo', value: 0, comparator: '==', origin: 'spec', evidenceLevel: 'reproduced' }],
+      thresholds: [{ name: 'undefined_stereo', value: 0, comparator: '==', origin: 'spec', evidenceLevel: 'reproduced', measurement: 'undefined' }],
     };
     expect(measuredVsThreshold(check)).toBe('undefined 1 == 0');
+  });
+  it('never pairs by substring (pocket_residues is not missing_pocket_residues)', () => {
+    const check = {
+      measurements: [
+        { name: 'pocket_residues', value: 22 },
+        { name: 'ph', value: 7.4 },
+      ],
+      thresholds: [
+        { name: 'missing_pocket_residues', value: 0, comparator: '==', origin: 'spec', evidenceLevel: 'published' },
+        { name: 'ph_window', value: 1, comparator: '==', origin: 'spec', evidenceLevel: 'published' },
+      ],
+    };
+    expect(pairMeasurement(check)).toBeNull();
   });
   it('prefers an exact name', () => {
     const check = {
@@ -116,6 +130,16 @@ describe('measuredVsThreshold', () => {
       thresholds: [{ name: 'drift', value: 2, comparator: '<=', origin: 'spec', evidenceLevel: 'suspected' }],
     };
     expect(measuredVsThreshold(check)).toBe(`drift 0.6${THIN}Å <= 2${THIN}Å`);
+  });
+});
+
+describe('thresholdText', () => {
+  it('names the threshold and formats its value like the Thresholds list', () => {
+    const t = { name: 'pocket_distance', value: 8.0, comparator: '<=', origin: 'spec', evidenceLevel: 'published' };
+    expect(thresholdText({ thresholds: [t], threshold: { value: '<= 8.0', origin: 'spec', evidenceLevel: 'published' } })).toBe('pocket_distance <= 8');
+    expect(thresholdText({ thresholds: [{ ...t, name: 'relative_sasa', value: 0.1, comparator: '<' }] })).toBe('relative_sasa < 0.1');
+    expect(thresholdText({ threshold: { value: '> 1.0', origin: 'spec', evidenceLevel: 'x' } })).toBe('threshold > 1.0');
+    expect(thresholdText({})).toBeNull();
   });
 });
 

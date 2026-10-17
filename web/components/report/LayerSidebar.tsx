@@ -5,7 +5,7 @@
 
 import clsx from 'clsx';
 import { countSegments, fmtFraction, fmtMs, SEP, tallyResults } from '@/lib/format';
-import { isNotImplemented, layerNav, totalDurationMs } from '@/lib/selectors/report';
+import { isNotImplemented, layerNav, runDurationMs } from '@/lib/selectors/report';
 import { recordTools } from '@/lib/tools';
 import type { Result } from '@/lib/types';
 import { ResultDot } from './parts';
@@ -33,7 +33,7 @@ export function LayerSidebar({ record, tools, selected, onSelect, className }: L
   const nav = layerNav(record);
   const L = record.layers[selected];
   const all = record.layers.flatMap((l) => l.checks);
-  const total = totalDurationMs(record);
+  const total = runDurationMs(record);
   const rt = recordTools(record, tools);
   const versions = [
     ...rt.map((t) => `${t.name}${t.version ? ` ${t.version}` : ''}`),
@@ -128,7 +128,7 @@ export function LayerSidebar({ record, tools, selected, onSelect, className }: L
       )}
 
       <div className="pl-3.5 font-mono text-[11px] leading-[1.7] text-muted">
-        {all.length} checks · {total === null ? '–' : `${(total / 1000).toFixed(1)} s`}
+        {all.length} checks · {fmtMs(total)}
         {versions.map((line) => (
           <div key={line}>{line}</div>
         ))}

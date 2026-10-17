@@ -5,6 +5,9 @@
 // (`Cache-Control: no-transform` keeps Next's gzip off the stream), (3) an upstream that takes long
 // to send its first byte (a Modal cold start, up to ~30 s) needs its own timeout and an error
 // body the UI can show: {"error": {"code": "upstream_timeout" | "upstream_unreachable", ...}}.
+// A request body is read in full before the upstream request starts, so the first-byte timer
+// measures the API, not the client's upload; uploads and entity lookups get a longer limit
+// because the API parses files or queries sources before it answers.
 
 import type { NextRequest } from 'next/server';
 
@@ -15,11 +18,16 @@ export const maxDuration = 300;
 
 const DEFAULT_UPSTREAM = 'http://127.0.0.1:8000';
 const DEFAULT_TIMEOUT_MS = 60000;
+/** First-byte limit for requests the API processes before answering (uploads, entity lookups). */
+const SLOW_TIMEOUT_MS = 240000;
+const SLOW_PATHS = new Set(['ui/uploads', 'ui/entities']);
 
 // Hop-by-hop and origin-specific headers that must not be forwarded. Platform headers
 // (`modal-*` on Modal) are dropped in both directions: Modal rejects a response that carries one.
 const isPlatformHeader = (key: string): boolean => key.startsWith('modal-');
-const DROP_REQUEST = new Set(['host', 'connection', 'keep-alive', 'transfer-encoding', 'te', 'trailer', 'upgrade', 'proxy-authorization', 'proxy-connection', 'content-length', 'accept-encoding', 'cookie', 'origin', 'referer']);
+// `expect` (curl sends `Expect: 100-continue` for large bodies) and `http2-settings` make Node's
+// fetch throw UND_ERR_NOT_SUPPORTED.
+const DROP_REQUEST = new Set(['host', 'connection', 'keep-alive', 'transfer-encoding', 'te', 'trailer', 'upgrade', 'proxy-authorization', 'proxy-connection', 'content-length', 'accept-encoding', 'cookie', 'origin', 'referer', 'expect', 'http2-settings']);
 const DROP_RESPONSE = new Set(['connection', 'keep-alive', 'transfer-encoding', 'te', 'trailer', 'upgrade', 'content-encoding', 'content-length', 'set-cookie']);
 
 function upstreamBase(): string {
@@ -59,7 +67,21 @@ async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }
   headers.set('accept-encoding', 'identity');
   headers.set('x-forwarded-host', req.headers.get('host') || '');
 
-  const limit = timeoutMs();
+  const method = req.method.toUpperCase();
+  const hasBody = method !== 'GET' && method !== 'HEAD';
+  // read the body first: the first-byte timer then starts when the upload is complete
+  let payload: ArrayBuffer | undefined;
+  if (hasBody) {
+    try {
+      payload = await req.arrayBuffer();
+    } catch {
+      if (req.signal.aborted) return new Response(null, { status: 499 });
+      return errorResponse(400, 'bad_request_body', 'The request body could not be read.');
+    }
+  }
+
+  const slow = SLOW_PATHS.has(segments.join('/'));
+  const limit = slow ? Math.max(timeoutMs(), SLOW_TIMEOUT_MS) : timeoutMs();
   const controller = new AbortController();
   let timedOut = false;
   const timer = setTimeout(() => {
@@ -70,26 +92,22 @@ async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }
   const onClientAbort = () => controller.abort();
   req.signal.addEventListener('abort', onClientAbort, { once: true });
 
-  const method = req.method.toUpperCase();
-  const hasBody = method !== 'GET' && method !== 'HEAD';
-
   let upstream: Response;
   try {
     upstream = await fetch(target, {
       method,
       headers,
-      body: hasBody ? req.body : undefined,
+      body: payload,
       redirect: 'manual',
       cache: 'no-store',
       signal: controller.signal,
-      // required by Node's fetch for a streamed request body
-      ...(hasBody ? { duplex: 'half' } : {}),
     } as RequestInit);
   } catch (e) {
     clearTimeout(timer);
     req.signal.removeEventListener('abort', onClientAbort);
     if (timedOut) {
-      return errorResponse(504, 'upstream_timeout', `The harness API at ${target.origin} sent no response within ${Math.round(limit / 1000)} s. A cold start can take about 30 s; retry shortly.`);
+      const sent = payload ? ` after the ${payload.byteLength.toLocaleString('en-US')}-byte request body was sent; the API may still be processing it` : '';
+      return errorResponse(504, 'upstream_timeout', `The harness API at ${target.origin} sent no response within ${Math.round(limit / 1000)} s${sent}. A cold start can take about 30 s; retry shortly.`);
     }
     if (req.signal.aborted) return new Response(null, { status: 499 });
     const cause = e instanceof Error ? ((e as Error & { cause?: { code?: string } }).cause?.code ?? e.message) : String(e);

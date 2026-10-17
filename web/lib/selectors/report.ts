@@ -148,6 +148,24 @@ export function totalDurationMs(record: Pick<UiRunRecord, 'layers'>): number | n
   return ds.length ? ds.reduce((a, b) => a + b, 0) : null;
 }
 
+/** ISO time in ms; fractional seconds beyond milliseconds are dropped first. */
+function parseIso(t: string | null | undefined): number | null {
+  if (!t) return null;
+  const v = Date.parse(t.replace(/(\.\d{3})\d+/, '$1'));
+  return Number.isFinite(v) ? v : null;
+}
+
+/**
+ * Wall time of the run (record.finishedAt − record.startedAt, as the job page), falling back to
+ * the sum of layer durations when the record has no timestamps.
+ */
+export function runDurationMs(record: Pick<UiRunRecord, 'layers' | 'record'>): number | null {
+  const a = parseIso(record.record?.startedAt);
+  const b = parseIso(record.record?.finishedAt);
+  if (a !== null && b !== null && b >= a) return b - a;
+  return totalDurationMs(record);
+}
+
 // ---------------------------------------------------------------- task shape
 
 /** True when the record has a ligand (prototype `lig`, ligand-pose style tasks). */
@@ -258,6 +276,16 @@ function crystalLabel(label: string, reference?: string): string {
   return m ? m[1] : label;
 }
 
+/**
+ * Crystal structures other than the declared reference (comparators that exposure checks fetched
+ * into artifacts/sources/) are not ensemble members; stats.py `_crystal_rows` keeps the same set.
+ */
+function isReferenceOrPrediction(s: RecordStructure, reference: string | null | undefined): boolean {
+  if (s.kind !== 'crystal' || !reference) return true;
+  const base = (s.path ?? s.id).split('/').pop() ?? '';
+  return base.split('.')[0].toUpperCase() === reference.toUpperCase();
+}
+
 const uniqueRenders = (rs: RecordRender[]) => rs.filter((r, i) => rs.findIndex((x) => x.png === r.png) === i);
 /** Render ids are structure ids with separators replaced (`predictions_00_x_seed0_mode0_complex`). */
 const normId = (id: string) => id.replace(/[^A-Za-z0-9]+/g, '_');
@@ -268,7 +296,7 @@ const normId = (id: string) => id.replace(/[^A-Za-z0-9]+/g, '_');
  * record.structures (live), merged by id.
  */
 export function structureTargets(record: UiRunRecord, opts: StructureTargetOptions): StructureTarget[] {
-  const structures = (record.structures ?? []).filter(isMemberStructure);
+  const structures = (record.structures ?? []).filter(isMemberStructure).filter((s) => isReferenceOrPrediction(s, record.inputs.reference));
   const renders = record.renders ?? [];
   const ensemble = record.stats.ensemble ?? [];
   const used = new Set<string>();
@@ -329,7 +357,8 @@ export function structureTargets(record: UiRunRecord, opts: StructureTargetOptio
   const rank: Record<StructureKind, number> = { crystal: 0, medoid: 1, seed: 2, docking: 3, model: 3 };
   const all = [...fromEnsemble, ...fromStructures].sort((a, b) => rank[a.kind as StructureKind] - rank[b.kind as StructureKind]);
   disambiguate(all);
-  if (all.length >= 2) {
+  // the overlay superposes predictions on the reference: at least one predicted member
+  if (all.length >= 2 && all.some((t) => t.kind !== 'crystal')) {
     const members = ensembleMembers(record, all, opts.register);
     all.push({ id: 'overlay', label: 'overlay', kind: 'overlay', source: 'overlay', load: overlayLoads(members), renders: [] });
   }
@@ -536,15 +565,22 @@ export function structureCaption(record: UiRunRecord, target: StructureTarget | 
   if (!target) return '';
   const ref = record.inputs.reference ?? '';
   if (target.kind === 'overlay') {
-    const n = targets.filter((t) => t.kind !== 'overlay').length;
-    return `${ref ? `${ref} + ` : ''}predicted · ${n} structures`;
+    // predicted members only (the reference is named first), counting those with coordinates
+    const predicted = targets.filter((t) => t.kind !== 'overlay' && t.kind !== 'crystal');
+    const n = predicted.filter((t) => t.load.length > 0).length;
+    const count = n === predicted.length ? `${n} structures` : `${n} of ${predicted.length} structures with coordinates`;
+    return `${ref ? `${ref} + ` : ''}predicted · ${count}`;
   }
   if (target.structure) {
     const s = target.structure;
     return [s.label, s.kind, s.sha256 ? `sha256 ${s.sha256.slice(0, 12)}` : null].filter(Boolean).join(' · ');
   }
   if (target.kind === 'crystal') return `RCSB ${target.label} · experimental`;
-  if (target.entry) return `${target.entry.source} ${target.entry.label} · RMSD to medoid ${fmtNum(target.entry.rmsdToMedoid, 'Å', 1)}`;
+  if (target.entry) {
+    const e = target.entry;
+    const name = e.label.startsWith(e.source) ? e.label : `${e.source} ${e.label}`;
+    return `${name} · RMSD to medoid ${fmtNum(e.rmsdToMedoid, 'Å', 1)}`;
+  }
   return target.label;
 }
 
@@ -563,6 +599,16 @@ export interface ScoreColumn {
   header: string;
   title: string;
   keys: ScoreKey[];
+}
+
+/**
+ * The overlay legend's value with its metric named: `ipTM 0.9`, `CNN score 0.79`, `RMSD 0.9 Å`
+ * (to the medoid, crystal reference); an en dash when the member has neither.
+ */
+export function memberValueText(m: Pick<EnsembleMember, 'confidence' | 'rmsd' | 'kind'>): string {
+  if (m.confidence) return `${shortLabel(m.confidence.label)} ${fmtNum(m.confidence.value, m.confidence.unit)}`;
+  if (m.rmsd !== null && m.kind !== 'medoid') return `RMSD ${fmtNum(m.rmsd, 'Å', 1)}`;
+  return DASH;
 }
 
 function shortLabel(label: string): string {
@@ -659,6 +705,17 @@ export function memberColumns(members: EnsembleMember[]): MemberColumn[] {
       warn: (m) => m.kind !== 'medoid' && m.rmsd !== null && m.rmsd > SEED_RMSD_CUT,
     });
   }
+  // members outside the clustered set (redocking controls) have no RMSD to the medoid, only to the reference
+  if (members.some((m) => m.kind !== 'crystal' && m.rmsdToReference !== null)) {
+    cols.push({
+      id: 'ref',
+      header: 'to ref.',
+      title: 'RMSD to the crystal reference (Å)',
+      ranking: false,
+      value: (m) => (m.kind === 'crystal' ? null : m.rmsdToReference),
+      text: (m) => (m.kind === 'crystal' ? DASH : fmt(m.rmsdToReference, undefined, 1)),
+    });
+  }
   if (members.some((m) => m.plddt !== null)) {
     cols.push({ id: 'plddt', header: 'pLDDT', title: 'pocket pLDDT', ranking: false, value: (m) => m.plddt, text: (m) => fmt(m.plddt) });
   }
@@ -725,7 +782,7 @@ export function memberColumns(members: EnsembleMember[]): MemberColumn[] {
       value: (m) => m.outputs.find((x) => x.key === o.key)?.value ?? null,
       text: (m) => {
         const v = m.outputs.find((x) => x.key === o.key)?.value;
-        return v === undefined ? DASH : fmtNum(v);
+        return v === undefined ? DASH : fmtNum(v, o.unit);
       },
     });
   }
@@ -852,6 +909,8 @@ export interface SummaryRow {
   /** Position of the medoid's value, when the medoid has one. */
   medoidX?: number;
   medoidValue?: number;
+  /** Every value of the row is an integer (counts): shown without fixed decimals. */
+  integer: boolean;
 }
 
 /** Strip plot positions on a 200-wide axis with 4 px padding (prototype metricRow). */
@@ -875,7 +934,8 @@ function summaryRow(
   const st = describe(values);
   if (!st) return null;
   const { medoid, ...rest } = extra;
-  const row: SummaryRow = { id, name, ...rest, stats: st, ...stripPositions(values, fills, st) };
+  const integer = values.every((v) => typeof v !== 'number' || !Number.isFinite(v) || Number.isInteger(v));
+  const row: SummaryRow = { id, name, ...rest, stats: st, ...stripPositions(values, fills, st), integer };
   if (typeof medoid === 'number' && Number.isFinite(medoid)) {
     row.medoidValue = medoid;
     row.medoidX = stripPositions([medoid], ['x'], st).points[0]?.x;
@@ -894,7 +954,8 @@ export function summaryRows(record: UiRunRecord, register?: Register): SummaryRo
   const fills = ens.map((e) => KIND_COLOR[e.kind]);
   const lig = hasLigand(record);
   const rows: (SummaryRow | null)[] = [];
-  const nonMedoid = ens.filter((e) => e.kind !== 'medoid');
+  // predicted members only: the crystal reference's RMSD to the medoid is not part of the pose distribution
+  const nonMedoid = ens.filter((e) => e.kind !== 'medoid' && e.kind !== 'crystal');
   rows.push(summaryRow('rmsd', 'RMSD to medoid', nonMedoid.map((e) => e.rmsdToMedoid), nonMedoid.map((e) => KIND_COLOR[e.kind]), { unit: 'Å' }));
   const medoid = ens.find((e) => e.kind === 'medoid');
   rows.push(summaryRow('plddt', lig ? 'Pocket pLDDT' : 'Interface pLDDT', ens.map((e) => e.pocketPlddt), fills, { medoid: medoid?.pocketPlddt }));
@@ -915,7 +976,7 @@ export function summaryRows(record: UiRunRecord, register?: Register): SummaryRo
   keys.filter((k) => !isCofold(k)).forEach((k) => rows.push(outputRow(k)));
   const phys = S.physics ?? [];
   const seedFills = phys.map(() => KIND_COLOR.seed);
-  const mp = medoid ? phys.find((p) => medoid.label === `s${p.seed}` || medoid.id === `seed_${p.seed}`) : undefined;
+  const mp = medoid ? (phys.find((p) => !!p.pose && p.pose === medoid.pose) ?? phys.find((p) => medoid.label === `s${p.seed}` || medoid.id === `seed_${p.seed}`)) : undefined;
   rows.push(summaryRow('drift', 'Minimisation drift', phys.map((p) => p.drift), seedFills, { unit: 'Å', medoid: mp?.drift }));
   rows.push(summaryRow('strain', 'Torsion strain', phys.map((p) => p.strain), seedFills, { unit: 'kcal/mol', medoid: mp?.strain }));
   rows.push(summaryRow('clashscore', 'Clashscore', phys.map((p) => p.clashscore), seedFills, { medoid: mp?.clashscore }));
@@ -965,7 +1026,8 @@ export function fmtPhysics(v: number | null | undefined): string {
 
 export interface PhysicsTable {
   columns: PhysicsColumn[];
-  rows: { seed: string; flagged: boolean; cells: string[] }[];
+  /** `key` is the pose id (or the row index): seeds repeat when a seed has several samples. */
+  rows: { key: string; seed: string; flagged: boolean; cells: string[] }[];
   median: string[];
 }
 
@@ -979,10 +1041,11 @@ export function physicsTable(record: UiRunRecord): PhysicsTable | null {
   const num = (p: PhysicsRow, k: keyof PhysicsRow) => (typeof p[k] === 'number' ? (p[k] as number) : null);
   return {
     columns,
-    rows: phys.map((p) => {
+    rows: phys.map((p, i) => {
       const total = (p as PhysicsRow & { pbTotal?: number }).pbTotal ?? pbTotal;
       return {
-        seed: `s${p.seed}`,
+        key: p.pose ?? `row-${i}`,
+        seed: poseLabel(p),
         flagged: lig ? typeof p.pbPassed === 'number' && typeof total === 'number' && p.pbPassed < total : typeof p.drift === 'number' && p.drift > DRIFT_FLAG_A,
         cells: columns.map((c) => fmtPhysics(num(p, c.key))),
       };
@@ -1026,25 +1089,52 @@ export function seedAxis(record: UiRunRecord): SeedAxis | null {
 }
 
 /** Seed spread: RMSD to medoid (x, 0..8 Å) against the seed axis (y), viewBox 360×170. */
+/**
+ * Row label of a per-pose row: `s<seed>`, `s<seed>.<sample>` when a seed has several samples,
+ * the pose id when the seed is missing.
+ */
+export function poseLabel(row: { seed?: number; sample?: number; pose?: string }): string {
+  if (typeof row.seed !== 'number') return row.pose ?? DASH;
+  return typeof row.sample === 'number' && row.sample > 0 ? `s${row.seed}.${row.sample}` : `s${row.seed}`;
+}
+
+/**
+ * True when stats.pairwise holds pairwise RMSD between poses (live: l5.sampling.clusters, n is a
+ * pair count); the mock block summarises RMSD to the medoid over n seeds.
+ */
+export function pairwiseIsPairs(record: UiRunRecord): boolean {
+  const p = record.stats.pairwise;
+  if (!p) return false;
+  const field = record.stats.provenance?.pairwise?.field ?? '';
+  return typeof p.poses === 'number' || /pairwise/.test(String(field));
+}
+
+/** Seed-spread point labels drawn as text: points with an earlier point within 26×12 units keep only the tooltip. */
+const LABEL_DX = 26;
+const LABEL_DY = 12;
+
 export function seedSpreadPoints(record: UiRunRecord) {
   const seeds = record.stats.seeds ?? [];
   const axis = seedAxis(record);
   const x = (v: number) => +(40 + (Math.min(SEED_X_MAX, Math.max(0, v)) / SEED_X_MAX) * 310).toFixed(2);
   const y = (c: number) => (axis ? +(128 - ((c - axis.min) / (axis.max - axis.min)) * 108).toFixed(2) : 128);
   const p = record.stats.pairwise;
+  const placed = seeds
+    .filter((s) => typeof s.rmsdToMedoid === 'number')
+    .map((s, i) => {
+      const v = axis?.field === 'score' ? s.score : s.confidence;
+      return {
+        key: s.pose ?? `seed-${i}`,
+        cx: x(s.rmsdToMedoid),
+        cy: typeof v === 'number' && Number.isFinite(v) ? y(v) : 128,
+        fill: s.rmsdToMedoid < SEED_RMSD_CUT ? 'var(--color-pass)' : 'var(--color-warn)',
+        label: poseLabel(s),
+      };
+    });
+  const points = placed.map((pt, i) => ({ ...pt, showLabel: !placed.slice(0, i).some((q) => Math.abs(q.cx - pt.cx) < LABEL_DX && Math.abs(q.cy - pt.cy) < LABEL_DY) }));
   return {
     axis,
-    points: seeds
-      .filter((s) => typeof s.rmsdToMedoid === 'number')
-      .map((s) => {
-        const v = axis?.field === 'score' ? s.score : s.confidence;
-        return {
-          cx: x(s.rmsdToMedoid),
-          cy: typeof v === 'number' && Number.isFinite(v) ? y(v) : 128,
-          fill: s.rmsdToMedoid < SEED_RMSD_CUT ? 'var(--color-pass)' : 'var(--color-warn)',
-          label: `s${s.seed}`,
-        };
-      }),
+    points,
     cutX: x(SEED_RMSD_CUT),
     // the bootstrap CI of the median when the record has it, otherwise the IQR; never invented
     band: p?.ci95
@@ -1070,6 +1160,24 @@ export function rocPolyline(record: UiRunRecord): string | null {
 }
 
 /** Interaction nodes on a circle around the ligand, viewBox 360×300 (prototype `inter`). */
+/**
+ * `2/3 also in the reference complex` for live records (stats.interactions[].known is read from
+ * the declared reference complex), `7/9 seen in known complexes` for mock records.
+ */
+export function interactionKnownText(record: UiRunRecord): string | null {
+  const it = record.stats.interactions;
+  if (!it) return null;
+  const known = it.filter((i) => i.known).length;
+  const live = !!record.stats.provenance?.['interactions.known'];
+  return `${known}/${it.length} ${live ? 'also in the reference complex' : 'seen in known complexes'}`;
+}
+
+/** `pose vina/seed0/mode0` when the record names the fingerprinted pose, else `the medoid pose`. */
+export function interactionPoseText(record: UiRunRecord): string {
+  const pose = record.stats.interactionsPose;
+  return typeof pose === 'string' && pose ? `pose ${pose}` : 'the medoid pose';
+}
+
 export function interactionNodes(record: UiRunRecord) {
   const list = record.stats.interactions ?? [];
   const R = 112;

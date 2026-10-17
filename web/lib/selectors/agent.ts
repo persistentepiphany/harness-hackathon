@@ -163,7 +163,9 @@ export interface RunRef {
 }
 
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
-const TEXT_RUN = /\brun_[A-Za-z0-9][A-Za-z0-9_-]*/g;
+// harness run ids `<prefix>-<12 hex>` (pah.core.events.new_run_id, e.g. ligand_pose-04e7e402bf85)
+// and the mock form `run_YYYYMMDD_<hex>`; a word that only starts with `run_` (run_id) is not an id
+const TEXT_RUN = /\b(?:[a-z][a-z0-9_]*-[0-9a-f]{12}|run_\d{8}_[0-9a-f]{6,})\b/g;
 
 function idsOf(v: unknown): string[] {
   if (typeof v === 'string') return [v];
@@ -173,7 +175,7 @@ function idsOf(v: unknown): string[] {
 
 /**
  * Run or job ids a step refers to: `data.runId`, `data.runIds`, `data.jobId`, `data.jobIds`, then
- * `run_...` tokens in the text. Deduplicated, in that order; ids that are not path-safe are dropped.
+ * run ids in the text (`<task>-<12 hex>`, mock `run_YYYYMMDD_<hex>`). Deduplicated, in that order; ids that are not path-safe are dropped.
  */
 export function runRefs(step: Pick<AgentStep, 'text' | 'data'>): RunRef[] {
   const out: RunRef[] = [];

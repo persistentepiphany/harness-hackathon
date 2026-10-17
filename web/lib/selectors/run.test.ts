@@ -20,7 +20,9 @@ import {
   ligandFromInput,
   ligandRows,
   logLineView,
+  jobVerdictCounts,
   logStats,
+  runEndLine,
   planTools,
   requestSummary,
   runHeaderModel,
@@ -35,6 +37,7 @@ import {
   taskHint,
   taskKind,
   toggleTool,
+  uniprotRelease,
   verdictCounts,
 } from './run';
 
@@ -57,6 +60,13 @@ describe('New run form (mock catalog)', () => {
     expect(form.ligand).toBe(CATALOG.ligands[0].smiles);
     expect(suggestName(form, CATALOG, TASKS)).toBe('ABL1 kinase · ligand pose');
     expect(formText(form, CATALOG, 'with gnina')).toBe('P00519 imatinib with gnina');
+  });
+
+  it('sends custom ligands to the resolver as ccd, cid or the raw input', () => {
+    expect(formText({ target: 'Q9Y6K9', partner: '', ligand: 'ATP' }, CATALOG)).toBe('Q9Y6K9 ccd ATP');
+    expect(formText({ target: 'Q9Y6K9', partner: '', ligand: '2244' }, CATALOG)).toBe('Q9Y6K9 cid 2244');
+    expect(formText({ target: 'P00519', partner: '', ligand: 'CC(=O)Oc1ccccc1C(=O)O' }, CATALOG)).toBe('P00519 CC(=O)Oc1ccccc1C(=O)O');
+    expect(formText({ target: 'P00519', partner: '', ligand: 'STI' }, CATALOG)).toBe('P00519 imatinib');
   });
 
   it('builds settings with only the inputs the task takes', () => {
@@ -110,7 +120,16 @@ describe('New run form (mock catalog)', () => {
     expect(rows.find((r) => r.k === 'Length')?.v).toBe('246 aa');
     expect(rows.find((r) => r.k === 'Reference')?.v).toBe('3PTB · 1.70 Å');
     expect(rows.find((r) => r.k === 'Holo entries')).toEqual({ k: 'Holo entries', v: '–', missing: true });
-    expect(rows.find((r) => r.k === 'Release')?.missing).toBe(true);
+    expect(rows.find((r) => r.k === 'Release')).toBeUndefined();
+    const withRelease = targetRows({ names: ['trypsin'], accession: 'P00760', label: 'Trypsin' }, '2026_04');
+    expect(withRelease.find((r) => r.k === 'Release')).toEqual({ k: 'Release', v: 'UniProt 2026_04', missing: false });
+    const groups: EntityGroup[] = [
+      { key: 'uniprot:P00760', kind: 'protein', title: 'Trypsin', source: 'UniProt', query: 'P00760', ms: 10, rows: [['Release', '2026_04']] },
+      { key: 'uniprot:P00519', kind: 'protein', title: 'ABL1', source: 'UniProt', query: 'P00519', ms: 10, rows: [], ...({ status: 'error', message: 'x' } as object) },
+    ];
+    expect(uniprotRelease(groups, 'p00760')).toBe('2026_04');
+    expect(uniprotRelease(groups, 'P00519')).toBeNull();
+    expect(uniprotRelease(null, 'P00760')).toBeNull();
     const lig = ligandRows({ names: ['benzamidine'], smiles: 'NC(=N)c1ccccc1', ccd: 'BEN', cid: '2332', chembl: 'CHEMBL20936' });
     expect(lig.find((r) => r.k === 'ChEMBL')?.v).toBe('CHEMBL20936');
     expect(lig.find((r) => r.k === 'pKa')?.missing).toBe(true);
@@ -246,5 +265,25 @@ describe.skipIf(!liveLog || !rec3ptb)('single job view (live fixtures)', () => {
     const params = dockingParams(rec, 'gnina', liveTools);
     expect(params.find((p) => p.key === 'exhaustiveness')).toMatchObject({ value: '8', isDefault: true });
     expect(params.find((p) => p.key === 'size')).toMatchObject({ value: '–', isDefault: false });
+  });
+});
+
+describe('job page counts without fetch lines or a record', () => {
+  const line = (seq: number, kind: LogLine['kind'], text: string, t = '0.0s'): LogLine => ({ seq, ts: '', t, layer: null, kind, text, plain: text });
+  it('takes the fetched count from record.sources when the log has no fetch lines', () => {
+    const lines = [line(1, 'run', 'run  start'), line(2, 'check', 'l0 x pass')];
+    expect(logStats(lines).fetched).toBeNull();
+    const s = logStats(lines, [{ cached: false }, { cached: true }, { cached: false }]);
+    expect([s.fetched, s.cached]).toEqual([2, 1]);
+    expect(logStats([line(1, 'fetch', 'GET x')], [{ cached: false }]).fetched).toBe(1);
+  });
+  it('finds the run end line and its time', () => {
+    expect(runEndLine([line(1, 'run', 'run  start'), line(9, 'run', 'run  end  verdict=pass  3.4 s', '3.4s')])).toEqual({ seq: 9, ms: 3400 });
+    expect(runEndLine([line(1, 'run', 'run  start')])).toBeNull();
+  });
+  it('shows the job total or an en dash, never zero counts, while the record is missing', () => {
+    const totals = { total: 0, finished: 0, pass: 0, warn: 0, stop: 0, skip: 0 } as Parameters<typeof jobVerdictCounts>[2];
+    expect(jobVerdictCounts({ checksTotal: 39 }, null, totals).text).toBe('39 checks');
+    expect(jobVerdictCounts({}, null, totals).text).toBe('–');
   });
 });

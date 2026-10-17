@@ -55,6 +55,11 @@ class Threshold(_Frozen):
     comparator: str = Field(description="One of <, <=, >, >=, ==, !=, in")
     origin: str = Field(description="Citation or calibration run the value comes from")
     evidence_level: EvidenceLevel = EvidenceLevel.UNCALIBRATED
+    measurement: str | None = Field(
+        default=None,
+        description="Name of the measurement compared with this threshold, when it differs "
+        "from the threshold name",
+    )
 
 
 class Measurement(_Frozen):

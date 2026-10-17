@@ -12,13 +12,15 @@ export interface TargetPickerProps {
   options: TargetOption[];
   selected: string;
   detail: TargetOption | null;
+  /** UniProt release of the picked target, from the Sources lookups (row left out when absent). */
+  release?: string | null;
   onSelect: (p: TargetOption) => void;
   addValue: string;
   onAddValue: (v: string) => void;
   onAdd: (v: string) => void;
 }
 
-export function TargetPicker({ options, selected, detail, onSelect, addValue, onAddValue, onAdd }: TargetPickerProps) {
+export function TargetPicker({ options, selected, detail, release, onSelect, addValue, onAddValue, onAdd }: TargetPickerProps) {
   return (
     <div data-testid="target-picker">
       <SectionHead label="Targets" hint="examples · any UniProt accession or name works" />
@@ -43,7 +45,7 @@ export function TargetPicker({ options, selected, detail, onSelect, addValue, on
           data-testid="target-detail"
           title={detail.label}
           sub={`${detail.entry || DASH} · ${detail.accession}`}
-          rows={targetRows(detail)}
+          rows={targetRows(detail, release)}
         />
       )}
     </div>

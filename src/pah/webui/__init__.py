@@ -121,8 +121,11 @@ def install_error_handlers(app: FastAPI) -> None:
 
 def install_ui(app: FastAPI, profile: Profile, jobs: JobStore) -> None:
     """Mounts the /ui routes and their error handler on the harness API app."""
+    from pah.webui.body_limit import BodyLimitMiddleware
     from pah.webui.settings import ApiSettings
 
     ApiSettings.from_profile_model(profile).ensure_dirs()
     app.include_router(ui_router(profile, jobs))
     install_error_handlers(app)
+    # 413 before a large body is spooled or buffered (uploads, JSON write routes)
+    app.add_middleware(BodyLimitMiddleware)

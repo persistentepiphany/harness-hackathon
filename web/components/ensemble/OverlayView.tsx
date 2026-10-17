@@ -9,8 +9,7 @@ import clsx from 'clsx';
 import { useMemo, useState } from 'react';
 import { StructureViewer } from '@/components/viewer/StructureViewer';
 import type { ViewerMode } from '@/components/viewer/config';
-import { DASH, fmtNum } from '@/lib/format';
-import { overlayLoads, type EnsembleMember } from '@/lib/selectors/report';
+import { memberValueText, overlayLoads, type EnsembleMember } from '@/lib/selectors/report';
 import { GateDot } from './MemberNumbers';
 
 export function OverlayView({ members, mode, className }: { members: EnsembleMember[]; mode: ViewerMode; className?: string }) {
@@ -70,8 +69,8 @@ export function OverlayView({ members, mode, className }: { members: EnsembleMem
               <input type="checkbox" checked={on} disabled={!has} onChange={() => toggle(m.id)} className="h-3 w-3 accent-[var(--color-ink)]" />
               <span className="h-2.5 w-2.5 rounded-[2px]" style={{ background: has ? m.color : 'transparent', border: has ? undefined : '1px solid var(--color-line)' }} />
               <span className="truncate">{m.kind === 'medoid' ? `${m.label} · medoid` : m.label}</span>
-              <span className="text-right text-[10.5px] text-muted" title={m.confidence ? m.confidence.label : undefined}>
-                {m.confidence ? fmtNum(m.confidence.value, m.confidence.unit) : m.rmsd !== null && m.kind !== 'medoid' ? fmtNum(m.rmsd, 'Å', 1) : DASH}
+              <span className="text-right text-[10.5px] text-muted" title={m.confidence ? m.confidence.label : m.rmsd !== null && m.kind !== 'medoid' ? 'RMSD to the medoid' : undefined}>
+                {memberValueText(m)}
               </span>
               <GateDot m={m} />
             </label>

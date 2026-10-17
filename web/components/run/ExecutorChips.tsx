@@ -41,7 +41,7 @@ function ExecutorChip({ c, docking, onToggle }: { c: ExecutorChipModel; docking:
         c.disabled ? 'cursor-not-allowed' : 'hover:border-ink',
       )}
     >
-      <span className={clsx('font-medium', docking ? 'text-[12px] text-ink2' : 'text-[12.5px] text-ink')}>{c.name}</span>
+      <span className={clsx('font-medium', docking ? 'text-[12px] text-ink2' : clsx('text-[12.5px]', unavailable ? 'text-faint' : 'text-ink'))}>{c.name}</span>
       {c.version ? <span className={clsx('font-mono text-[10.5px]', docking ? 'text-faint' : 'text-muted')}>{c.version}</span> : null}
     </button>
   );

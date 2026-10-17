@@ -26,7 +26,7 @@ export function SeedStatsTable({ record, variant, className }: ReportBlockProps)
               ))}
             </div>
             {t.rows.map((r) => (
-              <div key={r.seed} className={clsx('grid border-b border-line3', print ? 'gap-1.5 py-[3px]' : 'gap-2 py-1.5', r.flagged ? 'text-accent-deep' : 'text-ink2')} style={{ gridTemplateColumns: cols }} data-testid="seed-row" data-state={r.flagged ? 'flagged' : 'ok'}>
+              <div key={r.key} className={clsx('grid border-b border-line3', print ? 'gap-1.5 py-[3px]' : 'gap-2 py-1.5', r.flagged ? 'text-accent-deep' : 'text-ink2')} style={{ gridTemplateColumns: cols }} data-testid="seed-row" data-state={r.flagged ? 'flagged' : 'ok'}>
                 <span>{r.seed}</span>
                 {r.cells.map((v, k) => (
                   <span key={t.columns[k].key} className="text-right">

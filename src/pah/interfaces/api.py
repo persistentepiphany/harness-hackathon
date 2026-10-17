@@ -143,6 +143,8 @@ def create_app(
         install_ui(app, profile, jobs)
 
     def _run_dir(job_id: str) -> Path:
+        if job_id == "uploads":  # every client's uploaded files: not a run, not served
+            raise HTTPException(404, f"no run {job_id!r}")
         try:
             return run_dir_for(profile, job_id)
         except InputError as exc:

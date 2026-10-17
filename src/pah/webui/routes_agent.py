@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -49,6 +50,8 @@ def _int(value: Any, name: str) -> int | None:
         return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise AgentLogError(f"{name} must be a number")
+    if not math.isfinite(value):
+        raise AgentLogError(f"{name} must be a finite number")
     return int(value)
 
 

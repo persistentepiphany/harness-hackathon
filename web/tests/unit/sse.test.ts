@@ -62,6 +62,15 @@ describe('openSseStream', () => {
     expect(statuses).toEqual(['connecting', 'open', 'ended']);
   });
 
+  it('passes the server end reason to onEnd', () => {
+    const onEnd = vi.fn();
+    openSseStream<{ seq: number }>('/s', 'line', () => undefined, { onEnd }, { EventSourceImpl: ES });
+    const es = FakeEventSource.instances[0];
+    es.open();
+    es.emit('end', { reason: 'stale', lastSeq: 4 });
+    expect(onEnd).toHaveBeenCalledWith({ reason: 'stale', lastSeq: 4 });
+  });
+
   it('reopens after the browser closed the stream and drops replayed items', () => {
     const items: number[] = [];
     openSseStream<{ seq: number }>('/s', 'line', (x) => items.push(x.seq), {}, { EventSourceImpl: ES, baseDelayMs: 100 });

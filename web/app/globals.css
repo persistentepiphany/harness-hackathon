@@ -128,10 +128,16 @@
   [role='button']:not(:disabled) {
     cursor: pointer;
   }
-  input:focus,
+  /* text fields show focus by their border; checkboxes and radios keep a visible ring */
+  input:not([type='checkbox']):not([type='radio']):focus,
   textarea:focus {
     outline: none;
     border-color: var(--color-accent) !important;
+  }
+  input[type='checkbox']:focus-visible,
+  input[type='radio']:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
   }
   ::-webkit-scrollbar {
     width: 8px;

@@ -49,6 +49,30 @@ test.describe('mock mode', () => {
     await expect(page.getByTestId('plan-tools')).toHaveText('Boltz-2 · Protenix');
   });
 
+  test('+ executor keeps focus, joins the plan and the started job', async ({ page }) => {
+    await page.getByTestId('manual-setup').click();
+    const add = page.getByTestId('add-executor');
+    await add.fill('rosettafold:1.0');
+    await add.press('Enter');
+    await expect(page.locator('[data-testid=executor-chip][data-tool=rosettafold]')).toHaveAttribute('data-state', 'selected');
+    await expect(page.getByTestId('plan-tools')).toContainText('rosettafold');
+    // the input stays focused for the next executor
+    await expect(add).toBeFocused();
+    await expect(add).toHaveValue('');
+    await page.locator('[data-testid=run-plan] [data-testid=start-run]').click();
+    await expect(page).toHaveURL(/\/jobs\/run_/);
+    await expect(page.getByTestId('executor-row').filter({ hasText: 'rosettafold' })).toHaveCount(1);
+  });
+
+  test('custom target and ligand are looked up and shown as not in the mock catalog', async ({ page }) => {
+    await page.getByTestId('add-target').fill('Q9Y6K9');
+    await page.getByTestId('add-target').press('Enter');
+    await expect(page.locator('[data-testid=entity-row][data-source=UniProt][data-state=error]')).toContainText('not in the mock catalog');
+    await page.getByTestId('add-ligand').fill('ATP');
+    await page.getByTestId('add-ligand').press('Enter');
+    await expect(page.locator('[data-testid=entity-row][data-source="PDB CCD"][data-state=error]')).toBeVisible();
+  });
+
   test('quick setup streams decisions, Start run opens the job and its log streams', async ({ page }) => {
     await page.getByTestId('sample-prompt').first().click();
     await page.getByTestId('quick-setup').click();

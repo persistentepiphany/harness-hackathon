@@ -95,6 +95,8 @@ def cors_config(entries: Iterable[str]) -> tuple[tuple[str, ...], str | None]:
     `https://pah-git-main.vercel.app`); everything else in a pattern is matched literally.
     """
     items = tuple(entries)
+    if "*" in items:  # a bare `*` allows every origin, as CORSMiddleware's allow_origins=["*"]
+        return ("*",), None
     plain = tuple(e for e in items if "*" not in e)
     patterns = [e for e in items if "*" in e]
     if not patterns:

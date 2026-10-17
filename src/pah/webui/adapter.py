@@ -497,9 +497,15 @@ def _findings_dir(run_dir: Path) -> list[dict[str, Any]]:
 
 
 def _report_status(
-    events: list[dict[str, Any]], report: dict[str, Any] | None
+    events: list[dict[str, Any]],
+    report: dict[str, Any] | None,
+    job: Mapping[str, Any] | None = None,
 ) -> tuple[str, str | None]:
-    """none | running | done | failed | skipped, from the `report` stage events."""
+    """none | running | done | failed | skipped, from the `report` stage events.
+
+    A report stage that started and never ended in a job that job.json records as failed has
+    failed (an exception in the report writer), not running.
+    """
     status, error = ("done", None) if report is not None else ("none", None)
     for e in events:
         if e.get("stage") != "report":
@@ -510,6 +516,8 @@ def _report_status(
             raw = str(_dict(e.get("data")).get("status", "ok"))
             status = {"ok": "done", "skip": "skipped"}.get(raw, "failed")
             error = None if status == "done" else str(e.get("message", ""))
+    if status == "running" and job is not None and str(job.get("status", "")) == "failed":
+        return "failed", str(job.get("error") or "job failed during the report stage")
     return status, error
 
 
@@ -533,7 +541,11 @@ def load_state(
     run_end = next((e for e in events if e.get("kind") == "run_end"), None)
     start_data = _dict(_dict(run_start).get("data"))
 
-    manifest: dict[str, Any] | None = _dict(_dict(record).get("manifest")) or None
+    # record.json at the end; while the run is live, the manifest run_start carries (CLI, MCP and
+    # native runs write no manifest.yaml into the run directory)
+    manifest: dict[str, Any] | None = (
+        _dict(_dict(record).get("manifest")) or _dict(start_data.get("manifest")) or None
+    )
     if manifest is None:
         manifest = _load_manifest(run_dir, events)
 
@@ -610,7 +622,7 @@ def load_state(
         or parse_ts(job.get("createdAt"))
     )
     harness_id = _dict(record).get("run_id") or (events[0].get("run_id") if events else None)
-    report_status, report_error = _report_status(events, report)
+    report_status, report_error = _report_status(events, report, job)
     return RunState(
         run_dir=run_dir,
         events=events,
@@ -697,6 +709,7 @@ def ui_check(f: Mapping[str, Any], task: TaskSpec | None) -> dict[str, Any]:
                 "comparator": t.get("comparator"),
                 "origin": t.get("origin"),
                 "evidenceLevel": t.get("evidence_level"),
+                **({"measurement": str(t["measurement"])} if t.get("measurement") else {}),
             }
             for t in thresholds
         ]
@@ -739,15 +752,24 @@ def _figures(findings: list[dict[str, Any]]) -> list[list[str]]:
     for f in findings:
         if f.get("gate") == "skip":
             continue
-        ms = _dicts(f.get("measurements"))
-        if not ms:
+        # the first measurement with a value; a missing value is not a figure (the UI shows a dash)
+        m = next((x for x in _dicts(f.get("measurements")) if x.get("value") is not None), None)
+        if m is None:
             continue
-        label = str(ms[0].get("name", "")).replace("_", " ")
+        name = str(m.get("name", ""))
+        unit = ui_stats.unit_of(name, m.get("unit"))
+        for suffix, _u in ui_stats.SUFFIX_UNITS:
+            if not m.get("unit") and name.endswith(suffix):
+                name = name[: -len(suffix)]
+                break
+        label = name.replace("_", " ")
         if label in seen:
             continue
         seen.add(label)
-        unit = ms[0].get("unit")
-        out.append([label, fmt_value(ms[0].get("value")) + (f" {unit}" if unit else "")])
+        value = m.get("value")
+        out.append(
+            [label, fmt_value(value) if isinstance(value, bool) else ui_stats.fmt(value, unit)]
+        )
         if len(out) >= MAX_FIGURES:
             break
     return out
@@ -1410,17 +1432,28 @@ def to_job(
 ) -> dict[str, Any]:
     """The Job card for a run directory."""
     s = state or load_state(run_dir, now=now)
+    from pah.core.check import INCOMPLETE_REASONS
+
+    incomplete_reasons = {str(r) for r in INCOMPLETE_REASONS}
     layers: list[dict[str, Any]] = []
     for meta in LAYERS:
         i = int(meta["i"])
         found = s.layer_findings(i)
-        layers.append(
-            {
-                "i": i,
-                "result": _worst(str(f.get("gate")) for f in found),
-                "done": s.layer_status(i) == "done",
-            }
-        )
+        entry: dict[str, Any] = {
+            "i": i,
+            "result": _worst(str(f.get("gate")) for f in found),
+            "done": s.layer_status(i) == "done",
+        }
+        # a skip that leaves the verdict incomplete (tool missing, error, unknown check)
+        missing = [
+            str(f.get("check_id"))
+            for f in found
+            if f.get("gate") == "skip"
+            and str(_dict(f.get("evidence")).get("skip_reason")) in incomplete_reasons
+        ]
+        if missing:
+            entry["incomplete"] = missing
+        layers.append(entry)
     running = [i for i in s.stage_start if i not in s.stage_end]
     progress = 0.0
     if s.status == "done":

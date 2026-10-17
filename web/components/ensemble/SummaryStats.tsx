@@ -23,7 +23,8 @@ const COLS = 'grid-cols-[minmax(150px,1.3fr)_minmax(160px,2fr)_repeat(3,minmax(0
 
 export function SummaryStats({ record, tools, className, figNo = 7 }: { record: UiRunRecord; tools?: Tool[] | null; className?: string; figNo?: number }) {
   const rows = summaryRows(record, tools);
-  const f = (v: number) => fmtNum(v, undefined, 2);
+  // counts (PoseBusters passed) without fixed decimals; their mean and sd keep two
+  const f = (m: { integer: boolean }, v: number) => (m.integer && Number.isInteger(v) ? fmtNum(v) : fmtNum(v, undefined, 2));
   return (
     <div className={className} data-testid="summary-stats" data-state={rows.length ? 'computed' : 'not-computed'}>
       <div className="mb-2 text-[14px] font-semibold">Summary statistics</div>
@@ -54,15 +55,15 @@ export function SummaryStats({ record, tools, className, figNo = 7 }: { record: 
               {m.medoidX !== undefined && <circle cx={m.medoidX} cy={8} r={6} fill="none" stroke="var(--color-accent)" strokeWidth={1.5} data-testid="summary-medoid" />}
               <line x1={m.medianX} y1={1} x2={m.medianX} y2={15} stroke="var(--color-ink)" strokeWidth={1.5} />
             </svg>
-            <span className="text-right font-medium">{f(m.stats.median)}</span>
+            <span className="text-right font-medium">{f(m, m.stats.median)}</span>
             <span className="text-right text-ink2">
-              {f(m.stats.q1)}–{f(m.stats.q3)}
+              {f(m, m.stats.q1)}–{f(m, m.stats.q3)}
             </span>
             <span className="text-right text-ink2">{m.stats.n}</span>
-            <span className="text-right">{f(m.stats.mean)}</span>
-            <span className="text-right">{f(m.stats.sd)}</span>
-            <span className="text-right text-muted">{f(m.stats.min)}</span>
-            <span className="text-right text-muted">{f(m.stats.max)}</span>
+            <span className="text-right">{f(m, m.stats.mean)}</span>
+            <span className="text-right">{f(m, m.stats.sd)}</span>
+            <span className="text-right text-muted">{f(m, m.stats.min)}</span>
+            <span className="text-right text-muted">{f(m, m.stats.max)}</span>
           </div>
         ))}
         {!rows.length && (

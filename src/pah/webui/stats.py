@@ -770,7 +770,47 @@ def pae_block(inp: StatsInput, f: Findings, prov: Json) -> Json | None:
     out: Json = {"path": rel, "url": inp.url(rel), "format": "npy"}
     if _d(pae).get("pose"):
         out["pose"] = str(_d(pae)["pose"])
+    out.update(_pae_matrix(inp.run_dir / rel))
     prov["pae"] = f.source(CONFIDENCE, field="evidence.pae")
+    return out
+
+
+# Largest matrix embedded as is; a larger one is shown as means of k x k token blocks.
+MAX_PAE_TOKENS = 512
+
+
+def _pae_matrix(path: Path) -> Json:
+    """`matrix` (Å, rounded to 0.01) read from the saved .npy, for the UI heatmap.
+
+    Returns {} when the file is not a finite square 2-D array. Above MAX_PAE_TOKENS tokens the
+    matrix is binned by block means and `lines` states the binning.
+    """
+    try:
+        import numpy as np
+    except ImportError:  # numpy comes with the checks extra; the file URL stays in the block
+        return {}
+    try:
+        arr = np.load(path, allow_pickle=False)
+    except (OSError, ValueError):
+        return {}
+    if arr.ndim != 2 or arr.shape[0] != arr.shape[1] or arr.shape[0] == 0:
+        return {}
+    arr = arr.astype(float)
+    if not np.isfinite(arr).all():
+        return {}
+    n = int(arr.shape[0])
+    out: Json = {}
+    if n > MAX_PAE_TOKENS:
+        k = -(-n // MAX_PAE_TOKENS)
+        m = -(-n // k)
+        padded = np.full((m * k, m * k), np.nan)
+        padded[:n, :n] = arr
+        arr = np.nanmean(padded.reshape(m, k, m, k), axis=(1, 3))
+        x = "\N{MULTIPLICATION SIGN}"
+        out["lines"] = [f"{n} tokens, shown as {m}{x}{m} means of {k}{x}{k} blocks"]
+        out["binned"] = k
+    out["matrix"] = np.round(arr, 2).tolist()
+    out["tokens"] = n
     return out
 
 

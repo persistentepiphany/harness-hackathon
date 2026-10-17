@@ -1,7 +1,7 @@
 'use client';
 
 // Sources side panel: entity lookups (GET /ui/entities?q=, debounced) grouped by entity; each row
-// is source · query → rows, with the resolver's measured latency.
+// is source · query → rows; the resolver's latency is in the source label's tooltip.
 
 import { ErrorState, Spinner } from '@/components/ui';
 import type { ApiError } from '@/lib/api-client';
@@ -38,13 +38,8 @@ export function SourcesPanel({ groups, busy, error }: SourcesPanelProps) {
                   className="grid animate-fade-in grid-cols-[12px_84px_minmax(0,1fr)] items-start gap-2 border-t border-line2 py-[5px]"
                 >
                   <RingDot state={e.status === 'error' ? 'error' : 'ok'} size={8} className="relative top-1" />
-                  <span className="pt-px text-[11.5px] text-muted">
+                  <span className="pt-px text-[11.5px] text-muted" title={e.ms !== null ? `resolved in ${fmtMs(e.ms)}` : undefined}>
                     {e.source}
-                    {e.ms !== null && (
-                      <span className="block font-mono text-[10.5px] text-faint" title={`resolved in ${e.ms} ms`}>
-                        {fmtMs(e.ms)}
-                      </span>
-                    )}
                   </span>
                   <div className="min-w-0 text-[12px]">
                     {e.status === 'error' ? (

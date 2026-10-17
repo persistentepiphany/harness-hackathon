@@ -60,11 +60,19 @@ def _parse_ts(value: Any) -> datetime | None:
         return None
 
 
+def _strict_json(obj: Any, what: str) -> str:
+    """JSON text of `obj`; NaN and Infinity are refused (they are not JSON and break readers)."""
+    try:
+        return json.dumps(obj, allow_nan=False)
+    except ValueError as exc:
+        raise AgentLogError(f"{what} must be JSON without NaN or Infinity") from exc
+
+
 def _atomic_json(path: Path, obj: Any) -> None:
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".tmp-")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
-            json.dump(obj, fh, indent=2)
+            json.dump(obj, fh, indent=2, allow_nan=False)
             fh.write("\n")
         Path(tmp).replace(path)
     except BaseException:
@@ -171,6 +179,7 @@ class AgentLog:
             raise AgentLogError("ms must be >= 0")
         if data is not None and not isinstance(data, dict):
             raise AgentLogError("data must be a JSON object")
+        _strict_json(data, "data")
         d = self._existing(task_id)
         with self._locked(d):
             task = self._load(d)
@@ -179,8 +188,9 @@ class AgentLog:
             seq = len(_read_steps(d / "steps.jsonl")) + 1
             step = {"seq": seq, "ts": _now(), "kind": kind, "text": text, "ms": ms,
                     "data": data}  # fmt: skip
+            line = _strict_json(step, "step")
             with (d / "steps.jsonl").open("a", encoding="utf-8") as fh:
-                fh.write(json.dumps(step) + "\n")
+                fh.write(line + "\n")
                 fh.flush()
                 os.fsync(fh.fileno())
             task["steps"] = seq
@@ -197,6 +207,7 @@ class AgentLog:
             raise AgentLogError(f"status must be done or failed; got {status!r}")
         if outcome is not None and not isinstance(outcome, dict):
             raise AgentLogError("outcome must be an object {label, detail, runs?, reports?}")
+        _strict_json(outcome, "outcome")
         d = self._existing(task_id)
         with self._locked(d):
             task = self._load(d)

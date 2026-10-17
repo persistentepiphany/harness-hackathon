@@ -138,6 +138,10 @@ describe('runRefs', () => {
       { id: 'run_20261017_e1d265', from: 'text' },
     ]);
   });
+  it('links harness run ids in the text and not words that start with run_', () => {
+    expect(runRefs({ text: 'pah_get_report run_id=ligand_pose-04e7e402bf85', data: {} })).toEqual([{ id: 'ligand_pose-04e7e402bf85', from: 'text' }]);
+    expect(runRefs({ text: 'run_id and run_dir', data: {} })).toEqual([]);
+  });
   it('drops ids that are not path-safe and tolerates null data', () => {
     expect(runRefs({ text: 'no ids here', data: { runId: '../etc/passwd', jobId: 42 } })).toEqual([]);
     expect(runRefs({ text: 'x', data: null as unknown as undefined })).toEqual([]);

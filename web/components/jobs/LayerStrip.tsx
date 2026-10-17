@@ -11,6 +11,7 @@ export function LayerStrip({ layers }: { layers: StripModel[] }) {
           data-testid="layer-cell"
           data-layer={l.i}
           data-state={l.state === 'done' ? (l.result ?? 'done') : l.state}
+          data-incomplete={l.incomplete.length ? 'true' : undefined}
           title={l.title}
           className="border-t-2 pt-2 transition-colors duration-200"
           style={{ borderTopColor: l.bar }}

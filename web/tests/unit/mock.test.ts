@@ -158,4 +158,32 @@ describe('mock addTool', () => {
     expect(tools.filter((x) => x.id === 'mydock')).toHaveLength(1);
     await expect(api.addTool({ name: '  ' })).rejects.toMatchObject({ status: 422 });
   });
+
+  it('keeps an added executor in the run that is started with it', async () => {
+    const api = createMockHarnessApi({ seed: 4, latencyMs: 0, autoStart: false });
+    await api.addTool({ name: 'rosettafold', version: '1.0', image: 'rosettafold:1.0' });
+    const res = await api.startRun({ task: 'redocking', tools: ['vina', 'gnina', 'rosettafold'], target: 'P00519', reference: '1IEP', ph: 7.4, seeds: 3, name: 'custom tool run' });
+    const rec = await api.getRunRecord(res.runId);
+    expect(rec.tools.map((t) => t.id)).toContain('rosettafold');
+    expect(rec.tools.find((t) => t.id === 'rosettafold')).toMatchObject({ name: 'rosettafold', version: '1.0' });
+    const job = await api.getJob(res.jobId);
+    expect(job.tools).toContain('rosettafold');
+  });
+});
+
+describe('mock entity lookups for names outside the catalog', () => {
+  it('returns error rows for a custom accession and custom ligands, with no values', () => {
+    const groups = lookupEntities('Q9Y6K9 ccd ATP cid 2244 CC(=O)Oc1ccccc1C(=O)O');
+    const byKey = Object.fromEntries(groups.map((g) => [g.key, g]));
+    expect(byKey['uniprot:Q9Y6K9']).toMatchObject({ kind: 'protein', source: 'UniProt', status: 'error', message: 'not in the mock catalog', rows: [] });
+    expect(byKey['ccd:ATP']).toMatchObject({ kind: 'ligand', source: 'PDB CCD', status: 'error' });
+    expect(byKey['pubchem:2244']).toMatchObject({ kind: 'ligand', query: 'CID 2244', status: 'error' });
+    expect(byKey['smiles:CC(=O)Oc1ccccc1C(=O)O']).toMatchObject({ kind: 'ligand', title: 'custom ligand', status: 'error' });
+  });
+
+  it('adds no error rows for catalog entries', () => {
+    const groups = lookupEntities('P00519 imatinib');
+    expect(groups.length).toBeGreaterThan(0);
+    expect(groups.every((g) => g.status !== 'error')).toBe(true);
+  });
 });

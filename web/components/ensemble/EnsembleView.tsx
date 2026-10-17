@@ -82,8 +82,6 @@ function Ensemble({ record }: { record: UiRunRecord }) {
         </Link>
       </div>
 
-      <SummaryStats record={record} tools={tools} figNo={6} />
-
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2" data-testid="ensemble-controls">
         <Segmented<View>
           label="view"
@@ -145,8 +143,10 @@ function Ensemble({ record }: { record: UiRunRecord }) {
         <OverlayView members={shown} mode={cfg.mode} />
       )}
       <div className="text-[11px] text-muted">
-        Fig. 7 · {view === 'overlay' ? `Overlay of ${withCoords} structures on the reference receptor; docking poses show the ligand only, co-folding models are superposed on the first chain by Cα.` : caption(members, primary, !!record.stats.ensemble)}
+        Fig. 6 · {view === 'overlay' ? `Overlay of ${withCoords} structures on the reference receptor; docking poses show the ligand only, co-folding models are superposed on the first chain by Cα.` : caption(members, primary, !!record.stats.ensemble)}
       </div>
+
+      <SummaryStats record={record} tools={tools} figNo={7} />
     </>
   );
 }

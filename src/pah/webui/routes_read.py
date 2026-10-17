@@ -248,7 +248,12 @@ def build_router(profile: Profile, jobs: JobStore) -> APIRouter:
                     continue
                 last = line["seq"]
                 yield ServerSentEvent(data=json.dumps(line), event="line", id=str(line["seq"]))
-            reason = "run_end" if ended else ("missing" if not seen else "stale")
+            failed = store.job_status(job_id) == "failed"
+            reason = (
+                "run_end"
+                if ended
+                else ("failed" if failed else ("missing" if not seen else "stale"))
+            )
             yield ServerSentEvent(
                 data=json.dumps({"reason": reason, "lastSeq": last}), event="end", id=str(last)
             )

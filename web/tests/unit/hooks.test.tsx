@@ -72,4 +72,30 @@ describe('watch hooks with the mock API', () => {
     expect(result.current.data.length).toBeGreaterThan(10);
     expect(result.current.status).toBe('ended');
   });
+
+  it('useJobLog reports the end reason and reopens on restart, keeping lines by seq', async () => {
+    let opened = 0;
+    const fake = {
+      streamJobLog: (_id: string, h: { onLine: (l: unknown) => void; onEnd?: (e?: { reason?: string }) => void }) => {
+        opened += 1;
+        const n = opened;
+        setTimeout(() => {
+          if (n === 1) h.onEnd?.({ reason: 'stale' });
+          else {
+            h.onLine({ seq: 1, ts: '', t: '0.0s', layer: null, kind: 'run', text: 'run  start', plain: '' });
+            h.onEnd?.({ reason: 'run_end' });
+          }
+        }, 0);
+        return () => undefined;
+      },
+    } as unknown as HarnessApi;
+    setHarnessApiForTests(fake);
+    const { result } = renderHook(() => useJobLog('job-1'));
+    await waitFor(() => expect(result.current.endReason).toBe('stale'));
+    expect(result.current.data).toEqual([]);
+    act(() => result.current.restart());
+    await waitFor(() => expect(result.current.endReason).toBe('run_end'));
+    expect(opened).toBe(2);
+    expect(result.current.data.map((l) => l.seq)).toEqual([1]);
+  });
 });

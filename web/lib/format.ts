@@ -127,6 +127,17 @@ function fmtValue(v: number | string | boolean | null | undefined): string {
 }
 
 /**
+ * `pocket_distance <= 8` for a check whose threshold pairs with no measurement: the first
+ * threshold in the number style the Thresholds list uses. Falls back to the adapter's
+ * `threshold.value` string when the check carries no threshold list; null without either.
+ */
+export function thresholdText(check: Pick<UiCheck, 'thresholds' | 'threshold'>): string | null {
+  const t = check.thresholds?.[0];
+  if (t) return `${t.name} ${t.comparator} ${fmtValue(t.value)}`;
+  return check.threshold ? `threshold ${check.threshold.value}` : null;
+}
+
+/**
  * `measured cmp threshold` for a check row when both exist (`undefined 1 == 0`).
  * Pairs them with pairMeasurement().
  * Returns null when the check has no measurement or no threshold.
@@ -142,9 +153,9 @@ export function measuredVsThreshold(check: Pick<UiCheck, 'measurements' | 'thres
 const sameKind = (a: unknown, b: unknown) => (typeof a === 'boolean') === (typeof b === 'boolean');
 
 /**
- * The measurement a threshold applies to: same name first, then names where one contains the
- * other (`undefined` / `undefined_stereo`, `missing` / `missing_fields`). No pairing is guessed
- * beyond that, so a row never shows a comparison the harness did not make.
+ * The measurement a threshold applies to: the one the threshold names (`measurement`, set by the
+ * check when the names differ), else the measurement with the threshold's own name. Names are
+ * never matched by substring, so a row never shows a comparison the harness did not make.
  */
 export function pairMeasurement(
   check: Pick<UiCheck, 'measurements' | 'thresholds'>,
@@ -152,11 +163,8 @@ export function pairMeasurement(
   const ms = check.measurements ?? [];
   const ts = check.thresholds ?? [];
   for (const t of ts) {
-    const m = ms.find((x) => x.name === t.name && sameKind(x.value, t.value));
-    if (m) return { m, t };
-  }
-  for (const t of ts) {
-    const m = ms.find((x) => (t.name.includes(x.name) || x.name.includes(t.name)) && sameKind(x.value, t.value));
+    const name = t.measurement ?? t.name;
+    const m = ms.find((x) => x.name === name && sameKind(x.value, t.value));
     if (m) return { m, t };
   }
   return null;

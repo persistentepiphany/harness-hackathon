@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { makeRunRecord, PRESET_JOBS } from '@/lib/mock/data';
 import { Simulator } from '@/lib/mock/simulator';
 import type { Job, UiRunRecord } from '@/lib/types';
 import {
@@ -36,6 +37,7 @@ function mockRecord(): UiRunRecord {
 }
 
 const faulty = load<UiRunRecord>('ui-record-faulty.json');
+const vina = load<UiRunRecord>('ui-record-vina.json');
 const ptb = load<UiRunRecord>('ui-record-3ptb.json');
 const jobs = load<Job[]>('jobs.json');
 
@@ -60,6 +62,18 @@ describe('keyNumbers (mock record)', () => {
     expect(k[4].label).toBe(`${ag[0].method} vs ${ag[1].method}`);
     const warns = r.layers.flatMap((l) => l.checks).filter((c) => c.result === 'warn').length;
     expect(k[5]).toMatchObject({ value: String(warns), tone: 'warn' });
+  });
+});
+
+describe('keyNumbers agreement unit', () => {
+  it('keeps the length unit on the value and moves the quantity to the label', () => {
+    const disc = makeRunRecord(PRESET_JOBS[1].form, Date.UTC(2026, 9, 17, 12, 0, 0));
+    const ag = disc.stats.agreement ?? [];
+    const cell = ag[0].cells.find((c) => c.vs === ag[1].method);
+    expect(cell?.unit).toBe('Å iRMSD');
+    const k = keyNumbers(disc).find((x) => x.id === 'agreement');
+    expect(k?.value).toMatch(/^[\d.]+\u2009Å$/);
+    expect(k?.label).toMatch(/^iRMSD · .+ vs .+$/);
   });
 });
 
@@ -159,6 +173,11 @@ describe('figure captions', () => {
     expect(seedStatsLine(r)).toMatch(/^median [\d.]+ · IQR [\d.]+–[\d.]+ · 95% CI [\d.]+–[\d.]+ · n = \d+$/);
     expect(interactionSummary(r)).toMatch(/^\d+\/\d+ seen in known complexes$/);
   });
+  it.skipIf(!vina)('labels live pairwise statistics as pairwise and the reference complex as such', () => {
+    const r = vina as UiRunRecord;
+    expect(seedStatsLine(r)).toMatch(/^pairwise RMSD median 0\.07\u2009Å · IQR 0\.06–0\.08 · n = 10 pairs$/);
+    expect(interactionSummary(r)).toBe('2/3 also in the reference complex');
+  });
   it.skipIf(!faulty)('returns nothing for blocks the harness did not compute', () => {
     expect(seedStatsLine(faulty as UiRunRecord)).toBe('');
     expect(interactionSummary(faulty as UiRunRecord)).toBeNull();
@@ -216,7 +235,7 @@ describe('live stats shapes (adapter output)', () => {
     },
   } as unknown as UiRunRecord;
   it('formats pairwise statistics without a CI', () => {
-    expect(seedStatsLine(live)).toBe('median 0.07\u2009Å · IQR 0.06–0.08 · n = 10');
+    expect(seedStatsLine(live)).toBe('pairwise RMSD median 0.07\u2009Å · IQR 0.06–0.08 · n = 10 pairs');
   });
   it('labels the seed axis with the seeds\' tool score when they carry no confidence', () => {
     const r = {

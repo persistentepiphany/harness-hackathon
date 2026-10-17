@@ -4,7 +4,7 @@
 // time) fill the row instead. Tool names and metric labels come from the record and its tools.
 
 import { DASH, SEP, duplicateLabels, fmtMs, fmtNum, isMissing, measuredVsThreshold, shortRunId } from '@/lib/format';
-import { medoidClusterPopulation, methodName, metricRows, seedAxis, seedConfidenceLabel, totalDurationMs, verdictMeta } from '@/lib/selectors/report';
+import { interactionKnownText, medoidClusterPopulation, methodName, pairwiseIsPairs, metricRows, seedAxis, seedConfidenceLabel, totalDurationMs, verdictMeta } from '@/lib/selectors/report';
 import { outputFor, recordTools, toolById } from '@/lib/tools';
 import type { Job, Outcome, Result, Tool, UiCheck, UiRunRecord } from '@/lib/types';
 
@@ -124,10 +124,12 @@ function statsKeyNumbers(record: UiRunRecord, register?: Register): KeyNumber[] 
   if (ag && ag.length >= 2) {
     const cell = ag[0].cells.find((c) => c.vs === ag[1].method);
     if (cell) {
+      // `Å iRMSD`: the unit stays with the value, the quantity moves to the label
+      const [u, ...q] = (cell.unit ?? '').split(' ');
       out.push({
         id: 'agreement',
-        value: fmtNum(cell.value, cell.unit),
-        label: `${methodName(record, ag[0].method, register)} vs ${methodName(record, ag[1].method, register)}`,
+        value: fmtNum(cell.value, u || undefined),
+        label: `${q.length ? `${q.join(' ')} · ` : ''}${methodName(record, ag[0].method, register)} vs ${methodName(record, ag[1].method, register)}`,
         tone: 'ink',
       });
     }
@@ -265,12 +267,13 @@ export function seedStatsLine(record: UiRunRecord): string {
   const parts: string[] = [];
   if (p && typeof p === 'object') {
     const unit = typeof p.unit === 'string' ? p.unit : undefined;
-    if (typeof p.median === 'number') parts.push(`median ${fmtNum(p.median, unit, 2)}`);
+    const pairs = pairwiseIsPairs(record);
+    if (typeof p.median === 'number') parts.push(`${pairs ? 'pairwise RMSD median' : 'median'} ${fmtNum(p.median, unit, 2)}`);
     const iqr = pair(p.iqr);
     if (iqr) parts.push(`IQR ${fmtNum(iqr[0], undefined, 2)}–${fmtNum(iqr[1], undefined, 2)}`);
     const ci = pair(p.ci95);
     if (ci) parts.push(`95% CI ${fmtNum(ci[0], undefined, 2)}–${fmtNum(ci[1], undefined, 2)}`);
-    if (typeof p.n === 'number') parts.push(`n = ${p.n}`);
+    if (typeof p.n === 'number') parts.push(`n = ${p.n}${pairs ? ' pairs' : ''}`);
   }
   const tau = record.stats.kendallTau;
   if (typeof tau === 'number') parts.push(`τ ${fmtNum(tau, undefined, 2)}`);
@@ -291,11 +294,9 @@ export function seedAxisLabel(record: UiRunRecord, register?: Register): string 
   return `${out?.label ?? axis.key ?? 'score'}${out?.unit ? ` (${out.unit})` : ''}${ranking ? ', ranking only' : ''}`;
 }
 
-/** `7/9 seen in known complexes`, or null when interactions were not computed. */
+/** `7/9 seen in known complexes` (live: `also in the reference complex`), or null when not computed. */
 export function interactionSummary(record: UiRunRecord): string | null {
-  const it = record.stats.interactions;
-  if (!it) return null;
-  return `${it.filter((i) => i.known).length}/${it.length} seen in known complexes`;
+  return interactionKnownText(record);
 }
 
 /** `run record <id>.json · <notebook> · seeds 1000 1017 · pah 0.1.0 · rdkit 2026.09.1`. */

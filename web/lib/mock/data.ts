@@ -214,6 +214,25 @@ const ENTITIES: { proteins: CatalogProtein[]; ligands: CatalogLigand[] } = {
 
 export const CATALOG = ENTITIES;
 
+/** Executors added with "+ executor" in this browser session (prototype pushes into TOOLS). */
+export const CUSTOM_TOOLS: Tool[] = [];
+
+/** Built-in tools plus the session register, so a run record resolves every tool it lists. */
+export function mockTools(): Tool[] {
+  return [...TOOLS, ...CUSTOM_TOOLS];
+}
+
+/** Add `tool` to the session register; returns the registered tool (existing one if known). */
+export function registerMockTool(tool: Tool): Tool {
+  const known = mockTools().find((t) => t.id === tool.id);
+  if (known) return known;
+  CUSTOM_TOOLS.push(tool);
+  return tool;
+}
+
+/** UniProt accession pattern (backend pah.webui.entities._ACCESSION). */
+const MOCK_ACCESSION = /\b([OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9](?:[A-Z][A-Z0-9]{2}[0-9]){1,2})\b/g;
+
 // Entity resolution for the side panel: which sources to query for the names in `text`, and the
 // mocked answers. `ms` is the simulated latency.
 export function lookupEntities(text: string): EntityGroup[] {
@@ -232,6 +251,27 @@ export function lookupEntities(text: string): EntityGroup[] {
     out.push({ key: `ccd:${l.ccd}`, kind: 'ligand', title: l.names[0], source: 'PDB CCD', query: l.ccd, ms: 260, rows: [['Ideal geometry', 'present'], ['Stereocentres', String(l.stereo)]] });
     out.push({ key: `chembl:${l.chembl}`, kind: 'ligand', title: l.names[0], source: 'ChEMBL', query: l.chembl, ms: 700, rows: [['Activities', l.activities.toLocaleString()], ['pKa', l.pka]] });
   });
+  // Names the mock cannot resolve (same forms GET /ui/entities reads): an error row per lookup,
+  // so the panel shows that a lookup ran without inventing a record.
+  const missing = (key: string, kind: EntityGroup['kind'], title: string, source: string, query: string, ms: number) => {
+    if (!out.some((g) => g.key === key)) out.push({ key, kind, title, source, query, ms, rows: [], status: 'error', message: 'not in the mock catalog' });
+  };
+  const known = new Set(prots.map((p) => p.accession));
+  for (const m of (text || '').toUpperCase().matchAll(MOCK_ACCESSION)) {
+    if (!known.has(m[1]) && !ENTITIES.proteins.some((p) => p.accession === m[1])) missing(`uniprot:${m[1]}`, 'protein', m[1], 'UniProt', m[1], 420);
+  }
+  for (const m of (text || '').matchAll(/\bcid[:\s]*(\d{1,12})\b/gi)) {
+    if (!ENTITIES.ligands.some((l) => l.cid === m[1])) missing(`pubchem:${m[1]}`, 'ligand', `CID ${m[1]}`, 'PubChem', `CID ${m[1]}`, 520);
+  }
+  for (const m of (text || '').matchAll(/\bccd[:\s]+([A-Za-z0-9]{1,5})\b/gi)) {
+    const code = m[1].toUpperCase();
+    if (!ENTITIES.ligands.some((l) => l.ccd === code)) missing(`ccd:${code}`, 'ligand', code, 'PDB CCD', code, 260);
+  }
+  for (const tok of (text || '').split(/\s+/)) {
+    if (tok.length >= 6 && /[()=#[\]]/.test(tok) && /^[A-Za-z0-9@+\-[\]()\\/%=#$.]+$/.test(tok) && !ENTITIES.ligands.some((l) => l.smiles === tok)) {
+      missing(`smiles:${tok}`, 'ligand', 'custom ligand', 'PubChem', tok.length > 18 ? `${tok.slice(0, 17)}…` : tok, 520);
+    }
+  }
   return out;
 }
 
@@ -526,7 +566,7 @@ function verdictFor(f: F, layers: UiCheck[][]): Verdict {
 
 // addition: register helpers, so mock metrics reference ToolOutput keys
 function toolOutputs(id: string | null): ToolOutput[] {
-  return (id && TOOLS.find((t) => t.id === id)?.outputs) || [];
+  return (id && mockTools().find((t) => t.id === id)?.outputs) || [];
 }
 function hasOutput(id: string | null, key: string): boolean {
   return toolOutputs(id).some((o) => o.key === key);
@@ -664,7 +704,8 @@ export function mockRecordCount(): number {
 export function makeRunRecord(form: MockForm, createdAt: number = Date.now()): UiRunRecord {
   const r = rng(createdAt % 100000);
   const task = (TASKS.find((t) => t.id === form.task) || TASKS.find((t) => t.id === 'ligand_pose')) as Task;
-  const toolList0 = (form.tools || task.defaultTools).map((id) => TOOLS.find((t) => t.id === id)).filter((t): t is Tool => !!t);
+  const register = mockTools();
+  const toolList0 = (form.tools || task.defaultTools).map((id) => register.find((t) => t.id === id)).filter((t): t is Tool => !!t);
   const cofoldTools = toolList0.filter((t) => t.family === 'co-folding');
   const dockTools = toolList0.filter((t) => t.family === 'docking');
   const primaryTool = cofoldTools[0] || toolList0[0] || TOOLS[0];

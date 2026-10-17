@@ -12,8 +12,14 @@ export type Unsubscribe = () => void;
 
 export type StreamStatus = 'connecting' | 'open' | 'reconnecting' | 'ended' | 'failed';
 
+/** Why the server ended a stream (`event: end` data); absent when it does not say. */
+export interface StreamEnd {
+  reason?: string;
+  lastSeq?: number;
+}
+
 export interface StreamCallbacks {
-  onEnd?: () => void;
+  onEnd?: (end?: StreamEnd) => void;
   onError?: (err: ApiError) => void;
   onStatus?: (status: StreamStatus) => void;
 }
@@ -102,10 +108,19 @@ export function openSseStream<T extends Seq>(
       setStatus('open');
     });
     source.addEventListener(eventName, handleItem as EventListener);
-    source.addEventListener('end', () => {
+    source.addEventListener('end', (ev: Event) => {
+      // `{"reason": "run_end" | "stale" | "missing", "lastSeq": n}` (GET /ui/jobs/{id}/log)
+      let end: StreamEnd = {};
+      try {
+        const data = (ev as MessageEvent).data;
+        const p = typeof data === 'string' && data ? (JSON.parse(data) as StreamEnd) : {};
+        end = { reason: typeof p.reason === 'string' ? p.reason : undefined, lastSeq: typeof p.lastSeq === 'number' ? p.lastSeq : undefined };
+      } catch {
+        /* no reason given */
+      }
       close();
       setStatus('ended');
-      cb.onEnd?.();
+      cb.onEnd?.(end);
     });
     source.addEventListener('error', (ev: Event) => {
       if (disposed || es !== source) return;

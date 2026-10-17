@@ -38,7 +38,26 @@ from pah.runtimes.registry import load_runtimes  # noqa: E402
 
 PAH = "/opt/pah/bin/pah"
 SYSTEM_PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-IGNORE = [".venv", ".tools", "runs", "cache", ".git", "third_party", "**/__pycache__"]
+IGNORE = [
+    ".venv",
+    ".tools",
+    "runs",
+    "cache",
+    ".git",
+    "third_party",
+    "**/__pycache__",
+    # build output and media are not part of the install; **/ also matches nested copies
+    "web",
+    "node_modules",
+    "**/node_modules",
+    "out",
+    "videos",
+    "media",
+    "bench",
+    ".claude",
+    ".playwright*",
+    "**/.env*",
+]
 
 EXECUTOR = os.environ.get("PAH_EXECUTOR", "boltz2")
 GPU = os.environ.get("PAH_MODAL_GPU", "H100")

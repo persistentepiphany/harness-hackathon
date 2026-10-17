@@ -358,10 +358,13 @@ def build_router(
     async def uploads(request: Request) -> dict[str, Any] | JSONResponse:
         from starlette.datastructures import UploadFile
 
+        from pah.webui.body_limit import BodyTooLargeError
         from pah.webui.uploads import MAX_BYTES, UploadError, store_upload
 
         try:
             form = await request.form(max_files=MAX_UPLOAD_FILES)
+        except BodyTooLargeError:  # answered 413 by BodyLimitMiddleware
+            raise
         except Exception as exc:  # malformed multipart or python-multipart missing
             return _error(422, "invalid", f"multipart form expected: {exc}")
         files = [v for _, v in form.multi_items() if isinstance(v, UploadFile)]
@@ -378,8 +381,9 @@ def build_router(
                         await run_in_threadpool(store_upload, runs_dir / "uploads", name, data)
                     )
                 except UploadError as exc:
+                    size = f.size if isinstance(f.size, int) else len(data)
                     rows.append(
-                        {"name": name, "size": len(data), "sha256": None, "kind": None,
+                        {"name": name, "size": size, "sha256": None, "kind": None,
                          "status": "error", "detail": str(exc)}
                     )  # fmt: skip
         finally:

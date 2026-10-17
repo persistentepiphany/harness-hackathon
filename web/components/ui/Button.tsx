@@ -6,7 +6,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost';
 }
 
-/** Prototype buttons: 6px radius, 12.5px medium text. */
+/** Prototype buttons: 6px radius, 12.5px text; medium weight except ghost (prototype weight 400). */
 export function Button({ variant = 'primary', className, type = 'button', ...rest }: ButtonProps) {
   return (
     <button
@@ -15,7 +15,7 @@ export function Button({ variant = 'primary', className, type = 'button', ...res
         'rounded text-[12.5px] leading-[normal] font-medium transition-opacity duration-200 disabled:cursor-not-allowed disabled:opacity-40',
         variant === 'primary' && 'border-0 bg-ink px-3.5 py-2 text-white',
         variant === 'secondary' && 'border border-line bg-transparent px-3 py-[7px] text-ink2 hover:border-ink hover:text-ink',
-        variant === 'ghost' && 'border-0 bg-transparent px-1.5 py-2 text-muted hover:text-ink',
+        variant === 'ghost' && 'border-0 bg-transparent px-1.5 py-2 font-normal text-muted hover:text-ink',
         className,
       )}
       {...rest}

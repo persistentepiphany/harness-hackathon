@@ -8,10 +8,11 @@ export function LayerProgress({ segments }: { segments: SegmentModel[] }) {
       {segments.map((s) => (
         <div
           key={s.i}
-          title={s.name}
+          title={s.title ? `${s.name} · ${s.title}` : s.name}
           data-testid="layer-cell"
           data-layer={s.i}
           data-state={s.state === 'done' ? (s.result ?? 'done') : s.state}
+          data-incomplete={s.incomplete.length ? 'true' : undefined}
         >
           <div className="h-[3px] overflow-hidden rounded-[2px] bg-[#ECECE8]">
             <div className="h-full transition-[width] duration-[120ms] ease-linear" style={{ width: `${s.pct}%`, background: s.color }} />

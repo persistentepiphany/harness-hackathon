@@ -5,7 +5,7 @@
 
 import clsx from 'clsx';
 import { fmtNum } from '@/lib/format';
-import { blockSource, SEED_RMSD_CUT, seedAxisLabel, seedSpreadPoints, sourceLabel } from '@/lib/selectors/report';
+import { blockSource, pairwiseIsPairs, SEED_RMSD_CUT, seedAxisLabel, seedSpreadPoints, sourceLabel } from '@/lib/selectors/report';
 import { NotComputed } from '../parts';
 import { FigureCaption, SVG_TEXT, type FigureProps } from './common';
 
@@ -23,6 +23,10 @@ export function SeedSpread({ record, tools, side = true, caption = true, figNo =
   const yLabel = seedAxisLabel(record, tools);
   const src = sourceLabel(blockSource(record, 'seeds'));
   const tau = typeof record.stats.kendallTau === 'number' ? record.stats.kendallTau : null;
+  // live: stats.pairwise is pairwise RMSD between poses, n counts pairs
+  const pairs = pairwiseIsPairs(record);
+  // score ticks: two decimals when the range is below one unit, so the two ticks differ
+  const tickDigits = axis && axis.max - axis.min < 1 ? 2 : 1;
   return (
     <div className={className} data-testid="figure-seeds" title={src}>
       <div className={clsx('grid items-start gap-6', side ? 'grid-cols-[minmax(0,1fr)_minmax(200px,260px)]' : 'grid-cols-1')}>
@@ -34,11 +38,15 @@ export function SeedSpread({ record, tools, side = true, caption = true, figNo =
             {fmtNum(SEED_RMSD_CUT, 'Å')}
           </text>
           {points.map((s) => (
-            <g key={s.label}>
-              <circle cx={s.cx} cy={s.cy} r={5.5} fill={s.fill} stroke="#fff" strokeWidth={1.5} />
-              <text x={s.cx} y={s.cy + 15} {...SVG_TEXT} fontSize={8} textAnchor="middle">
-                {s.label}
-              </text>
+            <g key={s.key} data-testid="seed-point">
+              <circle cx={s.cx} cy={s.cy} r={5.5} fill={s.fill} stroke="#fff" strokeWidth={1.5}>
+                <title>{s.label}</title>
+              </circle>
+              {s.showLabel && (
+                <text x={s.cx} y={s.cy + 15} {...SVG_TEXT} fontSize={8} textAnchor="middle">
+                  {s.label}
+                </text>
+              )}
             </g>
           ))}
           <text x={40} y={150} {...SVG_TEXT}>
@@ -53,10 +61,10 @@ export function SeedSpread({ record, tools, side = true, caption = true, figNo =
           {axis?.field === 'score' && (
             <>
               <text x={36} y={22} {...SVG_TEXT} textAnchor="end">
-                {fmtNum(axis.max, undefined, 1)}
+                {fmtNum(axis.max, undefined, tickDigits)}
               </text>
               <text x={36} y={128} {...SVG_TEXT} textAnchor="end">
-                {fmtNum(axis.min, undefined, 1)}
+                {fmtNum(axis.min, undefined, tickDigits)}
               </text>
             </>
           )}
@@ -65,7 +73,9 @@ export function SeedSpread({ record, tools, side = true, caption = true, figNo =
           <div className={clsx('font-mono text-ink2', print ? 'text-[8pt] leading-[1.6]' : 'text-[11.5px] leading-[1.9]')}>
             {p ? (
               <>
-                <div>median {fmtNum(p.median, 'Å', 2)}</div>
+                <div>
+                  {pairs ? 'pairwise RMSD median' : 'median'} {fmtNum(p.median, p.unit ?? 'Å', 2)}
+                </div>
                 {p.iqr && (
                   <div>
                     IQR {fmtNum(p.iqr[0], undefined, 2)}–{fmtNum(p.iqr[1], undefined, 2)}
@@ -76,7 +86,12 @@ export function SeedSpread({ record, tools, side = true, caption = true, figNo =
                     95% CI {fmtNum(p.ci95[0], undefined, 2)}–{fmtNum(p.ci95[1], undefined, 2)}
                   </div>
                 )}
-                {p.n != null && <div>n = {p.n}</div>}
+                {p.n != null && (
+                  <div>
+                    n = {p.n}
+                    {pairs ? ' pairs' : ''}
+                  </div>
+                )}
               </>
             ) : (
               <div>n = {seeds.length}</div>

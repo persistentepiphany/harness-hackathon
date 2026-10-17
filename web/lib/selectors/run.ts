@@ -11,6 +11,7 @@ import type {
   EntityGroup,
   Job,
   LogLine,
+  RecordSource,
   Result,
   RunSettings,
   Step,
@@ -132,7 +133,24 @@ export function suggestName(form: Pick<RunForm, 'task' | 'target'>, catalog: Cat
 /** Text the Sources panel resolves (prototype `formText`). */
 export function formText(form: Pick<RunForm, 'target' | 'partner' | 'ligand'>, catalog: Catalog | null | undefined, nlText = ''): string {
   const lig = catalog?.ligands.find((l) => l.smiles === form.ligand);
-  return [form.target, form.partner, lig ? lig.names[0] : '', nlText].map((s) => (s ?? '').trim()).filter(Boolean).join(' ');
+  return [form.target, form.partner, lig ? lig.names[0] : customLigandQuery(form.ligand, catalog), nlText].map((s) => (s ?? '').trim()).filter(Boolean).join(' ');
+}
+
+const CCD_CODE = /^[A-Z0-9]{1,5}$/;
+
+/**
+ * Lookup text for a ligand that is not in the catalog, in the forms GET /ui/entities resolves:
+ * `cid N` for a number, `ccd XXX` for a CCD code, else the raw input (a SMILES or a name).
+ */
+export function customLigandQuery(value: string | null | undefined, catalog: Catalog | null | undefined): string {
+  const v = (value ?? '').trim();
+  if (!v) return '';
+  if (/^\d{1,12}$/.test(v)) return `cid ${v}`;
+  const l = ligandFromInput(v, catalog);
+  if (!l) return '';
+  if (!l.custom) return l.names[0] ?? v;
+  const code = String(l.ccd ?? '');
+  return code !== 'NEW' && CCD_CODE.test(code) ? `ccd ${code}` : v;
 }
 
 function num(v: string | number | null | undefined): number | undefined {
@@ -268,8 +286,8 @@ export interface DetailRow {
 const row = (k: string, v: string): DetailRow => ({ k, v, missing: v === DASH });
 
 /** Target detail card rows (prototype `td.rows`); fields the catalog does not carry are an en dash. */
-export function targetRows(p: TargetOption): DetailRow[] {
-  return [
+export function targetRows(p: TargetOption, release?: string | null): DetailRow[] {
+  const rows = [
     row('Length', str(p.length, (n: number) => `${n.toLocaleString('en-US')} aa`)),
     row('Organism', str(p.organism)),
     row('Domains', str(p.domains)),
@@ -279,8 +297,19 @@ export function targetRows(p: TargetOption): DetailRow[] {
     row('AF pLDDT', str(p.afPlddt)),
     row('Disorder', str(p.disorder)),
     row('Binding sites', has(p.sites) ? `${p.sites} · PDBe-KB` : DASH),
-    row('Release', str((p as { release?: string }).release)),
   ];
+  // The release comes from the resolved UniProt record; without one the row is left out.
+  if (release) rows.push(row('Release', `UniProt ${release}`));
+  return rows;
+}
+
+/** UniProt release of `accession` from the Sources lookups (row `Release`), if one resolved. */
+export function uniprotRelease(groups: EntityGroup[] | null | undefined, accession: string | null | undefined): string | null {
+  if (!accession) return null;
+  const acc = accession.toUpperCase();
+  const g = (groups ?? []).find((x) => x.source === 'UniProt' && x.query.toUpperCase() === acc && (x as { status?: string }).status !== 'error');
+  const r = g?.rows?.find(([k]) => k === 'Release');
+  return r && r[1] ? r[1] : null;
 }
 
 /** Ligand detail card rows (prototype `ld.rows`). */
@@ -470,20 +499,50 @@ export interface LogStats {
   warn: number;
   stop: number;
   skip: number;
-  fetched: number;
+  /** Sources fetched: fetch/cache log lines, else record.sources fetched over the network; null when neither exists. */
+  fetched: number | null;
+  /** Sources served from the content cache (record.sources), when the count comes from the record. */
+  cached: number | null;
   checks: number;
 }
 
-/** Footer counts of the log (prototype `evPass` … `evChecks`). */
-export function logStats(lines: LogLine[]): LogStats {
-  const s: LogStats = { pass: 0, warn: 0, stop: 0, skip: 0, fetched: 0, checks: 0 };
+/**
+ * Footer counts of the log (prototype `evPass` … `evChecks`). The harness log has no fetch/cache
+ * lines, so the fetched count then comes from the run record's sources.
+ */
+export function logStats(lines: LogLine[], sources?: Pick<RecordSource, 'cached'>[] | null): LogStats {
+  const s: LogStats = { pass: 0, warn: 0, stop: 0, skip: 0, fetched: null, cached: null, checks: 0 };
+  let fetchLines = 0;
   for (const l of lines) {
-    if (l.kind === 'fetch' || l.kind === 'cache') s.fetched += 1;
+    if (l.kind === 'fetch' || l.kind === 'cache') fetchLines += 1;
     if (l.kind !== 'check') continue;
     s.checks += 1;
     if (l.result === 'pass' || l.result === 'warn' || l.result === 'stop' || l.result === 'skip') s[l.result] += 1;
   }
+  if (fetchLines) s.fetched = fetchLines;
+  else if (sources && sources.length) {
+    s.fetched = sources.filter((x) => x.cached === false).length;
+    s.cached = sources.filter((x) => x.cached === true).length;
+  }
   return s;
+}
+
+/** The harness's `run end` log line with its time in ms (`t` is seconds since run start), if it streamed. */
+export function runEndLine(lines: LogLine[]): { seq: number; ms: number | null } | null {
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const l = lines[i];
+    if (l.kind === 'run' && /^run\s+end\b/.test(l.text)) {
+      const s = Number.parseFloat(l.t);
+      return { seq: l.seq, ms: Number.isFinite(s) ? Math.round(s * 1000) : null };
+    }
+  }
+  return null;
+}
+
+/** Verdict counts of the job page: from the record, else the job's check total, else an en dash. */
+export function jobVerdictCounts(job: Pick<Job, 'checksTotal'>, record: UiRunRecord | null | undefined, totals: CheckTotals): { text: string; skip?: string } {
+  if (record) return verdictCounts(totals);
+  return { text: typeof job.checksTotal === 'number' ? `${job.checksTotal} checks` : DASH };
 }
 
 export type LogMode = 'plain' | 'terminal';

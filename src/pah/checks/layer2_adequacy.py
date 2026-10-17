@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from pah.checks import outputs, resolve
-from pah.core.check import Check, CheckContext, SkipReason, register
+from pah.core.check import Check, CheckContext, GateKind, SkipReason, register
 from pah.core.models import Finding, Gate, Layer, ToolRef
 
 SPEC_L2 = "Specification, Layer 2 (input adequacy)"
@@ -85,7 +85,12 @@ class MsaDepth(Check):
                 rows.append({"protein": p.id, "error": "file not found"})
                 continue
             rows.append({"protein": p.id, **msa_stats(resolve.read_a3m(path))})
-        th = tuple(outputs.configured(self.id, n) for n in ("sequences", "neff", "gap_fraction"))
+        compared = {
+            "sequences": "min_sequences",
+            "neff": "min_neff",
+            "gap_fraction": "max_gap_fraction",
+        }
+        th = tuple(outputs.configured(self.id, n, measurement=m) for n, m in compared.items())
         n_min, neff_min, gap_max = (t.value for t in th)
         missing = [r["protein"] for r in rows if "error" in r]
         query_only = [r["protein"] for r in rows if r.get("sequences", 0) < n_min]
@@ -492,6 +497,7 @@ def _chain_break(a: Any, b: Any) -> bool:
 class ReceptorState(Check):
     id = "l2.receptor.state"
     layer = Layer.ADEQUACY
+    gate_kind = GateKind.WARN
     title = "Receptor state apo or holo"
     requires_modules = ("gemmi", "numpy")
 
@@ -538,6 +544,7 @@ TITRATABLE = {"ASP", "GLU", "HIS", "CYS", "TYR", "LYS", "ARG"}
 class ReceptorProtonation(Check):
     id = "l2.receptor.protonation"
     layer = Layer.ADEQUACY
+    gate_kind = GateKind.WARN
     title = "Receptor protonation at the stated pH"
     requires_modules = ("propka", "gemmi")
 
@@ -646,6 +653,7 @@ def _propka(pdb: Path) -> list[dict[str, Any]]:
 class LigandProtonation(Check):
     id = "l2.ligand.protonation"
     layer = Layer.ADEQUACY
+    gate_kind = GateKind.WARN
     title = "Ligand protonation and tautomers enumerated at the stated pH"
     requires_modules = ("rdkit", "dimorphite_dl")
 

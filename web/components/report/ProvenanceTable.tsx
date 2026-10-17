@@ -1,7 +1,8 @@
 'use client';
 
-// Provenance of every input (record.sources): source, accession, release, retrieval time, ms,
-// sha256 (12 characters, full value in title), plus a summary line.
+// Provenance of every input (record.sources): source, accession, release, retrieval time, fetch
+// time, sha256 (12 characters, full value in title), plus a summary line. Print wraps the text
+// cells (no tooltip on paper); the sha256 stays shortened.
 
 import clsx from 'clsx';
 import { fmtMs, fmtSha, fmtTime, SEP } from '@/lib/format';
@@ -31,7 +32,7 @@ export function ProvenanceTable({ record, variant, className }: ReportBlockProps
           <span>accession</span>
           <span>release</span>
           <span>retrieved</span>
-          <span className="text-right">ms</span>
+          <span className="text-right">time</span>
           <span>sha256</span>
         </div>
         {src.map((s, i) => (
@@ -41,15 +42,15 @@ export function ProvenanceTable({ record, variant, className }: ReportBlockProps
             data-testid="provenance-row"
             title={s.supplies}
           >
-            <span className="truncate text-ink" title={s.source}>
+            <span className={clsx(print ? 'break-words' : 'truncate', 'text-ink')} title={s.source}>
               {s.source}
             </span>
-            <span className="truncate" title={s.url ?? s.accession}>
+            <span className={print ? 'break-words' : 'truncate'} title={s.url ?? s.accession}>
               {s.accession}
             </span>
-            <span className="truncate">{s.release}</span>
+            <span className={print ? 'break-words' : 'truncate'}>{s.release}</span>
             <span>{fmtTime(s.retrievedAt)}</span>
-            <span className={clsx('text-right', s.cached ? 'text-muted' : 'text-ink')}>{typeof s.ms === 'number' ? s.ms : s.cached ? 'cache' : '–'}</span>
+            <span className={clsx('text-right', s.cached ? 'text-muted' : 'text-ink')}>{typeof s.ms === 'number' ? fmtMs(s.ms) : s.cached ? 'cache' : '–'}</span>
             <span className="text-muted" title={s.sha256}>
               {fmtSha(s.sha256, { ellipsis: true })}
             </span>

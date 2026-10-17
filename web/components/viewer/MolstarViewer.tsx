@@ -3,7 +3,8 @@
 // Mol* viewer (molstar/lib/apps/viewer). Loaded through next/dynamic with ssr:false from
 // StructureViewer, so molstar never runs on the server. One Viewer per mount; a change of `loads`
 // rebuilds the scene (scene.ts), `colorMode` recolours it and `hidden` toggles members. Scene
-// operations run one after another.
+// operations run one after another. The render loop pauses off screen, in a hidden tab and when the
+// scene has been idle for IDLE_MS.
 
 import 'molstar/build/viewer/molstar.css';
 import './viewer.css';
@@ -48,7 +49,102 @@ const VIEWER_OPTIONS = {
   viewportBackgroundColor: 'white',
   pdbProvider: 'rcsb',
   emdbProvider: 'rcsb',
+  // G3D (genome) support registers global symbols per plugin and warns on every later viewer
+  disabledExtensions: ['g3d'],
 } as const;
+
+/** The render loop stops this long after the last interaction or scene operation. */
+const IDLE_MS = 1000;
+const WAKE_EVENTS = ['pointerdown', 'pointermove', 'wheel', 'keydown', 'touchstart'] as const;
+
+/**
+ * Starts and stops the plugin's animation loop: running only while the viewer is on screen, the
+ * tab is visible and something happened in the last IDLE_MS (an interaction, a scene operation or
+ * a camera transition). Stopping with noDraw leaves the last frame on the canvas.
+ */
+class RenderLoop {
+  private plugin: PluginContext | null = null;
+  private onScreen = true;
+  private running = true;
+  private idle = false;
+  private busy = 0;
+  private timer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor(private readonly el: HTMLElement | null) {}
+
+  attach(plugin: PluginContext): void {
+    this.plugin = plugin;
+    this.apply();
+    this.wake();
+  }
+
+  detach(): void {
+    this.plugin = null;
+    this.running = true;
+    this.idle = false;
+  }
+
+  apply(): void {
+    const p = this.plugin;
+    if (!p) return;
+    const want = !this.idle && this.onScreen && (typeof document === 'undefined' || document.visibilityState !== 'hidden');
+    if (want === this.running) return;
+    this.running = want;
+    if (this.el) this.el.dataset.running = String(want);
+    // the plugin's animation loop drives canvas3d.tick; stopping it with noDraw also pauses canvas3d
+    if (want) p.animationLoop.start();
+    else p.animationLoop.stop({ noDraw: true });
+  }
+
+  setOnScreen(on: boolean): void {
+    this.onScreen = on;
+    this.apply();
+  }
+
+  /** Activity: run the loop now and stop it again IDLE_MS after the last activity. */
+  wake(): void {
+    if (this.idle) {
+      this.idle = false;
+      if (this.el) this.el.dataset.idle = 'false';
+      this.apply();
+    }
+    this.schedule(IDLE_MS);
+  }
+
+  /** A scene operation starts / ends: the loop stays on while any runs. */
+  begin(): void {
+    this.busy += 1;
+    this.wake();
+  }
+
+  end(): void {
+    this.busy = Math.max(0, this.busy - 1);
+    this.wake();
+  }
+
+  dispose(): void {
+    if (this.timer) clearTimeout(this.timer);
+    this.timer = null;
+  }
+
+  private schedule(ms: number): void {
+    if (this.timer) clearTimeout(this.timer);
+    this.timer = setTimeout(this.check, ms);
+  }
+
+  private readonly check = (): void => {
+    this.timer = null;
+    const p = this.plugin;
+    if (!p) return;
+    if (this.busy > 0 || p.canvas3d?.camera.transition.inTransition) {
+      this.schedule(IDLE_MS / 2);
+      return;
+    }
+    this.idle = true;
+    if (this.el) this.el.dataset.idle = 'true';
+    this.apply();
+  };
+}
 
 const keyOf = (loads: StructureLoad[], flagged: SceneResidue[]) =>
   `${loads.map((l) => `${l.format}:${l.url}:${l.color ?? ''}:${l.polymer === false ? 0 : 1}:${l.align ? 1 : 0}:${l.focus ?? ''}`).join('|')}#${flagged.map((r) => `${r.chain ?? ''}${r.num}`).join(',')}`;
@@ -63,42 +159,49 @@ export default function MolstarViewer({ loads, colorMode = 'chain', hidden, flag
     latest.current = { loads, colorMode, hidden: hidden ?? [], flagged: flagged ?? [], onStatus };
   });
   const status = (s: ViewerStatus, d?: string) => latest.current.onStatus?.(s, d);
-  const enqueue = (fn: () => Promise<void>) => {
-    queue.current = queue.current.then(fn, fn);
-    return queue.current;
-  };
 
-  // the render loop runs only while the viewer is on screen and the tab is visible
-  const plugin = useRef<PluginContext | null>(null);
-  const onScreen = useRef(true);
-  const running = useRef(true);
-  const applyRunning = () => {
-    const p = plugin.current;
-    if (!p) return;
-    const want = onScreen.current && (typeof document === 'undefined' || document.visibilityState !== 'hidden');
-    if (want === running.current) return;
-    running.current = want;
-    if (el.current) el.current.dataset.running = String(want);
-    // the plugin's animation loop drives canvas3d.tick; stopping it with noDraw also pauses canvas3d
-    if (want) p.animationLoop.start();
-    else p.animationLoop.stop({ noDraw: true });
+  // the render loop runs only while the viewer is on screen, the tab is visible and the scene is
+  // not idle (RenderLoop); scene operations count as activity
+  const loop = useRef<RenderLoop | null>(null);
+  const enqueue = (fn: () => Promise<void>) => {
+    const run = async () => {
+      const l = loop.current;
+      l?.begin();
+      try {
+        await fn();
+      } finally {
+        l?.end();
+      }
+    };
+    queue.current = queue.current.then(run, run);
+    return queue.current;
   };
   useEffect(() => {
     const node = el.current;
-    const onVis = () => applyRunning();
+    const l = new RenderLoop(node);
+    loop.current = l;
+    const onVis = () => l.apply();
     document.addEventListener('visibilitychange', onVis);
     let io: IntersectionObserver | null = null;
     if (node && typeof IntersectionObserver !== 'undefined') {
       io = new IntersectionObserver((entries) => {
         // the latest entry is the current state
-        onScreen.current = entries[entries.length - 1].isIntersecting;
-        applyRunning();
+        l.setOnScreen(entries[entries.length - 1].isIntersecting);
       });
       io.observe(node);
     }
+    // interactions and size changes redraw: restart the loop, then stop it again when idle
+    const onWake = () => l.wake();
+    for (const ev of WAKE_EVENTS) node?.addEventListener(ev, onWake, { passive: true });
+    const ro = node && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(onWake) : null;
+    if (node) ro?.observe(node);
     return () => {
       document.removeEventListener('visibilitychange', onVis);
       io?.disconnect();
+      ro?.disconnect();
+      for (const ev of WAKE_EVENTS) node?.removeEventListener(ev, onWake);
+      l.dispose();
+      if (loop.current === l) loop.current = null;
     };
   }, []);
 
@@ -136,8 +239,7 @@ export default function MolstarViewer({ loads, colorMode = 'chain', hidden, flag
             /* rendering settings are an optimisation */
           }
         }
-        plugin.current = v.plugin;
-        applyRunning();
+        loop.current?.attach(v.plugin);
         // scene.ts and its molstar modules load only after the viewer app (see loadDeps there)
         const { createScene } = await import('./scene');
         if (cancelled) return null;
@@ -156,8 +258,7 @@ export default function MolstarViewer({ loads, colorMode = 'chain', hidden, flag
       } catch {
         /* already disposed */
       }
-      plugin.current = null;
-      running.current = true;
+      loop.current?.detach();
       scene.current = null;
       ready.current = null;
     };
@@ -203,8 +304,11 @@ export default function MolstarViewer({ loads, colorMode = 'chain', hidden, flag
   useEffect(() => {
     const pending = ready.current;
     if (!pending) return;
-    void pending.then((sc) => sc?.setHidden(latest.current.hidden));
+    void enqueue(async () => {
+      const sc = await pending;
+      sc?.setHidden(latest.current.hidden);
+    });
   }, [hiddenKey]);
 
-  return <div ref={el} className={clsx('harness-molstar', className)} style={{ position: 'absolute', inset: 0 }} data-testid="molstar-canvas" data-running="true" />;
+  return <div ref={el} className={clsx('harness-molstar', className)} style={{ position: 'absolute', inset: 0 }} data-testid="molstar-canvas" data-running="true" data-idle="false" />;
 }

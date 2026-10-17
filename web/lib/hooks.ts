@@ -9,7 +9,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { ApiError, isAbortError, toApiError } from './api-client';
 import { harnessMode } from './config';
 import { getHarnessApi, poll, type HarnessApi, type WatchHandlers } from './harness-api';
-import type { StreamStatus, Unsubscribe } from './sse';
+import type { StreamEnd, StreamStatus, Unsubscribe } from './sse';
 import type { AgentStep, AgentTask, Catalog, EntityGroup, Health, Job, LogLine, Task, Tool, UiRunRecord } from './types';
 
 export interface QueryResult<T> {
@@ -43,6 +43,8 @@ const IDLE: QueryResult<never> = { data: undefined, error: null, loading: false 
 const LOADING: QueryResult<never> = { data: undefined, error: null, loading: true };
 const store = new Map<string, Entry<unknown>>();
 const STOP_GRACE_MS = 1500;
+/** A watch entry (records, jobs) is dropped this long after its last listener left; one-shot queries stay. */
+const EVICT_MS = 60_000;
 
 function entryFor<T>(key: string, start: Starter<T>, once: boolean): Entry<T> {
   let e = store.get(key) as Entry<T> | undefined;
@@ -78,7 +80,7 @@ function runEntry<T>(e: Entry<T>) {
   };
 }
 
-function subscribeEntry<T>(e: Entry<T>, listener: () => void): () => void {
+function subscribeEntry<T>(key: string, e: Entry<T>, listener: () => void): () => void {
   e.listeners.add(listener);
   if (e.stopTimer) {
     clearTimeout(e.stopTimer);
@@ -93,6 +95,13 @@ function subscribeEntry<T>(e: Entry<T>, listener: () => void): () => void {
         if (e.listeners.size === 0) {
           e.unsub?.();
           e.unsub = null;
+          if (!e.once) {
+            // free the data (a record is ~150 kB): a later subscriber starts the watch again
+            e.stopTimer = setTimeout(() => {
+              e.stopTimer = null;
+              if (e.listeners.size === 0 && store.get(key) === e) store.delete(key);
+            }, EVICT_MS);
+          }
         }
       }, STOP_GRACE_MS);
     }
@@ -116,7 +125,7 @@ export function useSharedWatch<T>(key: string | null, start: Starter<T>, once = 
   const subscribe = useCallback(
     (listener: () => void) => {
       if (!key) return () => undefined;
-      return subscribeEntry(entryFor<T>(key, (h) => startRef.current(h), once), listener);
+      return subscribeEntry(key, entryFor<T>(key, (h) => startRef.current(h), once), listener);
     },
     [key, once],
   );
@@ -249,6 +258,10 @@ export interface StreamResult<T> {
   loading: boolean;
   status: StreamStatus | 'idle';
   ended: boolean;
+  /** Server's reason for ending (`run_end`, `stale`, `missing`), when it gave one. */
+  endReason?: string;
+  /** Open the stream again; items already received are kept and replayed ones are dropped by seq. */
+  restart: () => void;
 }
 
 interface StreamState<T> {
@@ -257,13 +270,21 @@ interface StreamState<T> {
   error: ApiError | null;
   status: StreamStatus | 'idle';
   ended: boolean;
+  endReason?: string;
 }
 
 function useSeqStream<T extends { seq: number }>(
   key: string | null,
-  open: (push: (item: T) => void, cb: { onEnd: () => void; onError: (e: ApiError) => void; onStatus: (s: StreamStatus) => void }) => Unsubscribe,
+  open: (push: (item: T) => void, cb: { onEnd: (end?: StreamEnd) => void; onError: (e: ApiError) => void; onStatus: (s: StreamStatus) => void }) => Unsubscribe,
 ): StreamResult<T> {
   const [state, setState] = useState<StreamState<T>>({ key: null, items: [], error: null, status: 'idle', ended: false });
+  // bumped by restart(): reopens the stream for the same key
+  const [gen, setGen] = useState(0);
+  const restart = useCallback(() => {
+    // the reopened stream is live again until its own end
+    setState((s) => (s.ended ? { ...s, ended: false, endReason: undefined, status: 'connecting' } : s));
+    setGen((g) => g + 1);
+  }, []);
   const openRef = useRef(open);
   useEffect(() => {
     openRef.current = open;
@@ -295,9 +316,9 @@ function useSeqStream<T extends { seq: number }>(
         if (!timer) timer = setTimeout(flush, 16);
       },
       {
-        onEnd: () => {
+        onEnd: (end) => {
           flush();
-          update((s) => ({ ...s, ended: true, status: 'ended' }));
+          update((s) => ({ ...s, ended: true, endReason: end?.reason, status: 'ended' }));
         },
         onError: (e) => {
           flush();
@@ -311,7 +332,7 @@ function useSeqStream<T extends { seq: number }>(
       if (timer) clearTimeout(timer);
       unsub();
     };
-  }, [key]);
+  }, [key, gen]);
 
   const current = state.key === key ? state : null;
   return {
@@ -320,6 +341,8 @@ function useSeqStream<T extends { seq: number }>(
     loading: !!key && (!current || (current.items.length === 0 && (current.status === 'connecting' || current.status === 'idle'))),
     status: key ? (current?.status ?? 'connecting') : 'idle',
     ended: current?.ended ?? false,
+    endReason: current?.endReason,
+    restart,
   };
 }
 

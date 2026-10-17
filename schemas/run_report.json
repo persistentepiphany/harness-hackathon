@@ -449,6 +449,19 @@
           "$ref": "#/$defs/EvidenceLevel",
           "default": "uncalibrated"
         },
+        "measurement": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Name of the measurement compared with this threshold, when it differs from the threshold name",
+          "title": "Measurement"
+        },
         "name": {
           "title": "Name",
           "type": "string"

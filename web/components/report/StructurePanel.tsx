@@ -69,7 +69,8 @@ export function StructurePanel({ record, tools, className }: ReportBlockProps) {
           target={target}
           mode={cfg.mode}
           colorMode={target?.kind === 'overlay' ? 'member' : 'chain'}
-          fallbackRenders={target && target.kind !== 'overlay' && !target.load.length ? [] : refRenders}
+          // a chip shows only its own structure's renders (the overlay has none); record renders only without chips
+          fallbackRenders={target ? [] : refRenders}
           placeholder={!targets.length ? record.inputs.reference || 'no structures in the record' : undefined}
           className="h-[400px] rounded-card border border-line"
         />

@@ -438,7 +438,7 @@ class CrossFamilyAgreement(Check):
         return _ligand_outputs(ctx)
 
     def run(self, ctx: CheckContext) -> Finding:
-        th = (outputs.configured(self.id, "rmsd"),)
+        th = (outputs.configured(self.id, "rmsd", measurement="rmsd_to_crystal_A"),)
         limit = float(th[0].value)
         medoids = []
         for pset in outputs.assessed_sets(ctx):
@@ -591,7 +591,7 @@ class Redocking(Check):
         return outputs.needs_predictions(ctx)
 
     def run(self, ctx: CheckContext) -> Finding:
-        th = (outputs.configured(self.id, "rmsd"),)
+        th = (outputs.configured(self.id, "rmsd", measurement="rmsd_A"),)
         sets = outputs.control_sets(ctx, "redocking")
         ref = outputs.reference_ligand(ctx)
         if not sets:
@@ -659,7 +659,7 @@ class RmsdToCrystal(Check):
         return None if outputs.reference_ids(ctx)[1] else "no reference ligand declared"
 
     def run(self, ctx: CheckContext) -> Finding:
-        th = (outputs.configured(self.id, "rmsd"),)
+        th = (outputs.configured(self.id, "rmsd", measurement="rmsd_A"),)
         rows = [
             {"pose": p.id, "rmsd_A": _rmsd_to_reference(ctx, p)}
             for p in outputs.ensemble_poses(ctx)

@@ -8,7 +8,8 @@ import clsx from 'clsx';
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { ApiError } from '@/lib/api-client';
 import { logLineView, logStats, type LogMode } from '@/lib/selectors/run';
-import type { LogLine } from '@/lib/types';
+import { DASH } from '@/lib/format';
+import type { LogLine, RecordSource } from '@/lib/types';
 
 export interface LogPanelProps {
   lines: LogLine[];
@@ -17,16 +18,18 @@ export interface LogPanelProps {
   emptyText: string;
   status: string;
   error?: ApiError | null;
+  /** record.sources: the fetched count when the log has no fetch/cache lines. */
+  sources?: Pick<RecordSource, 'cached'>[] | null;
 }
 
 const STICK_PX = 24;
 
-export function LogPanel({ lines, header, emptyText, status, error }: LogPanelProps) {
+export function LogPanel({ lines, header, emptyText, status, error, sources }: LogPanelProps) {
   const [mode, setMode] = useState<LogMode>('plain');
   const [stuck, setStuck] = useState(true);
   const body = useRef<HTMLDivElement>(null);
   const term = mode === 'terminal';
-  const stats = logStats(lines);
+  const stats = logStats(lines, sources);
 
   const toBottom = useCallback(() => {
     const el = body.current;
@@ -135,7 +138,7 @@ export function LogPanel({ lines, header, emptyText, status, error }: LogPanelPr
         <span className="text-terminal-stop">{stats.stop} stop</span>
         {stats.skip > 0 && <span>{stats.skip} skip</span>}
         <span className="ml-auto">
-          {stats.fetched} fetched · {stats.checks} checks
+          {stats.fetched ?? DASH} fetched{stats.cached !== null ? ` · ${stats.cached} cached` : ''} · {stats.checks} checks
         </span>
       </div>
     </div>

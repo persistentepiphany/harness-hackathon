@@ -20,7 +20,7 @@ export function JobsScreen() {
     <main className="mx-auto flex w-full max-w-[1000px] animate-fade-up flex-col gap-2.5 px-6 pt-11 pb-20" data-testid="page-jobs">
       <div className="mb-3 flex items-baseline justify-between">
         <h1 className="m-0 text-[18px] font-semibold tracking-[-0.01em]">
-          Jobs
+          Jobs{' '}
           {jobs.data && (
             <span className="ml-2 text-[13px] font-normal text-muted" data-testid="jobs-summary">
               {jobsSummary(list)}

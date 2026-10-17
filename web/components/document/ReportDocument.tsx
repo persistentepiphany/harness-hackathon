@@ -8,7 +8,7 @@
 // the provenance graph the run wrote.
 
 import clsx from 'clsx';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import {
   AgreementMatrix,
   CalibrationCurve,
@@ -43,6 +43,7 @@ import {
 import {
   RESULT_COLOR,
   defaultStructureId,
+  interactionPoseText,
   metricRows,
   physicsColumns,
   structureCaption,
@@ -86,8 +87,10 @@ function StructureFigure({ record }: { record: UiRunRecord }) {
   const targets = useMemo(() => structureTargets(record, { assetUrl: (p) => getHarnessApi().assetUrl(p) }), [record]);
   const target = targets.find((t) => t.id === defaultStructureId(targets));
   const renders = record.renders ?? [];
-  const overview = renders.find((r) => r.view === 'overview') ?? renders[0];
-  const pocket = overview ? renders.find((r) => r !== overview && r.structure === overview.structure) : undefined;
+  // the assessed structure (medoid, as the report shows) first; any other render only without one
+  const own = target?.renders ?? [];
+  const overview = own.find((r) => r.view === 'overview') ?? own[0] ?? renders.find((r) => r.view === 'overview') ?? renders[0];
+  const pocket = overview ? [...own, ...renders].find((r) => r !== overview && r.png !== overview.png && r.structure === overview.structure) : undefined;
   // same data PaeHeatmap draws: stats.pae, or the prototype pattern for mock records
   const pae = useMemo(() => paeFromStats(record) ?? (record.source === 'mock' ? mockPae(record) : null), [record]);
   const paeShown = !!pae;
@@ -113,7 +116,7 @@ function StructureFigure({ record }: { record: UiRunRecord }) {
           {overview ? (
             <StructureImage record={record} variant="print" caption={false} view={overview.view} structure={overview.structure} height={298} className="h-full [&>div]:!h-full [&>div]:rounded-none [&>div]:border-0" />
           ) : (
-            <StructureViewer target={target} mode={cfg.mode} placeholder={record.inputs.reference || 'no structure in the record'} className="absolute inset-0" />
+            <StructureViewer target={target} mode={cfg.mode} placeholder={!targets.length ? record.inputs.reference || 'no structure in the record' : undefined} className="h-full" />
           )}
           {overlay && (
             <div className="pointer-events-none absolute bottom-2 left-2.5 rounded-[3px] bg-white/85 px-1.5 py-0.5 font-mono text-[8pt] text-ink2" data-testid="doc-structure-caption">
@@ -153,7 +156,7 @@ function StructureFigure({ record }: { record: UiRunRecord }) {
 function LayersTable({ record }: { record: UiRunRecord }) {
   const rows = docLayers(record);
   return (
-    <div>
+    <div className="break-inside-avoid">
       <DocLabel>Layers</DocLabel>
       <div className="border-t border-ink">
         {rows.map((l) => (
@@ -204,7 +207,8 @@ function FlaggedList({ record, className }: { record: UiRunRecord; className?: s
   );
 }
 
-export function ReportDocument({ record, tools, name }: ReportDocumentProps) {
+// memo: record (shared watch), tools (one-shot query) and name are stable between job ticks
+export const ReportDocument = memo(function ReportDocument({ record, tools, name }: ReportDocumentProps) {
   const v = verdictMeta(record.verdict.outcome);
   const S = record.stats;
   const api = getHarnessApi();
@@ -325,7 +329,7 @@ export function ReportDocument({ record, tools, name }: ReportDocumentProps) {
             <BlockBoundary name="Table 1 · Interaction fingerprint">
               <InteractionDiagram record={record} tools={tools} variant="print" diagram={false} caption={false} />
               <DocCaption>
-                Table 1 · Interaction fingerprint of the medoid pose · {interactions}.{sourceSuffix(blockSource(record, 'interactions'))}
+                Table 1 · Interaction fingerprint of {interactionPoseText(record)} · {interactions}.{sourceSuffix(blockSource(record, 'interactions'))}
               </DocCaption>
             </BlockBoundary>
           ) : (
@@ -359,7 +363,7 @@ export function ReportDocument({ record, tools, name }: ReportDocumentProps) {
       <div className="grid grid-cols-2 gap-x-5 gap-y-3.5">
         {metrics.computed ? (
           <BlockBoundary name="Confidence">
-            <MetricsTable record={record} tools={tools} variant="print" className="row-span-2 print:row-span-1" />
+            <MetricsTable record={record} tools={tools} variant="print" className="row-span-2 break-inside-avoid print:row-span-1" />
           </BlockBoundary>
         ) : (
           <div className="row-span-2 print:row-span-1" data-testid="doc-metrics">
@@ -381,4 +385,4 @@ export function ReportDocument({ record, tools, name }: ReportDocumentProps) {
       </div>
     </article>
   );
-}
+});

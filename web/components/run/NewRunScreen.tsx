@@ -33,7 +33,7 @@ import {
   type RunForm,
   type TargetOption,
 } from '@/lib/selectors/run';
-import { groupEntities } from '@/lib/selectors/run';
+import { groupEntities, uniprotRelease } from '@/lib/selectors/run';
 import type { InterpretResult, StartRunResult, Step, Tool } from '@/lib/types';
 import { DecisionStream, type DecisionRow } from './DecisionStream';
 import { DropZone, type FileChipModel } from './DropZone';
@@ -213,6 +213,8 @@ export function NewRunScreen() {
   };
 
   const manualSetup = () => {
+    // a pending interpret request must not overwrite the form the user now edits by hand
+    interpret.reset();
     clearTimers();
     setNl((n) => ({ ...n, mode: 'manual' }));
     lookupForm(form);
@@ -281,6 +283,7 @@ export function NewRunScreen() {
             setLookup(text);
           }}
           onUsePrompt={(p) => {
+            interpret.reset();
             clearTimers();
             setNl({ text: p, mode: null, rows: [], done: false });
             setLookup(p);
@@ -323,6 +326,7 @@ export function NewRunScreen() {
             options={targetOptions}
             selected={form.target.trim().toUpperCase()}
             detail={targetDetail}
+            release={uniprotRelease(entities.data, targetDetail?.accession)}
             onSelect={selectTarget}
             addValue={add.target}
             onAddValue={(v) => setAdd((a) => ({ ...a, target: v }))}

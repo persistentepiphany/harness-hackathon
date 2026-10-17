@@ -93,7 +93,12 @@ export interface LayerCell {
   tally: LayerTally;
   /** First key figure of the layer (record summary), shown while it runs. */
   summary?: string;
+  /** Checks whose skip leaves the verdict incomplete; the cell is muted, not the pass colour. */
+  incomplete: string[];
 }
+
+/** Skip reasons that leave the verdict incomplete (pah.core.check.INCOMPLETE_REASONS). */
+const INCOMPLETE_REASONS = new Set(['tool_missing', 'error', 'unknown_check']);
 
 const isNotImplemented = (c: Pick<UiCheck, 'result' | 'skipReason'>) => c.result === 'skip' && c.skipReason === 'unknown_check';
 
@@ -154,6 +159,7 @@ export function layerCells(job: Job | null | undefined, record?: UiRunRecord | n
       durationMs: rl?.durationMs,
       tally,
       summary: rl?.summary?.[0],
+      incomplete: jl?.incomplete ?? (rl?.checks ?? []).filter((c) => c.result === 'skip' && !!c.skipReason && INCOMPLETE_REASONS.has(c.skipReason)).map((c) => c.id),
     });
   }
   return out;
@@ -190,6 +196,9 @@ export interface SegmentModel {
   /** `1 stop` · `2 warn` · `8` (checks that ran) · `8 skip` · `not run` · ''. */
   counts: string;
   countsMuted: boolean;
+  /** Checks that left the layer incomplete (muted bar, listed in `title`). */
+  incomplete: string[];
+  title?: string;
 }
 
 /** Job card segments (prototype `segs`). */
@@ -221,16 +230,19 @@ export function jobSegments(cells: LayerCell[]): SegmentModel[] {
             : c.result === 'reported'
               ? 'var(--color-reported)'
               : 'var(--color-ink)';
+    const incomplete = c.state === 'done' && c.incomplete.length > 0;
     return {
       i: c.i,
       name: c.name,
       state: c.state,
       result: c.result,
       pct: c.pct,
-      color: c.state === 'done' ? doneColor : 'var(--color-accent)',
+      color: c.state === 'done' ? (incomplete && (c.result === 'pass' || c.result === 'skip') ? 'var(--color-faint)' : doneColor) : 'var(--color-accent)',
       active: c.state === 'done' || c.state === 'running',
       counts,
       countsMuted,
+      incomplete: incomplete ? c.incomplete : [],
+      title: incomplete ? `incomplete: ${c.incomplete.join(', ')}` : undefined,
     };
   });
 }
@@ -251,14 +263,17 @@ export interface StripModel {
   valueTone: 'ink' | 'accent' | 'faint';
   nameTone: 'ink' | 'faint';
   counts: StripCountPart[];
-  /** `pass 3 · warn 1 · stop 0 · skip 8` for the title attribute. */
+  /** `pass 3 · warn 1 · stop 0 · skip 8` for the title attribute (`incomplete: <ids>` first). */
   title: string;
+  /** Checks that left the layer incomplete; the bar is muted instead of the pass colour. */
+  incomplete: string[];
 }
 
 /** Layer strip columns of the single-job view (prototype `rj.layers`). */
 export function layerStrip(cells: LayerCell[]): StripModel[] {
   return cells.map((c) => {
     const t = c.tally;
+    const incomplete = c.state === 'done' && c.incomplete.length > 0;
     let value: string = DASH;
     let valueTone: StripModel['valueTone'] = 'faint';
     let counts: StripCountPart[] = [];
@@ -280,12 +295,14 @@ export function layerStrip(cells: LayerCell[]): StripModel[] {
       name: c.name,
       state: c.state,
       result: c.result,
-      bar: c.state === 'done' ? resultColorVar(c.result ?? 'pass') : c.state === 'running' ? 'var(--color-accent)' : 'var(--color-line)',
+      // a pass with an incomplete skip is drawn muted: the layer did not run all of its checks
+      bar: c.state === 'done' ? (incomplete && (c.result ?? 'pass') === 'pass' ? 'var(--color-faint)' : resultColorVar(c.result ?? 'pass')) : c.state === 'running' ? 'var(--color-accent)' : 'var(--color-line)',
       value,
       valueTone,
       nameTone: c.state === 'done' || c.state === 'running' ? 'ink' : 'faint',
       counts,
-      title: `pass ${t.pass} · warn ${t.warn} · stop ${t.stop} · skip ${t.skip + t.notImplemented}${t.notImplemented ? ` (${t.notImplemented} not implemented)` : ''}`,
+      title: `${incomplete ? `incomplete: ${c.incomplete.join(', ')} · ` : ''}pass ${t.pass} · warn ${t.warn} · stop ${t.stop} · skip ${t.skip + t.notImplemented}${t.notImplemented ? ` (${t.notImplemented} not implemented)` : ''}`,
+      incomplete: incomplete ? c.incomplete : [],
     };
   });
 }

@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from pah.checks import outputs, resolve
-from pah.core.check import Check, CheckContext, register
+from pah.core.check import Check, CheckContext, GateKind, register
 from pah.core.models import Finding, Gate, Layer, ToolRef
 from pah.sources import SourceUnavailableError
 
@@ -184,6 +184,7 @@ def analogues(ctx: CheckContext, smiles: str, cutoff: str) -> dict[str, Any]:
 class LigandPrevalence(Check):
     id = "l3.exposure.ligand_prevalence"
     layer = Layer.APPLICABILITY
+    gate_kind = GateKind.WARN
     title = "Ligand analogues in pre-cutoff training systems"
     requires_modules = ("rdkit",)
 
@@ -222,6 +223,7 @@ class LigandPrevalence(Check):
 class SequenceExposure(Check):
     id = "l3.exposure.sequence"
     layer = Layer.APPLICABILITY
+    gate_kind = GateKind.REPORTED
     title = "Chain sequence identity to pre-cutoff entries (secondary measure)"
 
     def applies(self, ctx: CheckContext) -> str | None:
@@ -315,6 +317,7 @@ def _with_coords(mol: Any, xyz: Any) -> Any:
 class PocketExposure(Check):
     id = "l3.exposure.pocket"
     layer = Layer.APPLICABILITY
+    gate_kind = GateKind.WARN
     title = "Pocket similarity to pre-cutoff complexes (SuCOS times pocket coverage)"
     requires_modules = ("rdkit", "gemmi", "numpy")
 
@@ -342,7 +345,10 @@ class PocketExposure(Check):
 
     def run(self, ctx: CheckContext) -> Finding:
         cutoff, model = earliest_cutoff(ctx)  # type: ignore[misc]
-        th = (outputs.configured(self.id, "similarity"), outputs.configured(self.id, "entries"))
+        th = (
+            outputs.configured(self.id, "similarity", measurement="max_similarity"),
+            outputs.configured(self.id, "entries"),
+        )
         q_st, q_mol, q_xyz, q_label = self._query(ctx)
         q_pocket = outputs.pocket_residues(q_st, q_xyz, 6.0)
         smiles = _query_smiles(ctx)[0][1]
@@ -450,6 +456,7 @@ MODALITY_KEYWORDS = {
 class Modality(Check):
     id = "l3.regime.modality"
     layer = Layer.APPLICABILITY
+    gate_kind = GateKind.WARN
     title = "Modality inside the validated set; token count against the training crop"
 
     def applies(self, ctx: CheckContext) -> str | None:
@@ -596,6 +603,7 @@ class Endpoint(Check):
 class ChemotypeExposure(Check):
     id = "l3.exposure.chemotype"
     layer = Layer.APPLICABILITY
+    gate_kind = GateKind.WARN
     title = "Series chemotype (Murcko scaffold) in pre-cutoff entries"
     requires_modules = ("rdkit",)
 

@@ -62,7 +62,7 @@ The web client calls `/api/harness/ui/...`; files go through the native
 | `GET /ui/tools` | `Tool[]` | Executors from `configs/executors.yaml` with outputs and availability |
 | `GET /ui/tasks` | `Task[]` | Task specs with `implemented/checks` counts, mapped to UI task ids |
 | `GET /ui/examples` | example manifests | `examples/**/manifest.yaml` with task and claim |
-| `POST /ui/uploads` | `{files: [{name, size, sha256, kind, status, detail}]}` | Multipart; stored under `runs/uploads/` |
+| `POST /ui/uploads` | `{files: [{name, size, sha256, kind, status, detail}]}` | Multipart; stored under `runs/uploads/` (not a run: record, job and files routes answer 404 for it). Run settings carry no file references yet, so the New-run page says uploads are stored, not used by the run |
 | `GET /ui/agent/tasks` | `AgentTask[]` | From `runs/agent-*/task.json` + `steps.jsonl` |
 | `POST /ui/agent/tasks` | `AgentTask` (201) | Body `{goal}` |
 | `POST /ui/agent/tasks/{id}/steps` | `AgentStep` (201) | Body `{kind, text, ms?, data?}` |
@@ -71,6 +71,13 @@ The web client calls `/api/harness/ui/...`; files go through the native
 
 SSE frames: `event: line` (or `step`) with one JSON object in `data`, `event: end` when the stream is
 finished, and a `: ping` comment every 15 s. Each frame carries `id: <seq>` so `Last-Event-ID` resumes.
+The log's `end` data is `{reason, lastSeq}`: `run_end`, `failed` (job.json says failed), `missing`
+(no events file within `?wait`) or `stale` (no change for 10 min; a queued job never goes stale).
+The job page opens the stream again after `missing` or `stale` while the job is queued or running.
+
+Write routes under /ui answer 413 `too_large` before reading a body over the limit (uploads:
+20 files of 50 MB; JSON bodies: 4 MB), by Content-Length or by counting a chunked body. Agent
+steps and outcomes with NaN or Infinity are refused with 422.
 
 An agent under test reports what it is doing either through `POST /ui/agent/tasks/...` or by running
 `pah agent-log start|step|finish`, which appends to the same files. A run the agent starts with
@@ -92,7 +99,10 @@ interface Job {
   layerIdx: number;             // layer currently running, 6 when done
   progress: number;             // 0..1 within layerIdx
   elapsedMs: number; createdAt: string;
-  layers: { i: number; result: Result | null; done: boolean }[];   // 6 entries, worst result per layer
+  layers: { i: number; result: Result | null; done: boolean;
+            incomplete?: string[] }[];   // 6 entries, worst result per layer; incomplete: checks
+                                         // whose skip (tool_missing, error, unknown_check) leaves
+                                         // the verdict incomplete, drawn muted instead of pass
   verdict: Outcome | null;
 }
 
@@ -112,8 +122,11 @@ interface UiCheck {               // schema $defs/check, plus the harness's own 
   message?: string; skipReason?: string;
   measurements?: { name: string; value: number | string | boolean | null; unit?: string | null }[];
   thresholds?: { name: string; value: number | string | boolean; comparator: string;
-                 origin: string; evidenceLevel: string }[];
+                 origin: string; evidenceLevel: string;
+                 measurement?: string }[];   // the measurement the check compared (Threshold.measurement)
 }
+// A row shows `measured cmp threshold` only for the measurement named by `measurement`, or one
+// with the threshold's own name; names are never paired by substring.
 
 interface UiRunRecord {          // run-record.schema.json, with the additions marked
   id: string; createdAt: string; task: string; taskName: string; claim: string;
@@ -161,7 +174,7 @@ The adapter (`src/pah/webui/adapter.py`) reads `runs/<id>/record.json`, `events.
 | `layers[i].durationMs` | `stage_end.ts - stage_start.ts` from the event stream |
 | `layers[i].status` | `done` after `stage_end`, `running` after `stage_start`, `not_run` when the layer was not selected |
 | `sources` | `provenance.json`: `source_id`, `accession`, `release` (or `"n/a"`), `sha256`, `retrieved_at`, `extra.cache == "hit"` |
-| `stats` | `src/pah/webui/stats.py`: blocks built from finding evidence only (seeds, pairwise, posebusters, physics, interactions, site, pose, metrics, agreement, clusters, reference, ensemble, pae), each traced in `stats.provenance` to its check and tool. A key is present only when its check ran and reported that field; the UI shows "not computed" for a missing block |
+| `stats` | `src/pah/webui/stats.py`: blocks built from finding evidence only (seeds, pairwise, posebusters, physics, interactions, site, pose, metrics, agreement, clusters, reference, ensemble, pae), each traced in `stats.provenance` to its check and tool. A key is present only when its check ran and reported that field; the UI shows "not computed" for a missing block. `pae` carries the saved `.npy` (`path`, `url`) and its `matrix` in Å rounded to 0.01 (above 512 tokens, means of `binned` × `binned` blocks, stated in `lines`) |
 | `docking` | Record-level `{tool, rows, params, source}` from the manifest's docking prediction settings |
 | `tools[].ran`, `ranBy` | `harness` when the run executed the tool, `external` when its outputs were supplied, `null` for checks-only runs |
 | `structures` | Every `.cif`/`.pdb`/`.sdf` under `artifacts/`, served through `/runs/{id}/files/...` |

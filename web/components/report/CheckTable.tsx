@@ -4,7 +4,7 @@
 // `measured cmp threshold`, id · tool · gate · ms, result. Not-implemented checks are muted.
 
 import clsx from 'clsx';
-import { fmtMs, measuredVsThreshold, pairMeasurement } from '@/lib/format';
+import { fmtMs, measuredVsThreshold, pairMeasurement, thresholdText } from '@/lib/format';
 import { defaultLayerIndex, isNotImplemented, RESULT_COLOR } from '@/lib/selectors/report';
 import type { UiCheck } from '@/lib/types';
 import { ResultDot, SectionTitle } from './parts';
@@ -29,6 +29,7 @@ function thresholdTitle(c: UiCheck): string | undefined {
 export function CheckRow({ c, print }: { c: UiCheck; print?: boolean }) {
   const ni = isNotImplemented(c);
   const cmp = measuredVsThreshold(c);
+  const thr = cmp ? null : thresholdText(c);
   const color = ni ? 'var(--color-faint)' : RESULT_COLOR[c.result];
   const meta = [c.tool, c.gate].filter(Boolean).join(' · ');
   return (
@@ -51,9 +52,9 @@ export function CheckRow({ c, print }: { c: UiCheck; print?: boolean }) {
             {cmp}
           </span>
         )}
-        {!cmp && c.threshold && !ni && (
+        {thr && !ni && (
           <span className="block text-muted" title={thresholdTitle(c)}>
-            threshold {c.threshold.value}
+            {thr}
           </span>
         )}
       </span>

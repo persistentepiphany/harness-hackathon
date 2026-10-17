@@ -5,6 +5,7 @@
 
 import clsx from 'clsx';
 import Link from 'next/link';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { StatusDot } from '@/components/ui';
 import { shortRunId } from '@/lib/format';
 import { useRunRecord } from '@/lib/hooks';
@@ -23,12 +24,42 @@ export interface JobCardProps {
   showRunId?: boolean;
 }
 
+/**
+ * True once the element has come within 600 px of the viewport (and from then on), so a long jobs
+ * list does not read every run record at once. Without IntersectionObserver: true.
+ */
+function useSeen<T extends Element>(): [(el: T | null) => void, boolean] {
+  const [seen, setSeen] = useState(() => typeof IntersectionObserver === 'undefined');
+  const io = useRef<IntersectionObserver | null>(null);
+  const ref = useCallback((el: T | null) => {
+    io.current?.disconnect();
+    io.current = null;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    io.current = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setSeen(true);
+          io.current?.disconnect();
+          io.current = null;
+        }
+      },
+      { rootMargin: '600px 0px' },
+    );
+    io.current.observe(el);
+  }, []);
+  useEffect(() => () => io.current?.disconnect(), []);
+  return [ref, seen];
+}
+
 export function JobCard({ job, index, total, tasks, register, showRunId }: JobCardProps) {
-  // the record supplies inputs, claim and per-layer counts; the card renders from the job until then
-  const record = useRunRecord(job.runId || job.id);
+  // the record supplies inputs, claim and per-layer counts; the card renders from the job until
+  // then, and reads it once the card is near the viewport
+  const [cardRef, seen] = useSeen<HTMLAnchorElement>();
+  const record = useRunRecord(seen ? job.runId || job.id : null);
   const m = jobCardModel(job, index, total, record.data, tasks, register);
   return (
     <Link
+      ref={cardRef}
       href={m.href}
       data-testid="job-card"
       data-state={m.status}
