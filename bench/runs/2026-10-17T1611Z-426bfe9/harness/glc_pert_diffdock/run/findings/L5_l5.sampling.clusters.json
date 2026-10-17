@@ -1,0 +1,142 @@
+{
+  "check_id": "l5.sampling.clusters",
+  "layer": 5,
+  "gate": "warn",
+  "message": "medoid diffdock/seed1/mode0; 3 clusters, largest 1 of 3; pairwise RMSD median 16.24 Å (IQR 12.13 to 18.18); 0 of 3 poses within 4.0 Å of the site (BGC in 2VWH); 1 of 3 poses within 2.0 Å of the medoid",
+  "measurements": [
+    {
+      "name": "poses",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "clusters",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "largest_cluster",
+      "value": 1,
+      "unit": null
+    },
+    {
+      "name": "pairwise_rmsd_median_A",
+      "value": 16.237,
+      "unit": null
+    },
+    {
+      "name": "within_medoid",
+      "value": 1,
+      "unit": null
+    },
+    {
+      "name": "in_site",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "best_sampled_rmsd_to_reference_A",
+      "value": null,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "cluster_rmsd",
+      "value": 2.0,
+      "comparator": "<=",
+      "origin": "Specification layer 5: 2 Å symmetry-aware ligand RMSD (spyrmsd) separates pose clusters",
+      "evidence_level": "published"
+    },
+    {
+      "name": "site_distance",
+      "value": 4.0,
+      "comparator": "<=",
+      "origin": "Harness rule: a ligand centroid within 4 Å of the reference site centroid is placed in the site; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    },
+    {
+      "name": "largest_fraction",
+      "value": 0.5,
+      "comparator": ">=",
+      "origin": "Harness rule: the largest cluster holds at least half of the poses; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "poses": [
+      {
+        "pose": "diffdock/seed1/mode0",
+        "executor": "diffdock",
+        "seed": 1,
+        "sample": 0,
+        "cluster": 1,
+        "rmsd_to_medoid_A": 0.0,
+        "confidence": -4.43,
+        "site_distance_A": 11.97
+      },
+      {
+        "pose": "diffdock/seed2/mode0",
+        "executor": "diffdock",
+        "seed": 2,
+        "sample": 0,
+        "cluster": 2,
+        "rmsd_to_medoid_A": 8.021,
+        "confidence": -4.19,
+        "site_distance_A": 5.73
+      },
+      {
+        "pose": "diffdock/seed3/mode0",
+        "executor": "diffdock",
+        "seed": 3,
+        "sample": 0,
+        "cluster": 3,
+        "rmsd_to_medoid_A": 16.237,
+        "confidence": -4.54,
+        "site_distance_A": 19.32
+      }
+    ],
+    "medoid": "diffdock/seed1/mode0",
+    "frame": "2VWH.cif",
+    "clusters": [
+      {
+        "id": 1,
+        "size": 1,
+        "medoid": "diffdock/seed1/mode0"
+      },
+      {
+        "id": 2,
+        "size": 1,
+        "medoid": "diffdock/seed2/mode0"
+      },
+      {
+        "id": 3,
+        "size": 1,
+        "medoid": "diffdock/seed3/mode0"
+      }
+    ],
+    "pairwise_rmsd_A": {
+      "median": 16.237,
+      "q1": 12.129,
+      "q3": 18.182,
+      "n": 3
+    },
+    "site_placement": "0 of 3 poses within 4.0 Å of the site (BGC in 2VWH)",
+    "pose_accuracy": "1 of 3 poses within 2.0 Å of the medoid",
+    "sampling": {
+      "best_sampled_rmsd_to_reference_A": null,
+      "pose": null
+    },
+    "frame_ca_rmsd_A": {
+      "diffdock/seed1/mode0": 0.0,
+      "diffdock/seed2/mode0": 0.0,
+      "diffdock/seed3/mode0": 0.0
+    }
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "spyrmsd",
+    "version": "0.9.0"
+  },
+  "duration_s": 0.221
+}

@@ -1,0 +1,55 @@
+{
+  "executor": "diffdock",
+  "representative_pose": "diffdock/seed1/mode0",
+  "confidence": {
+    "diffdock_confidence": -2.66
+  },
+  "posebusters": {
+    "passed": 18,
+    "total": 20,
+    "failed": [
+      "minimum_distance_to_protein",
+      "volume_overlap_with_protein"
+    ]
+  },
+  "interactions": [
+    "hbond GLY110A",
+    "hbond PHE52A",
+    "hbond TYR112A"
+  ],
+  "interactions_reference": [
+    "hbond ASN303A",
+    "hbond GLU114A",
+    "hbond GLU150A",
+    "hbond HIS49A",
+    "hbond THR40A",
+    "salt_bridge HIS63A"
+  ],
+  "key_interactions_recovered": 0,
+  "key_interactions_reference": 6,
+  "torsion_strain_kcal": 4.26,
+  "unlikely_torsions": 0,
+  "buried_unsatisfied_polars": 0,
+  "buried_charged_unsatisfied": 0,
+  "hydrophobic_complementarity": 0.757,
+  "n_seeds": 3,
+  "ensemble_poses": 3,
+  "ensemble_spread_A": 8.868,
+  "medoid_cluster_fraction": 0.333,
+  "cross_tool_rmsd_A": 14.38,
+  "harness_gates": {
+    "l4.posebusters": "stop",
+    "l4.torsion_strain": "pass",
+    "l4.interactions.fingerprint": "pass",
+    "l4.interactions.unsatisfied_polars": "pass",
+    "l4.interactions.hydrophobic": "pass",
+    "l4.interactions.known_binders": "warn",
+    "l4.minimisation_drift": "pass",
+    "l5.confidence.local": "pass",
+    "l5.sampling.seeds": "pass",
+    "l5.sampling.clusters": "warn",
+    "l5.agreement.cross_family": "warn",
+    "l5.controls.redocking": "stop"
+  },
+  "system": "glc_wt"
+}

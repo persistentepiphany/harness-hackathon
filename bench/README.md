@@ -52,3 +52,8 @@ with a C toolchain for its kernels; DiffDock-L image pinned by digest). Weights 
 PoseBusters, the PLIP fingerprint against the deposited complex in the reference numbering,
 strain, buried unsatisfied polars, hydrophobic complementarity, ensemble spread, medoid cluster
 fraction and cross-executor agreement.
+
+Runs are committed without the PyMOL renders, the harness's parsed pose copies and the raw MSA
+server downloads (`.gitignore`). The Boltz MSA CSV used for each prediction is kept. Renders are
+rebuilt from a run record with `pah report bench/runs/<id>/harness/<name>/run`.
+

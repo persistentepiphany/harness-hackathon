@@ -1,0 +1,180 @@
+{
+  "check_id": "l4.posebusters",
+  "layer": 4,
+  "gate": "stop",
+  "message": "representative pose diffdock/seed1/mode0 fails sanitization, inchi_convertible",
+  "measurements": [
+    {
+      "name": "poses",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "passed",
+      "value": 18,
+      "unit": null
+    },
+    {
+      "name": "total",
+      "value": 20,
+      "unit": null
+    },
+    {
+      "name": "poses_all_pass",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "tests_failed",
+      "value": 0,
+      "comparator": "==",
+      "origin": "Specification, Layer 4 (output validity): stop on failure",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "representative": "diffdock/seed1/mode0",
+    "tests": [
+      {
+        "test": "sanitization",
+        "pass": false,
+        "value": "fail"
+      },
+      {
+        "test": "inchi_convertible",
+        "pass": false,
+        "value": "fail"
+      },
+      {
+        "test": "all_atoms_connected",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "no_radicals",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "bond_lengths",
+        "pass": true,
+        "value": "0 long outliers"
+      },
+      {
+        "test": "bond_angles",
+        "pass": true,
+        "value": "0 outliers"
+      },
+      {
+        "test": "internal_steric_clash",
+        "pass": true,
+        "value": "0"
+      },
+      {
+        "test": "aromatic_ring_flatness",
+        "pass": true,
+        "value": "0.00 Å"
+      },
+      {
+        "test": "non-aromatic_ring_non-flatness",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "double_bond_flatness",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "internal_energy",
+        "pass": true,
+        "value": "4.9 times the ensemble mean"
+      },
+      {
+        "test": "protein-ligand_maximum_distance",
+        "pass": true,
+        "value": "2.54 Å"
+      },
+      {
+        "test": "minimum_distance_to_protein",
+        "pass": true,
+        "value": "2.54 Å"
+      },
+      {
+        "test": "minimum_distance_to_organic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "minimum_distance_to_inorganic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "minimum_distance_to_waters",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "volume_overlap_with_protein",
+        "pass": true,
+        "value": "0.011"
+      },
+      {
+        "test": "volume_overlap_with_organic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "volume_overlap_with_inorganic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "volume_overlap_with_waters",
+        "pass": true,
+        "value": "pass"
+      }
+    ],
+    "poses": [
+      {
+        "pose": "diffdock/seed1/mode0",
+        "passed": 18,
+        "total": 20,
+        "failed": [
+          "sanitization",
+          "inchi_convertible"
+        ]
+      },
+      {
+        "pose": "diffdock/seed2/mode0",
+        "passed": 17,
+        "total": 20,
+        "failed": [
+          "sanitization",
+          "inchi_convertible",
+          "minimum_distance_to_protein"
+        ]
+      },
+      {
+        "pose": "diffdock/seed3/mode0",
+        "passed": 17,
+        "total": 20,
+        "failed": [
+          "sanitization",
+          "inchi_convertible",
+          "minimum_distance_to_protein"
+        ]
+      }
+    ],
+    "reference": "FZC in 7XLP"
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "posebusters",
+    "version": "0.6.5"
+  },
+  "duration_s": 5.934
+}

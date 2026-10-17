@@ -1,0 +1,53 @@
+{
+  "check_id": "l5.sampling.seeds",
+  "layer": 5,
+  "gate": "warn",
+  "message": "3 independent seeds (3 poses); task default 5",
+  "measurements": [
+    {
+      "name": "independent_seeds",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "samples",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "duplicated_outputs",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "seeds_cofolding",
+      "value": 5,
+      "comparator": ">=",
+      "origin": "Specification layer 5: default of five seeds per co-folding prediction",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "executor": "boltz2",
+    "seeds": [
+      {
+        "seed": 1,
+        "poses": 1
+      },
+      {
+        "seed": 2,
+        "poses": 1
+      },
+      {
+        "seed": 3,
+        "poses": 1
+      }
+    ],
+    "duplicates": []
+  },
+  "artifacts": [],
+  "tool": null,
+  "duration_s": 0.001
+}

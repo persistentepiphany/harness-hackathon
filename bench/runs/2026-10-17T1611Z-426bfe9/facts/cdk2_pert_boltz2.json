@@ -1,0 +1,64 @@
+{
+  "executor": "boltz2",
+  "representative_pose": "boltz2/seed3/sample0",
+  "confidence": {
+    "ligand_iptm": 0.947,
+    "pocket_plddt": 85.0,
+    "confidence_score": 0.894
+  },
+  "posebusters": {
+    "passed": 20,
+    "total": 20,
+    "failed": []
+  },
+  "interactions": [
+    "hbond ASN3A",
+    "hbond ASP127A",
+    "hbond GLU12A",
+    "hbond GLY132A",
+    "hbond GLY133A",
+    "hbond GLY15A",
+    "hbond GLY82A",
+    "hbond GLY84A",
+    "hbond TYR15A",
+    "metal ASP127A"
+  ],
+  "interactions_reference": [
+    "hbond ASN132A",
+    "hbond ASP145A",
+    "hbond GLN131A",
+    "hbond GLU81A",
+    "hbond LEU83A",
+    "hbond THR14A",
+    "hbond TYR15A",
+    "salt_bridge LYS129A",
+    "salt_bridge LYS33A"
+  ],
+  "key_interactions_recovered": 1,
+  "key_interactions_reference": 9,
+  "torsion_strain_kcal": 13.6,
+  "unlikely_torsions": 2,
+  "buried_unsatisfied_polars": 5,
+  "buried_charged_unsatisfied": 0,
+  "hydrophobic_complementarity": 0.479,
+  "n_seeds": 3,
+  "ensemble_poses": 3,
+  "ensemble_spread_A": 0.894,
+  "medoid_cluster_fraction": 1.0,
+  "cross_tool_rmsd_A": 2.656,
+  "harness_gates": {
+    "l4.posebusters": "pass",
+    "l4.torsion_strain": "warn",
+    "l4.interactions.fingerprint": "pass",
+    "l4.interactions.unsatisfied_polars": "warn",
+    "l4.interactions.hydrophobic": "pass",
+    "l4.interactions.known_binders": "pass",
+    "l4.minimisation_drift": "skip",
+    "l5.confidence.local": "pass",
+    "l5.sampling.seeds": "warn",
+    "l5.sampling.clusters": "pass",
+    "l5.agreement.cross_family": "warn",
+    "l5.controls.redocking": "stop"
+  },
+  "system": "cdk2_pert"
+}

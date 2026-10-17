@@ -1,0 +1,67 @@
+{
+  "check_id": "l2.docking.box",
+  "layer": 2,
+  "gate": "warn",
+  "message": "no box declared; derived box encloses 19 contact residues and the FZC ligand with 2.0 Å margin",
+  "measurements": [
+    {
+      "name": "volume_A3",
+      "value": 5697.0,
+      "unit": null
+    },
+    {
+      "name": "ligand_atoms_inside_margin",
+      "value": 33,
+      "unit": null
+    },
+    {
+      "name": "ligand_atoms",
+      "value": 33,
+      "unit": null
+    },
+    {
+      "name": "contact_residues",
+      "value": 19,
+      "unit": null
+    },
+    {
+      "name": "contact_residues_outside",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "margin",
+      "value": 2.0,
+      "comparator": ">=",
+      "origin": "Harness rule: every pocket heavy atom lies at least 2 Å inside the box; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    },
+    {
+      "name": "contact_distance",
+      "value": 4.0,
+      "comparator": "<=",
+      "origin": "Harness rule: contact residues (heavy atom within 4 Å of the reference ligand) must have an atom inside the box; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "center": [
+      -3.608,
+      64.879,
+      34.516
+    ],
+    "size": [
+      19.183,
+      21.381,
+      13.89
+    ],
+    "origin": "derived from FZC (+4 Å)",
+    "derived": true,
+    "contacts_outside": []
+  },
+  "artifacts": [],
+  "tool": null,
+  "duration_s": 0.031
+}

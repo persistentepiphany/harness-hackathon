@@ -1,0 +1,57 @@
+{
+  "check_id": "l3.model.training_cutoff",
+  "layer": 3,
+  "gate": "pass",
+  "message": "boltz2 2023-06-01; diffdock 2019-01-01; reference 7XLP released 2023-03-01, before the cutoff of boltz2",
+  "measurements": [
+    {
+      "name": "executors",
+      "value": 2,
+      "unit": null
+    },
+    {
+      "name": "unknown",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "reference_released",
+      "value": "2023-03-01",
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "training_cutoff",
+      "value": "recorded",
+      "comparator": "==",
+      "origin": "Specification, Layer 3 (applicability): stop when unknown",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "models": [
+      {
+        "executor": "boltz2",
+        "registered": true,
+        "learned": true,
+        "training_cutoff": "2023-06-01",
+        "origin": "Passaro et al. 2025, Boltz-2 technical report (training structures released before 2023-06-01); not stated in the repository (docs/EXECUTORS.md)",
+        "evidence": "published",
+        "reference_before_cutoff": true
+      },
+      {
+        "executor": "diffdock",
+        "registered": true,
+        "learned": true,
+        "training_cutoff": "2019-01-01",
+        "origin": "PDBBind time split used by DiffDock (training complexes released before 2019)",
+        "evidence": "published",
+        "reference_before_cutoff": false
+      }
+    ]
+  },
+  "artifacts": [],
+  "tool": null,
+  "duration_s": 0.057
+}

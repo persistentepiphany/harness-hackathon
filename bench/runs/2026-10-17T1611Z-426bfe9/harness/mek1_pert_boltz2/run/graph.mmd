@@ -1,0 +1,283 @@
+flowchart LR
+    accTitle: Provenance graph for run ligand_pose-97e42e68b4f9
+    accDescr: Source records and files feed the checks that read them; each check contributes its gate to the verdict.
+    n0["verdict: stop"]
+    n1["rcsb_files 7XLP"]
+    n2["ccd FZC"]
+    n3["rcsb 7XLP"]
+    n4["rcsb_search chem:Cc1ccnc(n1)Oc2ccc(c(c2)Cl)c3cc4c(c(n[nH]4)C)c(c3)O[C@H]5CCC[C@H](C5)N"]
+    n5["rcsb_search comp:FZC:2019-01-01"]
+    n6["rcsb_search seq0.95:2019-01-01:348"]
+    n7["rcsb_search seq0.4:2019-01-01:348"]
+    n8["7XLP.cif"]
+    n9["mek1_pert_model_0.cif"]
+    n10["ligand.sdf"]
+    n11["mek1_pert_model_0.cif"]
+    n12["ligand.sdf"]
+    n13["mek1_pert_model_0.cif"]
+    n14["ligand.sdf"]
+    n15["complex.pdb"]
+    n16["ligand.sdf"]
+    n17["complex.pdb"]
+    n18["ligand.sdf"]
+    n19["complex.pdb"]
+    n20["ligand.sdf"]
+    n21["complex.pdb"]
+    n22["ligand.sdf"]
+    n23["complex.pdb"]
+    n24["ligand.sdf"]
+    n25["complex.pdb"]
+    n26["ligand.sdf"]
+    n27["complex.pdb"]
+    n28["ligand.sdf"]
+    n29["complex.pdb"]
+    n30["ligand.sdf"]
+    n31["complex.pdb"]
+    n32["ligand.sdf"]
+    n33["complex.pdb"]
+    n34["ligand.sdf"]
+    n35["complex.pdb"]
+    n36["ligand.sdf"]
+    n37["complex.pdb"]
+    n38["ligand.sdf"]
+    n39["complex.pdb"]
+    n40["ligand.sdf"]
+    n41["complex.pdb"]
+    n42["ligand.sdf"]
+    n43["complex.pdb"]
+    n44["ligand.sdf"]
+    n45["complex.pdb"]
+    n46["ligand.sdf"]
+    n47["complex.pdb"]
+    n48["ligand.sdf"]
+    n49["complex.pdb"]
+    n50["ligand.sdf"]
+    n51["complex.pdb"]
+    n52["ligand.sdf"]
+    n53["complex.pdb"]
+    n54["ligand.sdf"]
+    n55["complex.pdb"]
+    n56["ligand.sdf"]
+    n57["complex.pdb"]
+    n58["ligand.sdf"]
+    n59["complex.pdb"]
+    n60["ligand.sdf"]
+    n61["complex.pdb"]
+    n62["ligand.sdf"]
+    n63["complex.pdb"]
+    n64["ligand.sdf"]
+    n65["complex.pdb"]
+    n66["ligand.sdf"]
+    n67["complex.pdb"]
+    n68["ligand.sdf"]
+    n69["complex.pdb"]
+    n70["ligand.sdf"]
+    n71["complex.pdb"]
+    n72["ligand.sdf"]
+    n73["complex.pdb"]
+    n74["ligand.sdf"]
+    n75["l2.msa.depth<br/>skip"]
+    n76["l2.context.cofactors<br/>stop"]
+    n77["l2.pocket.resolved<br/>pass"]
+    n78["gemmi"]
+    n79["l2.receptor.state<br/>pass"]
+    n80["l2.receptor.protonation<br/>warn"]
+    n81["propka 3.5.1"]
+    n82["l2.ligand.protonation<br/>warn"]
+    n83["dimorphite_dl 2.1.0"]
+    n84["l2.ligand.conformers<br/>pass"]
+    n85["rdkit"]
+    n86["l2.docking.box<br/>warn"]
+    n87["l3.model.training_cutoff<br/>pass"]
+    n88["l3.exposure.pocket<br/>skip"]
+    n89["l3.exposure.ligand_prevalence<br/>pass"]
+    n90["RCSB search (chemical) + RDKit topological fingerprint"]
+    n91["l3.exposure.sequence<br/>pass"]
+    n92["RCSB search (sequence, MMseqs2)"]
+    n93["l3.regime.modality<br/>pass"]
+    n94["l3.metric.endpoint<br/>pass"]
+    n95["l4.posebusters<br/>stop"]
+    n96["posebusters 0.6.5"]
+    n97["l4.torsion_strain<br/>skip"]
+    n98["l4.interactions.fingerprint<br/>pass"]
+    n99["plip 3.0.1"]
+    n100["l4.interactions.unsatisfied_polars<br/>skip"]
+    n101["l4.interactions.hydrophobic<br/>skip"]
+    n102["l4.interactions.known_binders<br/>warn"]
+    n103["l4.minimisation_drift<br/>skip"]
+    n104["l5.confidence.local<br/>skip"]
+    n105["l5.sampling.seeds<br/>warn"]
+    n106["l5.sampling.clusters<br/>skip"]
+    n107["l5.agreement.cross_family<br/>skip"]
+    n108["l5.controls.redocking<br/>stop"]
+    n1 -->|produced| n8
+    n75 -->|decided| n0
+    n1 -->|used| n76
+    n2 -->|used| n76
+    n76 -->|decided| n0
+    n1 -->|used| n77
+    n78 -->|ran| n77
+    n77 -->|decided| n0
+    n1 -->|used| n79
+    n79 -->|decided| n0
+    n81 -->|ran| n80
+    n80 -->|decided| n0
+    n83 -->|ran| n82
+    n82 -->|decided| n0
+    n85 -->|ran| n84
+    n84 -->|decided| n0
+    n1 -->|used| n86
+    n86 -->|decided| n0
+    n3 -->|used| n87
+    n87 -->|decided| n0
+    n1 -->|used| n88
+    n88 -->|decided| n0
+    n4 -->|used| n89
+    n2 -->|used| n89
+    n5 -->|used| n89
+    n90 -->|ran| n89
+    n89 -->|decided| n0
+    n6 -->|used| n91
+    n7 -->|used| n91
+    n92 -->|ran| n91
+    n91 -->|decided| n0
+    n1 -->|used| n93
+    n93 -->|decided| n0
+    n94 -->|decided| n0
+    n1 -->|used| n95
+    n96 -->|ran| n95
+    n95 -->|decided| n0
+    n97 -->|decided| n0
+    n1 -->|used| n98
+    n99 -->|ran| n98
+    n98 -->|decided| n0
+    n100 -->|decided| n0
+    n101 -->|decided| n0
+    n1 -->|used| n102
+    n99 -->|ran| n102
+    n102 -->|decided| n0
+    n103 -->|decided| n0
+    n104 -->|decided| n0
+    n105 -->|decided| n0
+    n1 -->|used| n106
+    n106 -->|decided| n0
+    n1 -->|used| n107
+    n107 -->|decided| n0
+    n108 -->|decided| n0
+    classDef source fill:#56B4E9,stroke:#333,color:#111
+    classDef file fill:#CC79A7,stroke:#333,color:#111
+    classDef tool fill:#F0E442,stroke:#333,color:#111
+    classDef verdict fill:#0072B2,stroke:#333,color:#111
+    classDef pass fill:#009E73,stroke:#333,color:#111
+    classDef warn fill:#E69F00,stroke:#333,color:#111
+    classDef stop fill:#D55E00,stroke:#333,color:#111
+    classDef skip fill:#999999,stroke:#333,color:#111
+    class n0 verdict
+    class n1 source
+    class n2 source
+    class n3 source
+    class n4 source
+    class n5 source
+    class n6 source
+    class n7 source
+    class n8 file
+    class n9 file
+    class n10 file
+    class n11 file
+    class n12 file
+    class n13 file
+    class n14 file
+    class n15 file
+    class n16 file
+    class n17 file
+    class n18 file
+    class n19 file
+    class n20 file
+    class n21 file
+    class n22 file
+    class n23 file
+    class n24 file
+    class n25 file
+    class n26 file
+    class n27 file
+    class n28 file
+    class n29 file
+    class n30 file
+    class n31 file
+    class n32 file
+    class n33 file
+    class n34 file
+    class n35 file
+    class n36 file
+    class n37 file
+    class n38 file
+    class n39 file
+    class n40 file
+    class n41 file
+    class n42 file
+    class n43 file
+    class n44 file
+    class n45 file
+    class n46 file
+    class n47 file
+    class n48 file
+    class n49 file
+    class n50 file
+    class n51 file
+    class n52 file
+    class n53 file
+    class n54 file
+    class n55 file
+    class n56 file
+    class n57 file
+    class n58 file
+    class n59 file
+    class n60 file
+    class n61 file
+    class n62 file
+    class n63 file
+    class n64 file
+    class n65 file
+    class n66 file
+    class n67 file
+    class n68 file
+    class n69 file
+    class n70 file
+    class n71 file
+    class n72 file
+    class n73 file
+    class n74 file
+    class n75 skip
+    class n76 stop
+    class n77 pass
+    class n78 tool
+    class n79 pass
+    class n80 warn
+    class n81 tool
+    class n82 warn
+    class n83 tool
+    class n84 pass
+    class n85 tool
+    class n86 warn
+    class n87 pass
+    class n88 skip
+    class n89 pass
+    class n90 tool
+    class n91 pass
+    class n92 tool
+    class n93 pass
+    class n94 pass
+    class n95 stop
+    class n96 tool
+    class n97 skip
+    class n98 pass
+    class n99 tool
+    class n100 skip
+    class n101 skip
+    class n102 warn
+    class n103 skip
+    class n104 skip
+    class n105 warn
+    class n106 skip
+    class n107 skip
+    class n108 stop
