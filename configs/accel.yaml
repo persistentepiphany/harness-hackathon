@@ -1,0 +1,37 @@
+# Anthropic inference optimisation kits, engaged by default for executors that have one.
+# Source: github.com/anthropics/uplifting-biomolecular-modeling, pinned below. Each kit carries the
+# upstream release it accelerates ("stock") at a pinned version; runtimes.yaml pins the same
+# version for the stock route, so the kit and stock runs are the same tool and weights.
+#
+# policy:
+#   auto   use the kit when it can engage on this host, otherwise run stock and record why (default)
+#   kit    require the kit; a run that cannot engage it stops
+#   stock  never use the kit
+# mode: kit mode for `auto` and `kit` (off | exact | fast | big). `fast` is the kits' own default:
+#   numeric differences stay within stock's seed-to-seed variation (each kit's CHANGES.md).
+#   `exact` gives outputs identical to stock. Layer 3 warns while fast-vs-stock is unverified on
+#   the hardware in use (specification, Layer 3, "Accelerated mode verified against stock").
+# Override per run: `pah runtimes run --accel kit|auto|stock --mode exact`, or PAH_ACCEL / PAH_ACCEL_MODE.
+version: 1
+repo: https://github.com/anthropics/uplifting-biomolecular-modeling
+commit: f4f62fa6592ae4938d49b1757bea0cfeff9f468e
+policy: auto
+mode: fast
+# A kit that cannot engage prints "[<kit>-opt] NOT ACTIVE: <reason>" and exits with this code.
+not_active_exit_code: 3
+# Below compute capability 8.0 the boltz2 kit refuses the GPU and af3_jax `fast`/`big` exit 3
+# (kit READMEs); the runner treats 8.0 as the floor for every kit.
+min_compute_capability: 8.0
+# GPU to kit card config. Name rules are tried first, then compute capability rules (highest
+# first). The first config the kit ships is used; `run.sh check` decides whether it engages.
+cards:
+  by_name:
+    - {contains: H200, config: h200}
+    - {contains: B300, config: b300}
+    - {contains: B200, config: b200}
+    - {contains: H100, config: h100}
+    - {contains: A100, config: a100}
+  by_compute_capability:
+    - {min: 10.0, configs: [b200, h100]}
+    - {min: 9.0, configs: [h100]}
+    - {min: 8.0, configs: [a100]}

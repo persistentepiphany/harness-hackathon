@@ -355,5 +355,14 @@ def checks(fmt: FormatOpt = OutputFormat.console) -> None:
         typer.echo(f"L{r['layer']}  {r['id']:<42} {r['title']}")
 
 
+def _register_subcommands() -> None:
+    from pah.interfaces.cli_runtimes import app as runtimes_app
+
+    app.add_typer(runtimes_app, name="runtimes")
+
+
+_register_subcommands()
+
+
 if __name__ == "__main__":
     app()
