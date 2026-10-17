@@ -1,0 +1,94 @@
+{
+  "schema_version": "visual_review_receipt_v1",
+  "review_schema_version": "visual_judgment_v1",
+  "deck": {
+    "filename": "deck.pptx",
+    "sha256": "0d662b4cffbc61dc6d9de32ae8927f627aef0cc6d25a2b06955f7f32b051a34c",
+    "normalized_office_sha256": "fd8cdced480c2a0bbdbd84a0a43c7a6327cdfbf0e40dda6b8b6d58ecabd7a697"
+  },
+  "renders": [
+    {
+      "name": "slide-01.jpg",
+      "sha256": "54fcb081ef965e26b5c8077a46bc1fec83737769711f0bcfa395dd2ff447beb3",
+      "size_bytes": 79638
+    },
+    {
+      "name": "slide-02.jpg",
+      "sha256": "87463250b06ee4c034d544c19182b817bee5ef7605029290783b1e0fe825ff20",
+      "size_bytes": 132287
+    },
+    {
+      "name": "slide-03.jpg",
+      "sha256": "2ec82575bf941807af4ac945334ac17cea03c5827531d5359a94d0a905771c00",
+      "size_bytes": 154162
+    },
+    {
+      "name": "slide-04.jpg",
+      "sha256": "bf06379076cf59bed7611a67af7126448c2cf89af5bbf960a98d592469ce8f60",
+      "size_bytes": 133895
+    },
+    {
+      "name": "slide-05.jpg",
+      "sha256": "9eaa4c5d6596b3a5d836bb48f0799c95a0a63e92ea5422ba1c99ce1273ce51f0",
+      "size_bytes": 113113
+    },
+    {
+      "name": "slide-06.jpg",
+      "sha256": "fd6984d2b4e9cb3d222982d70908da05122dfc9463d14ea17f6c12d32ffb57ff",
+      "size_bytes": 127084
+    },
+    {
+      "name": "slide-07.jpg",
+      "sha256": "3290cc7776f1444f6c8b08e37ecc651e5b9401c8395e8717b732bce09355ecca",
+      "size_bytes": 117789
+    },
+    {
+      "name": "slide-08.jpg",
+      "sha256": "cebc19a0bc30f70fac511c141774751ff5c3bb377546ef182c4b59a773e78f9c",
+      "size_bytes": 122320
+    }
+  ],
+  "render_count": 8,
+  "reviewer": {
+    "type": "model",
+    "name": "automated visual review of rendered slides"
+  },
+  "verdict": "pass",
+  "findings": [
+    {
+      "slide": 3,
+      "severity": "info",
+      "message": "Confidence value wraps to three lines inside the left card; fully legible."
+    },
+    {
+      "slide": 3,
+      "severity": "info",
+      "message": "Lower third of both comparison cards is empty; text fully visible."
+    },
+    {
+      "slide": 5,
+      "severity": "info",
+      "message": "Fact-file row reads 3 valid kept, 3 valid rejected, 0 invalid kept, 10 invalid rejected, matching stats.json."
+    },
+    {
+      "slide": 6,
+      "severity": "info",
+      "message": "Bars 0.83 / 0.67 / 0.75 with intervals; legend above the axes; sidebar shows pooled values and McNemar p 0.125."
+    },
+    {
+      "slide": 7,
+      "severity": "info",
+      "message": "Decision grid: fact-file row rejects all perturbed and keeps glc_wt, mek1_wt (both executors) valid."
+    },
+    {
+      "slide": 8,
+      "severity": "info",
+      "message": "Empty band below the two cards; headings aligned."
+    }
+  ],
+  "reviewed_at": "2026-10-17T19:56:53+00:00",
+  "review_context": {
+    "renders": "bench/runs/2026-10-17T1859Z-849c856/deck/qa/renders/slide-01..08.jpg",
+    "method": "each slide image inspected at full resolution for clipping, overlap, alignment, legibility and factual captions; data slides (3, 5, 6, 7) checked against stats.json"
+  }
+}
