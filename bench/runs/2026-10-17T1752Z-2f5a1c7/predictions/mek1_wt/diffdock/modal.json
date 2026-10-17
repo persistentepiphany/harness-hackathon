@@ -1,0 +1,99 @@
+{
+  "system": "mek1_wt",
+  "executor": "diffdock",
+  "version": "v1.1.3",
+  "image": "rbgcsail/diffdock:v1.1.3@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0",
+  "runs": [
+    {
+      "replicate": 4,
+      "argv": [
+        "/home/appuser/bin/micromamba",
+        "run",
+        "-n",
+        "diffdock",
+        "python",
+        "-m",
+        "inference",
+        "--config",
+        "default_inference_args.yaml",
+        "--protein_path",
+        "/tmp/diffdock/mek1_wt/rec.pdb",
+        "--ligand_description",
+        "Cc1ccnc(n1)Oc2ccc(c(c2)Cl)c3cc4c(c(n[nH]4)C)c(c3)O[C@H]5CCC[C@H](C5)N",
+        "--complex_name",
+        "mek1_wt",
+        "--out_dir",
+        "/tmp/diffdock/mek1_wt/seed_4",
+        "--samples_per_complex",
+        "10"
+      ],
+      "rc": 0,
+      "seconds": 71.8,
+      "tail": "Generating ESM language model embeddings\nProcessing 1 of 1 batches (1 sequences)\n/home/appuser/micromamba/envs/diffdock/lib/python3.9/site-packages/Bio/pairwise2.py:278: BiopythonDeprecationWarning: Bio.pairwise2 has been deprecated, and we intend to remove it in a future release of Biopython. As an alternative, please consider using Bio.Align.PairwiseAligner as a replacement, and contact the Biopython developers if you still need the Bio.pairwise2 module.\n  warnings.warn(\n\n0it [00:00, ?it/s]/home/appuser/DiffDock/datasets/parse_chi.py:91: RuntimeWarning: invalid value encountered in cast\n  Y = indices.astype(int)\n\n1it [00:39, 39.10s/it]\n1it [00:39, 39.10s/it]\n"
+    },
+    {
+      "replicate": 5,
+      "argv": [
+        "/home/appuser/bin/micromamba",
+        "run",
+        "-n",
+        "diffdock",
+        "python",
+        "-m",
+        "inference",
+        "--config",
+        "default_inference_args.yaml",
+        "--protein_path",
+        "/tmp/diffdock/mek1_wt/rec.pdb",
+        "--ligand_description",
+        "Cc1ccnc(n1)Oc2ccc(c(c2)Cl)c3cc4c(c(n[nH]4)C)c(c3)O[C@H]5CCC[C@H](C5)N",
+        "--complex_name",
+        "mek1_wt",
+        "--out_dir",
+        "/tmp/diffdock/mek1_wt/seed_5",
+        "--samples_per_complex",
+        "10"
+      ],
+      "rc": 0,
+      "seconds": 71.6,
+      "tail": "Generating ESM language model embeddings\nProcessing 1 of 1 batches (1 sequences)\n/home/appuser/micromamba/envs/diffdock/lib/python3.9/site-packages/Bio/pairwise2.py:278: BiopythonDeprecationWarning: Bio.pairwise2 has been deprecated, and we intend to remove it in a future release of Biopython. As an alternative, please consider using Bio.Align.PairwiseAligner as a replacement, and contact the Biopython developers if you still need the Bio.pairwise2 module.\n  warnings.warn(\n\n0it [00:00, ?it/s]/home/appuser/DiffDock/datasets/parse_chi.py:91: RuntimeWarning: invalid value encountered in cast\n  Y = indices.astype(int)\n\n1it [00:38, 38.54s/it]\n1it [00:38, 38.54s/it]\n"
+    },
+    {
+      "replicate": 6,
+      "argv": [
+        "/home/appuser/bin/micromamba",
+        "run",
+        "-n",
+        "diffdock",
+        "python",
+        "-m",
+        "inference",
+        "--config",
+        "default_inference_args.yaml",
+        "--protein_path",
+        "/tmp/diffdock/mek1_wt/rec.pdb",
+        "--ligand_description",
+        "Cc1ccnc(n1)Oc2ccc(c(c2)Cl)c3cc4c(c(n[nH]4)C)c(c3)O[C@H]5CCC[C@H](C5)N",
+        "--complex_name",
+        "mek1_wt",
+        "--out_dir",
+        "/tmp/diffdock/mek1_wt/seed_6",
+        "--samples_per_complex",
+        "10"
+      ],
+      "rc": 0,
+      "seconds": 71.2,
+      "tail": "Generating ESM language model embeddings\nProcessing 1 of 1 batches (1 sequences)\n/home/appuser/micromamba/envs/diffdock/lib/python3.9/site-packages/Bio/pairwise2.py:278: BiopythonDeprecationWarning: Bio.pairwise2 has been deprecated, and we intend to remove it in a future release of Biopython. As an alternative, please consider using Bio.Align.PairwiseAligner as a replacement, and contact the Biopython developers if you still need the Bio.pairwise2 module.\n  warnings.warn(\n\n0it [00:00, ?it/s]/home/appuser/DiffDock/datasets/parse_chi.py:91: RuntimeWarning: invalid value encountered in cast\n  Y = indices.astype(int)\n\n1it [00:38, 38.37s/it]\n1it [00:38, 38.37s/it]\n"
+    }
+  ],
+  "gpu": "NVIDIA A100-SXM4-40GB, 610.57.04, 40960 MiB",
+  "env": {
+    "MODAL_IMAGE_ID": "im-x9zfDmm5IJzmQ6ydao7RUw",
+    "MODAL_TASK_ID": "ta-01M55FWZ92150WPGZFYER34S6R",
+    "MODAL_REGION": "us-west"
+  },
+  "tar": {
+    "path": "/results/mek1_wt_diffdock.tar.gz",
+    "bytes": 113706
+  }
+}
