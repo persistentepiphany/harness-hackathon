@@ -76,6 +76,44 @@ class ModelInfo(_Input):
     seeds: tuple[int, ...] = ()
 
 
+class PredictionInput(_Input):
+    """An executor output to assess. `path` is the directory or file the tool wrote."""
+
+    executor: str = Field(description="Executor id from configs/executors.yaml, e.g. boltz2, vina")
+    path: Path
+    role: str = Field("primary", description="primary, secondary or control")
+    version: str | None = None
+    ligand: str | None = Field(None, description="Ligand id the poses belong to")
+    receptor: Path | None = Field(None, description="Receptor as docked (docking tools)")
+    seeds: tuple[int, ...] = Field((), description="Seeds when the layout does not record them")
+    settings: dict[str, str | int | float | bool] = Field(
+        default_factory=dict, description="Run settings, e.g. exhaustiveness, box size"
+    )
+
+
+class DockingBox(_Input):
+    center: tuple[float, float, float]
+    size: tuple[float, float, float]
+    origin: str = Field("declared", description="How the box was derived")
+
+
+class ReferenceInput(_Input):
+    """Experimental reference pose, e.g. the crystal ligand for redocking or accuracy."""
+
+    pdb_id: str | None = None
+    ligand: str | None = Field(None, description="CCD code of the ligand in the entry")
+    chain: str | None = None
+    file: Path | None = None
+
+
+class ControlsInput(_Input):
+    redocking: PredictionInput | None = None
+    decoys: tuple[PredictionInput, ...] = ()
+    actives: tuple[PredictionInput, ...] = ()
+    known_positive: PredictionInput | None = None
+    sticky: PredictionInput | None = None
+
+
 class Manifest(_Input):
     task: str
     claim: str | None = None
@@ -84,6 +122,10 @@ class Manifest(_Input):
     receptor: ReceptorInput | None = None
     model: ModelInfo | None = None
     ph: float | None = None
+    predictions: tuple[PredictionInput, ...] = ()
+    docking_box: DockingBox | None = None
+    reference: ReferenceInput | None = None
+    controls: ControlsInput = Field(default_factory=ControlsInput)
     base_dir: Path = Field(Path(), exclude=True)
 
     def path(self, p: Path) -> Path:
