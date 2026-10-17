@@ -242,10 +242,18 @@ def write_sdf(mol: Any, out_sdf: Path, name: str | None = None) -> Path:
     out_sdf.parent.mkdir(parents=True, exist_ok=True)
     if name:
         mol.SetProp("_Name", name)
+    # Kekulised bonds keep the hydrogen count of aromatic N-H atoms (indazole, pyrrole) readable;
+    # aromatic bond orders are written only when the molecule cannot be kekulised.
+    out = Chem.Mol(mol)
+    try:
+        Chem.Kekulize(out, clearAromaticFlags=True)
+        kekulize = True
+    except Exception:  # written as given; readers then see aromatic bond orders
+        out, kekulize = mol, False
     writer = Chem.SDWriter(str(out_sdf))
     try:
-        writer.SetKekulize(False)
-        writer.write(mol)
+        writer.SetKekulize(kekulize)
+        writer.write(out)
     finally:
         writer.close()
     return out_sdf

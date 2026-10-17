@@ -1,5 +1,5 @@
 {
-  "run_id": "ligand_pose-3936f12c4859",
+  "run_id": "ligand_pose-043263a571af",
   "task": "ligand_pose",
   "claim": "Predicted pose of FZC in MEK1 is valid",
   "layers": [
@@ -98,8 +98,8 @@
       "sticky": null
     }
   },
-  "started_at": "2026-10-17T17:04:27.967343Z",
-  "finished_at": "2026-10-17T17:04:58.068950Z",
+  "started_at": "2026-10-17T17:10:12.205389Z",
+  "finished_at": "2026-10-17T17:12:12.331167Z",
   "pah_version": "0.1.0",
   "tool_versions": {
     "numpy": "1.26.4",
@@ -111,6 +111,7 @@
     "plip": "3.0.1",
     "openbabel": "3.2.1",
     "freesasa": "2.2.1",
+    "openmm": "8.6.1",
     "spyrmsd": "0.9.0",
     "scipy": "1.17.1"
   },
@@ -174,7 +175,7 @@
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 0.467
+      "duration_s": 0.248
     },
     {
       "check_id": "l2.pocket.resolved",
@@ -264,7 +265,7 @@
         "name": "gemmi",
         "version": null
       },
-      "duration_s": 0.034
+      "duration_s": 0.013
     },
     {
       "check_id": "l2.receptor.state",
@@ -293,7 +294,7 @@
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 0.033
+      "duration_s": 0.014
     },
     {
       "check_id": "l2.receptor.protonation",
@@ -447,7 +448,7 @@
         "name": "propka",
         "version": "3.5.1"
       },
-      "duration_s": 0.948
+      "duration_s": 0.326
     },
     {
       "check_id": "l2.ligand.protonation",
@@ -526,7 +527,7 @@
         "name": "dimorphite_dl",
         "version": "2.1.0"
       },
-      "duration_s": 0.223
+      "duration_s": 0.095
     },
     {
       "check_id": "l2.ligand.conformers",
@@ -574,7 +575,7 @@
         "name": "rdkit",
         "version": null
       },
-      "duration_s": 2.429
+      "duration_s": 1.4
     },
     {
       "check_id": "l2.docking.box",
@@ -703,16 +704,95 @@
     {
       "check_id": "l3.exposure.pocket",
       "layer": 3,
-      "gate": "skip",
-      "message": "OutputUnavailableError: cannot read ligand of boltz2/seed1/sample0: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_wt_boltz2/run/predictions/00_boltz2/boltz2/seed1/sample0/ligand.sdf",
-      "measurements": [],
-      "thresholds": [],
+      "gate": "pass",
+      "message": "max similarity 37.0 to 3ZM4 (22T, SuCOS 0.586, coverage 0.632), released before 2019-01-01",
+      "measurements": [
+        {
+          "name": "cutoff",
+          "value": "2019-01-01",
+          "unit": null
+        },
+        {
+          "name": "entries_compared",
+          "value": 5,
+          "unit": null
+        },
+        {
+          "name": "max_similarity",
+          "value": 37.0,
+          "unit": null
+        },
+        {
+          "name": "pocket_residues",
+          "value": 38,
+          "unit": null
+        }
+      ],
+      "thresholds": [
+        {
+          "name": "similarity",
+          "value": 50,
+          "comparator": "<=",
+          "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
+          "evidence_level": "published"
+        },
+        {
+          "name": "entries",
+          "value": 5,
+          "comparator": "<=",
+          "origin": "Harness budget: pre-cutoff holo entries compared per run",
+          "evidence_level": "uncalibrated"
+        }
+      ],
       "evidence": {
-        "skip_reason": "error"
+        "query": "boltz2/seed2/sample0",
+        "model": "diffdock",
+        "entries": [
+          {
+            "entry": "3ZLS",
+            "ligand": "92P",
+            "sucos": 0.556,
+            "coverage": 0.474,
+            "similarity": 26.3,
+            "ca_rmsd": 0.69
+          },
+          {
+            "entry": "3ZLX",
+            "ligand": "5EZ",
+            "sucos": 0.441,
+            "coverage": 0.553,
+            "similarity": 24.4,
+            "ca_rmsd": 0.59
+          },
+          {
+            "entry": "3ZM4",
+            "ligand": "22T",
+            "sucos": 0.586,
+            "coverage": 0.632,
+            "similarity": 37.0,
+            "ca_rmsd": 0.64
+          },
+          {
+            "entry": "5BX0",
+            "ligand": "4W5",
+            "sucos": 0.527,
+            "coverage": 0.579,
+            "similarity": 30.5,
+            "ca_rmsd": 0.72
+          },
+          {
+            "entry": "3ZLY",
+            "ligand": "YSO",
+            "sucos": 0.632,
+            "coverage": 0.474,
+            "similarity": 29.9,
+            "ca_rmsd": 0.59
+          }
+        ]
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 0.178
+      "duration_s": 3.616
     },
     {
       "check_id": "l3.exposure.ligand_prevalence",
@@ -772,7 +852,7 @@
         "name": "RCSB search (chemical) + RDKit topological fingerprint",
         "version": null
       },
-      "duration_s": 0.006
+      "duration_s": 0.0
     },
     {
       "check_id": "l3.exposure.sequence",
@@ -835,7 +915,7 @@
         "name": "RCSB search (sequence, MMseqs2)",
         "version": null
       },
-      "duration_s": 2.714
+      "duration_s": 0.001
     },
     {
       "check_id": "l3.regime.modality",
@@ -893,7 +973,7 @@
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 0.012
+      "duration_s": 0.008
     },
     {
       "check_id": "l3.metric.endpoint",
@@ -951,13 +1031,13 @@
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 0.002
+      "duration_s": 0.0
     },
     {
       "check_id": "l4.posebusters",
       "layer": 4,
-      "gate": "stop",
-      "message": "representative pose boltz2/seed1/sample0 fails sanitization, inchi_convertible",
+      "gate": "pass",
+      "message": "20 of 20 tests pass for boltz2/seed2/sample0; 3 of 3 poses pass all",
       "measurements": [
         {
           "name": "poses",
@@ -966,7 +1046,7 @@
         },
         {
           "name": "passed",
-          "value": 18,
+          "value": 20,
           "unit": null
         },
         {
@@ -976,7 +1056,7 @@
         },
         {
           "name": "poses_all_pass",
-          "value": 0,
+          "value": 3,
           "unit": null
         }
       ],
@@ -990,17 +1070,17 @@
         }
       ],
       "evidence": {
-        "representative": "boltz2/seed1/sample0",
+        "representative": "boltz2/seed2/sample0",
         "tests": [
           {
             "test": "sanitization",
-            "pass": false,
-            "value": "fail"
+            "pass": true,
+            "value": "pass"
           },
           {
             "test": "inchi_convertible",
-            "pass": false,
-            "value": "fail"
+            "pass": true,
+            "value": "pass"
           },
           {
             "test": "all_atoms_connected",
@@ -1045,17 +1125,17 @@
           {
             "test": "internal_energy",
             "pass": true,
-            "value": "4.6 times the ensemble mean"
+            "value": "1.1 times the ensemble mean"
           },
           {
             "test": "protein-ligand_maximum_distance",
             "pass": true,
-            "value": "2.50 Å"
+            "value": "2.53 Å"
           },
           {
             "test": "minimum_distance_to_protein",
             "pass": true,
-            "value": "2.50 Å"
+            "value": "2.53 Å"
           },
           {
             "test": "minimum_distance_to_organic_cofactors",
@@ -1075,7 +1155,7 @@
           {
             "test": "volume_overlap_with_protein",
             "pass": true,
-            "value": "0.007"
+            "value": "0.009"
           },
           {
             "test": "volume_overlap_with_organic_cofactors",
@@ -1096,30 +1176,21 @@
         "poses": [
           {
             "pose": "boltz2/seed1/sample0",
-            "passed": 18,
+            "passed": 20,
             "total": 20,
-            "failed": [
-              "sanitization",
-              "inchi_convertible"
-            ]
+            "failed": []
           },
           {
             "pose": "boltz2/seed2/sample0",
-            "passed": 18,
+            "passed": 20,
             "total": 20,
-            "failed": [
-              "sanitization",
-              "inchi_convertible"
-            ]
+            "failed": []
           },
           {
             "pose": "boltz2/seed3/sample0",
-            "passed": 18,
+            "passed": 20,
             "total": 20,
-            "failed": [
-              "sanitization",
-              "inchi_convertible"
-            ]
+            "failed": []
           }
         ],
         "reference": "FZC in 7XLP"
@@ -1129,27 +1200,304 @@
         "name": "posebusters",
         "version": "0.6.5"
       },
-      "duration_s": 5.91
+      "duration_s": 5.513
     },
     {
       "check_id": "l4.torsion_strain",
       "layer": 4,
-      "gate": "skip",
-      "message": "OutputUnavailableError: cannot read ligand of boltz2/seed1/sample0: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_wt_boltz2/run/predictions/00_boltz2/boltz2/seed1/sample0/ligand.sdf",
-      "measurements": [],
-      "thresholds": [],
+      "gate": "pass",
+      "message": "0 of 7 torsions above 2.5 kcal/mol in boltz2/seed2/sample0; strain 1.59 kcal/mol",
+      "measurements": [
+        {
+          "name": "poses",
+          "value": 3,
+          "unit": null
+        },
+        {
+          "name": "unlikely_torsions",
+          "value": 0,
+          "unit": null
+        },
+        {
+          "name": "torsions",
+          "value": 7,
+          "unit": null
+        },
+        {
+          "name": "strain_kcal",
+          "value": 1.59,
+          "unit": null
+        },
+        {
+          "name": "poses_with_unlikely",
+          "value": 0,
+          "unit": null
+        }
+      ],
+      "thresholds": [
+        {
+          "name": "torsion_energy",
+          "value": 2.5,
+          "comparator": "<=",
+          "origin": "Harness rule: a rotatable torsion whose MMFF energy lies more than 2.5 kcal/mol above the minimum of its rigid scan is unlikely; not yet calibrated",
+          "evidence_level": "uncalibrated"
+        }
+      ],
       "evidence": {
-        "skip_reason": "error"
+        "representative": "boltz2/seed2/sample0",
+        "poses": [
+          {
+            "pose": "boltz2/seed1/sample0",
+            "torsions": 7,
+            "unlikely_torsions": 0,
+            "max_excess_kcal": 0.2,
+            "strain_kcal": 1.43,
+            "detail": [
+              {
+                "atoms": [
+                  33,
+                  0,
+                  1,
+                  2
+                ],
+                "angle": -60.5,
+                "excess_kcal": -0.0
+              },
+              {
+                "atoms": [
+                  4,
+                  5,
+                  6,
+                  7
+                ],
+                "angle": -159.6,
+                "excess_kcal": -0.0
+              },
+              {
+                "atoms": [
+                  5,
+                  6,
+                  7,
+                  8
+                ],
+                "angle": 55.6,
+                "excess_kcal": 0.04
+              },
+              {
+                "atoms": [
+                  9,
+                  10,
+                  11,
+                  12
+                ],
+                "angle": 66.2,
+                "excess_kcal": 0.2
+              },
+              {
+                "atoms": [
+                  12,
+                  13,
+                  14,
+                  15
+                ],
+                "angle": 1.7,
+                "excess_kcal": -0.01
+              },
+              {
+                "atoms": [
+                  13,
+                  14,
+                  15,
+                  16
+                ],
+                "angle": 157.0,
+                "excess_kcal": -0.14
+              },
+              {
+                "atoms": [
+                  22,
+                  23,
+                  24,
+                  53
+                ],
+                "angle": -60.3,
+                "excess_kcal": -0.0
+              }
+            ]
+          },
+          {
+            "pose": "boltz2/seed2/sample0",
+            "torsions": 7,
+            "unlikely_torsions": 0,
+            "max_excess_kcal": 0.29,
+            "strain_kcal": 1.59,
+            "detail": [
+              {
+                "atoms": [
+                  33,
+                  0,
+                  1,
+                  2
+                ],
+                "angle": -60.4,
+                "excess_kcal": -0.0
+              },
+              {
+                "atoms": [
+                  4,
+                  5,
+                  6,
+                  7
+                ],
+                "angle": -158.5,
+                "excess_kcal": -0.01
+              },
+              {
+                "atoms": [
+                  5,
+                  6,
+                  7,
+                  8
+                ],
+                "angle": 54.3,
+                "excess_kcal": 0.06
+              },
+              {
+                "atoms": [
+                  9,
+                  10,
+                  11,
+                  12
+                ],
+                "angle": 65.2,
+                "excess_kcal": 0.29
+              },
+              {
+                "atoms": [
+                  12,
+                  13,
+                  14,
+                  15
+                ],
+                "angle": -3.0,
+                "excess_kcal": -0.05
+              },
+              {
+                "atoms": [
+                  13,
+                  14,
+                  15,
+                  16
+                ],
+                "angle": 160.7,
+                "excess_kcal": 0.02
+              },
+              {
+                "atoms": [
+                  22,
+                  23,
+                  24,
+                  53
+                ],
+                "angle": 179.6,
+                "excess_kcal": -0.0
+              }
+            ]
+          },
+          {
+            "pose": "boltz2/seed3/sample0",
+            "torsions": 7,
+            "unlikely_torsions": 0,
+            "max_excess_kcal": 0.31,
+            "strain_kcal": 1.63,
+            "detail": [
+              {
+                "atoms": [
+                  33,
+                  0,
+                  1,
+                  2
+                ],
+                "angle": -60.4,
+                "excess_kcal": -0.0
+              },
+              {
+                "atoms": [
+                  4,
+                  5,
+                  6,
+                  7
+                ],
+                "angle": -157.1,
+                "excess_kcal": -0.03
+              },
+              {
+                "atoms": [
+                  5,
+                  6,
+                  7,
+                  8
+                ],
+                "angle": 53.4,
+                "excess_kcal": 0.06
+              },
+              {
+                "atoms": [
+                  9,
+                  10,
+                  11,
+                  12
+                ],
+                "angle": 65.1,
+                "excess_kcal": 0.31
+              },
+              {
+                "atoms": [
+                  12,
+                  13,
+                  14,
+                  15
+                ],
+                "angle": -3.5,
+                "excess_kcal": -0.07
+              },
+              {
+                "atoms": [
+                  13,
+                  14,
+                  15,
+                  16
+                ],
+                "angle": 161.1,
+                "excess_kcal": 0.02
+              },
+              {
+                "atoms": [
+                  22,
+                  23,
+                  24,
+                  53
+                ],
+                "angle": 59.6,
+                "excess_kcal": -0.0
+              }
+            ]
+          }
+        ],
+        "method": "MMFF94 after relaxation with heavy atoms held within 0.3 Å; rigid torsion scan in 10° steps; strain against 20 relaxed ETKDG conformers"
       },
       "artifacts": [],
-      "tool": null,
-      "duration_s": 0.001
+      "tool": {
+        "name": "rdkit MMFF94",
+        "version": null
+      },
+      "duration_s": 7.093
     },
     {
       "check_id": "l4.interactions.fingerprint",
       "layer": 4,
       "gate": "pass",
-      "message": "14 interactions in boltz2/seed1/sample0 (halogen, hbond, hydrophobic); 12 distinct across 3 poses (reported)",
+      "message": "14 interactions in boltz2/seed2/sample0 (halogen, hbond, hydrophobic); 12 distinct across 3 poses (reported)",
       "measurements": [
         {
           "name": "poses",
@@ -1174,7 +1522,7 @@
       ],
       "thresholds": [],
       "evidence": {
-        "representative": "boltz2/seed1/sample0",
+        "representative": "boltz2/seed2/sample0",
         "interactions": [
           {
             "type": "halogen",
@@ -1521,41 +1869,326 @@
         "name": "plip",
         "version": "3.0.1"
       },
-      "duration_s": 1.148
+      "duration_s": 1.098
     },
     {
       "check_id": "l4.interactions.unsatisfied_polars",
       "layer": 4,
-      "gate": "skip",
-      "message": "OutputUnavailableError: cannot read ligand of boltz2/seed1/sample0: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_wt_boltz2/run/predictions/00_boltz2/boltz2/seed1/sample0/ligand.sdf",
-      "measurements": [],
-      "thresholds": [],
+      "gate": "warn",
+      "message": "4 of 7 buried polar ligand atoms without a partner in boltz2/seed2/sample0",
+      "measurements": [
+        {
+          "name": "poses",
+          "value": 3,
+          "unit": null
+        },
+        {
+          "name": "unsatisfied",
+          "value": 4,
+          "unit": null
+        },
+        {
+          "name": "buried_charged",
+          "value": 0,
+          "unit": null
+        },
+        {
+          "name": "buried_polar",
+          "value": 7,
+          "unit": null
+        }
+      ],
+      "thresholds": [
+        {
+          "name": "relative_sasa",
+          "value": 0.1,
+          "comparator": "<",
+          "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+          "evidence_level": "uncalibrated"
+        },
+        {
+          "name": "hbond_distance",
+          "value": 3.5,
+          "comparator": "<=",
+          "origin": "PLIP hydrogen bond distance cut-off (donor-acceptor 4.1 Å; harness uses 3.5 Å heavy-atom distance)",
+          "evidence_level": "published"
+        }
+      ],
       "evidence": {
-        "skip_reason": "error"
+        "representative": "boltz2/seed2/sample0",
+        "poses": [
+          {
+            "pose": "boltz2/seed1/sample0",
+            "buried_polar": 7,
+            "unsatisfied": 4,
+            "buried_charged": 0,
+            "atoms": [
+              {
+                "atom": 4,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.076,
+                "nearest_polar_A": 3.67,
+                "satisfied": false
+              },
+              {
+                "atom": 6,
+                "element": "O",
+                "charge": 0,
+                "relative_sasa": 0.0,
+                "nearest_polar_A": 4.09,
+                "satisfied": false
+              },
+              {
+                "atom": 14,
+                "element": "O",
+                "charge": 0,
+                "relative_sasa": 0.006,
+                "nearest_polar_A": 5.37,
+                "satisfied": false
+              },
+              {
+                "atom": 20,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.045,
+                "nearest_polar_A": 2.5,
+                "satisfied": true
+              },
+              {
+                "atom": 25,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.0,
+                "nearest_polar_A": 2.96,
+                "satisfied": true
+              },
+              {
+                "atom": 26,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.0,
+                "nearest_polar_A": 2.82,
+                "satisfied": true
+              },
+              {
+                "atom": 32,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.0,
+                "nearest_polar_A": 3.72,
+                "satisfied": false
+              }
+            ]
+          },
+          {
+            "pose": "boltz2/seed2/sample0",
+            "buried_polar": 7,
+            "unsatisfied": 4,
+            "buried_charged": 0,
+            "atoms": [
+              {
+                "atom": 4,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.082,
+                "nearest_polar_A": 3.65,
+                "satisfied": false
+              },
+              {
+                "atom": 6,
+                "element": "O",
+                "charge": 0,
+                "relative_sasa": 0.0,
+                "nearest_polar_A": 4.1,
+                "satisfied": false
+              },
+              {
+                "atom": 14,
+                "element": "O",
+                "charge": 0,
+                "relative_sasa": 0.0,
+                "nearest_polar_A": 5.37,
+                "satisfied": false
+              },
+              {
+                "atom": 20,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.029,
+                "nearest_polar_A": 2.53,
+                "satisfied": true
+              },
+              {
+                "atom": 25,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.0,
+                "nearest_polar_A": 2.94,
+                "satisfied": true
+              },
+              {
+                "atom": 26,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.0,
+                "nearest_polar_A": 2.8,
+                "satisfied": true
+              },
+              {
+                "atom": 32,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.0,
+                "nearest_polar_A": 3.66,
+                "satisfied": false
+              }
+            ]
+          },
+          {
+            "pose": "boltz2/seed3/sample0",
+            "buried_polar": 7,
+            "unsatisfied": 4,
+            "buried_charged": 0,
+            "atoms": [
+              {
+                "atom": 4,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.077,
+                "nearest_polar_A": 3.75,
+                "satisfied": false
+              },
+              {
+                "atom": 6,
+                "element": "O",
+                "charge": 0,
+                "relative_sasa": 0.0,
+                "nearest_polar_A": 4.12,
+                "satisfied": false
+              },
+              {
+                "atom": 14,
+                "element": "O",
+                "charge": 0,
+                "relative_sasa": 0.0,
+                "nearest_polar_A": 5.39,
+                "satisfied": false
+              },
+              {
+                "atom": 20,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.042,
+                "nearest_polar_A": 2.61,
+                "satisfied": true
+              },
+              {
+                "atom": 25,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.0,
+                "nearest_polar_A": 2.96,
+                "satisfied": true
+              },
+              {
+                "atom": 26,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.0,
+                "nearest_polar_A": 2.76,
+                "satisfied": true
+              },
+              {
+                "atom": 32,
+                "element": "N",
+                "charge": 0,
+                "relative_sasa": 0.0,
+                "nearest_polar_A": 3.73,
+                "satisfied": false
+              }
+            ]
+          }
+        ]
       },
       "artifacts": [],
-      "tool": null,
-      "duration_s": 0.001
+      "tool": {
+        "name": "freesasa",
+        "version": "2.2.1"
+      },
+      "duration_s": 0.299
     },
     {
       "check_id": "l4.interactions.hydrophobic",
       "layer": 4,
-      "gate": "skip",
-      "message": "OutputUnavailableError: cannot read ligand of boltz2/seed1/sample0: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_wt_boltz2/run/predictions/00_boltz2/boltz2/seed1/sample0/ligand.sdf",
-      "measurements": [],
-      "thresholds": [],
+      "gate": "pass",
+      "message": "nonpolar fraction of protein contacts around 22 buried nonpolar ligand atoms in boltz2/seed2/sample0: 0.79",
+      "measurements": [
+        {
+          "name": "poses",
+          "value": 3,
+          "unit": null
+        },
+        {
+          "name": "complementarity",
+          "value": 0.79,
+          "unit": null
+        },
+        {
+          "name": "buried_nonpolar",
+          "value": 22,
+          "unit": null
+        }
+      ],
+      "thresholds": [
+        {
+          "name": "fraction",
+          "value": 0.35,
+          "comparator": ">=",
+          "origin": "Harness default anchored on 3PTB: the crystal benzamidine scores 0.51, Vina and Boltz-2 poses within 0.5 Å of it score 0.45 and 0.49; not calibrated on the benchmark",
+          "evidence_level": "uncalibrated"
+        },
+        {
+          "name": "relative_sasa",
+          "value": 0.1,
+          "comparator": "<",
+          "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+          "evidence_level": "uncalibrated"
+        }
+      ],
       "evidence": {
-        "skip_reason": "error"
+        "representative": "boltz2/seed2/sample0",
+        "poses": [
+          {
+            "pose": "boltz2/seed1/sample0",
+            "buried_nonpolar": 22,
+            "complementarity": 0.764
+          },
+          {
+            "pose": "boltz2/seed2/sample0",
+            "buried_nonpolar": 22,
+            "complementarity": 0.79
+          },
+          {
+            "pose": "boltz2/seed3/sample0",
+            "buried_nonpolar": 22,
+            "complementarity": 0.79
+          }
+        ],
+        "method": "mean, over buried ligand C, S and halogen atoms (relative SASA below 0.1), of the fraction of protein heavy atoms within 4.5 Å that are C or S"
       },
       "artifacts": [],
-      "tool": null,
-      "duration_s": 0.0
+      "tool": {
+        "name": "freesasa",
+        "version": null
+      },
+      "duration_s": 0.301
     },
     {
       "check_id": "l4.interactions.known_binders",
       "layer": 4,
       "gate": "pass",
-      "message": "boltz2/seed1/sample0 reproduces 2 of 3 FZC interactions: halogen ALA95A, hbond MET146A",
+      "message": "boltz2/seed2/sample0 reproduces 2 of 3 FZC interactions: halogen ALA95A, hbond MET146A",
       "measurements": [
         {
           "name": "key_interactions",
@@ -1665,42 +2298,252 @@
             "of": 3
           }
         ],
-        "representative": "boltz2/seed1/sample0"
+        "representative": "boltz2/seed2/sample0"
       },
       "artifacts": [],
       "tool": {
         "name": "plip",
         "version": "3.0.1"
       },
-      "duration_s": 0.348
+      "duration_s": 0.319
     },
     {
       "check_id": "l4.minimisation_drift",
       "layer": 4,
-      "gate": "skip",
-      "message": "OutputUnavailableError: minimisation failed for every pose:     AddHs(RDKit::ROMol mol, RDKit::MolOps::AddHsParameters params, boost::python::api::object onlyOnAtoms=None);     AddHs(RDKit::ROMol mol, RDKit::MolOps::AddHsParameters params, boost::python::api::object onlyOnAtoms=None);     AddHs(RDKit::ROMol mol, RDKit::MolOps::AddHsParameters params, boost::python::api::object onlyOnAtoms=None)",
-      "measurements": [],
-      "thresholds": [],
+      "gate": "pass",
+      "message": "boltz2/seed2/sample0 moves 0.169 Å under restrained minimisation; 0 of 3 poses above 2.0 Å",
+      "measurements": [
+        {
+          "name": "poses",
+          "value": 3,
+          "unit": null
+        },
+        {
+          "name": "drift_A",
+          "value": 0.169,
+          "unit": null
+        },
+        {
+          "name": "max_drift_A",
+          "value": 0.24,
+          "unit": null
+        },
+        {
+          "name": "poses_over",
+          "value": 0,
+          "unit": null
+        },
+        {
+          "name": "failed",
+          "value": 0,
+          "unit": null
+        }
+      ],
+      "thresholds": [
+        {
+          "name": "drift",
+          "value": 2.0,
+          "comparator": "<=",
+          "origin": "Specification layer 4: warn when the pose moves beyond 2 Å under restrained minimisation",
+          "evidence_level": "published"
+        }
+      ],
       "evidence": {
-        "skip_reason": "error"
+        "representative": "boltz2/seed2/sample0",
+        "poses": [
+          {
+            "pose": "boltz2/seed1/sample0",
+            "drift_A": 0.206,
+            "energy_before_kJ": 118215.6,
+            "energy_after_kJ": -31197.4,
+            "converged": true,
+            "openmm": "8.6.1",
+            "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
+          },
+          {
+            "pose": "boltz2/seed2/sample0",
+            "drift_A": 0.169,
+            "energy_before_kJ": 102131.9,
+            "energy_after_kJ": -30773.8,
+            "converged": true,
+            "openmm": "8.6.1",
+            "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
+          },
+          {
+            "pose": "boltz2/seed3/sample0",
+            "drift_A": 0.24,
+            "energy_before_kJ": 204546.1,
+            "energy_after_kJ": -32110.0,
+            "converged": true,
+            "openmm": "8.6.1",
+            "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
+          }
+        ],
+        "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
       },
       "artifacts": [],
-      "tool": null,
-      "duration_s": 15.505
+      "tool": {
+        "name": "openmm",
+        "version": "8.6.1"
+      },
+      "duration_s": 99.369
     },
     {
       "check_id": "l5.confidence.local",
       "layer": 5,
-      "gate": "skip",
-      "message": "OutputUnavailableError: cannot read ligand of boltz2/seed1/sample0: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_wt_boltz2/run/predictions/00_boltz2/boltz2/seed1/sample0/ligand.sdf",
-      "measurements": [],
-      "thresholds": [],
+      "gate": "pass",
+      "message": "boltz2/seed2/sample0: pocket_plddt 96.5",
+      "measurements": [
+        {
+          "name": "poses",
+          "value": 3,
+          "unit": null
+        },
+        {
+          "name": "pocket_plddt",
+          "value": 96.5,
+          "unit": null
+        },
+        {
+          "name": "global_plddt",
+          "value": 92.5,
+          "unit": null
+        },
+        {
+          "name": "iptm",
+          "value": 0.988,
+          "unit": null
+        },
+        {
+          "name": "ptm",
+          "value": 0.936,
+          "unit": null
+        },
+        {
+          "name": "confidence_score",
+          "value": 0.94,
+          "unit": null
+        }
+      ],
+      "thresholds": [
+        {
+          "name": "boltz2.pocket_plddt",
+          "value": 70,
+          "comparator": ">=",
+          "origin": "AlphaFold DB pLDDT bands (70 and above: confident backbone), applied to pocket residues; not calibrated for ligand pose",
+          "evidence_level": "published"
+        }
+      ],
       "evidence": {
-        "skip_reason": "error"
+        "representative": "boltz2/seed2/sample0",
+        "poses": [
+          {
+            "pose": "boltz2/seed1/sample0",
+            "confidence_score": 0.937,
+            "ptm": 0.937,
+            "iptm": 0.988,
+            "ligand_iptm": 0.988,
+            "protein_iptm": 0.0,
+            "complex_plddt": 0.924,
+            "complex_iplddt": 0.954,
+            "complex_pde": 0.461,
+            "complex_ipde": 0.431,
+            "chains_ptm.0": 0.933,
+            "chains_ptm.1": 0.958,
+            "global_plddt": 92.1,
+            "pocket_plddt": 96.5,
+            "pocket_residues": 38,
+            "pae": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_wt_boltz2/run/predictions/00_boltz2/boltz2/seed1/sample0/pae.npy"
+          },
+          {
+            "pose": "boltz2/seed2/sample0",
+            "confidence_score": 0.94,
+            "ptm": 0.936,
+            "iptm": 0.988,
+            "ligand_iptm": 0.988,
+            "protein_iptm": 0.0,
+            "complex_plddt": 0.928,
+            "complex_iplddt": 0.954,
+            "complex_pde": 0.464,
+            "complex_ipde": 0.44,
+            "chains_ptm.0": 0.931,
+            "chains_ptm.1": 0.959,
+            "global_plddt": 92.5,
+            "pocket_plddt": 96.5,
+            "pocket_residues": 38,
+            "pae": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_wt_boltz2/run/predictions/00_boltz2/boltz2/seed2/sample0/pae.npy"
+          },
+          {
+            "pose": "boltz2/seed3/sample0",
+            "confidence_score": 0.938,
+            "ptm": 0.933,
+            "iptm": 0.988,
+            "ligand_iptm": 0.988,
+            "protein_iptm": 0.0,
+            "complex_plddt": 0.925,
+            "complex_iplddt": 0.954,
+            "complex_pde": 0.477,
+            "complex_ipde": 0.428,
+            "chains_ptm.0": 0.928,
+            "chains_ptm.1": 0.959,
+            "global_plddt": 92.2,
+            "pocket_plddt": 96.5,
+            "pocket_residues": 38,
+            "pae": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_wt_boltz2/run/predictions/00_boltz2/boltz2/seed3/sample0/pae.npy"
+          }
+        ],
+        "metrics": [
+          {
+            "name": "affinity_pred_value",
+            "value": -2.2476508617401123,
+            "tool": "boltz2",
+            "read": "ranking within a series, never pose quality",
+            "separate": true
+          },
+          {
+            "name": "affinity_probability_binary",
+            "value": 0.8642982244491577,
+            "tool": "boltz2",
+            "read": "ranking within a series, never pose quality",
+            "separate": true
+          },
+          {
+            "name": "affinity_pred_value",
+            "value": -2.203408718109131,
+            "tool": "boltz2",
+            "read": "ranking within a series, never pose quality",
+            "separate": true
+          },
+          {
+            "name": "affinity_probability_binary",
+            "value": 0.8650854825973511,
+            "tool": "boltz2",
+            "read": "ranking within a series, never pose quality",
+            "separate": true
+          },
+          {
+            "name": "affinity_pred_value",
+            "value": -2.181101083755493,
+            "tool": "boltz2",
+            "read": "ranking within a series, never pose quality",
+            "separate": true
+          },
+          {
+            "name": "affinity_probability_binary",
+            "value": 0.8623162508010864,
+            "tool": "boltz2",
+            "read": "ranking within a series, never pose quality",
+            "separate": true
+          }
+        ],
+        "pae": {
+          "pose": "boltz2/seed1/sample0",
+          "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_wt_boltz2/run/predictions/00_boltz2/boltz2/seed1/sample0/pae.npy"
+        }
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 0.006
+      "duration_s": 0.063
     },
     {
       "check_id": "l5.sampling.seeds",
@@ -1758,30 +2601,206 @@
     {
       "check_id": "l5.sampling.clusters",
       "layer": 5,
-      "gate": "skip",
-      "message": "OutputUnavailableError: cannot read ligand of boltz2/seed1/sample0: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_wt_boltz2/run/predictions/00_boltz2/boltz2/seed1/sample0/ligand.sdf",
-      "measurements": [],
-      "thresholds": [],
+      "gate": "pass",
+      "message": "medoid boltz2/seed2/sample0; 1 clusters, largest 3 of 3; pairwise RMSD median 0.15 Å (IQR 0.14 to 0.17); 3 of 3 poses within 4.0 Å of the site (FZC in 7XLP); 3 of 3 poses within 2.0 Å of the medoid",
+      "measurements": [
+        {
+          "name": "poses",
+          "value": 3,
+          "unit": null
+        },
+        {
+          "name": "clusters",
+          "value": 1,
+          "unit": null
+        },
+        {
+          "name": "largest_cluster",
+          "value": 3,
+          "unit": null
+        },
+        {
+          "name": "pairwise_rmsd_median_A",
+          "value": 0.146,
+          "unit": null
+        },
+        {
+          "name": "within_medoid",
+          "value": 3,
+          "unit": null
+        },
+        {
+          "name": "in_site",
+          "value": 3,
+          "unit": null
+        },
+        {
+          "name": "best_sampled_rmsd_to_reference_A",
+          "value": 0.5,
+          "unit": null
+        }
+      ],
+      "thresholds": [
+        {
+          "name": "cluster_rmsd",
+          "value": 2.0,
+          "comparator": "<=",
+          "origin": "Specification layer 5: 2 Å symmetry-aware ligand RMSD (spyrmsd) separates pose clusters",
+          "evidence_level": "published"
+        },
+        {
+          "name": "site_distance",
+          "value": 4.0,
+          "comparator": "<=",
+          "origin": "Harness rule: a ligand centroid within 4 Å of the reference site centroid is placed in the site; not yet calibrated",
+          "evidence_level": "uncalibrated"
+        },
+        {
+          "name": "largest_fraction",
+          "value": 0.5,
+          "comparator": ">=",
+          "origin": "Harness rule: the largest cluster holds at least half of the poses; not yet calibrated",
+          "evidence_level": "uncalibrated"
+        }
+      ],
       "evidence": {
-        "skip_reason": "error"
+        "poses": [
+          {
+            "pose": "boltz2/seed1/sample0",
+            "executor": "boltz2",
+            "seed": 1,
+            "sample": 0,
+            "cluster": 1,
+            "rmsd_to_medoid_A": 0.135,
+            "confidence": 0.937,
+            "site_distance_A": 0.54
+          },
+          {
+            "pose": "boltz2/seed2/sample0",
+            "executor": "boltz2",
+            "seed": 2,
+            "sample": 0,
+            "cluster": 1,
+            "rmsd_to_medoid_A": 0.0,
+            "confidence": 0.94,
+            "site_distance_A": 0.51
+          },
+          {
+            "pose": "boltz2/seed3/sample0",
+            "executor": "boltz2",
+            "seed": 3,
+            "sample": 0,
+            "cluster": 1,
+            "rmsd_to_medoid_A": 0.146,
+            "confidence": 0.938,
+            "site_distance_A": 0.4
+          }
+        ],
+        "medoid": "boltz2/seed2/sample0",
+        "frame": "7XLP.cif",
+        "clusters": [
+          {
+            "id": 1,
+            "size": 3,
+            "medoid": "boltz2/seed2/sample0"
+          }
+        ],
+        "pairwise_rmsd_A": {
+          "median": 0.146,
+          "q1": 0.14,
+          "q3": 0.167,
+          "n": 3
+        },
+        "site_placement": "3 of 3 poses within 4.0 Å of the site (FZC in 7XLP)",
+        "pose_accuracy": "3 of 3 poses within 2.0 Å of the medoid",
+        "sampling": {
+          "best_sampled_rmsd_to_reference_A": 0.5,
+          "pose": "boltz2/seed3/sample0"
+        },
+        "frame_ca_rmsd_A": {
+          "boltz2/seed1/sample0": 0.609,
+          "boltz2/seed2/sample0": 0.577,
+          "boltz2/seed3/sample0": 0.642
+        }
       },
       "artifacts": [],
-      "tool": null,
-      "duration_s": 0.001
+      "tool": {
+        "name": "spyrmsd",
+        "version": "0.9.0"
+      },
+      "duration_s": 0.08
     },
     {
       "check_id": "l5.agreement.cross_family",
       "layer": 5,
-      "gate": "skip",
-      "message": "OutputUnavailableError: cannot read ligand of boltz2/seed1/sample0: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_wt_boltz2/run/predictions/00_boltz2/boltz2/seed1/sample0/ligand.sdf",
-      "measurements": [],
-      "thresholds": [],
+      "gate": "pass",
+      "message": "boltz2 vs diffdock 1.452 Å (high); boltz2 vs crystal 7XLP 0.613 Å (decisive); diffdock vs crystal 7XLP 1.51 Å (decisive)",
+      "measurements": [
+        {
+          "name": "methods",
+          "value": 2,
+          "unit": null
+        },
+        {
+          "name": "comparisons",
+          "value": 3,
+          "unit": null
+        },
+        {
+          "name": "disagreeing",
+          "value": 0,
+          "unit": null
+        },
+        {
+          "name": "rmsd_to_crystal_A",
+          "value": 0.613,
+          "unit": null
+        }
+      ],
+      "thresholds": [
+        {
+          "name": "rmsd",
+          "value": 2.0,
+          "comparator": "<=",
+          "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 Å",
+          "evidence_level": "published"
+        }
+      ],
       "evidence": {
-        "skip_reason": "error"
+        "comparisons": [
+          {
+            "method": "boltz2",
+            "vs": "diffdock",
+            "value": 1.452,
+            "unit": "Å",
+            "weight": "high"
+          },
+          {
+            "method": "boltz2",
+            "vs": "crystal 7XLP",
+            "value": 0.613,
+            "unit": "Å",
+            "weight": "decisive"
+          },
+          {
+            "method": "diffdock",
+            "vs": "crystal 7XLP",
+            "value": 1.51,
+            "unit": "Å",
+            "weight": "decisive"
+          }
+        ],
+        "medoids": {
+          "boltz2": "boltz2/seed2/sample0",
+          "diffdock": "diffdock/seed1/mode0"
+        }
       },
       "artifacts": [],
-      "tool": null,
-      "duration_s": 0.001
+      "tool": {
+        "name": "spyrmsd",
+        "version": null
+      },
+      "duration_s": 0.165
     },
     {
       "check_id": "l5.controls.redocking",
@@ -1867,6 +2886,78 @@
     },
     {
       "source_id": "rcsb_search",
+      "accession": "seq0.9:2019-01-01:348",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.9%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22GLEELELDEQQRKRLEAFLTQKQKVGELKDDDFEKISELGAGNGGVVFKVSHKPSGLVMARKLIHLEIKPAIRNQIIRELQVLHECNSPYIVGFYGAFYSDGEISICMEHMDGGSLDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKIMHRDVKPSNILVNSRGEIKLCDFGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSMGLSLVEMAVGRYPIPPPDAKELELMFGCQVEGDAAETPPRPRTPGRPLNKKGMDSRPPMAIFELLDYIVNEPPPKLPSGVFSLEFQDFVNKCLIKNPAERADLKQLMVHAFIKRSDAEEVDFAGWLCSTIGLNQ%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+200%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sha256": "e51f7972830a85e3d3bf2a788169aca16365fa25da10282eff62be4a9a16231e",
+      "size_bytes": 2568,
+      "retrieved_at": "2026-10-17T17:10:16.888028Z",
+      "release": null,
+      "extra": {
+        "cache": "miss"
+      }
+    },
+    {
+      "source_id": "rcsb_files",
+      "accession": "3ZLS",
+      "url": "https://files.rcsb.org/download/3ZLS.cif",
+      "sha256": "ae30cf1ed7b4035f15a89ef073b302dde250349568c2e7aafe8feedf1fbf1ed1",
+      "size_bytes": 315218,
+      "retrieved_at": "2026-10-17T17:10:16.556200Z",
+      "release": null,
+      "extra": {
+        "cache": "hit"
+      }
+    },
+    {
+      "source_id": "rcsb_files",
+      "accession": "3ZLX",
+      "url": "https://files.rcsb.org/download/3ZLX.cif",
+      "sha256": "1334dfc31103f3e6b0649ad7b3da707845e58b20bc6d7476b5745470c3435deb",
+      "size_bytes": 313366,
+      "retrieved_at": "2026-10-17T17:10:17.279820Z",
+      "release": null,
+      "extra": {
+        "cache": "miss"
+      }
+    },
+    {
+      "source_id": "rcsb_files",
+      "accession": "3ZM4",
+      "url": "https://files.rcsb.org/download/3ZM4.cif",
+      "sha256": "eccb79a35cb7a9f22d341afa7a6adccb1cfca80e5b619b3846bfa7a867c8c916",
+      "size_bytes": 321513,
+      "retrieved_at": "2026-10-17T17:10:17.386459Z",
+      "release": null,
+      "extra": {
+        "cache": "miss"
+      }
+    },
+    {
+      "source_id": "rcsb_files",
+      "accession": "5BX0",
+      "url": "https://files.rcsb.org/download/5BX0.cif",
+      "sha256": "7ef25dd3b72e153ed3a5b358d87b3119cabeabb34cfeda76701473c0d9918cee",
+      "size_bytes": 312068,
+      "retrieved_at": "2026-10-17T17:10:17.656571Z",
+      "release": null,
+      "extra": {
+        "cache": "miss"
+      }
+    },
+    {
+      "source_id": "rcsb_files",
+      "accession": "3ZLY",
+      "url": "https://files.rcsb.org/download/3ZLY.cif",
+      "sha256": "e858c796adc5339d7facf5b2dc33ac5a76f377aaba4e56a3ae889b5c64b7a80b",
+      "size_bytes": 310846,
+      "retrieved_at": "2026-10-17T17:10:17.932797Z",
+      "release": null,
+      "extra": {
+        "cache": "miss"
+      }
+    },
+    {
+      "source_id": "rcsb_search",
       "accession": "seq0.95:2019-01-01:348",
       "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.95%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22GLEELELDEQQRKRLEAFLTQKQKVGELKDDDFEKISELGAGNGGVVFKVSHKPSGLVMARKLIHLEIKPAIRNQIIRELQVLHECNSPYIVGFYGAFYSDGEISICMEHMDGGSLDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKIMHRDVKPSNILVNSRGEIKLCDFGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSMGLSLVEMAVGRYPIPPPDAKELELMFGCQVEGDAAETPPRPRTPGRPLNKKGMDSRPPMAIFELLDYIVNEPPPKLPSGVFSLEFQDFVNKCLIKNPAERADLKQLMVHAFIKRSDAEEVDFAGWLCSTIGLNQ%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+5%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
       "sha256": "1d2d688f2f0a96457cc383923443194e075fb0a25c0f8eaabb292214841b3c60",
@@ -1874,7 +2965,7 @@
       "retrieved_at": "2026-10-17T17:04:34.280214Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -1886,7 +2977,7 @@
       "retrieved_at": "2026-10-17T17:04:35.084789Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     }
   ],
@@ -1912,7 +3003,7 @@
     {
       "path": "predictions/00_boltz2/boltz2/seed1/sample0/ligand.sdf",
       "kind": "data",
-      "sha256": "ac9639a7fa904803f2e0a8438c41ad145aad8fe5e9e55804aa62fcb4ea1161ad",
+      "sha256": "3686bc8d5f76faeb96376eca7708e7f213118e3f44497c2c39c6b0fe27b7f96e",
       "size_bytes": 2874,
       "label": "boltz2/seed1/sample0 ligand",
       "derived_from": []
@@ -1928,7 +3019,7 @@
     {
       "path": "predictions/00_boltz2/boltz2/seed2/sample0/ligand.sdf",
       "kind": "data",
-      "sha256": "b3c49c7baa252808fd23d6db8bee9cdedad813f336dde790644e7c9ff6c4ff80",
+      "sha256": "65aff4905d877393d1bb149de0137779e8e797fc481d72c7d435d22d9dce7ae3",
       "size_bytes": 2874,
       "label": "boltz2/seed2/sample0 ligand",
       "derived_from": []
@@ -1944,7 +3035,7 @@
     {
       "path": "predictions/00_boltz2/boltz2/seed3/sample0/ligand.sdf",
       "kind": "data",
-      "sha256": "3f12de8aee6f7a389f4696635ee1aca412abb3c5ba14dec499585b5210ee8db0",
+      "sha256": "36ba1d1bfc62621d775a53585ec296cbdd8ed11ac52dfc561c737bae8ecebb15",
       "size_bytes": 2874,
       "label": "boltz2/seed3/sample0 ligand",
       "derived_from": []
@@ -1960,7 +3051,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed1/mode0/ligand.sdf",
       "kind": "data",
-      "sha256": "1bb54440a19ebfdb0262bb4a36e2ac4c61d3e9a5bbc460179bfd51c702c206da",
+      "sha256": "1147cf9aedcb52ea0576cf3047ed162640e5a0b2de2c060697368240483141b7",
       "size_bytes": 2874,
       "label": "diffdock/seed1/mode0 ligand",
       "derived_from": []
@@ -1976,7 +3067,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed1/mode1/ligand.sdf",
       "kind": "data",
-      "sha256": "4da6784deda090052878252c453314a5f0b2f130e5b21c03bb1d2b45e1cffe56",
+      "sha256": "f01a05b925f906a12e0dbaa254cfbb0a6271e6e98e36b3477ef777633f5fe8f9",
       "size_bytes": 2874,
       "label": "diffdock/seed1/mode1 ligand",
       "derived_from": []
@@ -1992,7 +3083,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed1/mode2/ligand.sdf",
       "kind": "data",
-      "sha256": "ef8820dd72a13319810b9faa0eba1f7943f7c98f69a0c0d7c407c3f9751624a5",
+      "sha256": "c22ab16b2d57330ae1f05d0fa4da4b3e3adddfe58b7680c843ff70ed79641130",
       "size_bytes": 2874,
       "label": "diffdock/seed1/mode2 ligand",
       "derived_from": []
@@ -2008,7 +3099,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed1/mode3/ligand.sdf",
       "kind": "data",
-      "sha256": "1a9b1f5b0fc5572c00a05bab5c395a74f926f749dfb9c151e1c2ab617455a4cb",
+      "sha256": "d2ddf0c685da4d3ec5bac3e9c84bf09c0f4877ea949c78da75bdb06641bfd12a",
       "size_bytes": 2874,
       "label": "diffdock/seed1/mode3 ligand",
       "derived_from": []
@@ -2024,7 +3115,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed1/mode4/ligand.sdf",
       "kind": "data",
-      "sha256": "cf78ae34ce1c710da11530d8095cd952ed5c4aa41be5752e6ed8bb4f29f92e3b",
+      "sha256": "5763a59ce45e981710624c02387c80573e199f62b519673c961cc60f820bc6b9",
       "size_bytes": 2874,
       "label": "diffdock/seed1/mode4 ligand",
       "derived_from": []
@@ -2040,7 +3131,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed1/mode5/ligand.sdf",
       "kind": "data",
-      "sha256": "884a39a897f22c4cd4373b95593a7874997fcaf74367b7fbdc3dc44f98e00e64",
+      "sha256": "82cd405a8d6ef5626e1373da00d02a92c7ceb7b6d8946a37ff62d88a0bd74b76",
       "size_bytes": 2874,
       "label": "diffdock/seed1/mode5 ligand",
       "derived_from": []
@@ -2056,7 +3147,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed1/mode6/ligand.sdf",
       "kind": "data",
-      "sha256": "3f7adad1f2ef226661282f8585184b8c396ec8326ad2cf7444606c4dd3d88fe5",
+      "sha256": "4f56c4857e26f4c266db34be5f19bdbcdb9e7d1c755b84c97c94dfec157d03e5",
       "size_bytes": 2874,
       "label": "diffdock/seed1/mode6 ligand",
       "derived_from": []
@@ -2072,7 +3163,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed1/mode7/ligand.sdf",
       "kind": "data",
-      "sha256": "2e40673b00b1226aeb3f9cada197bdfd2a806de1e89129e97570d700fcaa9bf3",
+      "sha256": "2b92eef96b2aeae69d135e6a1c2d54ab6c620cc84a51d90439318b38e0d02bb7",
       "size_bytes": 2874,
       "label": "diffdock/seed1/mode7 ligand",
       "derived_from": []
@@ -2088,7 +3179,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed1/mode8/ligand.sdf",
       "kind": "data",
-      "sha256": "108697d2a5533b7f3e28cdaa9bc471be0c49569e23031c0bb2d615f4685f46e5",
+      "sha256": "3207d937b7a875d720ad17aeb69ad13c4e435d4d15476d9de111b45bf9b214db",
       "size_bytes": 2874,
       "label": "diffdock/seed1/mode8 ligand",
       "derived_from": []
@@ -2104,7 +3195,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed1/mode9/ligand.sdf",
       "kind": "data",
-      "sha256": "6e78e23e9bcba1cc02b69498bcee5486dcc1608a64e593efac71de9b3bc534d1",
+      "sha256": "407b7dee147b967cb98f45f651443c11571f3cf3f95817dc9c57bebfdf7073f2",
       "size_bytes": 2874,
       "label": "diffdock/seed1/mode9 ligand",
       "derived_from": []
@@ -2120,7 +3211,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed2/mode0/ligand.sdf",
       "kind": "data",
-      "sha256": "9ccac6a8ab20e1bf3b71f85f1cc903566873751a4576392883a97b8197f28493",
+      "sha256": "dd5497ac50c26a9feee1b81e65ffcd940eb6780998b585e0f19c0cb7554fd171",
       "size_bytes": 2874,
       "label": "diffdock/seed2/mode0 ligand",
       "derived_from": []
@@ -2136,7 +3227,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed2/mode1/ligand.sdf",
       "kind": "data",
-      "sha256": "53ab15341bac52b92a710bf48431b542768f21f83415059276e07db1852fc86b",
+      "sha256": "ce09d98dfcafe04048c7f72cb26e1c7ef4127f933c4e07184d0724089c0ba471",
       "size_bytes": 2874,
       "label": "diffdock/seed2/mode1 ligand",
       "derived_from": []
@@ -2152,7 +3243,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed2/mode2/ligand.sdf",
       "kind": "data",
-      "sha256": "9e075fe2bba0783c754b2241b8ff4d6b6584c71acf9db7fb9b377e3b5c8412f0",
+      "sha256": "45beba11edc4067a7ba4983c949b9da8ad48d97e66ee87097db880a6f20380f0",
       "size_bytes": 2874,
       "label": "diffdock/seed2/mode2 ligand",
       "derived_from": []
@@ -2168,7 +3259,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed2/mode3/ligand.sdf",
       "kind": "data",
-      "sha256": "d1cb9254ef00c1b415c57d4f2f8dd2f7416680c244a86eeefc0be6affe94cf73",
+      "sha256": "093478187c0b9dcb74303ac6509303937ca7c5a9604377d5b06113b7f14d6ed7",
       "size_bytes": 2874,
       "label": "diffdock/seed2/mode3 ligand",
       "derived_from": []
@@ -2184,7 +3275,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed2/mode4/ligand.sdf",
       "kind": "data",
-      "sha256": "f592dd9e578eb6e2bf54d20ff7a8f94185958db1402b3e5f13eb850a6e56df64",
+      "sha256": "6d3c33ddbc25056a929ae72c06414a184111c23fb861c6f33cabb88fc870dcab",
       "size_bytes": 2874,
       "label": "diffdock/seed2/mode4 ligand",
       "derived_from": []
@@ -2200,7 +3291,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed2/mode5/ligand.sdf",
       "kind": "data",
-      "sha256": "a27a7eb84b37898e4f332b3b11e1e8d5bb4bf08e2824cf4c241bc7edbe53fec3",
+      "sha256": "4b1d5c5cf5a84e4889a4ead0dc0a6bd6abf78adbb1123b83c1d431cfd07402f7",
       "size_bytes": 2874,
       "label": "diffdock/seed2/mode5 ligand",
       "derived_from": []
@@ -2216,7 +3307,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed2/mode6/ligand.sdf",
       "kind": "data",
-      "sha256": "5a1f0a10d2d23edffb3199fc4e0090adbf18c274190163ce18b2eae72af28306",
+      "sha256": "759ad880db28acbcf2309176e1c62a613304c9a92199a15b74ffae030d0a9132",
       "size_bytes": 2874,
       "label": "diffdock/seed2/mode6 ligand",
       "derived_from": []
@@ -2232,7 +3323,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed2/mode7/ligand.sdf",
       "kind": "data",
-      "sha256": "d04edfd875894a740a0d5dc1b83e87ff4b2f6bc41abd9b80c51c19d4ea15d30e",
+      "sha256": "5b2e6f12c93a9401f0ab0cc1bcc13899febe1e59b00b1d1782f8aee42ef0ca44",
       "size_bytes": 2874,
       "label": "diffdock/seed2/mode7 ligand",
       "derived_from": []
@@ -2248,7 +3339,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed2/mode8/ligand.sdf",
       "kind": "data",
-      "sha256": "48781bcd9894ebadc62e1aa3ffe6a053cd4a2aabb754a207e053bdac73c38c52",
+      "sha256": "7c91c4f8623f0e390df596c04e29515522d43446a1eef2763e8eacf496e337f3",
       "size_bytes": 2874,
       "label": "diffdock/seed2/mode8 ligand",
       "derived_from": []
@@ -2264,7 +3355,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed2/mode9/ligand.sdf",
       "kind": "data",
-      "sha256": "0c1c46c28393245ff5106ea1ffa0fd3c6de4ac3c571ae543fbcc8ef81c0be623",
+      "sha256": "57cef7c79e0219acb75f988f87ec783be30a4de36f42b3b6292e999d60d3e8c9",
       "size_bytes": 2874,
       "label": "diffdock/seed2/mode9 ligand",
       "derived_from": []
@@ -2280,7 +3371,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed3/mode0/ligand.sdf",
       "kind": "data",
-      "sha256": "c9c5847be6a008d3f0f5eca5e7f50105a2af9feb3a09e7956ebc838b546ca4ff",
+      "sha256": "ac742cd9cb95fde097682e66174d3ba2cc18bdaafad8dea6ebbba79e53174987",
       "size_bytes": 2874,
       "label": "diffdock/seed3/mode0 ligand",
       "derived_from": []
@@ -2296,7 +3387,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed3/mode1/ligand.sdf",
       "kind": "data",
-      "sha256": "89d70e39b5133c18de2be5efefb5c5843e2b548a273f8d6dc8f6dd2236794486",
+      "sha256": "9810ef95ca6ccc3888dba767ee7a7be6ed084d6f07ad614f509c3404a0da99c4",
       "size_bytes": 2874,
       "label": "diffdock/seed3/mode1 ligand",
       "derived_from": []
@@ -2312,7 +3403,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed3/mode2/ligand.sdf",
       "kind": "data",
-      "sha256": "636fa6466a75a66caddd3b5610b7096643f97bdc37d8268e33818906ef1223cb",
+      "sha256": "efb7cc6b6129bf319ae96b05426e8f485893bd544f71395b09ffc68dd4c893da",
       "size_bytes": 2874,
       "label": "diffdock/seed3/mode2 ligand",
       "derived_from": []
@@ -2328,7 +3419,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed3/mode3/ligand.sdf",
       "kind": "data",
-      "sha256": "2f4df132dbac4e4f9285bfd691e9b09bc859c899a862602cd9121e443fc8a5cb",
+      "sha256": "5e4f208390dd2183e96e8ef47f3db355e2e7b7d23ef609c46d0add8becf86689",
       "size_bytes": 2874,
       "label": "diffdock/seed3/mode3 ligand",
       "derived_from": []
@@ -2344,7 +3435,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed3/mode4/ligand.sdf",
       "kind": "data",
-      "sha256": "d2a0d525bc187e4614f606606bd6253dbfb7c59c5bd999b3038d45fc5ab8fa85",
+      "sha256": "6c9741a91d651c428a7d36ce3fa7f7d310e7a856f62baf067d4fbbf77372874e",
       "size_bytes": 2874,
       "label": "diffdock/seed3/mode4 ligand",
       "derived_from": []
@@ -2360,7 +3451,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed3/mode5/ligand.sdf",
       "kind": "data",
-      "sha256": "2d52f9df8bee94b20b0b1efce08ad542d01d3be440be7957b0cd655a3edb72ef",
+      "sha256": "cbffda2e1a03117449267b4c7b8bbd3ee0882681a186e9a4ef5522f491cfb2f9",
       "size_bytes": 2874,
       "label": "diffdock/seed3/mode5 ligand",
       "derived_from": []
@@ -2376,7 +3467,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed3/mode6/ligand.sdf",
       "kind": "data",
-      "sha256": "66304a46641db4d8bd38d513037363ea70ef7cff598b4ce0891631f42001bae7",
+      "sha256": "e0d1e42dbbbdd1740b1aa1c7fa58a46f24a4e7ebb14338a9fa017aeda2607ff2",
       "size_bytes": 2874,
       "label": "diffdock/seed3/mode6 ligand",
       "derived_from": []
@@ -2392,7 +3483,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed3/mode7/ligand.sdf",
       "kind": "data",
-      "sha256": "3c4534557de463c23a979ec165a17118f696bd9a927b8a4a307db8e358719d96",
+      "sha256": "b4745bbf6c0130a4b1b519bc302be825733b4079c481863cd9c414e497cdd025",
       "size_bytes": 2874,
       "label": "diffdock/seed3/mode7 ligand",
       "derived_from": []
@@ -2408,7 +3499,7 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed3/mode8/ligand.sdf",
       "kind": "data",
-      "sha256": "8ff0502b03fea06413a4c5df945b4bbf60d6c54e1c451ec53ad85ea603760315",
+      "sha256": "55c5397b952870dcf47ea092cf425fbc0b77393ad09a1d4b4f59fd0afda9106c",
       "size_bytes": 2874,
       "label": "diffdock/seed3/mode8 ligand",
       "derived_from": []
@@ -2424,10 +3515,60 @@
     {
       "path": "predictions/01_diffdock/diffdock/seed3/mode9/ligand.sdf",
       "kind": "data",
-      "sha256": "db32068d529056a5f575d68e77a2ab7db976c6e00a36de4a41676e212ee111c4",
+      "sha256": "25d0f02561013768adde45d6e77b424811c8e63b756108ca430f6561006435ed",
       "size_bytes": 2874,
       "label": "diffdock/seed3/mode9 ligand",
       "derived_from": []
+    },
+    {
+      "path": "artifacts/sources/3ZLS.cif",
+      "kind": "source_structure",
+      "sha256": "ae30cf1ed7b4035f15a89ef073b302dde250349568c2e7aafe8feedf1fbf1ed1",
+      "size_bytes": 315218,
+      "label": "3ZLS mmCIF",
+      "derived_from": [
+        "rcsb_files:3ZLS:ae30cf1ed7b4"
+      ]
+    },
+    {
+      "path": "artifacts/sources/3ZLX.cif",
+      "kind": "source_structure",
+      "sha256": "1334dfc31103f3e6b0649ad7b3da707845e58b20bc6d7476b5745470c3435deb",
+      "size_bytes": 313366,
+      "label": "3ZLX mmCIF",
+      "derived_from": [
+        "rcsb_files:3ZLX:1334dfc31103"
+      ]
+    },
+    {
+      "path": "artifacts/sources/3ZM4.cif",
+      "kind": "source_structure",
+      "sha256": "eccb79a35cb7a9f22d341afa7a6adccb1cfca80e5b619b3846bfa7a867c8c916",
+      "size_bytes": 321513,
+      "label": "3ZM4 mmCIF",
+      "derived_from": [
+        "rcsb_files:3ZM4:eccb79a35cb7"
+      ]
+    },
+    {
+      "path": "artifacts/sources/5BX0.cif",
+      "kind": "source_structure",
+      "sha256": "7ef25dd3b72e153ed3a5b358d87b3119cabeabb34cfeda76701473c0d9918cee",
+      "size_bytes": 312068,
+      "label": "5BX0 mmCIF",
+      "derived_from": [
+        "rcsb_files:5BX0:7ef25dd3b72e"
+      ]
+    },
+    {
+      "path": "artifacts/sources/3ZLY.cif",
+      "kind": "source_structure",
+      "sha256": "e858c796adc5339d7facf5b2dc33ac5a76f377aaba4e56a3ae889b5c64b7a80b",
+      "size_bytes": 310846,
+      "label": "3ZLY mmCIF",
+      "derived_from": [
+        "rcsb_files:3ZLY:e858c796adc5"
+      ]
     }
   ],
   "usage": {
@@ -2448,21 +3589,22 @@
       "rcsb:7XLP:66dacec771f9"
     ],
     "l3.exposure.pocket": [
-      "rcsb_files:7XLP:48ffbc34e5fd"
-    ],
-    "l3.exposure.ligand_prevalence": [
+      "rcsb_files:7XLP:48ffbc34e5fd",
       "rcsb_search:chem:Cc1ccnc(n1)Oc2ccc(c(c2)Cl)c3cc4c(c(n[nH]4)C)c(c3)O[C@H]5CCC[C@H](C5)N:b46bdf444038",
       "ccd:FZC:6ce219c20fef",
-      "rcsb_search:comp:FZC:2019-01-01:e3b0c44298fc"
+      "rcsb_search:comp:FZC:2019-01-01:e3b0c44298fc",
+      "rcsb_search:seq0.9:2019-01-01:348:e51f7972830a",
+      "rcsb_files:3ZLS:ae30cf1ed7b4",
+      "rcsb_files:3ZLX:1334dfc31103",
+      "rcsb_files:3ZM4:eccb79a35cb7",
+      "rcsb_files:5BX0:7ef25dd3b72e",
+      "rcsb_files:3ZLY:e858c796adc5"
     ],
     "l3.exposure.sequence": [
       "rcsb_search:seq0.95:2019-01-01:348:1d2d688f2f0a",
       "rcsb_search:seq0.4:2019-01-01:348:baa9d256b8ae"
     ],
     "l3.regime.modality": [
-      "rcsb_files:7XLP:48ffbc34e5fd"
-    ],
-    "l4.posebusters": [
       "rcsb_files:7XLP:48ffbc34e5fd"
     ],
     "l4.interactions.fingerprint": [
@@ -2484,25 +3626,16 @@
     "outcome": "stop",
     "stops": [
       "l2.context.cofactors",
-      "l4.posebusters",
       "l5.controls.redocking"
     ],
     "warnings": [
       "l2.receptor.protonation",
       "l2.ligand.protonation",
       "l2.docking.box",
+      "l4.interactions.unsatisfied_polars",
       "l5.sampling.seeds"
     ],
-    "incomplete": [
-      "l3.exposure.pocket",
-      "l4.torsion_strain",
-      "l4.interactions.unsatisfied_polars",
-      "l4.interactions.hydrophobic",
-      "l4.minimisation_drift",
-      "l5.confidence.local",
-      "l5.sampling.clusters",
-      "l5.agreement.cross_family"
-    ],
+    "incomplete": [],
     "not_applicable": [
       "l2.msa.depth"
     ]

@@ -1,14 +1,247 @@
 {
   "check_id": "l4.interactions.unsatisfied_polars",
   "layer": 4,
-  "gate": "skip",
-  "message": "OutputUnavailableError: cannot read ligand of boltz2/seed1/sample0: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_wt_boltz2/run/predictions/00_boltz2/boltz2/seed1/sample0/ligand.sdf",
-  "measurements": [],
-  "thresholds": [],
+  "gate": "warn",
+  "message": "4 of 7 buried polar ligand atoms without a partner in boltz2/seed2/sample0",
+  "measurements": [
+    {
+      "name": "poses",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "unsatisfied",
+      "value": 4,
+      "unit": null
+    },
+    {
+      "name": "buried_charged",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "buried_polar",
+      "value": 7,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "relative_sasa",
+      "value": 0.1,
+      "comparator": "<",
+      "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    },
+    {
+      "name": "hbond_distance",
+      "value": 3.5,
+      "comparator": "<=",
+      "origin": "PLIP hydrogen bond distance cut-off (donor-acceptor 4.1 Å; harness uses 3.5 Å heavy-atom distance)",
+      "evidence_level": "published"
+    }
+  ],
   "evidence": {
-    "skip_reason": "error"
+    "representative": "boltz2/seed2/sample0",
+    "poses": [
+      {
+        "pose": "boltz2/seed1/sample0",
+        "buried_polar": 7,
+        "unsatisfied": 4,
+        "buried_charged": 0,
+        "atoms": [
+          {
+            "atom": 4,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.076,
+            "nearest_polar_A": 3.67,
+            "satisfied": false
+          },
+          {
+            "atom": 6,
+            "element": "O",
+            "charge": 0,
+            "relative_sasa": 0.0,
+            "nearest_polar_A": 4.09,
+            "satisfied": false
+          },
+          {
+            "atom": 14,
+            "element": "O",
+            "charge": 0,
+            "relative_sasa": 0.006,
+            "nearest_polar_A": 5.37,
+            "satisfied": false
+          },
+          {
+            "atom": 20,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.045,
+            "nearest_polar_A": 2.5,
+            "satisfied": true
+          },
+          {
+            "atom": 25,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.0,
+            "nearest_polar_A": 2.96,
+            "satisfied": true
+          },
+          {
+            "atom": 26,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.0,
+            "nearest_polar_A": 2.82,
+            "satisfied": true
+          },
+          {
+            "atom": 32,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.0,
+            "nearest_polar_A": 3.72,
+            "satisfied": false
+          }
+        ]
+      },
+      {
+        "pose": "boltz2/seed2/sample0",
+        "buried_polar": 7,
+        "unsatisfied": 4,
+        "buried_charged": 0,
+        "atoms": [
+          {
+            "atom": 4,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.082,
+            "nearest_polar_A": 3.65,
+            "satisfied": false
+          },
+          {
+            "atom": 6,
+            "element": "O",
+            "charge": 0,
+            "relative_sasa": 0.0,
+            "nearest_polar_A": 4.1,
+            "satisfied": false
+          },
+          {
+            "atom": 14,
+            "element": "O",
+            "charge": 0,
+            "relative_sasa": 0.0,
+            "nearest_polar_A": 5.37,
+            "satisfied": false
+          },
+          {
+            "atom": 20,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.029,
+            "nearest_polar_A": 2.53,
+            "satisfied": true
+          },
+          {
+            "atom": 25,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.0,
+            "nearest_polar_A": 2.94,
+            "satisfied": true
+          },
+          {
+            "atom": 26,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.0,
+            "nearest_polar_A": 2.8,
+            "satisfied": true
+          },
+          {
+            "atom": 32,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.0,
+            "nearest_polar_A": 3.66,
+            "satisfied": false
+          }
+        ]
+      },
+      {
+        "pose": "boltz2/seed3/sample0",
+        "buried_polar": 7,
+        "unsatisfied": 4,
+        "buried_charged": 0,
+        "atoms": [
+          {
+            "atom": 4,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.077,
+            "nearest_polar_A": 3.75,
+            "satisfied": false
+          },
+          {
+            "atom": 6,
+            "element": "O",
+            "charge": 0,
+            "relative_sasa": 0.0,
+            "nearest_polar_A": 4.12,
+            "satisfied": false
+          },
+          {
+            "atom": 14,
+            "element": "O",
+            "charge": 0,
+            "relative_sasa": 0.0,
+            "nearest_polar_A": 5.39,
+            "satisfied": false
+          },
+          {
+            "atom": 20,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.042,
+            "nearest_polar_A": 2.61,
+            "satisfied": true
+          },
+          {
+            "atom": 25,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.0,
+            "nearest_polar_A": 2.96,
+            "satisfied": true
+          },
+          {
+            "atom": 26,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.0,
+            "nearest_polar_A": 2.76,
+            "satisfied": true
+          },
+          {
+            "atom": 32,
+            "element": "N",
+            "charge": 0,
+            "relative_sasa": 0.0,
+            "nearest_polar_A": 3.73,
+            "satisfied": false
+          }
+        ]
+      }
+    ]
   },
   "artifacts": [],
-  "tool": null,
-  "duration_s": 0.001
+  "tool": {
+    "name": "freesasa",
+    "version": "2.2.1"
+  },
+  "duration_s": 0.299
 }

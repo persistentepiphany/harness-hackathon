@@ -1,14 +1,81 @@
 {
   "check_id": "l4.minimisation_drift",
   "layer": 4,
-  "gate": "skip",
-  "message": "OutputUnavailableError: minimisation failed for every pose:     AddHs(RDKit::ROMol mol, RDKit::MolOps::AddHsParameters params, boost::python::api::object onlyOnAtoms=None);     AddHs(RDKit::ROMol mol, RDKit::MolOps::AddHsParameters params, boost::python::api::object onlyOnAtoms=None);     AddHs(RDKit::ROMol mol, RDKit::MolOps::AddHsParameters params, boost::python::api::object onlyOnAtoms=None)",
-  "measurements": [],
-  "thresholds": [],
+  "gate": "pass",
+  "message": "diffdock/seed1/mode0 moves 0.764 Å under restrained minimisation; 0 of 3 poses above 2.0 Å",
+  "measurements": [
+    {
+      "name": "poses",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "drift_A",
+      "value": 0.764,
+      "unit": null
+    },
+    {
+      "name": "max_drift_A",
+      "value": 1.81,
+      "unit": null
+    },
+    {
+      "name": "poses_over",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "failed",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "drift",
+      "value": 2.0,
+      "comparator": "<=",
+      "origin": "Specification layer 4: warn when the pose moves beyond 2 Å under restrained minimisation",
+      "evidence_level": "published"
+    }
+  ],
   "evidence": {
-    "skip_reason": "error"
+    "representative": "diffdock/seed1/mode0",
+    "poses": [
+      {
+        "pose": "diffdock/seed1/mode0",
+        "drift_A": 0.764,
+        "energy_before_kJ": 4140406.7,
+        "energy_after_kJ": 10643.6,
+        "converged": true,
+        "openmm": "8.6.1",
+        "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
+      },
+      {
+        "pose": "diffdock/seed2/mode0",
+        "drift_A": 0.88,
+        "energy_before_kJ": 17815847.4,
+        "energy_after_kJ": 9082.0,
+        "converged": true,
+        "openmm": "8.6.1",
+        "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
+      },
+      {
+        "pose": "diffdock/seed3/mode0",
+        "drift_A": 1.81,
+        "energy_before_kJ": 6938532.5,
+        "energy_after_kJ": 10043.1,
+        "converged": true,
+        "openmm": "8.6.1",
+        "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
+      }
+    ],
+    "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
   },
   "artifacts": [],
-  "tool": null,
-  "duration_s": 15.321
+  "tool": {
+    "name": "openmm",
+    "version": "8.6.1"
+  },
+  "duration_s": 219.793
 }

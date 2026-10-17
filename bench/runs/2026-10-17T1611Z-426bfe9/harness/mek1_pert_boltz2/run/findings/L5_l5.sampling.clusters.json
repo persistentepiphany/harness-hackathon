@@ -1,14 +1,132 @@
 {
   "check_id": "l5.sampling.clusters",
   "layer": 5,
-  "gate": "skip",
-  "message": "OutputUnavailableError: cannot read ligand of boltz2/seed1/sample0: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_pert_boltz2/run/predictions/00_boltz2/boltz2/seed1/sample0/ligand.sdf",
-  "measurements": [],
-  "thresholds": [],
+  "gate": "pass",
+  "message": "medoid boltz2/seed2/sample0; 1 clusters, largest 3 of 3; pairwise RMSD median 0.33 Å (IQR 0.33 to 0.35); 3 of 3 poses within 4.0 Å of the site (FZC in 7XLP); 3 of 3 poses within 2.0 Å of the medoid",
+  "measurements": [
+    {
+      "name": "poses",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "clusters",
+      "value": 1,
+      "unit": null
+    },
+    {
+      "name": "largest_cluster",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "pairwise_rmsd_median_A",
+      "value": 0.335,
+      "unit": null
+    },
+    {
+      "name": "within_medoid",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "in_site",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "best_sampled_rmsd_to_reference_A",
+      "value": 3.012,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "cluster_rmsd",
+      "value": 2.0,
+      "comparator": "<=",
+      "origin": "Specification layer 5: 2 Å symmetry-aware ligand RMSD (spyrmsd) separates pose clusters",
+      "evidence_level": "published"
+    },
+    {
+      "name": "site_distance",
+      "value": 4.0,
+      "comparator": "<=",
+      "origin": "Harness rule: a ligand centroid within 4 Å of the reference site centroid is placed in the site; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    },
+    {
+      "name": "largest_fraction",
+      "value": 0.5,
+      "comparator": ">=",
+      "origin": "Harness rule: the largest cluster holds at least half of the poses; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    }
+  ],
   "evidence": {
-    "skip_reason": "error"
+    "poses": [
+      {
+        "pose": "boltz2/seed1/sample0",
+        "executor": "boltz2",
+        "seed": 1,
+        "sample": 0,
+        "cluster": 1,
+        "rmsd_to_medoid_A": 0.335,
+        "confidence": 0.918,
+        "site_distance_A": 1.75
+      },
+      {
+        "pose": "boltz2/seed2/sample0",
+        "executor": "boltz2",
+        "seed": 2,
+        "sample": 0,
+        "cluster": 1,
+        "rmsd_to_medoid_A": 0.0,
+        "confidence": 0.92,
+        "site_distance_A": 1.73
+      },
+      {
+        "pose": "boltz2/seed3/sample0",
+        "executor": "boltz2",
+        "seed": 3,
+        "sample": 0,
+        "cluster": 1,
+        "rmsd_to_medoid_A": 0.331,
+        "confidence": 0.915,
+        "site_distance_A": 1.63
+      }
+    ],
+    "medoid": "boltz2/seed2/sample0",
+    "frame": "7XLP.cif",
+    "clusters": [
+      {
+        "id": 1,
+        "size": 3,
+        "medoid": "boltz2/seed2/sample0"
+      }
+    ],
+    "pairwise_rmsd_A": {
+      "median": 0.335,
+      "q1": 0.333,
+      "q3": 0.355,
+      "n": 3
+    },
+    "site_placement": "3 of 3 poses within 4.0 Å of the site (FZC in 7XLP)",
+    "pose_accuracy": "3 of 3 poses within 2.0 Å of the medoid",
+    "sampling": {
+      "best_sampled_rmsd_to_reference_A": 3.012,
+      "pose": "boltz2/seed1/sample0"
+    },
+    "frame_ca_rmsd_A": {
+      "boltz2/seed1/sample0": 1.304,
+      "boltz2/seed2/sample0": 1.426,
+      "boltz2/seed3/sample0": 1.452
+    }
   },
   "artifacts": [],
-  "tool": null,
-  "duration_s": 0.001
+  "tool": {
+    "name": "spyrmsd",
+    "version": "0.9.0"
+  },
+  "duration_s": 0.084
 }

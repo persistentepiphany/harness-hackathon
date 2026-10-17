@@ -186,6 +186,7 @@ def main() -> None:
     ap.add_argument("--model", default=None)
     ap.add_argument("--repeats", type=int, default=None)
     ap.add_argument("--order-seed", type=int, default=20261017)
+    ap.add_argument("--workers", type=int, default=4, help="concurrent calls")
     args = ap.parse_args()
     cfg = run_config(REPO / "bench" / "runs" / args.run_id)["agent"]
     model = args.model or cfg["model"]
@@ -196,44 +197,59 @@ def main() -> None:
     random.Random(args.order_seed).shuffle(jobs)
     (run / "agent").mkdir(parents=True, exist_ok=True)
     (run / "results").mkdir(parents=True, exist_ok=True)
-    rows = []
-    with httpx.Client(timeout=180) as client, (run / "agent" / "calls.jsonl").open("w") as log:
-        for i, (name, arm, rep) in enumerate(jobs):
-            f = facts[name]
-            user = prompt(arm, f)
-            res = call(client, cfg["base_url"], model, user)
-            entry = {
-                "i": i,
-                "name": name,
-                "system": f["system"],
-                "executor": f["executor"],
-                "arm": arm,
-                "repeat": rep,
-                **res,
-            }
-            row = {
-                "system": f["system"],
-                "executor": f["executor"],
-                "arm": arm,
-                "repeat": rep,
-                "verdict": "",
-                "confidence": "",
-                "reason": "",
-                "error": "",
-            }
-            try:
-                content = res["response"]["choices"][0]["message"]["content"]
-                row.update(parse(content))
-            except Exception as exc:  # recorded per call; the run continues
-                row["error"] = res.get("error") or f"{type(exc).__name__}: {exc}"
-            entry["parsed"] = row
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+
+    rows: list[dict[str, Any]] = []
+    lock = threading.Lock()
+    done = [0]
+
+    def one(client: httpx.Client, log: Any, i: int, name: str, arm: str, rep: int) -> None:
+        f = facts[name]
+        res = call(client, cfg["base_url"], model, prompt(arm, f))
+        entry = {
+            "i": i,
+            "name": name,
+            "system": f["system"],
+            "executor": f["executor"],
+            "arm": arm,
+            "repeat": rep,
+            **res,
+        }
+        row = {
+            "system": f["system"],
+            "executor": f["executor"],
+            "arm": arm,
+            "repeat": rep,
+            "verdict": "",
+            "confidence": "",
+            "reason": "",
+            "error": "",
+        }
+        try:
+            row.update(parse(res["response"]["choices"][0]["message"]["content"]))
+        except Exception as exc:  # recorded per call; the run continues
+            row["error"] = res.get("error") or f"{type(exc).__name__}: {exc}"
+        entry["parsed"] = row
+        with lock:
             log.write(json.dumps(entry) + "\n")
             log.flush()
             rows.append(row)
+            done[0] += 1
             print(
-                f"{i + 1}/{len(jobs)} {name} arm {arm} r{rep}: {row['verdict'] or row['error']}",
+                f"{done[0]}/{len(jobs)} {name} arm {arm} r{rep}: {row['verdict'] or row['error']}",
                 flush=True,
             )
+
+    # Calls are submitted in the shuffled order; with several workers they complete out of order,
+    # and each log entry keeps its submission index `i`.
+    with (
+        httpx.Client(timeout=300) as client,
+        (run / "agent" / "calls.jsonl").open("w") as log,
+        ThreadPoolExecutor(max_workers=args.workers) as pool,
+    ):
+        for fut in [pool.submit(one, client, log, i, *job) for i, job in enumerate(jobs)]:
+            fut.result()
     with (run / "results" / "decisions.csv").open("w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=list(rows[0]))
         w.writeheader()
@@ -246,6 +262,7 @@ def main() -> None:
                 "temperature": 0,
                 "repeats": repeats,
                 "order_seed": args.order_seed,
+                "workers": args.workers,
                 "calls": len(jobs),
                 "system_prompt": SYSTEM_PROMPT,
             },

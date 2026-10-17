@@ -1,14 +1,93 @@
 {
   "check_id": "l3.exposure.pocket",
   "layer": 3,
-  "gate": "skip",
-  "message": "OutputUnavailableError: cannot read ligand of diffdock/seed1/mode0: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_pert_diffdock/run/predictions/00_diffdock/diffdock/seed1/mode0/ligand.sdf",
-  "measurements": [],
-  "thresholds": [],
+  "gate": "pass",
+  "message": "max similarity 18.2 to 3ZLY (YSO, SuCOS 0.575, coverage 0.316), released before 2019-01-01",
+  "measurements": [
+    {
+      "name": "cutoff",
+      "value": "2019-01-01",
+      "unit": null
+    },
+    {
+      "name": "entries_compared",
+      "value": 5,
+      "unit": null
+    },
+    {
+      "name": "max_similarity",
+      "value": 18.2,
+      "unit": null
+    },
+    {
+      "name": "pocket_residues",
+      "value": 38,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "similarity",
+      "value": 50,
+      "comparator": "<=",
+      "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
+      "evidence_level": "published"
+    },
+    {
+      "name": "entries",
+      "value": 5,
+      "comparator": "<=",
+      "origin": "Harness budget: pre-cutoff holo entries compared per run",
+      "evidence_level": "uncalibrated"
+    }
+  ],
   "evidence": {
-    "skip_reason": "error"
+    "query": "diffdock/seed3/mode0",
+    "model": "diffdock",
+    "entries": [
+      {
+        "entry": "3ZLS",
+        "ligand": "92P",
+        "sucos": 0.482,
+        "coverage": 0.263,
+        "similarity": 12.7,
+        "ca_rmsd": 0.41
+      },
+      {
+        "entry": "3ZLX",
+        "ligand": "5EZ",
+        "sucos": 0.379,
+        "coverage": 0.368,
+        "similarity": 13.9,
+        "ca_rmsd": 0.42
+      },
+      {
+        "entry": "3ZM4",
+        "ligand": "22T",
+        "sucos": 0.44,
+        "coverage": 0.368,
+        "similarity": 16.2,
+        "ca_rmsd": 0.56
+      },
+      {
+        "entry": "5BX0",
+        "ligand": "4W5",
+        "sucos": 0.406,
+        "coverage": 0.342,
+        "similarity": 13.9,
+        "ca_rmsd": 0.56
+      },
+      {
+        "entry": "3ZLY",
+        "ligand": "YSO",
+        "sucos": 0.575,
+        "coverage": 0.316,
+        "similarity": 18.2,
+        "ca_rmsd": 0.58
+      }
+    ]
   },
   "artifacts": [],
   "tool": null,
-  "duration_s": 0.179
+  "duration_s": 3.546
 }

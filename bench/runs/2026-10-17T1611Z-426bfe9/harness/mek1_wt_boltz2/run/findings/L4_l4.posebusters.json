@@ -1,8 +1,8 @@
 {
   "check_id": "l4.posebusters",
   "layer": 4,
-  "gate": "stop",
-  "message": "representative pose boltz2/seed1/sample0 fails sanitization, inchi_convertible",
+  "gate": "pass",
+  "message": "20 of 20 tests pass for boltz2/seed2/sample0; 3 of 3 poses pass all",
   "measurements": [
     {
       "name": "poses",
@@ -11,7 +11,7 @@
     },
     {
       "name": "passed",
-      "value": 18,
+      "value": 20,
       "unit": null
     },
     {
@@ -21,7 +21,7 @@
     },
     {
       "name": "poses_all_pass",
-      "value": 0,
+      "value": 3,
       "unit": null
     }
   ],
@@ -35,17 +35,17 @@
     }
   ],
   "evidence": {
-    "representative": "boltz2/seed1/sample0",
+    "representative": "boltz2/seed2/sample0",
     "tests": [
       {
         "test": "sanitization",
-        "pass": false,
-        "value": "fail"
+        "pass": true,
+        "value": "pass"
       },
       {
         "test": "inchi_convertible",
-        "pass": false,
-        "value": "fail"
+        "pass": true,
+        "value": "pass"
       },
       {
         "test": "all_atoms_connected",
@@ -90,17 +90,17 @@
       {
         "test": "internal_energy",
         "pass": true,
-        "value": "4.6 times the ensemble mean"
+        "value": "1.1 times the ensemble mean"
       },
       {
         "test": "protein-ligand_maximum_distance",
         "pass": true,
-        "value": "2.50 Å"
+        "value": "2.53 Å"
       },
       {
         "test": "minimum_distance_to_protein",
         "pass": true,
-        "value": "2.50 Å"
+        "value": "2.53 Å"
       },
       {
         "test": "minimum_distance_to_organic_cofactors",
@@ -120,7 +120,7 @@
       {
         "test": "volume_overlap_with_protein",
         "pass": true,
-        "value": "0.007"
+        "value": "0.009"
       },
       {
         "test": "volume_overlap_with_organic_cofactors",
@@ -141,30 +141,21 @@
     "poses": [
       {
         "pose": "boltz2/seed1/sample0",
-        "passed": 18,
+        "passed": 20,
         "total": 20,
-        "failed": [
-          "sanitization",
-          "inchi_convertible"
-        ]
+        "failed": []
       },
       {
         "pose": "boltz2/seed2/sample0",
-        "passed": 18,
+        "passed": 20,
         "total": 20,
-        "failed": [
-          "sanitization",
-          "inchi_convertible"
-        ]
+        "failed": []
       },
       {
         "pose": "boltz2/seed3/sample0",
-        "passed": 18,
+        "passed": 20,
         "total": 20,
-        "failed": [
-          "sanitization",
-          "inchi_convertible"
-        ]
+        "failed": []
       }
     ],
     "reference": "FZC in 7XLP"
@@ -174,5 +165,5 @@
     "name": "posebusters",
     "version": "0.6.5"
   },
-  "duration_s": 5.91
+  "duration_s": 5.513
 }
