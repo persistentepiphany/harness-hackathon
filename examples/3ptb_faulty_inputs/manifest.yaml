@@ -1,0 +1,25 @@
+# Example: the same task with deliberate input faults. Layers 0 and 1 are expected to stop.
+# Faults: truncated and substituted sequence, query-only MSA, SMILES of a different ligand
+# (benzylamine) declared against CCD BEN, missing model checkpoint.
+task: ligand_pose
+proteins:
+  - id: trypsin
+    uniprot: P00760
+    pdb_id: 3PTB
+    chain: A
+    sequence: >-
+      TCGANTVPYQVSLNSGYHFCGGSLINSQWVASAAHCYKSGIQVRLGEDNINVVEGNEQFI
+      SASKSIVHPSYNSNTLNNDIMLIKLKSAASLNSRVASISLPTSCASAATQCLISGWGNTK
+      SSGTSYPDVLKALKAPILSDSSCKSAYPGQITSNMFCAGYLEGGKDSCQGDSGGPVVCSG
+      KLQGIVSWGSGCAQKNKPGVYTKVCNYVSWIKQTIASN
+    msa: chain_A_query_only.a3m
+ligands:
+  - id: benzamidine
+    smiles: NCc1ccccc1
+    ccd: BEN
+receptor:
+  pdb_id: 3PTB
+  chains: [A, B]
+model:
+  executor: boltz2
+  version: 2.2.1
