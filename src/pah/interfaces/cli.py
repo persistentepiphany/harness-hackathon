@@ -10,7 +10,7 @@ import json
 import sys
 from enum import StrEnum
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import httpx
 import typer
@@ -179,6 +179,135 @@ def fetch(
     failed = [r for r in results if not r.usable]
     if strict and (failed or unknown or registry.errors):
         raise typer.Exit(code=1)
+
+
+def _parse_layers(text: str) -> tuple[int, ...]:
+    try:
+        layers = tuple(sorted({int(x) for x in text.split(",") if x.strip()}))
+    except ValueError as exc:
+        raise typer.BadParameter(f"layers must be integers 0-5, got {text!r}") from exc
+    if not layers or any(x < 0 or x > 5 for x in layers):
+        raise typer.BadParameter(f"layers must be integers 0-5, got {text!r}")
+    return layers
+
+
+@app.command()
+def run(
+    manifest: Annotated[Path, typer.Argument(help="Run manifest (YAML)")],
+    profile: ProfileOpt = "local",
+    layers: Annotated[str, typer.Option(help="Comma-separated layers to run")] = "0,1",
+    offline: Annotated[
+        bool | None,
+        typer.Option("--offline/--online", help="Override the profile's offline setting"),
+    ] = None,
+    refresh: Annotated[bool, typer.Option(help="Re-fetch sources even when cached")] = False,
+    halt: Annotated[
+        bool, typer.Option("--halt/--no-halt", help="Skip later layers after a stop")
+    ] = True,
+    out: Annotated[
+        Path | None, typer.Option(help="Run directory (default: <runs_dir>/<id>)")
+    ] = None,
+    fmt: FormatOpt = OutputFormat.console,
+    timeout: Annotated[float, typer.Option(help="HTTP timeout per request, seconds")] = 30.0,
+    strict: Annotated[
+        bool, typer.Option(help="Exit 1 unless the verdict is pass or pass_with_warnings")
+    ] = False,
+) -> None:
+    """Run a task's checks on a manifest, streaming each finding as it is produced."""
+    import pah.checks  # noqa: F401 - registers the check library
+    from pah.core.check import CheckContext
+    from pah.core.engine import Engine
+    from pah.core.manifest import load_manifest
+    from pah.core.policy import Outcome
+    from pah.core.task import load_task
+    from pah.sources import CachedHttp, ContentCache, Sources
+
+    prof = _profile(profile, fmt)
+    selected = _parse_layers(layers)
+    try:
+        man = load_manifest(manifest)
+        task = load_task(man.task)
+    except (OSError, ValueError, ValidationError) as exc:
+        raise _fail(f"{manifest}: {exc}", fmt) from exc
+    run_id = new_run_id(task.id)
+    run_dir = out or (resolve_path(prof.runs_dir) / run_id)
+    is_offline = prof.offline if offline is None else offline
+    cache = ContentCache(resolve_path(prof.cache_dir))
+    with (
+        httpx.Client(follow_redirects=True, timeout=timeout) as client,
+        _bus(run_id, fmt, run_dir / "events.jsonl") as bus,
+    ):
+        sources = Sources(CachedHttp(client, cache, offline=is_offline, refresh=refresh))
+        ctx = CheckContext(man, task, sources, run_dir)
+        bus.emit(
+            EventKind.LOG,
+            "run",
+            f"manifest={manifest} profile={prof.name} offline={is_offline} cache={cache.root}",
+        )
+        record = Engine(bus, ctx, halt_on_stop=halt).run(selected)
+        for name in ("record.json", "provenance.json", "events.jsonl"):
+            bus.emit(EventKind.ARTIFACT, "run", str(run_dir / name), path=str(run_dir / name))
+    ok = {Outcome.PASS, Outcome.PASS_WITH_WARNINGS}
+    if strict and (record.verdict is None or record.verdict.outcome not in ok):
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def tasks(fmt: FormatOpt = OutputFormat.console) -> None:
+    """List task specifications and how many of their checks are implemented."""
+    import pah.checks  # noqa: F401
+    from pah.core.check import CHECKS
+    from pah.core.task import list_tasks, load_task
+
+    rows: list[dict[str, Any]] = []
+    for tid in list_tasks():
+        spec = load_task(tid)
+        ids = [c for layer in spec.layers.values() for c in layer]
+        rows.append(
+            {
+                "id": tid,
+                "status": spec.status,
+                "families": list(spec.families),
+                "claim": spec.claim,
+                "checks": len(ids),
+                "implemented": sum(c in CHECKS for c in ids),
+            }
+        )
+    if fmt is OutputFormat.jsonl:
+        for r in rows:
+            sys.stdout.write(json.dumps(r) + "\n")
+        return
+    for r in rows:
+        typer.echo(
+            f"{r['id']:<30} {r['status']:<12} {','.join(r['families']):<18} "
+            f"{r['implemented']}/{r['checks']} checks  {r['claim']}"
+        )
+
+
+@app.command()
+def checks(fmt: FormatOpt = OutputFormat.console) -> None:
+    """List registered checks by layer."""
+    import pah.checks  # noqa: F401
+    from pah.core.check import CHECKS
+
+    rows = sorted(
+        (
+            {
+                "id": c.id,
+                "layer": int(c.layer),
+                "title": c.title,
+                "requires": list(c.requires_modules),
+            }
+            for c in CHECKS.values()
+        ),
+        key=lambda r: (r["layer"], r["id"]),
+    )
+    if fmt is OutputFormat.jsonl:
+        for r in rows:
+            sys.stdout.write(json.dumps(r) + "\n")
+        return
+    for r in rows:
+        typer.echo(f"L{r['layer']}  {r['id']:<42} {r['title']}")
 
 
 if __name__ == "__main__":
