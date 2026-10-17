@@ -62,7 +62,7 @@ def test_run_streams_progress_and_returns_verdict(offline_profile: Profile) -> N
     assert len(progress) == 13 and progress[-1][1] == 13
 
     report = _call(server, "pah_get_report", {"run_id": summary["run_id"]})
-    assert "## Summary" in report.content[0].text
+    assert "## Layers" in report.content[0].text
 
     stops = _payload(
         _call(server, "pah_get_findings", {"run_id": summary["run_id"], "gate": "warn"})

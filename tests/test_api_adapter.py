@@ -80,7 +80,7 @@ def test_synthetic_stats_pass_through(synthetic: Path) -> None:
         "pose": POSES[1],
         "pbPassed": 19,
         "pbTotal": 20,
-        "pbFailed": ["volume_overlap"],
+        "pbFailed": ["volume_overlap_with_protein"],
         "torsions": 1,
         "torsionsTotal": 7,
         "drift": 0.62,

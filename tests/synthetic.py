@@ -45,9 +45,19 @@ EVIDENCE: dict[str, dict[str, Any]] = {
         ],
         "poses": [
             {"pose": POSES[0], "passed": 20, "total": 20, "failed": []},
-            {"pose": POSES[1], "passed": 19, "total": 20, "failed": ["volume_overlap"]},
+            {
+                "pose": POSES[1],
+                "passed": 19,
+                "total": 20,
+                "failed": ["volume_overlap_with_protein"],
+            },
             {"pose": POSES[2], "passed": 20, "total": 20, "failed": []},
-            {"pose": POSES[3], "passed": 18, "total": 20, "failed": ["a", "b"]},
+            {
+                "pose": POSES[3],
+                "passed": 18,
+                "total": 20,
+                "failed": ["volume_overlap_with_protein", "bond_lengths"],
+            },
         ],
         "unknown_key": 1,
     },

@@ -22,11 +22,20 @@ def test_run_report_files_and_content(clean_run: Path) -> None:
         emit=lambda p, k, _label: emitted.append((p.name, k.value)),
     )
     assert issues == []
-    for name in ("report.md", "report.json", "graph.json", "graph.mmd", "graph.svg"):
+    for name in (
+        "report.md",
+        "report.html",
+        "report.json",
+        "ui_record.json",
+        "graph.json",
+        "graph.mmd",
+        "graph.svg",
+    ):
         assert (clean_run / name).is_file(), name
     assert (clean_run / "figures" / "gates_by_layer.svg").is_file()
     assert (clean_run / "figures" / "gates_by_layer.csv").read_text().startswith("layer,pass")
     assert ("report.md", "report") in emitted and ("3PTB_overview.png", "render") in emitted
+    assert ("report.html", "report") in emitted and ("ui_record.json", "report") in emitted
 
     record = RunRecord.model_validate_json((clean_run / "record.json").read_text())
     in_report = {f.check_id for s in report.sections for f in s.findings}
@@ -41,17 +50,22 @@ def test_run_report_files_and_content(clean_run: Path) -> None:
 
     md = (clean_run / "report.md").read_text()
     for heading in (
-        "## Summary",
-        "## Inputs",
-        "## Results by layer",
+        "# Run report · Ligand pose in a known pocket",
+        "## Layers",
         "## Figures",
+        "## Structures",
+        "## L0 Provenance",
+        "## L1 Input integrity",
+        "#### Checks",
         "## Provenance",
+        "## Thresholds",
         "## Limitations",
         "## Files",
-        "### Thresholds",
     ):
         assert heading in md, heading
+    assert "**Narrowed** for the claim" in md
     assert "l1.ligand.stereo_defined" in md and "P00760" in md
+    assert "`undefined 1 == 0`" in md and "| L3 Applicability | not run |" in md
 
 
 def test_report_is_deterministic_apart_from_files(clean_run: Path) -> None:
