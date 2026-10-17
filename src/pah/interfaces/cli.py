@@ -310,6 +310,23 @@ def report(
 
 
 @app.command()
+def lint(
+    files: Annotated[list[Path], typer.Argument(help="Markdown or text files to check")],
+) -> None:
+    """Check prose against the humanizer rules applied to generated reports."""
+    from pah.report.style import lint as lint_text
+
+    bad = 0
+    for path in files:
+        for issue in lint_text(path.read_text()):
+            bad += 1
+            typer.echo(f"{path}:{issue.line}: {issue.rule}: {issue.text}")
+    if bad:
+        raise typer.Exit(code=1)
+    typer.echo(f"{len(files)} files, no issues")
+
+
+@app.command()
 def schema(
     out: Annotated[Path, typer.Option(help="Directory for JSON Schema files")] = Path("schemas"),
 ) -> None:

@@ -8,9 +8,14 @@ Copied from upstream on 2026-10-17. Each folder keeps its upstream license. To u
 | `presentation-skill` | [siril9/presentation-skill](https://github.com/siril9/presentation-skill) v0.14.0 | `efd899c` | MIT |
 | `product-film` | [Rieranthony/product-film-skill](https://github.com/Rieranthony/product-film-skill) v1.1.0 | `fe11efc` | MIT |
 | `humanizer` | [blader/humanizer](https://github.com/blader/humanizer) v3.1.0 | `8c307f3` | MIT |
+| `scientific-writing` | [K-Dense-AI/claude-scientific-writer](https://github.com/K-Dense-AI/claude-scientific-writer/tree/main/skills/scientific-writing) v2.22.0 | `529b9f7` | MIT |
+| `scientific-visualization` | [k-dense-ai/scientific-agent-skills](https://github.com/k-dense-ai/scientific-agent-skills/tree/main/skills/scientific-visualization) | `a1043ef` | MIT |
+| `matplotlib` | [k-dense-ai/scientific-agent-skills](https://github.com/k-dense-ai/scientific-agent-skills/tree/main/skills/matplotlib) | `a1043ef` | MIT |
+| `markdown-mermaid-writing` | [k-dense-ai/scientific-agent-skills](https://github.com/k-dense-ai/scientific-agent-skills/tree/main/skills/markdown-mermaid-writing) | `a1043ef` | MIT |
+| `readthedocs-search-api` | [readthedocs/skills](https://github.com/readthedocs/skills/tree/main/skills/readthedocs-search-api) | `bd2414b` | MIT |
 | `playwright-cli` | [microsoft/playwright-cli](https://github.com/microsoft/playwright-cli) 0.1.22 | `b85c7a7` | Apache-2.0 |
 
-`human-pace` is ours.
+`human-pace`, `pah` and `pah-report` are ours. The five scientific skills are copies of the pinned submodules in `third_party/skills/`, so they load without `git submodule update`.
 
 ## What was copied
 
