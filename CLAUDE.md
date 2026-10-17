@@ -30,6 +30,7 @@ uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python -e ".[al
 make check                     # ruff + mypy + pytest
 .venv/bin/pah doctor           # reachability of sources, tools, weights, skills
 .venv/bin/pah doctor --profile csf3 --dry-run
+.venv/bin/pah fetch            # binaries and data from configs/externals.yaml
 ```
 
 Conda-only tools (openff-toolkit, fpocket, p2rank) live in `.tools/conda-env`, installed with
@@ -41,6 +42,7 @@ micromamba (see README). The harness finds them through `PAH_CONDA_PREFIX`.
 | --- | --- |
 | `src/pah/core/` | Models (Gate, Finding, Event, RunRecord), event bus and sinks |
 | `src/pah/doctor/` | Probes: http, git, python, binary, env; reachability report |
+| `src/pah/externals/` | `pah fetch`: per-asset installers, atomic downloads, lock file |
 | `src/pah/sources/` | Layer 0 clients behind one `SourceClient` protocol, sha256 content cache |
 | `src/pah/checks/` | Shared check library, one module per layer |
 | `src/pah/executors/` | Adapters per tool: build inputs, parse outputs, command spec |
@@ -61,6 +63,8 @@ micromamba (see README). The harness finds them through `PAH_CONDA_PREFIX`.
 - Heavy optional imports (rdkit, gemmi, pymol, posebusters) stay inside the functions that use them,
   so the core installs and runs without the `checks` extra.
 - No silent fallbacks. A failed fetch, a missing tool or a substituted tool is recorded as a finding.
+- Fail soft: one bad registry entry, probe, download or check never stops the others. Only an
+  unusable profile or output directory stops a command (exit 2).
 - Tests must not need the network. Mark live tests `@pytest.mark.network`.
 
 ## Runtime behaviour (mandatory)

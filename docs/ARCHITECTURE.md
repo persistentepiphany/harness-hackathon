@@ -55,6 +55,7 @@ a file and a YAML entry. Core modules are not edited.
 | --- | --- | --- | --- |
 | `Probe` | `pah.doctor.catalog.register(kind)` | `configs/{sources,tools,executors}.yaml` | 1 |
 | `Sink` | passed to `EventBus` | none | 1 |
+| `Installer` | `pah.externals.installers.INSTALLERS` keyed by asset kind | `configs/externals.yaml` | 1 |
 | `SourceClient` | source registry keyed by `id` | `configs/sources.yaml` | 2 |
 | `Check` | check registry keyed by `check_id` | `configs/tasks/*.yaml` | 2 |
 | `Executor` | executor registry keyed by `id` | `configs/executors.yaml`, `docs/EXECUTORS.md` | 3 |
@@ -95,3 +96,13 @@ layers 4 and 5. File layouts and field names for each tool are in `docs/EXECUTOR
 
 The content cache is keyed by sha256. With `offline: true` a cache miss is a stop finding.
 It never falls back to a fresh fetch.
+
+## Failure isolation
+
+| Unit | On failure |
+| --- | --- |
+| Registry entry (YAML row) | Becomes an `error` result for that entry; other entries load |
+| Registry file or category | One `error` result for the category; other categories run |
+| Probe | Exception caught by the runner; recorded as `error` |
+| Fetch asset | Recorded as `blocked`, `failed`, `skipped` or `manual`; next asset proceeds; no partial files |
+| Profile or output directory | Command stops with exit code 2 and a one-line message |
