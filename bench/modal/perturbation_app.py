@@ -70,7 +70,7 @@ diffdock_image = modal.Image.from_registry(DD_REF, add_python="3.11").env(
 
 weights = modal.Volume.from_name("pah-weights", create_if_missing=True)
 results = modal.Volume.from_name("pah-bench-results", create_if_missing=True)
-CHUNK = 1 << 20  # results come back in pieces small enough to travel inline over the API
+CHUNK = 1 << 18  # results come back in pieces small enough to travel inline over the API
 app = modal.App("pah-perturbation-bench")
 
 
@@ -100,6 +100,16 @@ def _tar(root: Path, name: str) -> dict[str, Any]:
     dest.write_bytes(data)
     results.commit()
     return {"path": str(dest), "bytes": len(data)}
+
+
+def _finish(meta: dict[str, Any], work: Path) -> dict[str, Any]:
+    """Writes the tarball and the job metadata to the results volume. The local side reads both
+    from the volume, so a lost return value loses nothing."""
+    name = f"{meta['system']}_{meta['executor']}"
+    meta["tar"] = _tar(work, name)
+    Path(f"/results/{name}.json").write_text(json.dumps(meta, indent=2))
+    results.commit()
+    return {"system": meta["system"], "executor": meta["executor"], "tar": meta["tar"]}
 
 
 def _env() -> dict[str, str]:
@@ -163,15 +173,15 @@ def boltz_predict(system: str, yaml_text: str, seeds: list[int]) -> dict[str, An
             found = sorted(out.glob("boltz_results_*/msa/*.csv"))
             msa = found[0] if found else None
         (work / f"seed_{seed}" / "input.yaml").write_text(inp.read_text())
-    return {
+    meta = {
         "system": system,
         "executor": "boltz2",
         "version": BENCH_ENV.get("BENCH_BOLTZ_VERSION"),
         "runs": runs,
         "gpu": _gpu(),
         "env": _env(),
-        "tar": _tar(work, f"{system}_boltz2"),
     }
+    return _finish(meta, work)
 
 
 @app.function(
@@ -212,7 +222,7 @@ def diffdock_predict(
         ]
         runs.append({"replicate": rep, **_run(argv, cwd=DD_DIR)})
         weights.commit()
-    return {
+    meta = {
         "system": system,
         "executor": "diffdock",
         "version": BENCH_ENV.get("BENCH_DD_VERSION"),
@@ -220,8 +230,8 @@ def diffdock_predict(
         "runs": runs,
         "gpu": _gpu(),
         "env": _env(),
-        "tar": _tar(work, f"{system}_diffdock"),
     }
+    return _finish(meta, work)
 
 
 @app.function(image=diffdock_image, gpu=GPU, timeout=900, volumes={"/weights": weights})
@@ -263,6 +273,70 @@ def _download(info: dict[str, Any]) -> bytes:
     return data
 
 
+def fetch(run: Path, systems: list[str], executors: str) -> list[dict[str, Any]]:
+    """Downloads each job's metadata and tarball from the results volume and unpacks it."""
+    record: list[dict[str, Any]] = []
+    for system in systems:
+        for executor in executors.split(","):
+            name = f"{system}_{executor}"
+            try:
+                try:
+                    meta = json.loads(_download_path(f"/results/{name}.json"))
+                except Exception:  # jobs from before metadata was written to the volume
+                    path = f"/results/{name}.tar.gz"
+                    meta = {
+                        "system": system,
+                        "executor": executor,
+                        "runs": [],
+                        "tar": {"path": path, "bytes": file_size.remote(path)},
+                        "note": "job metadata not on the volume; commands and exit codes "
+                        "are in the launcher log",
+                    }
+                data = _download(meta["tar"])
+            except Exception as exc:  # one missing job never loses the others
+                record.append(
+                    {
+                        "system": system,
+                        "executor": executor,
+                        "error": f"{type(exc).__name__}: {exc}",
+                    }
+                )
+                print("failed:", name, exc, flush=True)
+                continue
+            dest = run / "predictions" / system / executor
+            dest.mkdir(parents=True, exist_ok=True)
+            with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as tf:
+                tf.extractall(dest, filter="data")
+            (dest / "modal.json").write_text(json.dumps(meta, indent=2))
+            rcs = [r["rc"] for r in meta["runs"]]
+            record.append(
+                {k: v for k, v in meta.items() if k != "runs"}
+                | {"rc": rcs, "seconds": [r["seconds"] for r in meta["runs"]]}
+            )
+            print("done", system, executor, rcs, flush=True)
+    return record
+
+
+@app.function(timeout=600, volumes={"/results": results})
+def file_size(path: str) -> int:
+    results.reload()
+    return Path(path).stat().st_size
+
+
+def _download_path(path: str) -> bytes:
+    return _download({"path": path, "bytes": file_size.remote(path)})
+
+
+@app.local_entrypoint()
+def fetch_all(run_id: str, executors: str = "boltz2,diffdock") -> None:
+    run = REPO / "bench" / "runs" / run_id
+    systems = sorted(p.parent.name for p in (run / "prep").glob("*/boltz.yaml"))
+    record = fetch(run, systems, executors)
+    (run / "predictions" / f"fetch_{executors.replace(',', '_')}.json").write_text(
+        json.dumps(record, indent=2)
+    )
+
+
 @app.local_entrypoint()
 def probe() -> None:
     for fn in (probe_boltz, probe_diffdock):
@@ -296,26 +370,12 @@ def predict_all(run_id: str, only: str = "", executors: str = "boltz2,diffdock")
                     int(cfg["diffdock_samples"]),
                 )
             )
-    record: list[dict[str, Any]] = []
     for h in handles:
         try:
-            res = h.get()
-        except Exception as exc:  # one failed container never loses the others
-            record.append({"error": f"{type(exc).__name__}: {exc}"})
-            print("failed:", exc, flush=True)
-            continue
-        dest = run / "predictions" / res["system"] / res["executor"]
-        dest.mkdir(parents=True, exist_ok=True)
-        tar_info = res.pop("tar")
-        res["volume_file"] = tar_info
-        with tarfile.open(fileobj=io.BytesIO(_download(tar_info)), mode="r:gz") as tf:
-            tf.extractall(dest, filter="data")
-        (dest / "modal.json").write_text(json.dumps(res, indent=2))
-        record.append(
-            {k: v for k, v in res.items() if k != "runs"}
-            | {"rc": [r["rc"] for r in res["runs"]], "seconds": [r["seconds"] for r in res["runs"]]}
-        )
-        print("done", res["system"], res["executor"], [r["rc"] for r in res["runs"]], flush=True)
+            h.get()
+        except Exception as exc:  # the volume copy is read below either way
+            print("return value not received:", type(exc).__name__, exc, flush=True)
+    record = fetch(run, systems, executors)
     (run / "predictions").mkdir(parents=True, exist_ok=True)
     (run / "predictions" / f"modal_{executors.replace(',', '_')}.json").write_text(
         json.dumps(

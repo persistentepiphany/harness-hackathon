@@ -1,0 +1,93 @@
+{
+  "check_id": "l3.exposure.pocket",
+  "layer": 3,
+  "gate": "warn",
+  "message": "max similarity 60.1 to 1B39 (ATP, SuCOS 0.601, coverage 1.0), released before 2019-01-01",
+  "measurements": [
+    {
+      "name": "cutoff",
+      "value": "2019-01-01",
+      "unit": null
+    },
+    {
+      "name": "entries_compared",
+      "value": 5,
+      "unit": null
+    },
+    {
+      "name": "max_similarity",
+      "value": 60.1,
+      "unit": null
+    },
+    {
+      "name": "pocket_residues",
+      "value": 30,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "similarity",
+      "value": 50,
+      "comparator": "<=",
+      "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
+      "evidence_level": "published"
+    },
+    {
+      "name": "entries",
+      "value": 5,
+      "comparator": "<=",
+      "origin": "Harness budget: pre-cutoff holo entries compared per run",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "query": "diffdock/seed3/mode0",
+    "model": "diffdock",
+    "entries": [
+      {
+        "entry": "1B38",
+        "ligand": "ATP",
+        "sucos": 0.578,
+        "coverage": 0.967,
+        "similarity": 55.9,
+        "ca_rmsd": 0.0
+      },
+      {
+        "entry": "1B39",
+        "ligand": "ATP",
+        "sucos": 0.601,
+        "coverage": 1.0,
+        "similarity": 60.1,
+        "ca_rmsd": 0.34
+      },
+      {
+        "entry": "1FIN",
+        "ligand": "ATP",
+        "sucos": 0.002,
+        "coverage": 0.5,
+        "similarity": 0.1,
+        "ca_rmsd": 13.3
+      },
+      {
+        "entry": "1FQ1",
+        "ligand": "ATP",
+        "sucos": 0.371,
+        "coverage": 0.833,
+        "similarity": 30.9,
+        "ca_rmsd": 3.37
+      },
+      {
+        "entry": "1GY3",
+        "ligand": "ATP",
+        "sucos": 0.348,
+        "coverage": 0.8,
+        "similarity": 27.9,
+        "ca_rmsd": 5.88
+      }
+    ]
+  },
+  "artifacts": [],
+  "tool": null,
+  "duration_s": 1.182
+}

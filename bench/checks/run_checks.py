@@ -162,7 +162,10 @@ def main() -> None:
     ap.add_argument("--run-id", required=True)
     ap.add_argument("--no-report", action="store_true")
     ap.add_argument("--only", default="")
+    ap.add_argument("--jobs", type=int, default=1, help="parallel harness runs (subprocesses)")
     args = ap.parse_args()
+    if args.jobs > 1:
+        return _parallel(args)
     run = REPO / "bench" / "runs" / args.run_id
     cfg = yaml.safe_load((REPO / "bench/config/targets.yaml").read_text())
     seeds = list(cfg["seeds"])
@@ -206,6 +209,37 @@ def main() -> None:
                 f"{facts['key_interactions_reference']}",
                 flush=True,
             )
+
+
+def _parallel(args: argparse.Namespace) -> None:
+    """One subprocess per prediction, `--jobs` at a time; output lines are passed through."""
+    import subprocess
+    from concurrent.futures import ThreadPoolExecutor
+
+    run = REPO / "bench" / "runs" / args.run_id
+    names = [
+        f"{p.name}_{e}"
+        for p in sorted((run / "prep").iterdir())
+        if (p / "meta.json").is_file()
+        for e in EXECUTORS
+        if (run / "predictions" / p.name / e).is_dir()
+    ]
+    if args.only:
+        names = [n for n in names if n in args.only.split(",")]
+
+    def one(name: str) -> str:
+        cmd = [sys.executable, __file__, "--run-id", args.run_id, "--only", name]
+        if args.no_report:
+            cmd.append("--no-report")
+        proc = subprocess.run(cmd, capture_output=True, text=True)
+        line = (proc.stdout.strip().splitlines() or [f"{name}: no output"])[-1]
+        if proc.returncode:
+            line += f" (exit {proc.returncode}: {proc.stderr.strip().splitlines()[-1:]})"
+        print(line, flush=True)
+        return line
+
+    with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+        list(pool.map(one, names))
 
 
 if __name__ == "__main__":

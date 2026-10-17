@@ -61,10 +61,10 @@ Buried polar atoms without a hydrogen-bond partner: {buried_unsatisfied_polars}
 Hydrophobic complementarity: {hydrophobic_complementarity}
 
 Ensemble over {n_seeds} seeds:
-  pairwise RMSD spread: {ensemble_spread_A} A
+  pairwise RMSD spread: {ensemble_spread_A}
   medoid cluster holds {medoid_cluster_fraction} of samples
 
-Cross-executor agreement: {cross_tool_rmsd} A
+Cross-executor agreement: {cross_tool_rmsd}
 
 Notes:
 - Confidence scores from these models have been shown to remain high for
@@ -83,6 +83,17 @@ def _v(x: Any) -> str:
     if isinstance(x, list):
         return ", ".join(map(str, x)) if x else "none"
     return str(x)
+
+
+def _unit(x: Any, unit: str) -> str:
+    return "not computed" if x is None else f"{_v(x)} {unit}"
+
+
+def _fraction(facts: dict[str, Any]) -> str:
+    frac, n = facts.get("medoid_cluster_fraction"), facts.get("ensemble_poses")
+    if frac is None or not n:
+        return "not computed"
+    return f"{frac:.2f} ({round(frac * n)} of {n})"
 
 
 def blind_id(system: str) -> str:
@@ -118,9 +129,9 @@ def prompt(arm: str, facts: dict[str, Any]) -> str:
         buried_unsatisfied_polars=_v(facts["buried_unsatisfied_polars"]),
         hydrophobic_complementarity=_v(facts["hydrophobic_complementarity"]),
         n_seeds=_v(facts["n_seeds"]),
-        ensemble_spread_A=_v(facts["ensemble_spread_A"]),
-        medoid_cluster_fraction=_v(facts["medoid_cluster_fraction"]),
-        cross_tool_rmsd=_v(facts["cross_tool_rmsd_A"]),
+        ensemble_spread_A=_unit(facts["ensemble_spread_A"], "A"),
+        medoid_cluster_fraction=_fraction(facts),
+        cross_tool_rmsd=_unit(facts["cross_tool_rmsd_A"], "A RMSD between the executors' medoids"),
     )
 
 

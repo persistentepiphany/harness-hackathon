@@ -9,15 +9,16 @@ returns pass, warn, stop or skip with the values and thresholds behind it. The d
 
 ## Status
 
-Milestones 1 and 2 are done.
-
 | Milestone | Delivered |
 | --- | --- |
 | 1 | Package skeleton, event stream, `pah doctor` (reachability of sources, tools, weights, skills), `pah fetch` |
 | 2 | Engine, run manifest, task specifications, Layer 0 source clients with a sha256 content cache and offline mode, Layer 0 and Layer 1 checks, `pah run` |
+| 3 | Layers 2 to 5 (68 registered checks), output parsers for nine executors, `pah dock` (local Vina), reports in the web UI style, MCP server, HTTP API, executor runtimes for GPU hosts, perturbation benchmark on Modal |
 
-Layers 2 to 5, executor adapters, reports, the MCP server and the HTTP API come next
-(see [Roadmap](#roadmap)).
+Every check listed in the three implemented task specifications (`ligand_pose`,
+`interaction_discovery`, `virtual_screening`) is registered. Controls without a manifest input
+yet (known sites, non-cognate partners, scrambled designs, wild-type noise floor, DockQ
+reference, refolding, scaffold consistency) report the control as not supplied.
 
 ## Run
 
@@ -119,6 +120,39 @@ bonded to the metal, the metal bonds are disconnected, as standard InChI does, a
 sanitisation is retried. Any other valence problem still stops. The InChIKey stereo and charge
 blocks of such ligands depend on how each toolkit draws the metal bonds. So a match on the
 first block alone is a warning carrying that reason, and a different first block still stops.
+
+### Checks in layers 2 to 5
+
+Layers 4 and 5 read executor outputs declared in the manifest:
+
+```yaml
+predictions:
+  - {executor: boltz2, path: seed_0, seeds: [0]}                      # co-folding output folder
+  - {executor: vina, path: ../3ptb_vina/pose, receptor: ../3ptb_vina/pose/receptor_H.pdb}
+controls:
+  redocking: {executor: vina, path: redock, receptor: redock/receptor_H.pdb}
+reference: {pdb_id: 3PTB, ligand: BEN}
+```
+
+Each output is parsed into poses (complex structure, ligand SDF with bond orders from the
+declared SMILES, native scores, per-residue pLDDT and PAE where the tool writes them) and every
+pose structure is registered for PyMOL renders. Thresholds come from `configs/thresholds.yaml`
+and per-model confidence cut-offs and training cutoffs from `configs/models.yaml`, each with its
+origin and evidence level.
+
+| Layer | Checks | Tools |
+| --- | --- | --- |
+| 2 | MSA depth and Neff, pairing, paralog ambiguity, disorder, cofactors near the site, pocket completeness, apo or holo, receptor pKa at the stated pH, ligand protonation and tautomers, conformers, docking box, pocket detection, library properties | NumPy, UniProt, gemmi, PROPKA, Dimorphite-DL, RDKit, Meeko, fpocket |
+| 3 | Training cutoff, pocket similarity to pre-cutoff complexes (SuCOS times pocket coverage), ligand prevalence, sequence exposure, chemotype, modality and token count, endpoint | RCSB search API, RDKit, gemmi |
+| 4 | PoseBusters, torsions and strain after a 0.3 Å relaxation, PLIP fingerprint in reference numbering, interactions of the crystal ligand reproduced, buried unsatisfied polars, hydrophobic complementarity, restrained minimisation drift, clashes, chain topology, interface chemistry, MolProbity, score distribution, top hits | PoseBusters, RDKit MMFF94, PLIP, FreeSASA, OpenMM with AMBER14 and OpenFF Sage (worker in the conda environment) |
+| 5 | Pocket confidence against per-model thresholds, independent seeds and duplicates, clusters and medoid with site placement and pose accuracy reported apart, rank stability, agreement weighted by method independence, redocking, RMSD to crystal, length confound, decoys, enrichment | spyrmsd, SciPy |
+
+Results on 3PTB with real executor outputs:
+
+| Run | Verdict | Values |
+| --- | --- | --- |
+| `examples/3ptb_vina/` (Vina 1.2.7, 5 seeds, written by `pah dock`) | pass_with_warnings | PoseBusters 20/20; medoid 0.38 Å from the crystal ligand; redocking 0.42 Å; drift 0.34 Å; pairwise RMSD median 0.07 Å; warnings: imine stereo undefined, His57 and Asp189 pKa within 1 unit of pH 7.4, declared neutral benzamidine against the cation at pH 7.4 |
+| `examples/3ptb_boltz2/` (Boltz-2 2.2.1 on CPU, 1 seed) | stop | pocket pLDDT 98.6, ligand ipTM 0.962; 0.43 Å from the crystal ligand and 0.51 Å from the Vina medoid; Asp189 hydrogen bond reproduced; pocket similarity 72.9 to 3PTB and 314 pre-cutoff entries with benzamidine (training exposure); drift 2.05 Å; stop: no redocking control supplied |
 
 ### Validation on further targets
 

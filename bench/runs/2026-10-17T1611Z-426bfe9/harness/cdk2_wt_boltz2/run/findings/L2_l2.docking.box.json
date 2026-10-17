@@ -1,0 +1,67 @@
+{
+  "check_id": "l2.docking.box",
+  "layer": 2,
+  "gate": "warn",
+  "message": "no box declared; derived box encloses 22 contact residues and the ATP ligand with 2.0 Å margin",
+  "measurements": [
+    {
+      "name": "volume_A3",
+      "value": 4879.6,
+      "unit": null
+    },
+    {
+      "name": "ligand_atoms_inside_margin",
+      "value": 31,
+      "unit": null
+    },
+    {
+      "name": "ligand_atoms",
+      "value": 31,
+      "unit": null
+    },
+    {
+      "name": "contact_residues",
+      "value": 22,
+      "unit": null
+    },
+    {
+      "name": "contact_residues_outside",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "margin",
+      "value": 2.0,
+      "comparator": ">=",
+      "origin": "Harness rule: every pocket heavy atom lies at least 2 Å inside the box; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    },
+    {
+      "name": "contact_distance",
+      "value": 4.0,
+      "comparator": "<=",
+      "origin": "Harness rule: contact residues (heavy atom within 4 Å of the reference ligand) must have an atom inside the box; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "center": [
+      -1.248,
+      27.587,
+      11.585
+    ],
+    "size": [
+      15.545,
+      17.083,
+      18.375
+    ],
+    "origin": "derived from ATP (+4 Å)",
+    "derived": true,
+    "contacts_outside": []
+  },
+  "artifacts": [],
+  "tool": null,
+  "duration_s": 0.01
+}
