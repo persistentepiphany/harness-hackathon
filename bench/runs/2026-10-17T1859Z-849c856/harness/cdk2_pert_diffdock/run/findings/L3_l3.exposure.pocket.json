@@ -1,0 +1,87 @@
+{
+  "check_id": "l3.exposure.pocket",
+  "layer": 3,
+  "gate": "pass",
+  "message": "max similarity 37.1 to 1B39 (ATP, SuCOS 0.58, coverage 0.64), released before 2019-01-01",
+  "measurements": [
+    {
+      "name": "cutoff",
+      "value": "2019-01-01",
+      "unit": null
+    },
+    {
+      "name": "entries_compared",
+      "value": 5,
+      "unit": null
+    },
+    {
+      "name": "max_similarity",
+      "value": 37.1,
+      "unit": null
+    },
+    {
+      "name": "pocket_residues",
+      "value": 25,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "similarity",
+      "value": 50,
+      "comparator": "<=",
+      "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
+      "evidence_level": "published"
+    },
+    {
+      "name": "entries",
+      "value": 5,
+      "comparator": "<=",
+      "origin": "Harness budget: pre-cutoff holo entries compared per run",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "query": "diffdock/seed9/mode0",
+    "model": "diffdock",
+    "entries": [
+      {
+        "entry": "1B38",
+        "ligand": "ATP",
+        "sucos": 0.562,
+        "coverage": 0.6,
+        "similarity": 33.7,
+        "ca_rmsd": 0.0
+      },
+      {
+        "entry": "1B39",
+        "ligand": "ATP",
+        "sucos": 0.58,
+        "coverage": 0.64,
+        "similarity": 37.1,
+        "ca_rmsd": 0.34
+      },
+      {
+        "entry": "1FIN",
+        "similarity": 0.0,
+        "ligand": null
+      },
+      {
+        "entry": "1FQ1",
+        "ligand": "ATP",
+        "sucos": 0.361,
+        "coverage": 0.48,
+        "similarity": 17.3,
+        "ca_rmsd": 3.43
+      },
+      {
+        "entry": "1GY3",
+        "similarity": 0.0,
+        "ligand": null
+      }
+    ]
+  },
+  "artifacts": [],
+  "tool": null,
+  "duration_s": 0.531
+}

@@ -1,0 +1,72 @@
+{
+  "check_id": "l5.agreement.cross_family",
+  "layer": 5,
+  "gate": "pass",
+  "message": "boltz2 vs diffdock 1.994 Å (high); boltz2 vs crystal 1B38 1.823 Å (decisive); diffdock vs crystal 1B38 0.732 Å (decisive)",
+  "measurements": [
+    {
+      "name": "methods",
+      "value": 2,
+      "unit": null
+    },
+    {
+      "name": "comparisons",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "disagreeing",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "rmsd_to_crystal_A",
+      "value": 1.823,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "rmsd",
+      "value": 2.0,
+      "comparator": "<=",
+      "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 Å",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "comparisons": [
+      {
+        "method": "boltz2",
+        "vs": "diffdock",
+        "value": 1.994,
+        "unit": "Å",
+        "weight": "high"
+      },
+      {
+        "method": "boltz2",
+        "vs": "crystal 1B38",
+        "value": 1.823,
+        "unit": "Å",
+        "weight": "decisive"
+      },
+      {
+        "method": "diffdock",
+        "vs": "crystal 1B38",
+        "value": 0.732,
+        "unit": "Å",
+        "weight": "decisive"
+      }
+    ],
+    "medoids": {
+      "boltz2": "boltz2/seed8/sample0",
+      "diffdock": "diffdock/seed8/mode0"
+    }
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "spyrmsd",
+    "version": null
+  },
+  "duration_s": 0.093
+}

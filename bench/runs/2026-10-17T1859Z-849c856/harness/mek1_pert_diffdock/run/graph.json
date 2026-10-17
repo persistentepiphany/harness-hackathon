@@ -1,0 +1,1225 @@
+{
+  "nodes": [
+    {
+      "id": "verdict",
+      "kind": "verdict",
+      "label": "verdict: stop",
+      "outcome": "stop",
+      "claim": "Predicted pose of FZC in MEK1 is valid"
+    },
+    {
+      "id": "rcsb_files:7XLP:48ffbc34e5fd",
+      "kind": "source",
+      "label": "rcsb_files 7XLP",
+      "release": null,
+      "sha256": "48ffbc34e5fd126dcc382784b2335898244931b81bfec941885710ee66a1ddcb",
+      "url": "https://files.rcsb.org/download/7XLP.cif"
+    },
+    {
+      "id": "ccd:FZC:6ce219c20fef",
+      "kind": "source",
+      "label": "ccd FZC",
+      "release": "2023-02-24",
+      "sha256": "6ce219c20fef4b83e61254569b4daf815eb01d22f48fc5d4eb3f3eb9d9e04b35",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/FZC"
+    },
+    {
+      "id": "rcsb:7XLP:66dacec771f9",
+      "kind": "source",
+      "label": "rcsb 7XLP",
+      "release": "1.2",
+      "sha256": "66dacec771f9d4b53b9f16da634aac9c9751120076cfa91fc91f74126ec0c7aa",
+      "url": "https://data.rcsb.org/rest/v1/core/entry/7XLP"
+    },
+    {
+      "id": "rcsb_search:chem:Cc1ccnc(n1)Oc2ccc(c(c2)Cl)c3cc4c(c(n[nH]4)C)c(c3)O[C@H]5CCC[C@H](C5)N:b46bdf444038",
+      "kind": "source",
+      "label": "rcsb_search chem:Cc1ccnc(n1)Oc2ccc(c(c2)Cl)c3cc4c(c(n[nH]4)C)c(c3)O[C@H]5CCC[C@H](C5)N",
+      "release": null,
+      "sha256": "b46bdf44403804ed9493083945d49cd9a13b20895fab1c6801271e1d6cb7107d",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22parameters%22%3A+%7B%22descriptor_type%22%3A+%22SMILES%22%2C+%22match_type%22%3A+%22fingerprint-similarity%22%2C+%22type%22%3A+%22descriptor%22%2C+%22value%22%3A+%22Cc1ccnc%28n1%29Oc2ccc%28c%28c2%29Cl%29c3cc4c%28c%28n%5BnH%5D4%29C%29c%28c3%29O%5BC%40H%5D5CCC%5BC%40H%5D%28C5%29N%22%7D%2C+%22service%22%3A+%22chemical%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+50%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22mol_definition%22%7D"
+    },
+    {
+      "id": "rcsb_search:comp:FZC:2019-01-01:e3b0c44298fc",
+      "kind": "source",
+      "label": "rcsb_search comp:FZC:2019-01-01",
+      "release": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22FZC%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D"
+    },
+    {
+      "id": "rcsb_search:seq0.9:2019-01-01:348:940237010733",
+      "kind": "source",
+      "label": "rcsb_search seq0.9:2019-01-01:348",
+      "release": null,
+      "sha256": "940237010733505a827f1f814543a153dc628df82bd0293dc4edfee9932c1ae9",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.9%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22GLEELELDEQQRKRLEAFLTQKQKVGELKDDDFEKISELGGGNGGVVFKVSHKPSGLVMGRGLIHLEIKPAIRNQIIRELQVLHECNSPYIVGFYGAFYSDGEISGCMGHGDGGSLDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKIMHRDVKPGGIGVNSRGEIKLCGGGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSMGLSLVEMAVGRYPIPPPDAKELELMFGCQVEGDAAETPPRPRTPGRPLNKKGMDSRPPMAIFELLDYIVNEPPPKLPSGVFSLEFQDFVNKCLIKNPAERADLKQLMVHAFIKRSDAEEVDFAGWLCSTIGLNQ%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+200%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D"
+    },
+    {
+      "id": "rcsb_files:3ZLS:ae30cf1ed7b4",
+      "kind": "source",
+      "label": "rcsb_files 3ZLS",
+      "release": null,
+      "sha256": "ae30cf1ed7b4035f15a89ef073b302dde250349568c2e7aafe8feedf1fbf1ed1",
+      "url": "https://files.rcsb.org/download/3ZLS.cif"
+    },
+    {
+      "id": "rcsb_files:3ZLX:1334dfc31103",
+      "kind": "source",
+      "label": "rcsb_files 3ZLX",
+      "release": null,
+      "sha256": "1334dfc31103f3e6b0649ad7b3da707845e58b20bc6d7476b5745470c3435deb",
+      "url": "https://files.rcsb.org/download/3ZLX.cif"
+    },
+    {
+      "id": "rcsb_files:3ZM4:eccb79a35cb7",
+      "kind": "source",
+      "label": "rcsb_files 3ZM4",
+      "release": null,
+      "sha256": "eccb79a35cb7a9f22d341afa7a6adccb1cfca80e5b619b3846bfa7a867c8c916",
+      "url": "https://files.rcsb.org/download/3ZM4.cif"
+    },
+    {
+      "id": "rcsb_files:5BX0:7ef25dd3b72e",
+      "kind": "source",
+      "label": "rcsb_files 5BX0",
+      "release": null,
+      "sha256": "7ef25dd3b72e153ed3a5b358d87b3119cabeabb34cfeda76701473c0d9918cee",
+      "url": "https://files.rcsb.org/download/5BX0.cif"
+    },
+    {
+      "id": "rcsb_files:3ZLY:e858c796adc5",
+      "kind": "source",
+      "label": "rcsb_files 3ZLY",
+      "release": null,
+      "sha256": "e858c796adc5339d7facf5b2dc33ac5a76f377aaba4e56a3ae889b5c64b7a80b",
+      "url": "https://files.rcsb.org/download/3ZLY.cif"
+    },
+    {
+      "id": "rcsb_search:seq0.95:2019-01-01:348:137b5572110a",
+      "kind": "source",
+      "label": "rcsb_search seq0.95:2019-01-01:348",
+      "release": null,
+      "sha256": "137b5572110a227cb0656c30713d3ddef23f43a3429bc94c8e38ee15459cae21",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.95%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22GLEELELDEQQRKRLEAFLTQKQKVGELKDDDFEKISELGGGNGGVVFKVSHKPSGLVMGRGLIHLEIKPAIRNQIIRELQVLHECNSPYIVGFYGAFYSDGEISGCMGHGDGGSLDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKIMHRDVKPGGIGVNSRGEIKLCGGGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSMGLSLVEMAVGRYPIPPPDAKELELMFGCQVEGDAAETPPRPRTPGRPLNKKGMDSRPPMAIFELLDYIVNEPPPKLPSGVFSLEFQDFVNKCLIKNPAERADLKQLMVHAFIKRSDAEEVDFAGWLCSTIGLNQ%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+5%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D"
+    },
+    {
+      "id": "rcsb_search:seq0.4:2019-01-01:348:d6df9b9b71ba",
+      "kind": "source",
+      "label": "rcsb_search seq0.4:2019-01-01:348",
+      "release": null,
+      "sha256": "d6df9b9b71ba434e7f00812877cfc18ac7957cf7a5519b73e1d9e5ce49f0d375",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.4%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22GLEELELDEQQRKRLEAFLTQKQKVGELKDDDFEKISELGGGNGGVVFKVSHKPSGLVMGRGLIHLEIKPAIRNQIIRELQVLHECNSPYIVGFYGAFYSDGEISGCMGHGDGGSLDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKIMHRDVKPGGIGVNSRGEIKLCGGGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSMGLSLVEMAVGRYPIPPPDAKELELMFGCQVEGDAAETPPRPRTPGRPLNKKGMDSRPPMAIFELLDYIVNEPPPKLPSGVFSLEFQDFVNKCLIKNPAERADLKQLMVHAFIKRSDAEEVDFAGWLCSTIGLNQ%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+5%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D"
+    },
+    {
+      "id": "file:artifacts/sources/7XLP.cif",
+      "kind": "file",
+      "label": "7XLP.cif",
+      "sha256": "48ffbc34e5fd126dcc382784b2335898244931b81bfec941885710ee66a1ddcb",
+      "artifact_kind": "source_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode0/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "ff803566ba1239ac3429da5d7333bf0549b2bf83aad95914b2a3da803ea73c89",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode0/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "3abba65c2b90e60ea213fb0f2d9899b5d18b88e1bd8b69d34bbd5876437a6fdd",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode1/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "d2d95a22be9eaeeff6d01115c9a00ccfa2c86c6f3fed373b9c46ef023054c0da",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode1/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "b39f612329420068436f089e162d8b2055b186001374b10577d050673ca886af",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode2/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "769bf1840b02e35f92d62d86b1047b27cb0244308d4933f5620dea8320a94282",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode2/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "854d3c9a990e5a77117c065f38401430473c07998da90059d5e740d4d35426ea",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode3/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "588a5ebac07781ff69b5da897d93613f60d5a612ecc643836b78c426cb12a0f3",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode3/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "79531f7b5add865cc0d629163ce7aa28fbe4f048ebf23df7bc62c46a9578c10e",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode4/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "8b55d1bd7e9a7e6e35e8ff2b732819141202b533f6118e7df9d236c2c9f084d1",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode4/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "39b4d0c729c494195c6169a46b0274dd59f0bf87402489a519dbae4fdb2d20f1",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode5/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "c1681b77ad421d96bb8d2c9301c49a5a4d96f0e26b5f7dca0a03ce2d5ed71e73",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode5/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "396fcbbfbdd90cb6e132fb831a8b63eb1c4d64eac8d2a9d4b13d7998c0d38091",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode6/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "8f0802ab5f8ce63e6d2443a0a4ece33a7417a5f989e6950998cd81b48fc0a6ef",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode6/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "85bce61f277ca40faac81b2b7cecbd94d46fb5de3d5dc0ac8fc7034806517af4",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode7/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "276d20ef4238ec91a5671147318640bd1f700b88ab1199dc7281dcfba5890757",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode7/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "b020b350d99a30c2687eb01e008946b0494a67409958edcd6933cb993b1a65ee",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode8/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "2662152eb71f0dda3936ab282f84aa181f071bc4e7ec4c6df88c9fed0d9eba6a",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode8/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "daa971bd1890ee4f5d7491708e60ea33e3fb759a2d71f227c2b29b18f62dd35f",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode9/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "96ce65cec6eefc1efefbc5833ca40ceb023b76422ee2900b69028530fdf8ec1a",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed7/mode9/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "cc3c0a225ed59b53242fbbae33413cd30a8cb1ea0cd4ddbab684c4161ff6d7fc",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode0/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "bf9a56c4da249781ce5907cb459bed2cad2bead7394c59602d91f9f482a4813b",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode0/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "9758971368c111c370384895e47868d4474a60dd58b8ccb6ef78a566378b4d6b",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode1/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "f3972696459a79a41d53038231c23952377552d240f79e0bced425450731007f",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode1/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "cf20a5fa0d0c71e177d05ad21c509931692226c98f03cba0d8b5c9ec35ad8169",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode2/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "061b1ee48b152c8cf2cd1de51450a59b0e9501fb82618646a857c47b042ef3be",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode2/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "313108c606f7646490e9c7d7083b22ef219e633be89d5a070b29e3ab4ea7793c",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode3/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "35b4eebfae35c9eb1611775c6909b0f7f8c1c68dc460aa1affddbbf05b4f1902",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode3/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "51193635f55e79e76f048c7e18f37cb3197b19a579c1aa67dfdec45292a413b6",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode4/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "4d746cbe7a2b96e5e204e48d2321cd89717ab980513d558b9996c30f03a7a2aa",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode4/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "13c49a056ed437dd7ee53b3139921adec1e62b77af3e54b923cd9752d8a13e3d",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode5/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "0bbfa057daaaf3d900286696a8f6302878c778b9dab588fa9edce9fb6df35a88",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode5/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "661d6e27a8232f51e5eb7c80683d16df250a2e49bac239af29803f5f29c275b2",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode6/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "473db7d144c2ecfc6aefd52cf98bbfbbc0b620f6c1f35acd6de201e2643456c2",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode6/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "9b24dda1b48cd4dbfca12b8eba81bfb0bb3e1cdfced20409d89829e76f800fec",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode7/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "3d49244f4ea37ea585ff628a01ce1eb0dba1477f398c44d27fc9f6b738dd9baf",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode7/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "becad042ce5a8d69a8df92f90c347390ab033f0fe083ab7baf79b8cfa8b9dce4",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode8/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "0328fdd95060075d816be2e256a338826edb43b8ec0129805840011eb5c3b6ca",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode8/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "a5d5b23673ab7a88e9043cea2614c1517a75fb61025012f454061a9813ebc5b1",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode9/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "e3eacf781fdee1b8cf3276050fa3055657e3460c30e2debea968657df8dff798",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed8/mode9/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "9c90fe21fcc66bdfc56ad9372e1fd76a903c4871fee1a241c1b63feb5d90dad1",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode0/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "fb24ba4441392823cb2af976568374490ad9f9d0759d263cdc14adde9db0e5f7",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode0/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "465dbfbadd32154cb147f51c079769d595ae802ee75cde740bd177f359c0d230",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode1/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "07280ebd7973c47fb9d68d5f82346406cc6c7db4beac1033c1fcd6af469d94c0",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode1/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "cc7493fefd5bf29a3cded745384992a64e7eda5093c237ec84e321e21cf3fc8a",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode2/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "4419cc57faf65e5a3b06df72359a7ec118a181fbee5c144b9330c21c76afbfa5",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode2/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "da57aa9c7b510ae6c0b7ed3da504b61842a0d0a402107fe79ea3f6bee6578ded",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode3/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "1db9dc88cd080c7f9089d42d6abc2b6da07c431b901a7d5be18fd66cb2e0fe21",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode3/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "18d53a6da3a1c0e8fc5a1d471cd89c711ff699af94972a142c0565098c2cb50a",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode4/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "8321cbe62b6ed16153ccc529c31e2343d1d2a5363c0e002eb242e6384c0881b7",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode4/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "112c8c1a1f0db847e35cf4e4cd05a601c8c9dd887ef03497b0cb683791249cd0",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode5/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "dc93d5d6f2631089e080dd172ea0af003c449d4dabf9de285994930ae5048cc2",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode5/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "53404d0fc9a48c241180dac2239e18dc5c4bcbbddc465d6bc9159f25bf6e8577",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode6/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "0b27f7c350300ca232517183e6955159499105a7025a2189f1f107e422e5344c",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode6/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "d4fbee304a5d3ab51a31f8e8daf6e9aff59719523841d018708451531a8c4722",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode7/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "7c3f29dcc50b9f4eb4b5588b77fd8551cafb85cccdaeaa5f405efbf6d6f84914",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode7/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "c42d8e4978dfffaa64deb9c762a20823cf05f5f886c446975ecbfcc44990423d",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode8/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "62ccbe21a92de791e6a535626b27301a940dd60abf4a901100b0c9a0c2955ca9",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode8/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "62e6acd1017a68d0209da0b2706678e6c098ec58d2f13dad7e1e1416b5f5148b",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode9/complex.pdb",
+      "kind": "file",
+      "label": "complex.pdb",
+      "sha256": "ee24ad678eeb94a04d4fde6ed4e21fc2b33b2c961c47e273f764589267effdd0",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/00_diffdock/diffdock/seed9/mode9/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "6e3080331aa5fa44494789989c951942a358e4a7c1a7445e901c0e4a7cbecf15",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:/home/user/harness-hackathon/bench/runs/2026-10-17T1859Z-849c856/predictions/mek1_pert/boltz2/seed_7/boltz_results_mek1_pert/predictions/mek1_pert/mek1_pert_model_0.cif",
+      "kind": "file",
+      "label": "mek1_pert_model_0.cif",
+      "sha256": "d4189536cd0f3508e793e4e17a3a96edf5183a3427695fa4fcaa918377fa5686",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/01_boltz2/boltz2/seed7/sample0/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "d67f2d9e796b0b96593d5863b7d9e83bf2ccc58963aec863567c4be00c761652",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:/home/user/harness-hackathon/bench/runs/2026-10-17T1859Z-849c856/predictions/mek1_pert/boltz2/seed_8/boltz_results_mek1_pert/predictions/mek1_pert/mek1_pert_model_0.cif",
+      "kind": "file",
+      "label": "mek1_pert_model_0.cif",
+      "sha256": "8b1f1ff5cc426848bfee02e7e8f4a5d129a73a47a437f4ed6797f0dc4e9ec43b",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/01_boltz2/boltz2/seed8/sample0/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "4a5eef879f6ef1c1058779f59d5bfbc7d293e27597e5ce7667ca3e289fd39d1a",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:/home/user/harness-hackathon/bench/runs/2026-10-17T1859Z-849c856/predictions/mek1_pert/boltz2/seed_9/boltz_results_mek1_pert/predictions/mek1_pert/mek1_pert_model_0.cif",
+      "kind": "file",
+      "label": "mek1_pert_model_0.cif",
+      "sha256": "1229b8a0106347fb24612fcfc69fa550ff0d9c9be3659f8194bdd17048660c84",
+      "artifact_kind": "prediction_structure"
+    },
+    {
+      "id": "file:predictions/01_boltz2/boltz2/seed9/sample0/ligand.sdf",
+      "kind": "file",
+      "label": "ligand.sdf",
+      "sha256": "332d151a23a0f61990feb95b18a5652055967dfced65c176d96735e1f268d7d2",
+      "artifact_kind": "data"
+    },
+    {
+      "id": "file:artifacts/sources/3ZLS.cif",
+      "kind": "file",
+      "label": "3ZLS.cif",
+      "sha256": "ae30cf1ed7b4035f15a89ef073b302dde250349568c2e7aafe8feedf1fbf1ed1",
+      "artifact_kind": "source_structure"
+    },
+    {
+      "id": "file:artifacts/sources/3ZLX.cif",
+      "kind": "file",
+      "label": "3ZLX.cif",
+      "sha256": "1334dfc31103f3e6b0649ad7b3da707845e58b20bc6d7476b5745470c3435deb",
+      "artifact_kind": "source_structure"
+    },
+    {
+      "id": "file:artifacts/sources/3ZM4.cif",
+      "kind": "file",
+      "label": "3ZM4.cif",
+      "sha256": "eccb79a35cb7a9f22d341afa7a6adccb1cfca80e5b619b3846bfa7a867c8c916",
+      "artifact_kind": "source_structure"
+    },
+    {
+      "id": "file:artifacts/sources/5BX0.cif",
+      "kind": "file",
+      "label": "5BX0.cif",
+      "sha256": "7ef25dd3b72e153ed3a5b358d87b3119cabeabb34cfeda76701473c0d9918cee",
+      "artifact_kind": "source_structure"
+    },
+    {
+      "id": "file:artifacts/sources/3ZLY.cif",
+      "kind": "file",
+      "label": "3ZLY.cif",
+      "sha256": "e858c796adc5339d7facf5b2dc33ac5a76f377aaba4e56a3ae889b5c64b7a80b",
+      "artifact_kind": "source_structure"
+    },
+    {
+      "id": "check:l2.msa.depth",
+      "kind": "check",
+      "label": "l2.msa.depth",
+      "gate": "skip",
+      "layer": 2
+    },
+    {
+      "id": "check:l2.context.cofactors",
+      "kind": "check",
+      "label": "l2.context.cofactors",
+      "gate": "stop",
+      "layer": 2
+    },
+    {
+      "id": "check:l2.pocket.resolved",
+      "kind": "check",
+      "label": "l2.pocket.resolved",
+      "gate": "pass",
+      "layer": 2
+    },
+    {
+      "id": "tool:gemmi",
+      "kind": "tool",
+      "label": "gemmi",
+      "version": null
+    },
+    {
+      "id": "check:l2.receptor.state",
+      "kind": "check",
+      "label": "l2.receptor.state",
+      "gate": "pass",
+      "layer": 2
+    },
+    {
+      "id": "check:l2.receptor.protonation",
+      "kind": "check",
+      "label": "l2.receptor.protonation",
+      "gate": "warn",
+      "layer": 2
+    },
+    {
+      "id": "tool:propka",
+      "kind": "tool",
+      "label": "propka 3.5.1",
+      "version": "3.5.1"
+    },
+    {
+      "id": "check:l2.ligand.protonation",
+      "kind": "check",
+      "label": "l2.ligand.protonation",
+      "gate": "warn",
+      "layer": 2
+    },
+    {
+      "id": "tool:dimorphite_dl",
+      "kind": "tool",
+      "label": "dimorphite_dl 2.1.0",
+      "version": "2.1.0"
+    },
+    {
+      "id": "check:l2.ligand.conformers",
+      "kind": "check",
+      "label": "l2.ligand.conformers",
+      "gate": "pass",
+      "layer": 2
+    },
+    {
+      "id": "tool:rdkit",
+      "kind": "tool",
+      "label": "rdkit",
+      "version": null
+    },
+    {
+      "id": "check:l2.docking.box",
+      "kind": "check",
+      "label": "l2.docking.box",
+      "gate": "warn",
+      "layer": 2
+    },
+    {
+      "id": "check:l3.model.training_cutoff",
+      "kind": "check",
+      "label": "l3.model.training_cutoff",
+      "gate": "pass",
+      "layer": 3
+    },
+    {
+      "id": "check:l3.exposure.pocket",
+      "kind": "check",
+      "label": "l3.exposure.pocket",
+      "gate": "pass",
+      "layer": 3
+    },
+    {
+      "id": "check:l3.exposure.ligand_prevalence",
+      "kind": "check",
+      "label": "l3.exposure.ligand_prevalence",
+      "gate": "pass",
+      "layer": 3
+    },
+    {
+      "id": "tool:RCSB search (chemical) + RDKit topological fingerprint",
+      "kind": "tool",
+      "label": "RCSB search (chemical) + RDKit topological fingerprint",
+      "version": null
+    },
+    {
+      "id": "check:l3.exposure.sequence",
+      "kind": "check",
+      "label": "l3.exposure.sequence",
+      "gate": "pass",
+      "layer": 3
+    },
+    {
+      "id": "tool:RCSB search (sequence, MMseqs2)",
+      "kind": "tool",
+      "label": "RCSB search (sequence, MMseqs2)",
+      "version": null
+    },
+    {
+      "id": "check:l3.regime.modality",
+      "kind": "check",
+      "label": "l3.regime.modality",
+      "gate": "pass",
+      "layer": 3
+    },
+    {
+      "id": "check:l3.metric.endpoint",
+      "kind": "check",
+      "label": "l3.metric.endpoint",
+      "gate": "pass",
+      "layer": 3
+    },
+    {
+      "id": "check:l4.posebusters",
+      "kind": "check",
+      "label": "l4.posebusters",
+      "gate": "pass",
+      "layer": 4
+    },
+    {
+      "id": "tool:posebusters",
+      "kind": "tool",
+      "label": "posebusters 0.6.5",
+      "version": "0.6.5"
+    },
+    {
+      "id": "check:l4.torsion_strain",
+      "kind": "check",
+      "label": "l4.torsion_strain",
+      "gate": "pass",
+      "layer": 4
+    },
+    {
+      "id": "tool:rdkit MMFF94",
+      "kind": "tool",
+      "label": "rdkit MMFF94",
+      "version": null
+    },
+    {
+      "id": "check:l4.interactions.fingerprint",
+      "kind": "check",
+      "label": "l4.interactions.fingerprint",
+      "gate": "pass",
+      "layer": 4
+    },
+    {
+      "id": "tool:plip",
+      "kind": "tool",
+      "label": "plip 3.0.1",
+      "version": "3.0.1"
+    },
+    {
+      "id": "check:l4.interactions.unsatisfied_polars",
+      "kind": "check",
+      "label": "l4.interactions.unsatisfied_polars",
+      "gate": "warn",
+      "layer": 4
+    },
+    {
+      "id": "tool:freesasa",
+      "kind": "tool",
+      "label": "freesasa 2.2.1",
+      "version": "2.2.1"
+    },
+    {
+      "id": "check:l4.interactions.hydrophobic",
+      "kind": "check",
+      "label": "l4.interactions.hydrophobic",
+      "gate": "pass",
+      "layer": 4
+    },
+    {
+      "id": "check:l4.interactions.known_binders",
+      "kind": "check",
+      "label": "l4.interactions.known_binders",
+      "gate": "warn",
+      "layer": 4
+    },
+    {
+      "id": "check:l4.minimisation_drift",
+      "kind": "check",
+      "label": "l4.minimisation_drift",
+      "gate": "pass",
+      "layer": 4
+    },
+    {
+      "id": "tool:openmm",
+      "kind": "tool",
+      "label": "openmm 8.6.1",
+      "version": "8.6.1"
+    },
+    {
+      "id": "check:l5.confidence.local",
+      "kind": "check",
+      "label": "l5.confidence.local",
+      "gate": "pass",
+      "layer": 5
+    },
+    {
+      "id": "check:l5.sampling.seeds",
+      "kind": "check",
+      "label": "l5.sampling.seeds",
+      "gate": "pass",
+      "layer": 5
+    },
+    {
+      "id": "check:l5.sampling.clusters",
+      "kind": "check",
+      "label": "l5.sampling.clusters",
+      "gate": "pass",
+      "layer": 5
+    },
+    {
+      "id": "tool:spyrmsd",
+      "kind": "tool",
+      "label": "spyrmsd 0.9.0",
+      "version": "0.9.0"
+    },
+    {
+      "id": "check:l5.agreement.cross_family",
+      "kind": "check",
+      "label": "l5.agreement.cross_family",
+      "gate": "warn",
+      "layer": 5
+    },
+    {
+      "id": "check:l5.controls.redocking",
+      "kind": "check",
+      "label": "l5.controls.redocking",
+      "gate": "stop",
+      "layer": 5
+    }
+  ],
+  "edges": [
+    {
+      "source": "rcsb_files:7XLP:48ffbc34e5fd",
+      "target": "file:artifacts/sources/7XLP.cif",
+      "relation": "produced"
+    },
+    {
+      "source": "rcsb_files:3ZLS:ae30cf1ed7b4",
+      "target": "file:artifacts/sources/3ZLS.cif",
+      "relation": "produced"
+    },
+    {
+      "source": "rcsb_files:3ZLX:1334dfc31103",
+      "target": "file:artifacts/sources/3ZLX.cif",
+      "relation": "produced"
+    },
+    {
+      "source": "rcsb_files:3ZM4:eccb79a35cb7",
+      "target": "file:artifacts/sources/3ZM4.cif",
+      "relation": "produced"
+    },
+    {
+      "source": "rcsb_files:5BX0:7ef25dd3b72e",
+      "target": "file:artifacts/sources/5BX0.cif",
+      "relation": "produced"
+    },
+    {
+      "source": "rcsb_files:3ZLY:e858c796adc5",
+      "target": "file:artifacts/sources/3ZLY.cif",
+      "relation": "produced"
+    },
+    {
+      "source": "check:l2.msa.depth",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "rcsb_files:7XLP:48ffbc34e5fd",
+      "target": "check:l2.context.cofactors",
+      "relation": "used"
+    },
+    {
+      "source": "ccd:FZC:6ce219c20fef",
+      "target": "check:l2.context.cofactors",
+      "relation": "used"
+    },
+    {
+      "source": "check:l2.context.cofactors",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "rcsb_files:7XLP:48ffbc34e5fd",
+      "target": "check:l2.pocket.resolved",
+      "relation": "used"
+    },
+    {
+      "source": "tool:gemmi",
+      "target": "check:l2.pocket.resolved",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l2.pocket.resolved",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "rcsb_files:7XLP:48ffbc34e5fd",
+      "target": "check:l2.receptor.state",
+      "relation": "used"
+    },
+    {
+      "source": "check:l2.receptor.state",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "tool:propka",
+      "target": "check:l2.receptor.protonation",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l2.receptor.protonation",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "tool:dimorphite_dl",
+      "target": "check:l2.ligand.protonation",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l2.ligand.protonation",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "tool:rdkit",
+      "target": "check:l2.ligand.conformers",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l2.ligand.conformers",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "rcsb_files:7XLP:48ffbc34e5fd",
+      "target": "check:l2.docking.box",
+      "relation": "used"
+    },
+    {
+      "source": "check:l2.docking.box",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "rcsb:7XLP:66dacec771f9",
+      "target": "check:l3.model.training_cutoff",
+      "relation": "used"
+    },
+    {
+      "source": "check:l3.model.training_cutoff",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "rcsb_files:7XLP:48ffbc34e5fd",
+      "target": "check:l3.exposure.pocket",
+      "relation": "used"
+    },
+    {
+      "source": "rcsb_search:chem:Cc1ccnc(n1)Oc2ccc(c(c2)Cl)c3cc4c(c(n[nH]4)C)c(c3)O[C@H]5CCC[C@H](C5)N:b46bdf444038",
+      "target": "check:l3.exposure.pocket",
+      "relation": "used"
+    },
+    {
+      "source": "ccd:FZC:6ce219c20fef",
+      "target": "check:l3.exposure.pocket",
+      "relation": "used"
+    },
+    {
+      "source": "rcsb_search:comp:FZC:2019-01-01:e3b0c44298fc",
+      "target": "check:l3.exposure.pocket",
+      "relation": "used"
+    },
+    {
+      "source": "rcsb_search:seq0.9:2019-01-01:348:940237010733",
+      "target": "check:l3.exposure.pocket",
+      "relation": "used"
+    },
+    {
+      "source": "rcsb_files:3ZLS:ae30cf1ed7b4",
+      "target": "check:l3.exposure.pocket",
+      "relation": "used"
+    },
+    {
+      "source": "rcsb_files:3ZLX:1334dfc31103",
+      "target": "check:l3.exposure.pocket",
+      "relation": "used"
+    },
+    {
+      "source": "rcsb_files:3ZM4:eccb79a35cb7",
+      "target": "check:l3.exposure.pocket",
+      "relation": "used"
+    },
+    {
+      "source": "rcsb_files:5BX0:7ef25dd3b72e",
+      "target": "check:l3.exposure.pocket",
+      "relation": "used"
+    },
+    {
+      "source": "rcsb_files:3ZLY:e858c796adc5",
+      "target": "check:l3.exposure.pocket",
+      "relation": "used"
+    },
+    {
+      "source": "check:l3.exposure.pocket",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "tool:RCSB search (chemical) + RDKit topological fingerprint",
+      "target": "check:l3.exposure.ligand_prevalence",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l3.exposure.ligand_prevalence",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "rcsb_search:seq0.95:2019-01-01:348:137b5572110a",
+      "target": "check:l3.exposure.sequence",
+      "relation": "used"
+    },
+    {
+      "source": "rcsb_search:seq0.4:2019-01-01:348:d6df9b9b71ba",
+      "target": "check:l3.exposure.sequence",
+      "relation": "used"
+    },
+    {
+      "source": "tool:RCSB search (sequence, MMseqs2)",
+      "target": "check:l3.exposure.sequence",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l3.exposure.sequence",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "rcsb_files:7XLP:48ffbc34e5fd",
+      "target": "check:l3.regime.modality",
+      "relation": "used"
+    },
+    {
+      "source": "check:l3.regime.modality",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "check:l3.metric.endpoint",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "tool:posebusters",
+      "target": "check:l4.posebusters",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l4.posebusters",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "tool:rdkit MMFF94",
+      "target": "check:l4.torsion_strain",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l4.torsion_strain",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "rcsb_files:7XLP:48ffbc34e5fd",
+      "target": "check:l4.interactions.fingerprint",
+      "relation": "used"
+    },
+    {
+      "source": "tool:plip",
+      "target": "check:l4.interactions.fingerprint",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l4.interactions.fingerprint",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "tool:freesasa",
+      "target": "check:l4.interactions.unsatisfied_polars",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l4.interactions.unsatisfied_polars",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "tool:freesasa",
+      "target": "check:l4.interactions.hydrophobic",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l4.interactions.hydrophobic",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "rcsb_files:7XLP:48ffbc34e5fd",
+      "target": "check:l4.interactions.known_binders",
+      "relation": "used"
+    },
+    {
+      "source": "tool:plip",
+      "target": "check:l4.interactions.known_binders",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l4.interactions.known_binders",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "tool:openmm",
+      "target": "check:l4.minimisation_drift",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l4.minimisation_drift",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "check:l5.confidence.local",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "check:l5.sampling.seeds",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "rcsb_files:7XLP:48ffbc34e5fd",
+      "target": "check:l5.sampling.clusters",
+      "relation": "used"
+    },
+    {
+      "source": "tool:spyrmsd",
+      "target": "check:l5.sampling.clusters",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l5.sampling.clusters",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "rcsb_files:7XLP:48ffbc34e5fd",
+      "target": "check:l5.agreement.cross_family",
+      "relation": "used"
+    },
+    {
+      "source": "tool:spyrmsd",
+      "target": "check:l5.agreement.cross_family",
+      "relation": "ran"
+    },
+    {
+      "source": "check:l5.agreement.cross_family",
+      "target": "verdict",
+      "relation": "decided"
+    },
+    {
+      "source": "check:l5.controls.redocking",
+      "target": "verdict",
+      "relation": "decided"
+    }
+  ]
+}

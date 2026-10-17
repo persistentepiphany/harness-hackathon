@@ -1,0 +1,48 @@
+{
+  "check_id": "l2.ligand.conformers",
+  "layer": 2,
+  "gate": "pass",
+  "message": "10 ETKDG conformers per ligand, MMFF minimised",
+  "measurements": [
+    {
+      "name": "ligands",
+      "value": 1,
+      "unit": null
+    },
+    {
+      "name": "failed",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "min_embedded",
+      "value": 10,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "conformers",
+      "value": 10,
+      "comparator": ">=",
+      "origin": "Harness default number of ETKDG conformers; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "ligands": [
+      {
+        "ligand": "ligand",
+        "embedded": 10,
+        "converged": 0,
+        "meeko": "ok"
+      }
+    ]
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "rdkit",
+    "version": null
+  },
+  "duration_s": 1.424
+}

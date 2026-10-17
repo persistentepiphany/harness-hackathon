@@ -1,0 +1,58 @@
+{
+  "check_id": "l3.regime.modality",
+  "layer": 3,
+  "gate": "pass",
+  "message": "modalities protein, protein_ligand inside the validated set; 381 tokens",
+  "measurements": [
+    {
+      "name": "modalities",
+      "value": 2,
+      "unit": null
+    },
+    {
+      "name": "tokens",
+      "value": 381,
+      "unit": null
+    },
+    {
+      "name": "outside",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [],
+  "evidence": {
+    "modalities": [
+      "protein",
+      "protein_ligand"
+    ],
+    "models": [
+      {
+        "executor": "diffdock",
+        "validated": [
+          "protein_ligand"
+        ],
+        "outside": [],
+        "crop_tokens": null,
+        "crop_origin": null
+      },
+      {
+        "executor": "boltz2",
+        "validated": [
+          "covalent",
+          "metal_site",
+          "nucleic_acid",
+          "protein",
+          "protein_ligand",
+          "protein_protein"
+        ],
+        "outside": [],
+        "crop_tokens": 768,
+        "crop_origin": "Boltz-2 technical report, final training crop 768 tokens"
+      }
+    ]
+  },
+  "artifacts": [],
+  "tool": null,
+  "duration_s": 0.008
+}
