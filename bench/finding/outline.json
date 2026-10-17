@@ -1,0 +1,241 @@
+{
+  "title": "What the harness caught",
+  "deck_style": {
+    "style_preset": "lab-report",
+    "composition_grammar": "scientific-evidence-plate",
+    "style_seed": "pah-finding",
+    "footer_mode": "source-line",
+    "footer_page_numbers": true,
+    "readability_contract": {
+      "min_title_pt": 28,
+      "min_body_pt": 16,
+      "min_support_pt": 13,
+      "min_caption_pt": 9,
+      "min_footer_pt": 9,
+      "min_metadata_pt": 9,
+      "max_title_lines": 2
+    }
+  },
+  "slides": [
+    {
+      "type": "title",
+      "role": "title",
+      "title": "Confidence missed every sabotaged pose",
+      "subtitle": "The harness caught all 9 of 9",
+      "notes": "Same predictions, same agent, two kinds of evidence: the model's own confidence score, or the harness fact file."
+    },
+    {
+      "type": "content",
+      "role": "table",
+      "variant": "table",
+      "title": "Three targets, each predicted twice",
+      "table": {
+        "headers": [
+          "Target",
+          "Entry and ligand",
+          "Sabotage",
+          "Medoid pose"
+        ],
+        "rows": [
+          [
+            "CDK2",
+            "1B38, ATP",
+            "13 contacts to glycine",
+            "boltz2/seed3/sample0"
+          ],
+          [
+            "MEK1",
+            "7XLP, FZC",
+            "11 contacts to glycine",
+            "boltz2/seed2/sample0"
+          ],
+          [
+            "glucose DH",
+            "2VWH, glucose",
+            "3 hydroxyls methylated",
+            "boltz2/seed2/sample0"
+          ]
+        ]
+      },
+      "caption": "Boltz-2 2.2.1 on A100, three seeds per prediction, three independent runs. A sabotaged system cannot bind as deposited, so every sabotaged pose should be rejected.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs (2026-10-17T1611Z-426bfe9, 2026-10-17T1752Z-2f5a1c7, 2026-10-17T1859Z-849c856)"
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "scientific-figure",
+      "title": "CDK2: the ligand stays, the contacts go",
+      "subtitle": "1B38 chain A, Boltz-2 medoid boltz2/seed3/sample0, 13 contacts cut to glycine",
+      "figures": [
+        {
+          "path": "/home/user/harness-hackathon/bench/finding/panels/cdk2_wt.png",
+          "title": "as deposited"
+        },
+        {
+          "path": "/home/user/harness-hackathon/bench/finding/panels/cdk2_pert.png",
+          "title": "pocket cut away"
+        }
+      ],
+      "figure_layout": "panel-grid",
+      "caption": "Contacts 5 of 9 then 1 of 9; ipTM 0.975 then 0.947.",
+      "notes": "One camera, proteins superposed; red marks the residues cut to glycine. Confidence barely moves (0.975 to 0.947) and PoseBusters still passes 20 of 20. The interactions are what collapse, and that is what the fact file reports.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs (2026-10-17T1611Z-426bfe9, 2026-10-17T1752Z-2f5a1c7, 2026-10-17T1859Z-849c856)"
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "scientific-figure",
+      "title": "MEK1: the ligand stays, the contacts go",
+      "subtitle": "7XLP chain A, Boltz-2 medoid boltz2/seed2/sample0, 11 contacts cut to glycine",
+      "figures": [
+        {
+          "path": "/home/user/harness-hackathon/bench/finding/panels/mek1_wt.png",
+          "title": "as deposited"
+        },
+        {
+          "path": "/home/user/harness-hackathon/bench/finding/panels/mek1_pert.png",
+          "title": "pocket cut away"
+        }
+      ],
+      "figure_layout": "panel-grid",
+      "caption": "Contacts 2 of 3 then 0 of 3; ipTM 0.988 then 0.97.",
+      "notes": "One camera, proteins superposed; red marks the residues cut to glycine. Confidence barely moves (0.988 to 0.97) and PoseBusters still passes 20 of 20. The interactions are what collapse, and that is what the fact file reports.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs (2026-10-17T1611Z-426bfe9, 2026-10-17T1752Z-2f5a1c7, 2026-10-17T1859Z-849c856)"
+    },
+    {
+      "type": "content",
+      "role": "table",
+      "variant": "table",
+      "title": "What the confidence score sees",
+      "subtitle": "As deposited / sabotaged, run 2026-10-17T1611Z-426bfe9",
+      "table": {
+        "headers": [
+          "Target",
+          "Ligand ipTM",
+          "Pocket pLDDT",
+          "PoseBusters"
+        ],
+        "rows": [
+          [
+            "CDK2",
+            "0.975 / 0.947",
+            "94.9 / 85",
+            "19/20 / 20/20"
+          ],
+          [
+            "MEK1",
+            "0.988 / 0.97",
+            "96.5 / 90.5",
+            "20/20 / 20/20"
+          ],
+          [
+            "glucose DH",
+            "0.99 / 0.983",
+            "97.3 / 97.7",
+            "20/20 / 19/20"
+          ]
+        ]
+      },
+      "caption": "Confidence stays high after the pocket is cut away, and for glucose dehydrogenase the pocket pLDDT rises. PoseBusters passes almost everywhere.",
+      "notes": "This is the whole problem. Nothing in these columns tells the agent the pocket is gone.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs (2026-10-17T1611Z-426bfe9, 2026-10-17T1752Z-2f5a1c7, 2026-10-17T1859Z-849c856)"
+    },
+    {
+      "type": "content",
+      "role": "table",
+      "variant": "table",
+      "title": "What the harness sees",
+      "subtitle": "As deposited / sabotaged, run 2026-10-17T1611Z-426bfe9",
+      "table": {
+        "headers": [
+          "Target",
+          "Deposited contacts recovered",
+          "Cross-executor RMSD (A)",
+          "Strain (kcal/mol)"
+        ],
+        "rows": [
+          [
+            "CDK2",
+            "5 of 9 / 1 of 9",
+            "1.665 / 2.656",
+            "12.31 / 13.6"
+          ],
+          [
+            "MEK1",
+            "2 of 3 / 0 of 3",
+            "1.452 / 2.974",
+            "1.59 / 2.15"
+          ],
+          [
+            "glucose DH",
+            "4 of 6 / 3 of 6",
+            "14.38 / 12.345",
+            "4.26 / 9.58"
+          ]
+        ]
+      },
+      "caption": "Contact recovery falls on every target. Cross-executor RMSD rises on CDK2 and MEK1 and falls on glucose dehydrogenase, where both tools were already far apart.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs (2026-10-17T1611Z-426bfe9, 2026-10-17T1752Z-2f5a1c7, 2026-10-17T1859Z-849c856)"
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "scientific-figure",
+      "title": "Every sabotaged pose, both ways of judging",
+      "figures": [
+        {
+          "path": "/home/user/harness-hackathon/bench/finding/flip.png"
+        }
+      ],
+      "figure_layout": "panel-grid",
+      "caption": "9 sabotaged predictions: 3 targets by 3 runs.",
+      "notes": "Confidence missed 9 of 9; the fact file caught 9.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs (2026-10-17T1611Z-426bfe9, 2026-10-17T1752Z-2f5a1c7, 2026-10-17T1859Z-849c856)"
+    },
+    {
+      "type": "content",
+      "role": "comparison",
+      "variant": "comparison-2col",
+      "title": "What it buys and what it costs",
+      "left": {
+        "title": "Buys",
+        "bullets": [
+          "9 of 9 sabotaged poses rejected",
+          "Same answer in three runs",
+          "A reason recorded per decision"
+        ]
+      },
+      "right": {
+        "title": "Costs",
+        "bullets": [
+          "Good poses rejected too",
+          "CDK2 as deposited, all runs",
+          "Mostly high strain estimates"
+        ]
+      },
+      "notes": "A fourth target, FtsE, is held back: its reference is a homodimer and its values predate a superposition fix.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs (2026-10-17T1611Z-426bfe9, 2026-10-17T1752Z-2f5a1c7, 2026-10-17T1859Z-849c856)"
+    }
+  ]
+}

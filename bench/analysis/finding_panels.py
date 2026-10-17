@@ -5,7 +5,7 @@
 For each target it superposes the perturbed prediction onto the wild-type prediction by protein
 backbone, fixes one camera, and renders both states through it. A shared camera is the point: the
 per-run renders orient on the ligand, which hides a ligand that has moved. Writes PNGs to
-<run>/finding/panels/.
+bench/finding/panels/, beside the other demo materials.
 """
 
 from __future__ import annotations
@@ -74,10 +74,19 @@ for name, out in (("wt", a["out_wt"]), ("pert", a["out_pert"])):
     cmd.png(out, width=a["w"], height=a["h"], dpi=150, ray=1)
 """
 
+# FtsE is left out: its reference is a homodimer and its values predate the superposition fix.
 TARGETS = {
-    "ftse": {"seed": 7, "pad": 6.0, "label": "FtsE"},
-    "cdk2": {"seed": 8, "pad": 5.0, "label": "CDK2"},
+    "cdk2": {"pad": 7.0, "label": "CDK2"},
+    "mek1": {"pad": 7.0, "label": "MEK1"},
 }
+
+
+def medoid_seed(run: Path, system: str) -> int:
+    """Seed of the representative pose, read from the run's own record."""
+    import json as _json
+
+    rep = _json.loads((run / "truth" / f"{system}_pert_boltz2.json").read_text())
+    return int(rep["representative_pose"].split("/")[1].removeprefix("seed"))
 
 
 def complex_path(run: Path, system: str, state: str, seed: int) -> Path:
@@ -93,9 +102,10 @@ def complex_path(run: Path, system: str, state: str, seed: int) -> Path:
 
 def render(run: Path, system: str, spec: dict[str, Any], out: Path) -> dict[str, Path]:
     meta = json.loads((run / "prep" / f"{system}_pert" / "meta.json").read_text())
+    seed = medoid_seed(run, system)
     args = {
-        "wt": str(complex_path(run, system, "wt", spec["seed"])),
-        "pert": str(complex_path(run, system, "pert", spec["seed"])),
+        "wt": str(complex_path(run, system, "wt", seed)),
+        "pert": str(complex_path(run, system, "pert", seed)),
         # Boltz renumbers to the sequence, so the mutated positions are seqres indices.
         "highlight": [str(m["seqres_index"]) for m in meta["mutations"]],
         "colour": {"wt": "0x3B8A58", "pert": "0xC4513B"},
@@ -122,7 +132,7 @@ def main() -> None:
     ap.add_argument("--run-id", required=True)
     args = ap.parse_args()
     run = REPO / "bench" / "runs" / args.run_id
-    out = run / "finding" / "panels"
+    out = REPO / "bench" / "finding" / "panels"
     for system, spec in TARGETS.items():
         paths = render(run, system, spec, out)
         print(f"{system}: {paths['wt'].name}, {paths['pert'].name}")
