@@ -87,6 +87,8 @@ export function StructureGrid({ members, columnsFrom, gridViewers, mode, colorMo
   return (
     <div className={clsx('grid gap-3.5', className)} style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))' }} data-testid="structure-grid">
       {members.map((m) => {
+        // one docking pose in a cell: frame the ligand, not the whole receptor
+        const loads = m.family === 'docking' && m.load.length === 1 ? [{ ...m.load[0], focus: 'ligand' as const }] : undefined;
         const confOff = colorMode === 'confidence' && !m.perResidueConfidence && m.load.length > 0;
         return (
           <div
@@ -120,7 +122,7 @@ export function StructureGrid({ members, columnsFrom, gridViewers, mode, colorMo
               </span>
             </button>
             <div className="relative">
-              <StructureViewer target={m} mode={mode} slot={slots.has(m.id)} compact colorMode={colorMode} flagged={flagged} className="h-[210px]" data-testid="cell-viewer" />
+              <StructureViewer target={m} loads={loads} mode={mode} slot={slots.has(m.id)} compact colorMode={colorMode} flagged={flagged} className="h-[210px]" data-testid="cell-viewer" />
               {confOff && slots.has(m.id) && (
                 <span className="pointer-events-auto absolute top-1.5 left-2 rounded-[4px] bg-white/85 px-1.5 py-[1px] font-mono text-[10px] text-muted" title="no per-residue confidence for this structure; coloured by chain" data-testid="confidence-off">
                   by chain

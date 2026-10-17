@@ -6,13 +6,13 @@ import { DASH, fmtNum, isMissing } from '../format';
 import { familyOf, labelFor, outputFor, recordTools, toolById, type ResolvedTool } from '../tools';
 import type {
   EnsembleEntry,
-  SeedStat,
   Outcome,
   PhysicsRow,
   RecordLayer,
   RecordRender,
   RecordStructure,
   Result,
+  StatsSource,
   StructureKind,
   Tool,
   ToolFamily,
@@ -171,6 +171,8 @@ export interface StructureLoad {
   align?: boolean;
   /** The B-factor column carries per-residue confidence (co-folding output). */
   confidence?: boolean;
+  /** Frame the camera on the ligand instead of the whole structure (single docking pose). */
+  focus?: 'ligand';
 }
 
 export interface StructureTarget {
@@ -215,10 +217,9 @@ function mockReferenceLoad(record: UiRunRecord): StructureLoad[] {
 }
 
 function matchStructure(structures: RecordStructure[], entry: EnsembleEntry): RecordStructure | undefined {
-  const e = entry as EnsembleEntry & { structure?: string; structureId?: string; path?: string };
-  const ref = e.structureId ?? e.structure;
+  const ref = entry.structureId;
   return (
-    structures.find((s) => s.id === e.id || (ref !== undefined && s.id === ref) || (e.path !== undefined && s.path === e.path)) ??
+    structures.find((s) => s.id === entry.id || (ref !== undefined && s.id === ref)) ??
     (entry.kind === 'crystal' ? structures.find((s) => s.kind === 'crystal') : undefined)
   );
 }
@@ -275,8 +276,7 @@ export function structureTargets(record: UiRunRecord, opts: StructureTargetOptio
     s ? [{ url: opts.assetUrl(s.url), format: s.format, label: s.label }] : [];
   const rendersOf = (s: RecordStructure | undefined, e?: EnsembleEntry) => {
     // renders[].structure is the structure id, or an id derived from its path or label: try in that order
-    const x = e as (EnsembleEntry & { pose?: string }) | undefined;
-    const tries = [s?.id, s?.path, s?.label, x?.pose, x?.label].filter((v): v is string => !!v);
+    const tries = [s?.id, s?.path, s?.label, e?.pose, e?.label].filter((v): v is string => !!v);
     let own: RecordRender[] = [];
     for (const t of tries) {
       own = renders.filter((r) => r.structure === t || normId(r.structure) === normId(t));
@@ -289,7 +289,7 @@ export function structureTargets(record: UiRunRecord, opts: StructureTargetOptio
       const best = Math.max(0, ...contained.map((r) => normId(r.structure).length));
       own = contained.filter((r) => normId(r.structure).length === best);
     }
-    const png = (e as (EnsembleEntry & { render?: string }) | undefined)?.render;
+    const png = e?.render;
     const fromEntry: RecordRender[] = png && !own.some((r) => r.png === png) ? (renders.filter((r) => r.png === png).length ? renders.filter((r) => r.png === png) : [{ structure: s?.id ?? e?.id ?? '', png, pse: '', view: 'overview' }]) : [];
     return uniqueRenders([...own, ...fromEntry]);
   };
@@ -300,7 +300,7 @@ export function structureTargets(record: UiRunRecord, opts: StructureTargetOptio
     if (s) used.add(s.id);
     const load = s ? loadOf(s) : e.kind === 'crystal' ? mockReferenceLoad(record) : [];
     const toolId = e.toolId ?? (s ? toolOfStructure(record, s) : undefined);
-    const lig = (e as EnsembleEntry & { ligand?: { url?: string; format?: string } }).ligand;
+    const lig = e.ligand;
     const ligandLoad: StructureLoad | undefined =
       lig?.url && (lig.format === 'sdf' || lig.format === 'pdb' || lig.format === 'mmcif') ? { url: opts.assetUrl(lig.url), format: lig.format, label: `${e.label} ligand` } : undefined;
     const label = e.kind === 'crystal' ? crystalLabel(e.label, record.inputs.reference) : e.label;
@@ -423,22 +423,21 @@ export function ensembleMembers(record: UiRunRecord, targets: StructureTarget[],
         if (confidence) break;
       }
       const family = tool ? familyOf(tool) : null;
-      const x = e as (EnsembleEntry & { posebustersTotal?: number; perResidueConfidence?: boolean; rmsdToReference?: number }) | undefined;
-      const residueConf = typeof x?.perResidueConfidence === 'boolean' ? x.perResidueConfidence : !!tool?.outputs.some((o) => o.kind === 'plddt' && o.scope === 'residue');
+      const residueConf = typeof e?.perResidueConfidence === 'boolean' ? e.perResidueConfidence : !!tool?.outputs.some((o) => o.kind === 'plddt' && o.scope === 'residue');
       const color = t === refCrystal ? HEX.ink : t.kind === 'medoid' ? HEX.accent : paletteColor(k++);
       const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
       return {
         ...t,
         confidence,
         rmsd: e ? (e.kind === 'medoid' ? 0 : num(e.rmsdToMedoid)) : null,
-        rmsdToReference: num(x?.rmsdToReference),
+        rmsdToReference: num(e?.rmsdToReference),
         cluster: num(e?.cluster),
         plddt: num(e?.pocketPlddt),
-        pb: num(e?.posebusters) !== null ? { passed: e!.posebusters as number, total: num(x?.posebustersTotal) ?? pbTotal } : null,
+        pb: num(e?.posebusters) !== null ? { passed: e!.posebusters as number, total: num(e?.posebustersTotal) ?? pbTotal } : null,
         ranking: outputs.filter((o) => o.rankingOnly),
         outputs,
         gate: memberGate(e),
-        perResidueConfidence: (typeof x?.perResidueConfidence === 'boolean' || family === 'co-folding') && residueConf && t.kind !== 'crystal' && t.load.length > 0,
+        perResidueConfidence: (typeof e?.perResidueConfidence === 'boolean' || family === 'co-folding') && residueConf && t.kind !== 'crystal' && t.load.length > 0,
         color,
         family,
       };
@@ -800,7 +799,8 @@ export function pairwiseLine(record: UiRunRecord): string | null {
   const p = record.stats.pairwise;
   if (!p) return null;
   const d = Math.abs(p.median) < 0.1 ? 3 : 1;
-  return `${fmtNum(p.median, 'Å', d)} · IQR ${fmtNum(p.iqr[0], undefined, d)}–${fmtNum(p.iqr[1], undefined, d)}`;
+  const med = fmtNum(p.median, 'Å', d);
+  return p.iqr ? `${med} · IQR ${fmtNum(p.iqr[0], undefined, d)}–${fmtNum(p.iqr[1], undefined, d)}` : med;
 }
 
 // ---------------------------------------------------------------- summary statistics
@@ -1011,7 +1011,7 @@ export interface SeedAxis {
 
 /** y axis of the seed spread: confidence when the seeds carry it, else their tool score. */
 export function seedAxis(record: UiRunRecord): SeedAxis | null {
-  const seeds = (record.stats.seeds ?? []) as (SeedStat & { score?: number; scoreKey?: string })[];
+  const seeds = record.stats.seeds ?? [];
   if (seeds.some((s) => typeof s.confidence === 'number')) return { field: 'confidence', min: 0.5, max: 1 };
   const scores = seeds.map((s) => s.score).filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
   if (!scores.length) return null;
@@ -1027,7 +1027,7 @@ export function seedAxis(record: UiRunRecord): SeedAxis | null {
 
 /** Seed spread: RMSD to medoid (x, 0..8 Å) against the seed axis (y), viewBox 360×170. */
 export function seedSpreadPoints(record: UiRunRecord) {
-  const seeds = (record.stats.seeds ?? []) as (SeedStat & { score?: number })[];
+  const seeds = record.stats.seeds ?? [];
   const axis = seedAxis(record);
   const x = (v: number) => +(40 + (Math.min(SEED_X_MAX, Math.max(0, v)) / SEED_X_MAX) * 310).toFixed(2);
   const y = (c: number) => (axis ? +(128 - ((c - axis.min) / (axis.max - axis.min)) * 108).toFixed(2) : 128);
@@ -1116,7 +1116,7 @@ export function methodName(record: UiRunRecord, method: string, register?: Regis
  */
 export function seedAxisLabel(record: UiRunRecord, register?: Register): string {
   const axis = seedAxis(record);
-  const seeds = (record.stats.seeds ?? []) as (SeedStat & { confidenceKey?: string; toolId?: string })[];
+  const seeds = record.stats.seeds ?? [];
   const toolId = seeds.find((s) => s.toolId)?.toolId;
   const tool = toolId ? toolById(record, toolId, register) : null;
   if (axis?.field === 'confidence') {
@@ -1195,8 +1195,7 @@ export function metricRows(record: UiRunRecord, register?: Register): MetricRows
     const all = metrics.map((m, i): MetricRow => {
       const tool = m.toolId ? tools.find((t) => t.id === m.toolId) : undefined;
       const label = m.key && tool ? outputFor(tool, m.key)?.label : undefined;
-      const check = (m as UiMetric & { check?: string }).check;
-      return { id: `${i}:${m.name}`, name: label && m.name === m.key ? label : m.name, tool: tool?.name ?? m.tool, value: m.value, read: m.read ?? (m as UiMetric & { note?: string }).note, rankingOnly: rankingOf(m, tools), check };
+      return { id: `${i}:${m.name}`, name: label && m.name === m.key ? label : m.name, tool: tool?.name ?? m.tool, value: m.value, read: m.read ?? m.note, rankingOnly: rankingOf(m, tools), check: m.check };
     });
     return { computed: true, rows: all.filter((r) => !r.rankingOnly), ranking: all.filter((r) => r.rankingOnly) };
   }
@@ -1288,21 +1287,15 @@ export function thresholdRows(record: UiRunRecord): ThresholdRow[] {
 
 // ---------------------------------------------------------------- block provenance
 
-export interface BlockSource {
-  check?: string | null;
-  checks?: string[];
-  tool?: string | null;
-  version?: string | null;
-  field?: string;
-}
+export type BlockSource = StatsSource;
 
 /**
  * Where a stats block (or one of its rows, `site.pocket residues`) came from: stats.provenance[key]
  * or the block's own `source`. null when the record does not say (mock records).
  */
 export function blockSource(record: UiRunRecord, key: string): BlockSource | null {
-  const prov = record.stats.provenance as Record<string, BlockSource> | undefined;
-  const own = (record.stats as Record<string, unknown>)[key] as { source?: BlockSource } | undefined;
+  const prov = record.stats.provenance;
+  const own = record.stats[key] as { source?: BlockSource } | undefined;
   const s = prov?.[key] ?? (own && typeof own === 'object' && !Array.isArray(own) ? own.source : undefined);
   return s && typeof s === 'object' ? s : null;
 }

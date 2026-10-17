@@ -16,8 +16,9 @@ from pathlib import Path
 
 import modal
 
-REPO = Path(__file__).resolve().parents[2]
 REMOTE_REPO = "/root/harness"
+# Inside the container this file is mounted at /root/doctor_app.py; the checkout is at REMOTE_REPO.
+REPO = Path(__file__).resolve().parents[2] if modal.is_local() else Path(REMOTE_REPO)
 EXTRAS = ("checks", "report", "mcp", "api", "modal")
 IGNORE = [".venv", ".tools", "runs", "cache", ".git", "third_party/skills/*/.git", "**/__pycache__"]
 

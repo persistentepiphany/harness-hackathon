@@ -189,6 +189,15 @@ describe('docList and documentName', () => {
     expect(list[0]).toMatchObject({ runId: 'r1', name: 'A', verdictLabel: 'Refused' });
     expect(list[0].date).toBe(shortDate('2026-10-17T10:00:00Z'));
     expect(shortDate(null)).toBe('–');
+    expect(list[0].runTag).toBeNull();
+  });
+  it('tags finished runs that share a name with a short run id', () => {
+    const list = docList([
+      { id: 'j1', runId: 'ligand_pose-04e7e402bf85', name: 'A', status: 'done', verdict: 'narrowed', createdAt: '2026-10-17T10:00:00Z' } as Job,
+      { id: 'j2', runId: 'ligand_pose-333173a36ab5', name: 'A', status: 'done', verdict: 'narrowed', createdAt: '2026-10-17T11:00:00Z' } as Job,
+      { id: 'j3', runId: 'ui-3ptb', name: 'B', status: 'done', verdict: 'refused', createdAt: '2026-10-17T12:00:00Z' } as Job,
+    ]);
+    expect(list.map((d) => d.runTag)).toEqual(['04e7e4', '333173', null]);
   });
   it.skipIf(!jobs || !faulty)('names the document after its job, else the task', () => {
     const r = faulty as UiRunRecord;

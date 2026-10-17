@@ -11,6 +11,9 @@ import { reportFiles, type DocListItem } from '@/lib/selectors/document';
 import type { UiRunRecord } from '@/lib/types';
 
 const BTN_PRIMARY = 'rounded border-0 bg-ink px-3.5 py-2 text-center text-[12.5px] leading-[normal] font-medium text-white hover:text-white';
+/** Finished runs listed; the selected run is always included, the rest are on the Jobs page. */
+const MAX_DOCS = 12;
+
 const BTN = 'rounded border border-line bg-transparent px-3.5 py-[7px] text-center text-[12.5px] leading-[normal] font-medium text-ink hover:border-ink hover:text-ink';
 
 /** The prototype's notebook skeleton for a mock record (record.record.notebook is set only there). */
@@ -44,12 +47,15 @@ export interface DocumentSidebarProps {
 
 export function DocumentSidebar({ items, selected, record }: DocumentSidebarProps) {
   const files = record ? reportFiles(record) : [];
+  const head = items.slice(0, MAX_DOCS);
+  const current = items.find((d) => d.runId === selected);
+  const shown = !current || head.includes(current) ? head : [...head.slice(0, MAX_DOCS - 1), current];
   return (
     <div data-print="hide" className="sticky top-[68px] flex flex-col gap-3.5" data-testid="doc-sidebar">
       <h1 className="m-0 text-[18px] font-semibold tracking-[-0.01em]">Documents</h1>
       {/* the column is sticky: a long run list scrolls on its own so the buttons stay in view */}
       <div className="-ml-0.5 flex max-h-[calc(100vh-380px)] flex-col gap-3.5 overflow-y-auto pl-0.5" data-testid="doc-list">
-        {items.map((d) => {
+        {shown.map((d) => {
           const on = d.runId === selected;
           return (
             <Link
@@ -62,13 +68,25 @@ export function DocumentSidebar({ items, selected, record }: DocumentSidebarProp
               data-selected={on ? 'true' : undefined}
               aria-current={on ? 'page' : undefined}
             >
-              <span className={clsx('text-[13px] leading-[normal]', on ? 'font-semibold' : 'font-medium')}>{d.name}</span>
+              <span className={clsx('text-[13px] leading-[normal]', on ? 'font-semibold' : 'font-medium')}>
+                {d.name}
+                {d.runTag && (
+                  <span className="ml-1.5 font-mono text-[11px] font-normal text-faint" data-testid="doc-list-run">
+                    {d.runTag}
+                  </span>
+                )}
+              </span>
               <span className="font-mono text-[11px] leading-[normal]" style={{ color: d.verdictColor }}>
                 {d.verdictLabel} · {d.date}
               </span>
             </Link>
           );
         })}
+        {items.length > shown.length && (
+          <Link href="/jobs" className="pl-3 font-mono text-[11.5px] text-muted hover:text-ink" data-testid="doc-list-all">
+            all jobs ({items.length})
+          </Link>
+        )}
       </div>
       {record && (
         <div className="mt-2.5 flex flex-col gap-1.5">

@@ -28,13 +28,14 @@ from pathlib import Path
 
 import modal
 
-REPO = Path(__file__).resolve().parents[2]
+REMOTE_REPO = "/root/harness"
+# In the container this file is mounted at /root/executors_app.py; the checkout is REMOTE_REPO.
+REPO = Path(__file__).resolve().parents[2] if modal.is_local() else Path(REMOTE_REPO)
 sys.path.insert(0, str(REPO / "src"))
 
 from pah.runtimes.images import native_image_ref, native_steps  # noqa: E402
 from pah.runtimes.registry import load_runtimes  # noqa: E402
 
-REMOTE_REPO = "/root/harness"
 PAH = "/opt/pah/bin/pah"
 SYSTEM_PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 IGNORE = [".venv", ".tools", "runs", "cache", ".git", "third_party", "**/__pycache__"]
@@ -52,7 +53,8 @@ def _base_image() -> modal.Image:
             raise SystemExit(f"{EXECUTOR}: no kit; set PAH_MODAL_IMAGE=native")
         kits = REPO / ".tools" / "accel"
         dockerfile = kits / REG.kit_defaults.dockerfile.format(kit=RT.accel.kit)
-        if not dockerfile.is_file():
+        # build inputs exist only in the local checkout (.tools is not copied into the image)
+        if modal.is_local() and not dockerfile.is_file():
             raise SystemExit(f"{dockerfile} missing: run `pah runtimes kits fetch` first")
         return modal.Image.from_dockerfile(str(dockerfile), context_dir=str(kits))
     native = RT.native
@@ -62,7 +64,7 @@ def _base_image() -> modal.Image:
         return modal.Image.from_registry(native.image.pull.removeprefix("docker.io/"))
     if native.image is not None and native.image.build is not None:
         src = REPO / ".tools" / "images" / "src" / EXECUTOR
-        if not src.is_dir():
+        if modal.is_local() and not src.is_dir():
             b = native.image.build
             raise SystemExit(f"clone {b.git} at {b.ref} into {src} first")
         return modal.Image.from_dockerfile(

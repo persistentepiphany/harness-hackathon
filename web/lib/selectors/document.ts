@@ -3,7 +3,7 @@
 // yields no key number, and the run-level facts (checks evaluated, layers run, sources, check
 // time) fill the row instead. Tool names and metric labels come from the record and its tools.
 
-import { DASH, SEP, fmtMs, fmtNum, isMissing, measuredVsThreshold } from '@/lib/format';
+import { DASH, SEP, duplicateLabels, fmtMs, fmtNum, isMissing, measuredVsThreshold, shortRunId } from '@/lib/format';
 import { medoidClusterPopulation, methodName, metricRows, seedAxis, seedConfidenceLabel, totalDurationMs, verdictMeta } from '@/lib/selectors/report';
 import { outputFor, recordTools, toolById } from '@/lib/tools';
 import type { Job, Outcome, Result, Tool, UiCheck, UiRunRecord } from '@/lib/types';
@@ -21,6 +21,8 @@ export interface DocListItem {
   verdictColor: string;
   /** `Oct 17`. */
   date: string;
+  /** Short run id when another finished run has the same name, else null. */
+  runTag: string | null;
 }
 
 export function shortDate(iso: string | null | undefined): string {
@@ -31,12 +33,12 @@ export function shortDate(iso: string | null | undefined): string {
 
 /** Finished jobs, in list order (newest first live, prototype order in mock). */
 export function docList(jobs: Job[] | null | undefined): DocListItem[] {
-  return (jobs ?? [])
-    .filter((j) => j.status === 'done')
-    .map((j) => {
-      const v = verdictMeta(j.verdict);
-      return { runId: j.runId, name: j.name, outcome: j.verdict, verdictLabel: v.label, verdictColor: v.color, date: shortDate(j.createdAt) };
-    });
+  const done = (jobs ?? []).filter((j) => j.status === 'done');
+  const dups = duplicateLabels(done, (j) => j.name);
+  return done.map((j) => {
+    const v = verdictMeta(j.verdict);
+    return { runId: j.runId, name: j.name, outcome: j.verdict, verdictLabel: v.label, verdictColor: v.color, date: shortDate(j.createdAt), runTag: dups.has(j.name) ? shortRunId(j.runId) : null };
+  });
 }
 
 /** Document title: the job's name, else the task name, else the run id. */
@@ -100,7 +102,7 @@ function statsKeyNumbers(record: UiRunRecord, register?: Register): KeyNumber[] 
     // RMSD-kind values are geometry, already in the cluster and agreement cells
     const isRmsd = (r: { id: string }) => {
       const mm = metricOf(r);
-      const kind = (mm as { kind?: unknown } | undefined)?.kind ?? (mm?.toolId && mm.key ? outputFor(toolById(record, mm.toolId, register), mm.key)?.kind : undefined);
+      const kind = mm?.kind ?? (mm?.toolId && mm.key ? outputFor(toolById(record, mm.toolId, register), mm.key)?.kind : undefined);
       return kind === 'rmsd';
     };
     const rows = m.rows.filter((r) => r.value !== null && !used.has(r.name.toLowerCase()) && !isRmsd(r));
@@ -258,11 +260,11 @@ export function flaggedChecks(record: Pick<UiRunRecord, 'layers'>): FlaggedCheck
 
 /** Fig. 2 caption tail: `median 0.83 · IQR 0.81–0.90 · 95% CI 0.43–1.43`, plus τ when computed. */
 export function seedStatsLine(record: UiRunRecord): string {
-  const p = record.stats.pairwise as Partial<NonNullable<UiRunRecord['stats']['pairwise']>> | undefined;
+  const p = record.stats.pairwise;
   const pair = (v: unknown): [number, number] | null => (Array.isArray(v) && v.length === 2 && v.every((x) => typeof x === 'number') ? (v as [number, number]) : null);
   const parts: string[] = [];
   if (p && typeof p === 'object') {
-    const unit = typeof (p as { unit?: unknown }).unit === 'string' ? ((p as { unit?: string }).unit as string) : undefined;
+    const unit = typeof p.unit === 'string' ? p.unit : undefined;
     if (typeof p.median === 'number') parts.push(`median ${fmtNum(p.median, unit, 2)}`);
     const iqr = pair(p.iqr);
     if (iqr) parts.push(`IQR ${fmtNum(iqr[0], undefined, 2)}–${fmtNum(iqr[1], undefined, 2)}`);
@@ -282,7 +284,7 @@ export function seedStatsLine(record: UiRunRecord): string {
 export function seedAxisLabel(record: UiRunRecord, register?: Register): string {
   const axis = seedAxis(record);
   if (axis?.field !== 'score') return seedConfidenceLabel(record, register);
-  const seeds = (Array.isArray(record.stats.seeds) ? record.stats.seeds : []) as { toolId?: string }[];
+  const seeds = Array.isArray(record.stats.seeds) ? record.stats.seeds : [];
   const toolId = seeds.find((x) => x.toolId)?.toolId;
   const out = axis.key && toolId ? outputFor(toolById(record, toolId, register), axis.key) : undefined;
   const ranking = out ? !!out.rankingOnly : !!record.stats.metrics?.find((m) => m.key === axis.key)?.separate;

@@ -81,6 +81,7 @@ STRUCTURE_FORMATS = {
 }
 STRUCTURE_KINDS = ("source_structure", "prediction_structure", "input_structure", "input_ligand")
 WORK_DIR = "artifacts/work/"  # scratch files the checks write (PLIP, PROPKA inputs)
+DERIVED_DIR = "derived/"  # per-pose files the checks compute (receptor-only PDBs), not members
 STALE_AFTER_S = 600.0
 MAX_FIGURES = 8
 MAX_OUTPUTS = 500
@@ -1025,14 +1026,14 @@ def ui_structures(
     """Structure files the browser can load: registered artifacts inside the run directory,
     plus any `.cif`/`.pdb`/`.sdf` under `artifacts/` not yet registered (live runs). Parsed
     predictions take the label and kind of their ensemble member. Files the checks write for
-    themselves (`artifacts/work/`) are not structures of the run and are left out."""
+    themselves (`artifacts/work/`, `derived/`) are not structures of the run and are left out."""
     out: list[dict[str, Any]] = []
     seen: set[str] = set()
     by_path = {m.structure: m for m in members or () if m.structure}
 
     def add(rel: str, artifact_kind: str, label: str, a: Mapping[str, Any] | None) -> None:
         fmt = STRUCTURE_FORMATS.get(Path(rel).suffix.lower())
-        if fmt is None or rel in seen or rel.startswith(WORK_DIR):
+        if fmt is None or rel in seen or rel.startswith((WORK_DIR, DERIVED_DIR)):
             return
         seen.add(rel)
         member = by_path.get(rel) if artifact_kind == "prediction_structure" else None

@@ -8,6 +8,7 @@ import { createMockHarnessApi } from './mock/mock-api';
 import { resolveFileUrl } from './files';
 import { openSseStream, type StreamCallbacks, type Unsubscribe } from './sse';
 import type {
+  AddToolSpec,
   AgentStep,
   AgentTask,
   Catalog,
@@ -26,7 +27,7 @@ import type {
   UploadResult,
 } from './types';
 
-export { ApiError, isAbortError } from './api-client';
+export { ApiError, isAbortError, toApiError } from './api-client';
 export type { StreamStatus, Unsubscribe } from './sse';
 export { resolveFileUrl } from './files';
 
@@ -76,11 +77,14 @@ export interface HarnessApi {
   lookupEntities(q: string, opts?: CallOptions): Promise<EntityGroup[]>;
   getCatalog(opts?: CallOptions): Promise<Catalog>;
   listTools(opts?: CallOptions): Promise<Tool[]>;
+  /** Live: `POST /ui/tools` (the API answers 501 not_implemented). Mock: adds a custom entry to the session's register. */
+  addTool(spec: AddToolSpec, opts?: CallOptions): Promise<Tool>;
   listTasks(opts?: CallOptions): Promise<Task[]>;
   listExamples(opts?: CallOptions): Promise<ExampleManifest[]>;
   uploadFiles(files: File[], opts?: CallOptions): Promise<UploadResult>;
 
   listAgentTasks(opts?: CallOptions): Promise<AgentTask[]>;
+  /** Live: polls every 2 s while a task is queued or running, every 3 s otherwise. */
   watchAgentTasks(h: WatchHandlers<AgentTask[]>): Unsubscribe;
   createAgentTask(goal: string, opts?: CallOptions): Promise<AgentTask>;
   /** SSE: replays the steps, then tails them until the task finishes. Deduplicated by seq. */
@@ -200,6 +204,7 @@ export function createLiveHarnessApi(opts: LiveOptions = {}): HarnessApi {
     lookupEntities: (q, o) => http.get<EntityGroup[]>('/ui/entities', { signal: o?.signal, query: { q } }),
     getCatalog: (o) => http.get<Catalog>('/ui/catalog', { signal: o?.signal }),
     listTools: (o) => http.get<Tool[]>('/ui/tools', { signal: o?.signal }),
+    addTool: (spec, o) => http.post<Tool>('/ui/tools', spec, { signal: o?.signal }),
     listTasks: (o) => http.get<Task[]>('/ui/tasks', { signal: o?.signal }),
     listExamples: (o) => http.get<ExampleManifest[]>('/ui/examples', { signal: o?.signal }),
     uploadFiles: (files, o) => {
@@ -212,7 +217,8 @@ export function createLiveHarnessApi(opts: LiveOptions = {}): HarnessApi {
     watchAgentTasks: (h) =>
       poll(h, {
         fetch: (signal) => http.get<AgentTask[]>('/ui/agent/tasks', { signal }),
-        nextDelay: (tasks) => (anyActive(tasks) ? 2000 : 10000),
+        // idle: 3 s, so a task an agent starts with `pah agent-log start` shows up promptly
+        nextDelay: (tasks) => (anyActive(tasks) ? 2000 : 3000),
       }),
     createAgentTask: (goal, o) => http.post<AgentTask>('/ui/agent/tasks', { goal }, { signal: o?.signal }),
     streamAgentSteps: (id, h) => openSseStream<AgentStep>(http.url(`/ui/agent/tasks/${enc(id)}/steps`), 'step', h.onStep, h, sse),

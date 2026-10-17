@@ -161,3 +161,16 @@ export function pairMeasurement(
   }
   return null;
 }
+
+/** Short run id for telling runs with the same label apart: the hex suffix of `<task>-<hex>` ids, otherwise the id. */
+export function shortRunId(runId: string): string {
+  const m = runId.match(/[-_]([0-9a-f]{6,})$/);
+  return m ? m[1].slice(0, 6) : runId;
+}
+
+/** Labels that occur more than once in `items` (those rows get a shortRunId suffix). */
+export function duplicateLabels<T>(items: readonly T[], label: (item: T) => string): Set<string> {
+  const counts = new Map<string, number>();
+  for (const it of items) counts.set(label(it), (counts.get(label(it)) ?? 0) + 1);
+  return new Set([...counts].filter(([, n]) => n > 1).map(([k]) => k));
+}

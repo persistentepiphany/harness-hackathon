@@ -147,6 +147,27 @@ def test_sources_structures_renders_and_tools(runs: dict[str, Path]) -> None:
     }
 
 
+def test_structures_leave_out_check_files(runs: dict[str, Path]) -> None:
+    run = runs["clean"]
+    # receptor-only PDB a check derived from a pose, and a check scratch file
+    for rel in ("derived/pose_0_ab12cd34_protein.pdb", "artifacts/work/plip/x.pdb"):
+        (run / rel).parent.mkdir(parents=True, exist_ok=True)
+        (run / rel).write_text("END\n")
+    for name in ("record.json", "report.json"):
+        path = run / name
+        if not path.is_file():
+            continue
+        doc = json.loads(path.read_text())
+        if not isinstance(doc.get("artifacts"), list):
+            continue
+        doc["artifacts"].append(
+            {"path": str(run / "derived/pose_0_ab12cd34_protein.pdb"), "kind": "input_structure"}
+        )
+        path.write_text(json.dumps(doc))
+    paths = [s["path"] for s in to_ui_record(run)["structures"]]
+    assert paths == ["artifacts/sources/3PTB.cif"]
+
+
 def test_job_card(runs: dict[str, Path]) -> None:
     job = to_job(runs["faulty"])
     assert job["name"] == "trypsin · benzamidine" and job["tools"] == ["boltz2"]

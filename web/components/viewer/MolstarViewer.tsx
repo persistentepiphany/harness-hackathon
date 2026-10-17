@@ -51,7 +51,7 @@ const VIEWER_OPTIONS = {
 } as const;
 
 const keyOf = (loads: StructureLoad[], flagged: SceneResidue[]) =>
-  `${loads.map((l) => `${l.format}:${l.url}:${l.color ?? ''}:${l.polymer === false ? 0 : 1}:${l.align ? 1 : 0}`).join('|')}#${flagged.map((r) => `${r.chain ?? ''}${r.num}`).join(',')}`;
+  `${loads.map((l) => `${l.format}:${l.url}:${l.color ?? ''}:${l.polymer === false ? 0 : 1}:${l.align ? 1 : 0}:${l.focus ?? ''}`).join('|')}#${flagged.map((r) => `${r.chain ?? ''}${r.num}`).join(',')}`;
 
 export default function MolstarViewer({ loads, colorMode = 'chain', hidden, flagged, onStatus, className }: MolstarViewerProps) {
   const el = useRef<HTMLDivElement>(null);
@@ -122,6 +122,12 @@ export default function MolstarViewer({ loads, colorMode = 'chain', hidden, flag
           return null;
         }
         viewer = v;
+        // no axes / camera helper gizmo in the corner of the viewport
+        try {
+          v.plugin.canvas3d.setProps({ camera: { helper: { axes: { name: 'off', params: {} } } } });
+        } catch {
+          /* a viewport decoration; the scene works without it */
+        }
         // software GL: every frame costs ~1 s, so no temporal multisampling (it redraws until settled)
         if (isSoftwareGL()) {
           try {

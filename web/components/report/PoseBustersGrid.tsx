@@ -12,8 +12,9 @@ export function PoseBustersGrid({ record, variant, className }: ReportBlockProps
   const pb = record.stats.posebusters;
   const print = variant === 'print';
   if (pb && pb.length === 0) return null;
-  const src = blockSource(record, 'posebusters') as (ReturnType<typeof blockSource> & { pose?: string }) | null;
-  const summary = pb ? `${pb.filter((p) => p.pass).length}/${pb.length} tests · ${src?.pose ?? 'medoid pose'}` : undefined;
+  const src = blockSource(record, 'posebusters');
+  const pose = typeof src?.pose === 'string' ? src.pose : undefined;
+  const summary = pb ? `${pb.filter((p) => p.pass).length}/${pb.length} tests · ${pose ?? 'medoid pose'}` : undefined;
   return (
     <div className={className} data-testid="posebusters" data-state={pb ? 'computed' : 'not-computed'} title={sourceLabel(src)}>
       {print ? <BlockLabel print>PoseBusters{summary ? ` · ${summary}` : ''}</BlockLabel> : <SectionTitle note={summary}>Physical validity · PoseBusters</SectionTitle>}

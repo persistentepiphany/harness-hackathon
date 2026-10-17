@@ -174,8 +174,8 @@ test.describe('live-shaped (fixtures)', () => {
 
   test('jobs overview renders incomplete and refused runs', async ({ page }) => {
     const card3ptb = page.locator('[data-testid=job-card][data-job=ui-3ptb]');
-    await expect(card3ptb.getByTestId('verdict')).toHaveAttribute('data-state', 'incomplete');
-    const job3ptb = fixture<{ id: string; layers: { result: string | null }[] }[]>('jobs.json').find((j) => j.id === 'ui-3ptb');
+    const job3ptb = fixture<{ id: string; verdict: string; layers: { result: string | null }[] }[]>('jobs.json').find((j) => j.id === 'ui-3ptb');
+    await expect(card3ptb.getByTestId('verdict')).toHaveAttribute('data-state', job3ptb?.verdict ?? 'pending');
     const skipLayers = job3ptb?.layers.filter((l) => l.result === 'skip').length ?? 0;
     await expect(card3ptb.locator('[data-testid=layer-cell][data-state=skip]')).toHaveCount(skipLayers);
     await expect(card3ptb).toContainText('P00760 · 3PTB · 5 seeds · pH 7.4');
@@ -199,7 +199,8 @@ test.describe('live-shaped (fixtures)', () => {
     }
     await expect(strip.getByTestId('layer-cell').nth(0)).toHaveAttribute('data-state', 'pass');
     await expect(page.getByTestId('log-line')).toHaveCount(fixture<unknown[]>('log-3ptb.json').length);
-    await expect(page.getByTestId('verdict')).toHaveAttribute('data-state', 'incomplete');
+    const outcome = fixture<{ verdict: { outcome: string | null } }>('ui-record-3ptb.json').verdict.outcome;
+    await expect(page.getByTestId('verdict')).toHaveAttribute('data-state', outcome ?? 'pending');
     await expect(page.getByTestId('executor-row')).toContainText('not run (checks only)');
     await expect(page.getByTestId('open-report')).toHaveAttribute('href', '/reports/ui-3ptb');
     await expect(page.getByTestId('job-status')).toContainText(`complete · ${rec.layers.reduce((a, l) => a + l.checks.length, 0)} checks`);

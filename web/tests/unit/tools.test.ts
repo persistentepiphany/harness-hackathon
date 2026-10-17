@@ -63,3 +63,19 @@ describe('metricsFor', () => {
     expect(recordTools(rec)[0].name).toBe('X');
   });
 });
+
+describe('outputs missing from the record entry', () => {
+  it('labels keys the record does not declare from the register', () => {
+    const rec = { tools: [{ id: 'vina', name: 'AutoDock Vina', version: '1.2.5', outputs: [{ key: 'vina_affinity', label: 'Vina score', kind: 'score', scope: 'pose' }] }] } as Pick<UiRunRecord, 'tools'>;
+    const register = [{ id: 'vina', name: 'AutoDock Vina', family: 'docking', version: '1.2.5', role: 'Executor', available: true, outputs: [{ key: 'rmsd_lb', label: 'RMSD lower bound', unit: 'Å', kind: 'rmsd', scope: 'pose' }] }] as typeof TOOLS;
+    const t = toolById(rec, 'vina', register);
+    expect(labelFor(t, 'vina_affinity')).toBe('Vina score');
+    expect(labelFor(t, 'rmsd_lb')).toBe('RMSD lower bound');
+    expect(unitFor(t, 'rmsd_lb')).toBe('Å');
+  });
+  it('resolves `<key>.<name>` map outputs to the declared key', () => {
+    const t = { outputs: [{ key: 'pdockq', label: 'pDockQ', kind: 'interface', scope: 'interface' }] } as Parameters<typeof labelFor>[0];
+    expect(labelFor(t, 'pdockq.A-B')).toBe('pDockQ');
+    expect(labelFor(t, 'other.A-B')).toBe('other.A-B');
+  });
+});

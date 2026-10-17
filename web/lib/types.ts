@@ -133,6 +133,13 @@ export interface Tool {
   custom?: boolean;
 }
 
+/** `POST /ui/tools` body: an executor entered as `name:version` (the whole input as `image`). */
+export interface AddToolSpec {
+  name: string;
+  version?: string | null;
+  image?: string;
+}
+
 export type TaskGroup = 'co-folding' | 'docking';
 export type TaskKind = 'monomer' | 'complex' | 'ligand';
 
@@ -164,6 +171,10 @@ export interface RunSettings {
   ph: number;
   seeds: number;
   name?: string;
+  /** Optional model checkpoint for the selected tools (backend accepts it in the manifest). */
+  checkpoint?: string;
+  /** Optional database snapshot (e.g. MSA database release) recorded in the manifest. */
+  databaseSnapshot?: string;
 }
 
 export type StepField =
@@ -278,8 +289,9 @@ export interface AgentStep {
   ts: string;
   kind: AgentStepKind;
   text: string;
-  ms?: number;
-  data?: Record<string, unknown>;
+  /** null when the log did not record a duration (live). */
+  ms?: number | null;
+  data?: Record<string, unknown> | null;
 }
 
 export interface AgentOutcome {
@@ -296,8 +308,11 @@ export interface AgentTask {
   createdAt: string;
   /** 0..1. */
   progress: number;
-  /** Steps reported so far. The step stream is the source of truth for the timeline. */
-  steps?: AgentStep[];
+  /**
+   * Steps reported so far. The live task list returns a count; the mock (and task detail) return
+   * the steps. The step stream is the source of truth for the timeline.
+   */
+  steps?: number | AgentStep[];
   outcome: AgentOutcome | null;
   /** UI addition: total planned steps when known (mock), otherwise absent. */
   stepsTotal?: number;
@@ -346,8 +361,10 @@ export type RecordTool = Omit<Partial<Tool>, 'id' | 'name' | 'version'> & {
   /** Live API: version declared in the manifest. */
   declaredVersion?: string;
   checkpoint?: string;
-  /** Live API: whether the executor ran in this run (false = outputs supplied, not executed). */
+  /** Live API: whether the executor's outputs are in this run. */
   ran?: boolean;
+  /** Live API: "harness" when this run executed it, "external" when its outputs were supplied, null when not run. */
+  ranBy?: 'harness' | 'external' | null;
 };
 
 export interface RecordSource {
@@ -410,7 +427,18 @@ export interface SeedStat {
   seed: number;
   rmsdToMedoid: number;
   cluster: number;
-  confidence: number;
+  /** Absent when the per-pose value is not a confidence output (then it is `score`). */
+  confidence?: number;
+  /** Live API: pose id, sample index, producing tool and site distance (Å). */
+  pose?: string;
+  sample?: number;
+  toolId?: string;
+  siteDistance?: number;
+  /** Live API: ToolOutput.key of `confidence`. */
+  confidenceKey?: string;
+  /** Live API: ranking-only per-pose value (e.g. a docking score) and its ToolOutput.key. */
+  score?: number;
+  scoreKey?: string;
 }
 export interface AgreementCell {
   vs: string;
@@ -446,6 +474,14 @@ export interface UiMetric {
   key?: string;
   /** Ranking-only score, shown below the accent rule. */
   separate?: boolean;
+  /** Live API: check id that reported the value. */
+  check?: string;
+  note?: string;
+  /** Live API: numeric value, unit and kind of the output, whether the register declares the key. */
+  number?: number;
+  unit?: string;
+  kind?: ToolOutputKind;
+  declared?: boolean;
 }
 export interface InteractionRow {
   residue: string;
@@ -469,12 +505,38 @@ export interface EnsembleEntry {
   cluster: number | null;
   /** UI addition: values keyed by ToolOutput.key of the producing tool. */
   values?: Record<string, number | null>;
+  /** Live API: RecordStructure.id of the member's structure file. */
+  structureId?: string;
+  /** Live API: native API path of the member's PNG render (pass through HarnessApi.assetUrl()). */
+  render?: string;
+  /** Live API: ligand SDF of a docking pose. */
+  ligand?: { url?: string; format?: string; path?: string };
+  /** Live API: PoseBusters tests run (`posebusters` is the number passed). */
+  posebustersTotal?: number;
+  /** Live API: whether the register declares a per-residue confidence output for the tool. */
+  perResidueConfidence?: boolean;
+  perResidueConfidenceKey?: string;
+  perResidueConfidenceRange?: [number, number];
+  /** Live API: role in the manifest, e.g. "primary", "control:redocking". */
+  role?: string;
+  pose?: string;
+  /** Live API: RMSD to the experimental reference (Å). */
+  rmsdToReference?: number;
+  seed?: number;
+  sample?: number;
+  /** Live API: docking mode index (`sample` named by the parser). */
+  mode?: number;
+  siteDistance?: number;
+  globalPlddt?: number;
 }
 export interface PairwiseStat {
   median: number;
-  iqr: [number, number];
-  ci95: [number, number];
-  n: number;
+  iqr?: [number, number];
+  /** Absent in live records (the clustering check reports median and IQR). */
+  ci95?: [number, number];
+  n?: number;
+  unit?: string;
+  poses?: number;
 }
 export interface RocPoint {
   fpr: number;
@@ -485,16 +547,39 @@ export interface PoseBustersTest {
   pass: boolean;
   value: string;
 }
+/** Mock rows carry every field; live rows carry only the fields a check reported. */
 export interface PhysicsRow {
-  seed: number;
-  drift: number;
-  torsions: number;
-  clashes: number;
-  strain: number;
-  unsatisfied: number;
-  pbPassed: number | null;
-  clashscore: number;
-  rama: number;
+  seed?: number;
+  drift?: number;
+  torsions?: number;
+  clashes?: number;
+  strain?: number;
+  unsatisfied?: number;
+  pbPassed?: number | null;
+  clashscore?: number;
+  rama?: number;
+  /** Live API fields. */
+  pose?: string;
+  sample?: number;
+  torsionsScanned?: number;
+  maxTorsionExcess?: number;
+  buriedPolar?: number;
+  buriedCharged?: number;
+  pbTotal?: number;
+  pbFailed?: string[];
+  converged?: boolean;
+}
+
+/** Where a stats block came from (stats.provenance[key] or the block's own `source`). */
+export interface StatsSource {
+  check?: string | null;
+  checks?: string[];
+  tool?: string | null;
+  version?: string | null;
+  field?: string;
+  unit?: string | null;
+  n?: number;
+  [key: string]: unknown;
 }
 
 export interface UiStats {
@@ -515,6 +600,8 @@ export interface UiStats {
   enrichment?: string | null;
   sitePlacement?: string;
   poseAccuracy?: string;
+  /** Live API: source of each block, keyed by block name (or `block.field`). */
+  provenance?: Record<string, StatsSource>;
   [key: string]: unknown;
 }
 

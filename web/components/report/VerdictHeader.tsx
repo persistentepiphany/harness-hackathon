@@ -34,8 +34,7 @@ export function VerdictHeader({ record, tools, picker, actions, meta = true, var
   const rt = recordTools(record, tools);
   // ranBy `external`: the executor's outputs were supplied with the manifest, not produced in this run
   const ranNote = (t: (typeof rt)[number]) => {
-    const by = (t as { ranBy?: string }).ranBy;
-    if (by === 'external') return ' (outputs supplied)';
+    if (t.ranBy === 'external') return ' (outputs supplied)';
     return t.ran === false ? ' (not run)' : '';
   };
   const models = rt.length ? rt.map((t) => `${t.name}${t.version ? ` ${t.version}` : ''}${ranNote(t)}`).join(', ') : '–';

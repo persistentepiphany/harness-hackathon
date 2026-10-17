@@ -4,6 +4,7 @@
 
 import Link from 'next/link';
 import { EmptyState, ErrorState, Spinner } from '@/components/ui';
+import { duplicateLabels } from '@/lib/format';
 import { useJobs, useTasks, useTools } from '@/lib/hooks';
 import { jobsSummary } from '@/lib/selectors/jobs';
 import { JobCard } from './JobCard';
@@ -13,6 +14,8 @@ export function JobsScreen() {
   const tasks = useTasks();
   const tools = useTools();
   const list = jobs.data ?? [];
+  // runs with the same name carry a short run id after the name
+  const dups = duplicateLabels(list, (j) => j.name || j.id);
   return (
     <main className="mx-auto flex w-full max-w-[1000px] animate-fade-up flex-col gap-2.5 px-6 pt-11 pb-20" data-testid="page-jobs">
       <div className="mb-3 flex items-baseline justify-between">
@@ -39,7 +42,7 @@ export function JobsScreen() {
       )}
       {jobs.data && list.length === 0 && <EmptyState data-testid="no-jobs">No jobs yet.</EmptyState>}
       {list.map((j, i) => (
-        <JobCard key={j.id} job={j} index={i} total={list.length} tasks={tasks.data} register={tools.data} />
+        <JobCard key={j.id} job={j} index={i} total={list.length} tasks={tasks.data} register={tools.data} showRunId={dups.has(j.name || j.id)} />
       ))}
     </main>
   );

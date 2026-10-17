@@ -73,6 +73,9 @@ export function createMockHarnessApi(opts: CreateMockOptions = {}): MockHarnessA
     });
   }
 
+  /** Executors added through addTool in this session (prototype "+ executor"). */
+  const customTools: Tool[] = [];
+
   const findJob = (id: string): SimJob => {
     const j = sim.jobs.find((x) => x.id === id || x.record.id === id);
     if (!j) throw notFound('job', id);
@@ -200,7 +203,18 @@ export function createMockHarnessApi(opts: CreateMockOptions = {}): MockHarnessA
       }, o),
     lookupEntities: (q, o) => respond(() => lookupEntities(q), o, Math.max(latency, 350)),
     getCatalog: (o) => respond<Catalog>(() => clone(CATALOG), o),
-    listTools: (o) => respond<Tool[]>(() => clone(TOOLS), o),
+    listTools: (o) => respond<Tool[]>(() => clone([...TOOLS, ...customTools]), o),
+    addTool: (spec, o) =>
+      respond<Tool>(() => {
+        const name = spec.name.trim();
+        const id = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!id) throw new ApiError({ status: 422, code: 'invalid_tool', message: 'tool name is required' });
+        const known = [...TOOLS, ...customTools].find((t) => t.id === id);
+        if (known) return clone(known);
+        const tool: Tool = { id, name, family: /dock/i.test(name) ? 'docking' : 'co-folding', role: 'Executor', version: spec.version || 'latest', available: true, outputs: [], custom: true };
+        customTools.push(tool);
+        return clone(tool);
+      }, o),
     listTasks: (o) => respond<Task[]>(() => clone(TASKS), o),
     listExamples: (o) => respond<ExampleManifest[]>(() => [], o),
     uploadFiles: async (files, o) => {

@@ -7,9 +7,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorState, Spinner } from '@/components/ui';
-import { ApiClient, toApiError, isAbortError } from '@/lib/api-client';
-import { API_BASE } from '@/lib/config';
-import { getHarnessApi } from '@/lib/harness-api';
+import { getHarnessApi, isAbortError, toApiError } from '@/lib/harness-api';
 import { useAction, useCatalog, useEntities, useJobs, useTasks, useTools } from '@/lib/hooks';
 import {
   applyStep,
@@ -106,7 +104,10 @@ export function NewRunScreen() {
     timers.current = [];
   };
 
-  const toolList = useMemo(() => [...(register.data ?? []), ...customTools], [register.data, customTools]);
+  const toolList = useMemo(() => {
+    const reg = register.data ?? [];
+    return [...reg, ...customTools.filter((c) => !reg.some((t) => t.id === c.id))];
+  }, [register.data, customTools]);
   const task = tasks.data?.find((t) => t.id === form.task);
   const show = inputVisibility(task);
   const groups = useMemo(() => executorGroups(toolList, form.tools), [toolList, form.tools]);
@@ -160,25 +161,14 @@ export function NewRunScreen() {
 
   const addExecutor = async (v: string) => {
     const [name, version] = v.split(':');
-    const api = getHarnessApi();
-    if (api.mode === 'mock') {
-      // mock register: the prototype adds the entry to the session's tool list
-      const id = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-      if (id && !toolList.some((t) => t.id === id)) {
-        setCustomTools((list) => [
-          ...list,
-          { id, name, family: /dock/i.test(name) ? 'docking' : 'co-folding', role: 'Executor', version: version || 'latest', available: true, outputs: [], custom: true },
-        ]);
-      }
-      if (id) update((f) => ({ ...f, tools: f.tools.includes(id) ? f.tools : [...f.tools, id] }));
-      setAdd((a) => ({ ...a, tool: '' }));
-      return;
-    }
-    // HarnessApi has no tool-registry call yet; POST /ui/tools directly through the proxy.
+    if (!name.trim()) return;
+    // live: POST /ui/tools (501 until the register accepts writes); mock: session register
     setAddTool({ busy: true, message: null });
     try {
-      await new ApiClient(API_BASE).post('/ui/tools', { name, version: version || null, image: v });
+      const tool = await getHarnessApi().addTool({ name, version: version || null, image: v });
       setAddTool({ busy: false, message: null });
+      if (!toolList.some((t) => t.id === tool.id)) setCustomTools((list) => [...list, tool]);
+      update((f) => ({ ...f, tools: f.tools.includes(tool.id) ? f.tools : [...f.tools, tool.id] }));
       setAdd((a) => ({ ...a, tool: '' }));
       register.reload();
     } catch (e) {

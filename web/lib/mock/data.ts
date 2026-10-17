@@ -537,7 +537,7 @@ function firstOutput(id: string | null, pred: (o: ToolOutput) => boolean): strin
 
 function stats(f: F, r: Rng): UiStats {
   const lig = f.task !== 'interaction_discovery';
-  const seeds: SeedStat[] = Array.from({ length: f.seeds }, (_, i) => {
+  const seeds: (SeedStat & { confidence: number })[] = Array.from({ length: f.seeds }, (_, i) => {
     const rmsd = lig ? (i === f.seeds - 1 ? 2.6 + r() * 0.8 : 0.3 + r() * 0.9) : i < 3 ? 1.1 + r() * 1.5 : 4.8 + r() * 3.2;
     return { seed: 1000 + i * 17, rmsdToMedoid: +rmsd.toFixed(2), cluster: rmsd < 2 ? 1 : 2, confidence: +(lig ? 0.86 + r() * 0.1 : 0.62 + r() * 0.16).toFixed(2) };
   });

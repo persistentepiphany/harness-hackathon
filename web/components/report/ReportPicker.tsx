@@ -4,17 +4,12 @@
 
 import clsx from 'clsx';
 import Link from 'next/link';
-import { fmtDateTime } from '@/lib/format';
+import { duplicateLabels, fmtDateTime, shortRunId } from '@/lib/format';
 import { useJobs } from '@/lib/hooks';
 
 /** Most recent finished runs shown; the current run is always included. */
 const MAX_PICKS = 5;
 
-/** Short run id: the hex suffix of `<task>-<hex>` ids, otherwise the id. */
-export function shortRunId(runId: string): string {
-  const m = runId.match(/[-_]([0-9a-f]{6,})$/);
-  return m ? m[1].slice(0, 6) : runId;
-}
 
 export function ReportPicker({ runId, suffix = '' }: { runId: string; suffix?: string }) {
   const jobs = useJobs();
@@ -24,13 +19,12 @@ export function ReportPicker({ runId, suffix = '' }: { runId: string; suffix?: s
   const current = all.find((j) => j.runId === runId);
   const list = head.some((j) => j.runId === runId) || !current ? head : [...head.slice(0, MAX_PICKS - 1), current];
   if (!list.length) return null;
-  const counts = new Map<string, number>();
-  for (const j of list) counts.set(j.name, (counts.get(j.name) ?? 0) + 1);
+  const dups = duplicateLabels(list, (j) => j.name);
   return (
     <div className="mb-3.5 flex flex-wrap items-baseline gap-1.5" data-testid="report-picker">
       {list.map((j) => {
         const on = j.runId === runId;
-        const dup = (counts.get(j.name) ?? 0) > 1;
+        const dup = dups.has(j.name);
         return (
           <Link
             key={j.id}

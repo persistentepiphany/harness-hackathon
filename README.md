@@ -14,6 +14,7 @@ returns pass, warn, stop or skip with the values and thresholds behind it. The d
 | 1 | Package skeleton, event stream, `pah doctor` (reachability of sources, tools, weights, skills), `pah fetch` |
 | 2 | Engine, run manifest, task specifications, Layer 0 source clients with a sha256 content cache and offline mode, Layer 0 and Layer 1 checks, `pah run` |
 | 3 | Layers 2 to 5 (68 registered checks), output parsers for nine executors, `pah dock` (local Vina), reports in the web UI style, MCP server, HTTP API, executor runtimes for GPU hosts, perturbation benchmark on Modal |
+| 4 | Web UI in `web/` (Next.js; new run, jobs with the live log, report, ensemble with Mol* viewers, documents, agent monitor) over the `/ui` routes of `pah serve`, in live or mock mode; HTTP API and web UI deployed on Modal (`scripts/deploy_modal.sh`) |
 
 Every check listed in the three implemented task specifications (`ligand_pose`,
 `interaction_discovery`, `virtual_screening`) is registered. Controls without a manifest input
@@ -422,13 +423,15 @@ verified without a GPU are in [docs/RUNTIMES.md](docs/RUNTIMES.md).
 | `src/pah/doctor/` | Probes, catalog, runner, report |
 | `src/pah/externals/` | `pah fetch`: downloader, installers per asset kind, lock file |
 | `src/pah/runtimes/` | Executor install, image recipes, kit or stock routing, launchers, runner |
-| `src/pah/interfaces/` | CLI (MCP server and HTTP API to follow) |
+| `src/pah/interfaces/` | CLI, MCP server, HTTP API (`pah serve`) |
+| `src/pah/webui/` | `/ui` routes for the web UI: run record adapter, job list and log stream, run settings to manifest, uploads, agent tasks |
+| `web/` | Web UI (Next.js), see [web/README.md](web/README.md); contract in [docs/UI.md](docs/UI.md) |
 | `configs/` | Sources, tools, executors, externals, task specifications and deployment profiles as YAML |
 | `examples/` | Run manifests |
 | `deploy/csf3/`, `deploy/modal/` | Slurm and Modal entry points |
 | `environment/conda.yml` | Conda-only tools |
 | `third_party/skills/` | Pinned writing, figure and documentation skills ([sources](third_party/skills/SOURCES.md)) |
-| `docs/` | Specification, architecture, executor contracts |
+| `docs/` | Specification, architecture, executor contracts, interfaces, web UI contract |
 
 ## Development
 
@@ -442,11 +445,15 @@ marker and are excluded by `make check`.
 
 ## Roadmap
 
-| Milestone | Scope |
+Open work after milestone 4:
+
+| Item | Scope |
 | --- | --- |
-| 3 | Layer 2 to 5 checks, executor adapters, Slurm and Modal backends |
-| 4 | Reports: PyMOL renders for every structure output, figures, provenance graph, text from the run record |
-| 5 | MCP server and HTTP API with an SSE event stream and JSON schemas for the frontend |
+| Read side | The native routes (`pah.api.adapter`, `runs/<id>/ui_record.json`) and the `/ui` routes (`pah.webui`) build the UI record separately; merge them into one implementation |
+| Modal API image | Add the OpenMM and OpenFF conda environment, so `l4.minimisation_drift` runs on Modal instead of skipping with `tool_missing` |
+| Access | The deployed API and web UI have no authentication |
+| Docking poses | Persist per-pose scores for every docking mode, not only mode 0 of each seed |
+| Co-folding models | Copy model files into `runs/<id>/predictions/` so every ensemble member has a structure file in the run |
 
 ## Licence
 

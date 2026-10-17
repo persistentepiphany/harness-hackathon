@@ -32,6 +32,11 @@ npm run build && npm start                     # production; NEXT_OUTPUT=standal
 | `HARNESS_PROXY_TIMEOUT_MS` | server | Wait for the first byte from the API, default 60000 (Modal cold starts take about 30 s) |
 | `NEXT_PUBLIC_HARNESS_MODE` | build time | `live` or `mock` |
 | `NEXT_DIST_DIR` | build and dev | Build directory, default `.next` |
+| `NEXT_PUBLIC_GRID_VIEWERS` | build time | Live Mol* viewers on the ensemble grid, default 6; other cells show the PyMOL render. `?gridViewers=` overrides it per page |
+| `NEXT_PUBLIC_VIEWER_MODE` | build time | `molstar` (default) or `placeholder` (no Mol* viewer, PyMOL renders only). `?viewerMode=` overrides it per page |
+
+`next.config.ts` sets `devIndicators: false`, so the dev server draws no badge over screenshots and
+recordings.
 
 The proxy (`app/api/harness/[...path]/route.ts`) streams SSE unbuffered and returns
 `{"error": {"code": "upstream_timeout" | "upstream_unreachable", "message"}}` with 504 or 502.
@@ -45,5 +50,23 @@ backend, or `HARNESS_API_URL` to the Modal endpoint for live data. Nothing is de
 ```bash
 npm run typecheck && npm run lint && npm test  # tsc, eslint, vitest (unit + live fixtures)
 npm run e2e:mock                               # Playwright, mock dev server on 3100
+E2E_PROD=1 npm run e2e:mock                    # the same against `next build` + `next start` (CI)
 E2E_PROJECT=live HARNESS_API_URL=http://127.0.0.1:8000 npx playwright test --project=live
 ```
+
+Playwright tests sit in two places. `tests/e2e/*.mock.spec.ts` and `*.live.spec.ts` are smoke
+tests per mode. `e2e/*.spec.ts` are the screen specs (new run and jobs, report and ensemble,
+agent and documents); both projects run them, and each group skips itself when the server runs in
+the other mode. The live-shaped groups answer `/api/harness/*` in the browser with
+`page.route`, from `tests/fixtures/live/` and files under `../runs/<id>/`, so they need no API.
+
+`tests/fixtures/live/` holds JSON the `/ui` routes returned for real runs (`jobs.json`,
+`tools.json`, `tasks.json`, `ui-record-3ptb.json`, `ui-record-faulty.json`, `ui-record-vina.json`
+and two logs). `tests/unit/fixtures.test.ts` parses them into the UI types and runs the selectors
+on them; regenerate them from a running `pah serve` when the adapter output changes.
+
+Each Playwright server uses its own build directory (`.next-e2e-mock`, `.next-e2e-live`, with a
+`-prod` suffix under `E2E_PROD=1`), so a test run does not disturb a dev server on another port.
+`E2E_REUSE=1` reuses a server that is already running on the port. With `E2E_PROD=1` the server
+start includes a production build, which takes a few minutes. CI (`.github/workflows/ci.yml`, job
+`web`) runs typecheck, lint, vitest, `npm run build` and `E2E_PROD=1 npm run e2e:mock`.

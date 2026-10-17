@@ -66,15 +66,17 @@ export function SeedSpread({ record, tools, side = true, caption = true, figNo =
             {p ? (
               <>
                 <div>median {fmtNum(p.median, 'Å', 2)}</div>
-                <div>
-                  IQR {fmtNum(p.iqr[0], undefined, 2)}–{fmtNum(p.iqr[1], undefined, 2)}
-                </div>
+                {p.iqr && (
+                  <div>
+                    IQR {fmtNum(p.iqr[0], undefined, 2)}–{fmtNum(p.iqr[1], undefined, 2)}
+                  </div>
+                )}
                 {p.ci95 && (
                   <div>
                     95% CI {fmtNum(p.ci95[0], undefined, 2)}–{fmtNum(p.ci95[1], undefined, 2)}
                   </div>
                 )}
-                <div>n = {p.n}</div>
+                {p.n != null && <div>n = {p.n}</div>}
               </>
             ) : (
               <div>n = {seeds.length}</div>

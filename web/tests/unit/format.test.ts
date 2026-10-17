@@ -118,3 +118,16 @@ describe('measuredVsThreshold', () => {
     expect(measuredVsThreshold(check)).toBe(`drift 0.6${THIN}Å <= 2${THIN}Å`);
   });
 });
+
+describe('run labels', () => {
+  it('shortens <task>-<hex> run ids and keeps other ids', async () => {
+    const { shortRunId } = await import('@/lib/format');
+    expect(shortRunId('ligand_pose-04e7e402bf85')).toBe('04e7e4');
+    expect(shortRunId('ui-3ptb')).toBe('ui-3ptb');
+  });
+  it('finds labels used more than once', async () => {
+    const { duplicateLabels } = await import('@/lib/format');
+    expect([...duplicateLabels(['a', 'b', 'a'], (x) => x)]).toEqual(['a']);
+    expect(duplicateLabels([], (x: string) => x).size).toBe(0);
+  });
+});

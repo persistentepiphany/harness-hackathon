@@ -14,9 +14,6 @@ import type { AgentTask } from '@/lib/types';
 import { TaskDetail } from './TaskDetail';
 import { TaskList } from './TaskList';
 
-/** Re-read the task list this often while no task is active (the shared poll waits 10 s then). */
-const IDLE_REFRESH_MS = 3000;
-
 function useNow(enabled: boolean, everyMs = 1000): number {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -47,11 +44,6 @@ export function AgentMonitor() {
   const now = useNow(live && anyActive);
 
   const { reload } = tasks;
-  useEffect(() => {
-    if (!live || anyActive) return;
-    const t = setInterval(reload, IDLE_REFRESH_MS);
-    return () => clearInterval(t);
-  }, [live, anyActive, reload]);
 
   // the stream ends when the task finishes: re-read the list for its status and outcome
   useEffect(() => {

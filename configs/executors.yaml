@@ -138,8 +138,8 @@ executors:
     role: Executor
     outputs:
       - {key: vina_affinity, label: Vina score, unit: kcal/mol, kind: score, scope: pose, higherIsBetter: false, rankingOnly: true, note: "REMARK VINA RESULT, first value (vina.cpp:535-555); poses sorted best first"}
-      - {key: rmsd_lb, label: RMSD lower bound to best mode, kind: rmsd, scope: pose, higherIsBetter: false, note: "REMARK VINA RESULT, second value; relative to the best mode, not to a reference"}
-      - {key: rmsd_ub, label: RMSD upper bound to best mode, kind: rmsd, scope: pose, higherIsBetter: false, note: "REMARK VINA RESULT, third value; relative to the best mode, not to a reference"}
+      - {key: rmsd_lb, label: RMSD lower bound, unit: Å, kind: rmsd, scope: pose, higherIsBetter: false, note: "REMARK VINA RESULT, second value; relative to the best mode, not to a reference"}
+      - {key: rmsd_ub, label: RMSD upper bound, unit: Å, kind: rmsd, scope: pose, higherIsBetter: false, note: "REMARK VINA RESULT, third value; relative to the best mode, not to a reference"}
     dockingParams:
       - {key: center, label: "Box centre (x, y, z)", unit: Å}
       - {key: size, label: "Box size (x, y, z)", unit: Å}

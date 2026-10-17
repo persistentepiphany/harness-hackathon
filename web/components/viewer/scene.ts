@@ -60,6 +60,8 @@ interface Entry {
   structure: Sel;
   polymer?: Sel;
   ligand?: Sel;
+  /** Ligand component (the structure the ligand representation is built on). */
+  ligandComponent?: Sel;
   flagged?: Sel;
 }
 
@@ -138,8 +140,10 @@ export class Scene {
         }
       }
       const lig = await p.builders.structure.tryCreateComponentStatic(structure, 'ligand');
-      if (lig) e.ligand = await p.builders.structure.representation.addRepresentation(lig, { type: 'ball-and-stick', color: 'element-symbol' });
-      else if (l.polymer === false) {
+      if (lig) {
+        e.ligandComponent = lig;
+        e.ligand = await p.builders.structure.representation.addRepresentation(lig, { type: 'ball-and-stick', color: 'element-symbol' });
+      } else if (l.polymer === false) {
         // a ligand-only file (SDF) may not classify as a ligand component: show the whole structure
         e.ligand = await p.builders.structure.representation.addRepresentation(structure, { type: 'ball-and-stick', color: 'element-symbol' });
       }
@@ -149,7 +153,10 @@ export class Scene {
     this.applyVisibility();
     // ligand-only members (poses on the reference receptor): frame the poses, not the whole receptor
     const ligandOnly = this.entries.filter((e) => e.load.polymer === false).map((e) => e.structure.data as Structure | undefined).filter((x): x is Structure => !!x);
+    // a single docking pose (receptor + ligand): frame the ligand and its pocket
+    const focused = this.entries.filter((e) => e.load.focus === 'ligand').map((e) => e.ligandComponent?.data as Structure | undefined).filter((x): x is Structure => !!x);
     if (ligandOnly.length) p.managers.camera.focusLoci(ligandOnly.map((x) => d.Structure.toStructureElementLoci(x)), { extraRadius: 6 });
+    else if (focused.length) p.managers.camera.focusLoci(focused.map((x) => d.Structure.toStructureElementLoci(x)), { extraRadius: 8 });
     else p.managers.camera.reset();
   }
 

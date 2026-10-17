@@ -147,3 +147,15 @@ describe('mock HarnessApi', () => {
     expect(r.steps.length).toBeGreaterThan(5);
   });
 });
+
+describe('mock addTool', () => {
+  it('adds a custom executor to the session register once', async () => {
+    const api = createMockHarnessApi({ seed: 3, latencyMs: 0, autoStart: false });
+    const t = await api.addTool({ name: 'MyDock', version: '1.0', image: 'MyDock:1.0' });
+    expect(t).toMatchObject({ id: 'mydock', name: 'MyDock', family: 'docking', version: '1.0', custom: true });
+    await api.addTool({ name: 'MyDock' });
+    const tools = await api.listTools();
+    expect(tools.filter((x) => x.id === 'mydock')).toHaveLength(1);
+    await expect(api.addTool({ name: '  ' })).rejects.toMatchObject({ status: 422 });
+  });
+});

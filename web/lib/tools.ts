@@ -10,7 +10,9 @@ export type ResolvedTool = RecordTool & { outputs: ToolOutput[] };
 type HasTools = Pick<UiRunRecord, 'tools'> | null | undefined;
 
 function normalise(t: RecordTool | Tool, fromRegister?: Tool): ResolvedTool {
-  const outputs = t.outputs && t.outputs.length ? t.outputs : (fromRegister?.outputs ?? []);
+  // record outputs first; keys the record does not declare are labelled from the register
+  const own = t.outputs ?? [];
+  const outputs = [...own, ...(fromRegister?.outputs ?? []).filter((o) => !own.some((x) => x.key === o.key))];
   return {
     ...(fromRegister ?? {}),
     ...t,
@@ -45,9 +47,15 @@ export function familyOf(tool: { family?: string | null } | null | undefined): T
   return null;
 }
 
-/** The output definition for `key`, if the tool reports it. */
+/**
+ * The output definition for `key`, if the tool reports it. Parsers write a `{name: number}` map
+ * output as `<key>.<name>` (`pdockq.A-B`), declared once as `pdockq`.
+ */
 export function outputFor(tool: { outputs?: ToolOutput[] } | null | undefined, key: string): ToolOutput | undefined {
-  return tool?.outputs?.find((o) => o.key === key);
+  const hit = tool?.outputs?.find((o) => o.key === key);
+  if (hit || !key.includes('.')) return hit;
+  const base = key.slice(0, key.indexOf('.'));
+  return tool?.outputs?.find((o) => o.key === base);
 }
 
 /** Display label of an output key (falls back to the key itself). */

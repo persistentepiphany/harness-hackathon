@@ -6,6 +6,7 @@
 import clsx from 'clsx';
 import Link from 'next/link';
 import { StatusDot } from '@/components/ui';
+import { shortRunId } from '@/lib/format';
 import { useRunRecord } from '@/lib/hooks';
 import { jobCardModel } from '@/lib/selectors/jobs';
 import type { Job, Task, Tool } from '@/lib/types';
@@ -18,9 +19,11 @@ export interface JobCardProps {
   total: number;
   tasks?: Task[];
   register?: Tool[];
+  /** Another job has the same name: show the short run id after the name. */
+  showRunId?: boolean;
 }
 
-export function JobCard({ job, index, total, tasks, register }: JobCardProps) {
+export function JobCard({ job, index, total, tasks, register, showRunId }: JobCardProps) {
   // the record supplies inputs, claim and per-layer counts; the card renders from the job until then
   const record = useRunRecord(job.runId || job.id);
   const m = jobCardModel(job, index, total, record.data, tasks, register);
@@ -35,7 +38,14 @@ export function JobCard({ job, index, total, tasks, register }: JobCardProps) {
     >
       <div className="pt-[3px] font-mono text-[12px] text-muted">{m.num}</div>
       <div className="flex min-w-0 flex-col gap-3.5">
-        <div className="text-[15px] font-semibold tracking-[-0.01em]">{m.name}</div>
+        <div className="text-[15px] font-semibold tracking-[-0.01em]">
+          {m.name}
+          {showRunId && (
+            <span className="ml-2 font-mono text-[11.5px] font-normal text-faint" data-testid="job-card-run">
+              {shortRunId(job.runId || job.id)}
+            </span>
+          )}
+        </div>
         <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-4 gap-y-[5px] text-[12.5px]">
           <span className="text-muted">Task</span>
           <span>{m.taskLong}</span>
