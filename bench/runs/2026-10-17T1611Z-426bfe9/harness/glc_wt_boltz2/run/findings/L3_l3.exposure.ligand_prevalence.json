@@ -1,0 +1,180 @@
+{
+  "check_id": "l3.exposure.ligand_prevalence",
+  "layer": 3,
+  "gate": "warn",
+  "message": "1079 PDB entries released before 2019-01-01 (diffdock cutoff) contain analogues of ligand above Tanimoto 0.9: 3MK, 4GL, 4N2, A1EKO, AFD, ALL",
+  "measurements": [
+    {
+      "name": "cutoff",
+      "value": "2019-01-01",
+      "unit": null
+    },
+    {
+      "name": "systems",
+      "value": 1079,
+      "unit": null
+    },
+    {
+      "name": "analogue_components",
+      "value": 25,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "tanimoto",
+      "value": 0.9,
+      "comparator": ">",
+      "origin": "Specification layer 3: analogues above 0.9 Tanimoto (RDKit topological fingerprint)",
+      "evidence_level": "published"
+    },
+    {
+      "name": "systems",
+      "value": 100,
+      "comparator": "<=",
+      "origin": "Specification layer 3: prevalent when analogues occur in more than 100 training systems",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "ligands": [
+      {
+        "ligand": "ligand",
+        "systems": 1079,
+        "components": [
+          {
+            "code": "3MK",
+            "tanimoto": 1.0,
+            "entries": 0
+          },
+          {
+            "code": "4GL",
+            "tanimoto": 1.0,
+            "entries": 0
+          },
+          {
+            "code": "4N2",
+            "tanimoto": 1.0,
+            "entries": 1
+          },
+          {
+            "code": "A1EKO",
+            "tanimoto": 1.0,
+            "entries": 0
+          },
+          {
+            "code": "AFD",
+            "tanimoto": 1.0,
+            "entries": 1
+          },
+          {
+            "code": "ALL",
+            "tanimoto": 1.0,
+            "entries": 3
+          },
+          {
+            "code": "BGC",
+            "tanimoto": 1.0,
+            "entries": 314
+          },
+          {
+            "code": "BMA",
+            "tanimoto": 1.0,
+            "entries": 98
+          },
+          {
+            "code": "GIV",
+            "tanimoto": 1.0,
+            "entries": 2
+          },
+          {
+            "code": "GL0",
+            "tanimoto": 1.0,
+            "entries": 2
+          },
+          {
+            "code": "GLA",
+            "tanimoto": 1.0,
+            "entries": 56
+          },
+          {
+            "code": "GLC",
+            "tanimoto": 1.0,
+            "entries": 268
+          },
+          {
+            "code": "GUP",
+            "tanimoto": 1.0,
+            "entries": 0
+          },
+          {
+            "code": "GXL",
+            "tanimoto": 1.0,
+            "entries": 2
+          },
+          {
+            "code": "MAN",
+            "tanimoto": 1.0,
+            "entries": 331
+          },
+          {
+            "code": "SDY",
+            "tanimoto": 1.0,
+            "entries": 0
+          },
+          {
+            "code": "SHD",
+            "tanimoto": 1.0,
+            "entries": 0
+          },
+          {
+            "code": "WOO",
+            "tanimoto": 1.0,
+            "entries": 1
+          },
+          {
+            "code": "Z0F",
+            "tanimoto": 1.0,
+            "entries": 0
+          },
+          {
+            "code": "Z2D",
+            "tanimoto": 1.0,
+            "entries": 0
+          },
+          {
+            "code": "Z6H",
+            "tanimoto": 1.0,
+            "entries": 0
+          },
+          {
+            "code": "Z8H",
+            "tanimoto": 1.0,
+            "entries": 0
+          },
+          {
+            "code": "Z8T",
+            "tanimoto": 1.0,
+            "entries": 0
+          },
+          {
+            "code": "ZCD",
+            "tanimoto": 1.0,
+            "entries": 0
+          },
+          {
+            "code": "ZEE",
+            "tanimoto": 1.0,
+            "entries": 0
+          }
+        ]
+      }
+    ]
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "RCSB search (chemical) + RDKit topological fingerprint",
+    "version": null
+  },
+  "duration_s": 0.0
+}

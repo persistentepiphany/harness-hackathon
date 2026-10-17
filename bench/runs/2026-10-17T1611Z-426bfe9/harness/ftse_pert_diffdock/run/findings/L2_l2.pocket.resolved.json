@@ -1,0 +1,83 @@
+{
+  "check_id": "l2.pocket.resolved",
+  "layer": 2,
+  "gate": "pass",
+  "message": "30 pocket residues complete in 8X61.cif",
+  "measurements": [
+    {
+      "name": "pocket_residues",
+      "value": 30,
+      "unit": null
+    },
+    {
+      "name": "incomplete",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "sequence_gaps",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "pocket_distance",
+      "value": 6.0,
+      "comparator": "<=",
+      "origin": "Harness rule: pocket residues have a heavy atom within 6 Å of the ligand; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    },
+    {
+      "name": "missing_pocket_residues",
+      "value": 0,
+      "comparator": "==",
+      "origin": "Specification layer 2: stop when the pocket is incomplete",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "site": "ATP in 8X61",
+    "receptor": "8X61.cif",
+    "pocket": [
+      "TYR11A",
+      "LEU12A",
+      "ARG15A",
+      "GLN16A",
+      "ALA17A",
+      "GLY35A",
+      "HIS36A",
+      "SER37A",
+      "GLY38A",
+      "ALA39A",
+      "GLY40A",
+      "LYS41A",
+      "SER42A",
+      "THR43A",
+      "LEU44A",
+      "LYS46A",
+      "GLN86A",
+      "ASP162A",
+      "GLN163A",
+      "HIS195A",
+      "LEU210A",
+      "LYS130B",
+      "ILE136B",
+      "GLN137B",
+      "LEU138B",
+      "SER139B",
+      "GLY140B",
+      "GLY141B",
+      "GLU142B",
+      "ASN167B"
+    ],
+    "incomplete": [],
+    "gaps": []
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "gemmi",
+    "version": null
+  },
+  "duration_s": 0.018
+}

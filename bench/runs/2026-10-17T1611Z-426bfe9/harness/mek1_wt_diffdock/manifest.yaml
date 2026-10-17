@@ -1,0 +1,38 @@
+task: ligand_pose
+claim: Predicted pose of FZC in MEK1 is valid
+ph: 7.4
+proteins:
+- id: protein
+  sequence: GLEELELDEQQRKRLEAFLTQKQKVGELKDDDFEKISELGAGNGGVVFKVSHKPSGLVMARKLIHLEIKPAIRNQIIRELQVLHECNSPYIVGFYGAFYSDGEISICMEHMDGGSLDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKIMHRDVKPSNILVNSRGEIKLCDFGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSMGLSLVEMAVGRYPIPPPDAKELELMFGCQVEGDAAETPPRPRTPGRPLNKKGMDSRPPMAIFELLDYIVNEPPPKLPSGVFSLEFQDFVNKCLIKNPAERADLKQLMVHAFIKRSDAEEVDFAGWLCSTIGLNQ
+ligands:
+- id: ligand
+  smiles: Cc1ccnc(n1)Oc2ccc(c(c2)Cl)c3cc4c(c(n[nH]4)C)c(c3)O[C@H]5CCC[C@H](C5)N
+receptor:
+  pdb_id: 7XLP
+  chains:
+  - A
+reference:
+  pdb_id: 7XLP
+  ligand: FZC
+  chain: A
+model:
+  executor: diffdock
+  version: v1.1.3
+  checkpoint: diffdock-l
+  database_snapshot: null
+  seeds: &id001
+  - 1
+  - 2
+  - 3
+predictions:
+- executor: diffdock
+  path: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/predictions/mek1_wt/diffdock
+  ligand: ligand
+  role: primary
+  seeds: *id001
+  receptor: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/prep/mek1_wt/rec.pdb
+- executor: boltz2
+  path: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/predictions/mek1_wt/boltz2
+  ligand: ligand
+  role: secondary
+  seeds: *id001

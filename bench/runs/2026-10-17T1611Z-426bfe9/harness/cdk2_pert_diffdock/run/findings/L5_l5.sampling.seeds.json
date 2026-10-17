@@ -1,0 +1,53 @@
+{
+  "check_id": "l5.sampling.seeds",
+  "layer": 5,
+  "gate": "pass",
+  "message": "3 independent seeds, 29 poses, no duplicates",
+  "measurements": [
+    {
+      "name": "independent_seeds",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "samples",
+      "value": 29,
+      "unit": null
+    },
+    {
+      "name": "duplicated_outputs",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "seeds_docking",
+      "value": 3,
+      "comparator": ">=",
+      "origin": "Harness default for independent docking seeds; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "executor": "diffdock",
+    "seeds": [
+      {
+        "seed": 1,
+        "poses": 9
+      },
+      {
+        "seed": 2,
+        "poses": 10
+      },
+      {
+        "seed": 3,
+        "poses": 10
+      }
+    ],
+    "duplicates": []
+  },
+  "artifacts": [],
+  "tool": null,
+  "duration_s": 0.0
+}

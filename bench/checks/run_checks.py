@@ -21,6 +21,19 @@ from typing import Any
 import yaml
 
 REPO = Path(__file__).resolve().parents[2]
+
+
+def run_config(run: Path) -> dict[str, Any]:
+    """The run's own copy of the design when it has one (bench/run_pipeline.py writes it),
+    otherwise bench/config/targets.yaml."""
+    import yaml
+
+    own = run / "config" / "targets.yaml"
+    return dict(
+        yaml.safe_load((own if own.is_file() else REPO / "bench/config/targets.yaml").read_text())
+    )
+
+
 sys.path.insert(0, str(REPO / "src"))
 EXECUTORS = ("boltz2", "diffdock")
 LAYERS = (2, 3, 4, 5)
@@ -167,7 +180,7 @@ def main() -> None:
     if args.jobs > 1:
         return _parallel(args)
     run = REPO / "bench" / "runs" / args.run_id
-    cfg = yaml.safe_load((REPO / "bench/config/targets.yaml").read_text())
+    cfg = run_config(run)
     seeds = list(cfg["seeds"])
     profile = load_profile("local")
     (run / "facts").mkdir(parents=True, exist_ok=True)
