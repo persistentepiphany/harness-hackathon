@@ -57,7 +57,7 @@ def test_skeleton_maps_task_tools_ligand_and_seeds() -> None:
     ]
     assert m["model"]["executor"] == "boltz2" and m["model"]["seeds"] == [0, 1, 2, 3, 4]
     assert m["model"]["version"] == "2.2.1"  # configs/runtimes.yaml pin, noted
-    assert "checkpoint" not in m["model"]
+    assert m["model"]["checkpoint"] == "boltz2_conf.ckpt"  # configs/executors.yaml default
     assert m["receptor"] == {"pdb_id": "3PTB", "chains": []} and m["ph"] == 7.4
     assert any("configs/runtimes.yaml" in n for n in plan.notes)
     Manifest.model_validate(m)
@@ -135,3 +135,25 @@ def test_failed_lookups_are_noted_not_filled(tmp_path: Path) -> None:
 def test_run_settings_accept_camel_case() -> None:
     s = RunSettings.model_validate({"task": "ligand_pose", "target": "P00760", "halt": True})
     assert s.halt is True and s.model_dump(by_alias=True)["target"] == "P00760"
+
+
+def test_checkpoint_from_executor_default_and_override() -> None:
+    from pah.webui.manifest_builder import RunSettings, plan_run
+
+    base = {"task": "ligand_pose", "tools": ["boltz2"], "target": "P00760", "reference": "3PTB"}
+    plan = plan_run(
+        RunSettings.model_validate({**base, "ligand": "NC(=N)c1ccccc1"}),
+        server_profile="local",
+        examples_dir=None,
+    )
+    assert plan.manifest["model"]["checkpoint"] == "boltz2_conf.ckpt"
+    assert any("executor default" in n for n in plan.notes)
+    plan = plan_run(
+        RunSettings.model_validate(
+            {**base, "checkpoint": "custom.ckpt", "databaseSnapshot": "db1"}
+        ),
+        server_profile="local",
+        examples_dir=None,
+    )
+    assert plan.manifest["model"]["checkpoint"] == "custom.ckpt"
+    assert plan.manifest["model"]["database_snapshot"] == "db1"

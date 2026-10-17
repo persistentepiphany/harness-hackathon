@@ -7,6 +7,7 @@ executors:
   - id: boltz2
     name: Boltz-2
     family: cofolding
+    checkpoint: boltz2_conf.ckpt  # default declared for runs started from the UI; file named by the boltz2.checkpoint probe
     mvp: true
     licence: MIT
     repo: https://github.com/jwohlwend/boltz
@@ -53,6 +54,7 @@ executors:
   - id: protenix
     name: Protenix
     family: cofolding
+    checkpoint: protenix_base_default_v1.0.0.pt  # default declared for runs started from the UI; file named by the protenix.weights probe
     mvp: false
     licence: Apache-2.0
     repo: https://github.com/bytedance/Protenix

@@ -62,9 +62,14 @@ class RunSettings(BaseModel):
     halt: bool = False
     manifest: str | None = Field(None, description="Example manifest under examples/, run as-is")
     profile: str | None = Field(None, description="Profile recorded with the job")
+    checkpoint: str | None = Field(
+        None, description="Checkpoint the executor will use; default from configs/executors.yaml"
+    )
+    database_snapshot: str | None = Field(None, description="Sequence database snapshot for MSAs")
 
     @field_validator(
         "task", "target", "partner", "ligand", "reference", "name", "claim", "manifest", "profile",
+        "checkpoint", "database_snapshot",
         mode="before",
     )  # fmt: skip
     @classmethod
@@ -327,6 +332,18 @@ def plan_run(
         if version:
             model["version"] = version
             notes.append(f"model version {version} from configs/runtimes.yaml (pinned runtime)")
+        default_ckpt = next((e.checkpoint for e in register if e.id == executor), None)
+        if settings.checkpoint:
+            model["checkpoint"] = settings.checkpoint
+            notes.append(f"checkpoint {settings.checkpoint} as declared in the run settings")
+        elif default_ckpt:
+            model["checkpoint"] = default_ckpt
+            notes.append(
+                f"checkpoint {default_ckpt} from configs/executors.yaml (executor default)"
+            )
+    if settings.database_snapshot:
+        model["database_snapshot"] = settings.database_snapshot
+        notes.append(f"database snapshot {settings.database_snapshot} as declared")
     manifest["model"] = model
     label = target.label if target else settings.target
     name = settings.name or f"{label} · {(task.name if task else spec.title).lower()}"

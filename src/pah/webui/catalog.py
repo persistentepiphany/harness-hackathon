@@ -116,6 +116,7 @@ class Executor:
     id: str
     name: str
     family: str
+    checkpoint: str | None = None
 
 
 def load_executors(base: Path | None = None) -> tuple[Executor, ...]:
@@ -125,7 +126,15 @@ def load_executors(base: Path | None = None) -> tuple[Executor, ...]:
     for row in raw:
         if isinstance(row, dict) and row.get("id"):
             rid = str(row["id"])
-            out.append(Executor(rid, str(row.get("name") or rid), str(row.get("family") or "")))
+            ckpt = row.get("checkpoint")
+            out.append(
+                Executor(
+                    rid,
+                    str(row.get("name") or rid),
+                    str(row.get("family") or ""),
+                    str(ckpt) if ckpt else None,
+                )
+            )
     return tuple(out)
 
 

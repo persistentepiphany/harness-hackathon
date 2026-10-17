@@ -98,12 +98,12 @@ def test_settings_run_builds_manifest(offline_profile: Profile) -> None:
     protein = record["manifest"]["proteins"][0]
     assert protein["chain"] == "A" and protein["sequence"].startswith("IVGGYTCGANTVPYQVSLNSGYHFCGG")
     assert record["manifest"]["model"] == {
-        "executor": "boltz2", "version": "2.2.1", "checkpoint": None,
+        "executor": "boltz2", "version": "2.2.1", "checkpoint": "boltz2_conf.ckpt",
         "database_snapshot": None, "seeds": [0, 1, 2, 3, 4],
     }  # fmt: skip
     assert record["manifest"]["ligands"][0]["ccd"] == "BEN"
-    # No checkpoint is declared for an executor that did not run; layer 1 says so.
-    assert "l1.provenance.model_config" in record["verdict"]["stops"]
+    # The executor's default checkpoint is declared, so layer 1 records the model config.
+    assert "l1.provenance.model_config" not in record["verdict"]["stops"]
     assert any("via SIFTS" in n for n in job["notes"])
     first = _events(offline_profile, run_id)[0]
     assert first["seq"] == 0 and "boltz2, gnina" in first["message"]
