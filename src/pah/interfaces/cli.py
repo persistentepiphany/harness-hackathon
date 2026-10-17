@@ -93,5 +93,14 @@ def doctor(
         raise typer.Exit(code=1)
 
 
+def _register_subcommands() -> None:
+    from pah.interfaces.cli_runtimes import app as runtimes_app
+
+    app.add_typer(runtimes_app, name="runtimes")
+
+
+_register_subcommands()
+
+
 if __name__ == "__main__":
     app()
