@@ -51,23 +51,37 @@ class Probe(Protocol):
     def run(self) -> ProbeResult: ...
 
 
-Runner = Callable[[Sequence[str], float], subprocess.CompletedProcess[str]]
+Runner = Callable[..., subprocess.CompletedProcess[str]]
 
 
-def run_command(argv: Sequence[str], timeout: float) -> subprocess.CompletedProcess[str]:
+def run_command(
+    argv: Sequence[str], timeout: float, env: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
     """Runs in a throwaway directory so tools that write side files (APBS io.mc) leave no trace."""
     with tempfile.TemporaryDirectory(prefix="pah-probe-") as cwd:
         return subprocess.run(
-            list(argv), capture_output=True, text=True, timeout=timeout, check=False, cwd=cwd
+            list(argv),
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+            cwd=cwd,
+            env=env,
         )
 
 
 _VERSION = re.compile(r"\d+\.\d+")
+_NOISE_PREFIXES = ("Picked up JAVA_TOOL_OPTIONS", "Picked up _JAVA_OPTIONS")
 
 
 def _version_line(*texts: str, limit: int = 160) -> str | None:
     """First line that contains a dotted version number, else the first non-empty line."""
-    lines = [ln.strip() for t in texts for ln in t.splitlines() if ln.strip()]
+    lines = [
+        ln.strip()
+        for t in texts
+        for ln in t.splitlines()
+        if ln.strip() and not ln.startswith(_NOISE_PREFIXES)
+    ]
     for line in lines:
         if _VERSION.search(line):
             return line[:limit]
@@ -216,6 +230,7 @@ class BinaryProbe(_Base):
     args: tuple[str, ...] = ()
     search_dirs: tuple[Path, ...] = ()
     hint: str = ""
+    expect: str | None = None
     runner: Runner = run_command
     timeout: float = 30.0
     which: Callable[[str, str | None], str | None] = field(
@@ -233,13 +248,19 @@ class BinaryProbe(_Base):
                 ProbeStatus.MISSING, f"{self.executable} not on PATH{hint}", started
             )
         try:
-            proc = self.runner([found, *self.args], self.timeout)
+            env = {**os.environ, "PATH": path}
+            proc = self.runner([found, *self.args], self.timeout, env)
         except subprocess.TimeoutExpired:
             return self._result(ProbeStatus.ERROR, f"{found} timed out", started)
         except OSError as exc:
             return self._result(ProbeStatus.ERROR, f"{found}: {exc}", started)
         version = _version_line(proc.stdout, proc.stderr)
         detail = f"{found} (exit {proc.returncode})"
+        if self.expect and not re.search(self.expect, proc.stdout + proc.stderr):
+            tail = _version_line(proc.stderr, proc.stdout) or ""
+            return self._result(
+                ProbeStatus.ERROR, f"{detail}; output lacks {self.expect!r}: {tail}", started
+            )
         return self._result(ProbeStatus.OK, detail, started, version=version)
 
 

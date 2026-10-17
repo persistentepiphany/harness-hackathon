@@ -124,6 +124,7 @@ def _binary(pid: str, cat: str, spec: Mapping[str, Any], ctx: ProbeContext) -> P
         args=tuple(str(a) for a in spec.get("args", [])),
         search_dirs=dirs,
         hint=str(spec.get("hint", "")),
+        expect=spec.get("expect"),
     )
 
 

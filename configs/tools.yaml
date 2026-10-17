@@ -110,13 +110,13 @@ tools:
     layers: [2]
     mvp: true
     install: {route: conda, package: fpocket, channel: conda-forge}
-    probe: {kind: binary, executable: fpocket, args: []}
+    probe: {kind: binary, executable: fpocket, args: [], expect: "(?i)fpocket"}
   - id: p2rank
     role: pocket prediction
     layers: [2]
     mvp: true
     install: {route: pah_fetch, package: p2rank}
-    probe: {kind: binary, executable: prank, args: ["-v"]}
+    probe: {kind: binary, executable: prank, args: ["-v"], expect: "(?i)p2rank"}
   - id: mmseqs
     role: sequence search for MSA depth and sequence exposure
     layers: [2, 3]
