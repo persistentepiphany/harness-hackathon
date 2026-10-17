@@ -69,7 +69,7 @@ test.describe('mock', () => {
     await expect(page).toHaveURL(/\/reports\/run_[0-9a-z_]+\?seed=7$/);
     await expect(page.getByTestId('verdict')).toHaveAttribute('data-state', 'narrowed');
     await expect(page.getByTestId('verdict')).toHaveAttribute('data-assessment', 'full');
-    await expect(page.getByTestId('dimension')).toHaveCount(7);
+    await expect(page.getByTestId('dimension')).toHaveCount(6);
     // stage switcher: three stages, the report opens on Outputs (layers 4-5 evaluated)
     await expect(page.getByTestId('stage-tab')).toHaveCount(3);
     await expect(page.locator('[data-testid=stage-tab][data-stage=outputs]')).toHaveAttribute('aria-selected', 'true');

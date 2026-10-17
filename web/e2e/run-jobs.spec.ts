@@ -28,7 +28,7 @@ test.describe('mock mode', () => {
   test('new run: pickers, detail cards, sources and manual setup', async ({ page }) => {
     await expect(page.getByTestId('page-new-run')).toBeVisible();
     await expect(page.getByTestId('quick-setup')).toBeDisabled();
-    await expect(page.getByTestId('target-chip')).toHaveCount(6);
+    await expect(page.getByTestId('target-chip')).toHaveCount(7);
     await expect(page.getByTestId('target-chip').first()).toHaveAttribute('data-state', 'selected');
     await expect(page.getByTestId('ligand-chip').first()).toHaveAttribute('data-state', 'selected');
 
@@ -39,7 +39,7 @@ test.describe('mock mode', () => {
 
     await page.getByTestId('manual-setup').click();
     await expect(page.getByTestId('task-chip')).toHaveCount(14);
-    await expect(page.locator('[data-testid=task-chip][data-group=docking]')).toHaveCount(6);
+    await expect(page.locator('[data-testid=task-chip][data-group=docking]')).toHaveCount(5);
     const unavailable = page.locator('[data-testid=executor-chip][data-state=unavailable]');
     await expect(unavailable.first()).toBeDisabled();
     await expect(unavailable.first()).toHaveAttribute('title', /not available/);
