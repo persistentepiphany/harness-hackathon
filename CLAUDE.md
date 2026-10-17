@@ -35,7 +35,8 @@ make check                     # ruff + mypy + pytest
 .venv/bin/pah tasks && .venv/bin/pah checks
 .venv/bin/pah dock <manifest> --out <dir>    # local Vina, writes a manifest with predictions
 .venv/bin/pah lint <file.md>                 # humanizer rules for generated prose
-.venv/bin/python bench/run_pipeline.py --seeds 4,5,6   # perturbation benchmark (Modal, Z.AI)
+.venv/bin/python bench/run_pipeline.py --seeds 7,8,9   # perturbation benchmark (Modal, Z.AI)
+.venv/bin/python bench/analysis/deck.py --run-id <id> --review <judgment.json>  # bind slide review
 ```
 
 Adding a check: subclass `pah.core.check.Check` in `src/pah/checks/layer<n>_*.py`, decorate with

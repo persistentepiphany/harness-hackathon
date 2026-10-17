@@ -16,6 +16,7 @@ render hashes (deck/visual_review_receipt.json) and a strict QA pass requires it
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import subprocess
 import sys
@@ -50,8 +51,11 @@ def outline(run: Path, system: str, executor: str) -> dict[str, Any]:
     metas = {
         p.parent.name: json.loads(p.read_text()) for p in sorted((run / "prep").glob("*/meta.json"))
     }
-    wt = json.loads((run / "facts" / f"{system}_wt_{executor}.json").read_text())
-    pert = json.loads((run / "facts" / f"{system}_pert_{executor}.json").read_text())
+    facts = {p.stem: json.loads(p.read_text()) for p in sorted((run / "facts").glob("*.json"))}
+    with (run / "results" / "truth.csv").open() as fh:
+        tr = {(r["system"], r["executor"]): r for r in csv.DictReader(fh)}
+    wt = facts[f"{system}_wt_{executor}"]
+    pert = facts[f"{system}_pert_{executor}"]
     allb, figs = stats["arms"]["all"], run / "results" / "figures"
     rows = []
     for m in metas.values():
@@ -144,67 +148,43 @@ def outline(run: Path, system: str, executor: str) -> dict[str, Any]:
                 "caption": "Each panel oriented on its ligand; grey: residues ≤ 5 Å.",
             }
         )
+    # Named cases lead: what the perturbation did to each system's pose, by name.
+    case_rows = []
+    for name, m in ((n, v) for n, v in metas.items() if v["state"] == "pert"):
+        sysn = name.removesuffix("_pert")
+        f = {(s, e): facts[f"{sysn}_{s}_{e}"] for s in ("wt", "pert") for e in EXEC}
+        ref = _v(f[("wt", "boltz2")]["key_interactions_reference"])
+        rec = "key_interactions_recovered"
+        case_rows.append(
+            [
+                m["protein"].split(" (")[0],
+                f"{_v(f[('wt', 'boltz2')][rec])} / {_v(f[('wt', 'diffdock')][rec])} of {ref}",
+                f"{_v(f[('pert', 'boltz2')][rec])} / {_v(f[('pert', 'diffdock')][rec])} of {ref}",
+                " / ".join(
+                    _v(tr[(f"{sysn}_pert", e)]["rmsd_A"] or None) for e in ("boltz2", "diffdock")
+                ),
+            ]
+        )
     slides += [
         {
             "type": "content",
             "role": "table",
             "variant": "table",
-            "title": "Confusion counts, executors pooled",
+            "title": "What the perturbation did, by system",
+            "subtitle": "Deposited contacts the medoid reproduces, wild type against perturbed",
             "table": {
                 "headers": [
-                    "Arm",
-                    "Valid kept",
-                    "Valid rejected",
-                    "Invalid kept",
-                    "Invalid rejected",
+                    "System",
+                    "Wild type contacts",
+                    "Perturbed contacts",
+                    "Perturbed medoid (Å)",
                 ],
-                "rows": [
-                    [
-                        "Score only",
-                        str(allb["A"]["tp"]),
-                        str(allb["A"]["fn"]),
-                        str(allb["A"]["fp"]),
-                        str(allb["A"]["tn"]),
-                    ],
-                    [
-                        "Fact file",
-                        str(allb["B"]["tp"]),
-                        str(allb["B"]["fn"]),
-                        str(allb["B"]["fp"]),
-                        str(allb["B"]["tn"]),
-                    ],
-                ],
+                "rows": case_rows,
             },
-            "caption": f"{allb['n']} predictions ({allb['n_valid']} valid, {allb['n_invalid']} "
-            "invalid); majority verdict over three repeats.",
-        },
-        {
-            "type": "content",
-            "role": "evidence",
-            "variant": "image-sidebar",
-            "image_sidebar_mode": "analysis-rail",
-            "title": "Balanced accuracy with 95% intervals",
-            "assets": {"hero_image": str(figs / "balanced_accuracy.png")},
-            "sidebar_sections": [
-                {"title": "Score only, pooled", "body": _ba(allb["A"])},
-                {"title": "Fact file, pooled", "body": _ba(allb["B"])},
-                {
-                    "title": "McNemar exact p",
-                    "body": f"{allb['mcnemar']['p_exact']}; discordant "
-                    f"{allb['mcnemar']['b_right_a_wrong']} and "
-                    f"{allb['mcnemar']['a_right_b_wrong']}",
-                },
-            ],
-            "caption": "Bootstrap over predictions; dashed line at 0.5.",
-            "notes": "Boltz-2: score only "
-            + _ba(stats["arms"]["boltz2"]["A"])
-            + ", fact file "
-            + _ba(stats["arms"]["boltz2"]["B"])
-            + ". DiffDock-L: score only "
-            + _ba(stats["arms"]["diffdock"]["A"])
-            + ", fact file "
-            + _ba(stats["arms"]["diffdock"]["B"])
-            + ".",
+            "caption": "Each cell Boltz-2 / DiffDock-L. Medoid RMSD is to the deposited ligand; "
+            "n/a where the perturbation modifies the ligand.",
+            "notes": "Contact recovery is the signal that separates the states. Confidence and "
+            "PoseBusters stay clean on the perturbed poses.",
         },
         {
             "type": "content",
@@ -221,6 +201,36 @@ def outline(run: Path, system: str, executor: str) -> dict[str, Any]:
             "caption": "B2 Boltz-2, DD DiffDock-L. V valid, I invalid.",
             "notes": f"Score only kept {allb['A']['fp']} of {allb['n_invalid']} invalid "
             f"predictions; the fact file arm kept {allb['B']['tp']} of {allb['n_valid']} valid.",
+        },
+        {
+            "type": "content",
+            "role": "evidence",
+            "variant": "image-sidebar",
+            "image_sidebar_mode": "analysis-rail",
+            "title": "Aggregate over this run",
+            "assets": {"hero_image": str(figs / "balanced_accuracy.png")},
+            "sidebar_sections": [
+                {"title": "Score only, pooled", "body": _ba(allb["A"])},
+                {"title": "Fact file, pooled", "body": _ba(allb["B"])},
+                {
+                    "title": "McNemar exact p",
+                    "body": f"{allb['mcnemar']['p_exact']}; discordant "
+                    f"{allb['mcnemar']['b_right_a_wrong']} and "
+                    f"{allb['mcnemar']['a_right_b_wrong']}",
+                },
+            ],
+            "caption": f"{allb['n']} predictions; intervals are wide at this size. Invalid kept: "
+            f"score only {allb['A']['fp']} of {allb['n_invalid']}, fact file {allb['B']['fp']} "
+            f"of {allb['n_invalid']}. Dashed line at 0.5.",
+            "notes": "Boltz-2: score only "
+            + _ba(stats["arms"]["boltz2"]["A"])
+            + ", fact file "
+            + _ba(stats["arms"]["boltz2"]["B"])
+            + ". DiffDock-L: score only "
+            + _ba(stats["arms"]["diffdock"]["A"])
+            + ", fact file "
+            + _ba(stats["arms"]["diffdock"]["B"])
+            + ".",
         },
         {
             "type": "content",

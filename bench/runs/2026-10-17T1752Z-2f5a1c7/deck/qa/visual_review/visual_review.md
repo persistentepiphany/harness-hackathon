@@ -3,7 +3,7 @@
 - PPTX: `/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/results/deck.pptx`
 - Rendered slides: 8
 - Warnings: 0
-- Info: 9
+- Info: 11
 - Contact sheet: `/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/deck/qa/visual_review/contact_sheet.jpg`
 
 ## Findings
@@ -22,9 +22,13 @@
   Suggestion: Check readability; use larger text or split dense content if this is not a table/caption.
 - [INFO] slide 4 / shape-14: body_font_small - Body-like text is 9.0pt.
   Suggestion: Check readability; use larger text or split dense content if this is not a table/caption.
-- [INFO] slide 5 / shape-14: body_font_small - Body-like text is 9.0pt.
+- [INFO] slide 5 / shape-12: body_font_small - Body-like text is 9.0pt.
   Suggestion: Check readability; use larger text or split dense content if this is not a table/caption.
-- [INFO] slide 6 / shape-20: body_font_small - Body-like text is 9.0pt.
+- [INFO] slide 5 / shape-13: body_font_small - Body-like text is 9.0pt.
+  Suggestion: Check readability; use larger text or split dense content if this is not a table/caption.
+- [INFO] slide 5 / shape-15: body_font_small - Body-like text is 9.0pt.
+  Suggestion: Check readability; use larger text or split dense content if this is not a table/caption.
+- [INFO] slide 7 / shape-20: body_font_small - Body-like text is 9.0pt.
   Suggestion: Check readability; use larger text or split dense content if this is not a table/caption.
 
 ## Rendered Slides

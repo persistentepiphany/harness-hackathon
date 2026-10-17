@@ -130,63 +130,44 @@
       "type": "content",
       "role": "table",
       "variant": "table",
-      "title": "Confusion counts, executors pooled",
+      "title": "What the perturbation did, by system",
+      "subtitle": "Deposited contacts the medoid reproduces, wild type against perturbed",
       "table": {
         "headers": [
-          "Arm",
-          "Valid kept",
-          "Valid rejected",
-          "Invalid kept",
-          "Invalid rejected"
+          "System",
+          "Wild type contacts",
+          "Perturbed contacts",
+          "Perturbed medoid (\u00c5)"
         ],
         "rows": [
           [
-            "Score only",
-            "3",
-            "3",
-            "5",
-            "5"
+            "CDK2",
+            "5 / 9 of 9",
+            "1 / 0 of 9",
+            "2.392 / 0.918"
           ],
           [
-            "Fact file",
-            "1",
-            "5",
-            "1",
-            "9"
+            "FtsE",
+            "9 / 10 of 16",
+            "0 / 0 of 16",
+            "15.415 / 17.74"
+          ],
+          [
+            "glucose dehydrogenase",
+            "4 / 0 of 6",
+            "3 / 0 of 6",
+            "n/a / n/a"
+          ],
+          [
+            "MEK1",
+            "2 / 2 of 3",
+            "0 / 0 of 3",
+            "3.036 / 1.463"
           ]
         ]
       },
-      "caption": "16 predictions (6 valid, 10 invalid); majority verdict over three repeats.",
-      "sources": [
-        "S1"
-      ],
-      "footer": "S1: bench/runs/2026-10-17T1611Z-426bfe9 (stats.json, facts, renders)"
-    },
-    {
-      "type": "content",
-      "role": "evidence",
-      "variant": "image-sidebar",
-      "image_sidebar_mode": "analysis-rail",
-      "title": "Balanced accuracy with 95% intervals",
-      "assets": {
-        "hero_image": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/results/figures/balanced_accuracy.png"
-      },
-      "sidebar_sections": [
-        {
-          "title": "Score only, pooled",
-          "body": "0.5 (0.236 to 0.767)"
-        },
-        {
-          "title": "Fact file, pooled",
-          "body": "0.533 (0.375 to 0.75)"
-        },
-        {
-          "title": "McNemar exact p",
-          "body": "0.6875; discordant 4 and 2"
-        }
-      ],
-      "caption": "Bootstrap over predictions; dashed line at 0.5.",
-      "notes": "Boltz-2: score only 0.5 (0.5 to 0.5), fact file 0.567 (0.25 to 0.929). DiffDock-L: score only 0.5 (0.5 to 0.5), fact file 0.5 (0.5 to 0.5).",
+      "caption": "Each cell Boltz-2 / DiffDock-L. Medoid RMSD is to the deposited ligand; n/a where the perturbation modifies the ligand.",
+      "notes": "Contact recovery is the signal that separates the states. Confidence and PoseBusters stay clean on the perturbed poses.",
       "sources": [
         "S1"
       ],
@@ -206,6 +187,36 @@
       "figure_layout": "panel-grid",
       "caption": "B2 Boltz-2, DD DiffDock-L. V valid, I invalid.",
       "notes": "Score only kept 5 of 10 invalid predictions; the fact file arm kept 1 of 6 valid.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs/2026-10-17T1611Z-426bfe9 (stats.json, facts, renders)"
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "image-sidebar",
+      "image_sidebar_mode": "analysis-rail",
+      "title": "Aggregate over this run",
+      "assets": {
+        "hero_image": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/results/figures/balanced_accuracy.png"
+      },
+      "sidebar_sections": [
+        {
+          "title": "Score only, pooled",
+          "body": "0.5 (0.236 to 0.767)"
+        },
+        {
+          "title": "Fact file, pooled",
+          "body": "0.533 (0.375 to 0.75)"
+        },
+        {
+          "title": "McNemar exact p",
+          "body": "0.6875; discordant 4 and 2"
+        }
+      ],
+      "caption": "16 predictions; intervals are wide at this size. Invalid kept: score only 5 of 10, fact file 1 of 10. Dashed line at 0.5.",
+      "notes": "Boltz-2: score only 0.5 (0.5 to 0.5), fact file 0.567 (0.25 to 0.929). DiffDock-L: score only 0.5 (0.5 to 0.5), fact file 0.5 (0.5 to 0.5).",
       "sources": [
         "S1"
       ],
