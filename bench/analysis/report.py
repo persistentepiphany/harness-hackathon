@@ -85,6 +85,15 @@ def _ci(block: dict[str, Any]) -> str:
     )
 
 
+def _reasons(run: Path) -> dict[tuple[str, str, str], str]:
+    out = {}
+    for line in (run / "agent" / "calls.jsonl").read_text().splitlines():
+        e = json.loads(line)
+        if e["repeat"] == 0:
+            out[(e["system"], e["executor"], e["arm"])] = str(e["parsed"].get("reason") or "")
+    return out
+
+
 def report(run: Path, cfg: dict[str, Any], man: dict[str, Any]) -> str:
     stats = json.loads((run / "results" / "stats.json").read_text())
     with (run / "results" / "truth.csv").open() as fh:
@@ -177,6 +186,23 @@ def report(run: Path, cfg: dict[str, Any], man: dict[str, Any]) -> str:
             f"{_fmt(f['ensemble_spread_A'])} | {_fmt(f['medoid_cluster_fraction'])} | "
             f"{_fmt(f['cross_tool_rmsd_A'])} |"
         )
+    w("")
+    w("## Agent reasons for misclassified predictions")
+    w("")
+    w("Repeat 0 of each arm, quoted from `agent/calls.jsonl`.")
+    w("")
+    w("| Prediction | Truth | Arm | Verdict | Reason |")
+    w("| --- | --- | --- | --- | --- |")
+    reasons = _reasons(run)
+    for r in truth:
+        for arm in ("A", "B"):
+            if r["truth"] and r[f"arm_{arm}"] and r[f"arm_{arm}"] != r["truth"]:
+                reason = reasons.get((r["system"], r["executor"], arm), "n/a").replace("|", "/")
+                w(
+                    f"| {r['system']} · {EXEC[r['executor']]} | {r['truth']} | "
+                    f"{'score only' if arm == 'A' else 'fact file'} | {r[f'arm_{arm}']} "
+                    f"| {reason} |"
+                )
     w("")
     w("## Figures")
     w("")

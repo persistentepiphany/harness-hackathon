@@ -248,16 +248,17 @@ def figures(res: Path, table: list[dict[str, Any]], stats: dict[str, Any]) -> No
     ax.legend(frameon=False, fontsize=8, loc="upper left")
     _save(fig, out / "balanced_accuracy", rows)
 
-    # 2. decision grid: rows = predictions, cols = truth, arm A, arm B
-    labels = [f"{r['system']} · {EXEC[r['executor']]}" for r in table]
+    # 2. decision grid: columns = predictions, rows = truth, arm A, arm B (landscape for slides)
+    short = {"boltz2": "B2", "diffdock": "DD"}
+    labels = [f"{r['system'].replace('_', ' ')} {short[r['executor']]}" for r in table]
     cols = ["truth", "arm_A", "arm_B"]
     code = {"valid": 1, "invalid": 0, None: 0.5, "none": 0.5}
-    grid = [[code.get(r[c], 0.5) for c in cols] for r in table]
-    fig, ax = plt.subplots(figsize=(4.2, 0.28 * len(table) + 0.9), layout="constrained")
+    grid = [[code.get(r[c], 0.5) for r in table] for c in cols]
+    fig, ax = plt.subplots(figsize=(0.55 * len(table) + 1.4, 2.9), layout="constrained")
     cmap = ListedColormap([OKABE["invalid"], "#E6E6E1", OKABE["valid"]])
     ax.imshow(grid, cmap=cmap, vmin=0, vmax=1, aspect="auto")
-    for i, r in enumerate(table):
-        for j, c in enumerate(cols):
+    for j, r in enumerate(table):
+        for i, c in enumerate(cols):
             ax.text(
                 j,
                 i,
@@ -265,21 +266,18 @@ def figures(res: Path, table: list[dict[str, Any]], stats: dict[str, Any]) -> No
                 ha="center",
                 va="center",
                 color="white",
-                fontsize=8,
+                fontsize=9,
             )
-    ax.set_xticks(range(3), ["ground truth", "score only", "fact file"])
-    ax.set_yticks(range(len(labels)), labels, fontsize=8)
+    ax.set_yticks(range(3), ["ground truth", "score only", "fact file"])
+    ax.set_xticks(range(len(labels)), labels, fontsize=9, rotation=55, ha="right")
     ax.tick_params(length=0)
-    for s in ax.spines.values():
-        s.set_visible(False)
-    _save(
-        fig,
-        out / "decisions",
-        [
-            {"prediction": lab, **{c: r[c] for c in cols}}
-            for lab, r in zip(labels, table, strict=True)
-        ],
-    )
+    for sp in ax.spines.values():
+        sp.set_visible(False)
+    rows_csv = [
+        {"prediction": lab.replace("\n", " "), **{c: r[c] for c in cols}}
+        for lab, r in zip(labels, table, strict=True)
+    ]
+    _save(fig, out / "decisions", rows_csv)
 
     # 3. confusion matrices
     fig, axes = plt.subplots(1, 2, figsize=(5.2, 2.5), layout="constrained")

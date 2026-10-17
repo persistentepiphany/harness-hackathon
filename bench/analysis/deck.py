@@ -89,7 +89,7 @@ def outline(run: Path, system: str, executor: str) -> dict[str, Any]:
         {
             "type": "title",
             "role": "title",
-            "title": "Does the harness fact file help an agent reject invalid poses?",
+            "title": "Does the fact file help reject invalid poses?",
             "subtitle": f"Perturbation benchmark, run {run.name}",
             "notes": "Same agent, same predictions, two kinds of evidence: the model confidence "
             "score alone, or the harness fact file.",
@@ -135,42 +135,57 @@ def outline(run: Path, system: str, executor: str) -> dict[str, Any]:
     slides += [
         {
             "type": "content",
-            "role": "evidence",
-            "variant": "lab-run-results",
-            "title": "Confusion matrices, pooled over both executors",
-            "tables": [
-                {
-                    "title": "Score only",
-                    "headers": ["", "called valid", "called invalid"],
-                    "rows": [
-                        ["truly valid", str(allb["A"]["tp"]), str(allb["A"]["fn"])],
-                        ["truly invalid", str(allb["A"]["fp"]), str(allb["A"]["tn"])],
+            "role": "table",
+            "variant": "table",
+            "title": "Confusion counts, pooled over both executors",
+            "table": {
+                "headers": [
+                    "Arm",
+                    "Valid kept",
+                    "Valid rejected",
+                    "Invalid kept",
+                    "Invalid rejected",
+                ],
+                "rows": [
+                    [
+                        "Score only",
+                        str(allb["A"]["tp"]),
+                        str(allb["A"]["fn"]),
+                        str(allb["A"]["fp"]),
+                        str(allb["A"]["tn"]),
                     ],
-                },
-                {
-                    "title": "Harness fact file",
-                    "headers": ["", "called valid", "called invalid"],
-                    "rows": [
-                        ["truly valid", str(allb["B"]["tp"]), str(allb["B"]["fn"])],
-                        ["truly invalid", str(allb["B"]["fp"]), str(allb["B"]["tn"])],
+                    [
+                        "Fact file",
+                        str(allb["B"]["tp"]),
+                        str(allb["B"]["fn"]),
+                        str(allb["B"]["fp"]),
+                        str(allb["B"]["tn"]),
                     ],
-                },
-            ],
-            "interpretation": f"{allb['n']} predictions with ground truth: "
-            f"{allb['n_valid']} valid, {allb['n_invalid']} invalid.",
+                ],
+            },
+            "caption": f"{allb['n']} predictions ({allb['n_valid']} valid, {allb['n_invalid']} "
+            "invalid); majority verdict over three repeats.",
         },
         {
             "type": "content",
             "role": "evidence",
-            "variant": "scientific-figure",
-            "title": "Balanced accuracy with 95% bootstrap intervals",
-            "figures": [
-                {"path": str(figs / "balanced_accuracy.png"), "label": "A"},
-                {"path": str(figs / "decisions.png"), "label": "B"},
+            "variant": "image-sidebar",
+            "image_sidebar_mode": "analysis-rail",
+            "title": "Balanced accuracy with 95% intervals",
+            "assets": {"hero_image": str(figs / "balanced_accuracy.png")},
+            "sidebar_sections": [
+                {
+                    "title": "Pooled",
+                    "body": f"Score only {_ba(allb['A'])}; fact file {_ba(allb['B'])}",
+                },
+                {
+                    "title": "McNemar",
+                    "body": f"Exact p {allb['mcnemar']['p_exact']} "
+                    f"({allb['mcnemar']['b_right_a_wrong']} for, "
+                    f"{allb['mcnemar']['a_right_b_wrong']} against)",
+                },
             ],
-            "figure_layout": "panel-grid",
-            "caption": f"Pooled: score only {_ba(allb['A'])}, fact file {_ba(allb['B'])}; "
-            f"McNemar exact p {allb['mcnemar']['p_exact']}.",
+            "caption": "Bootstrap over predictions; dashed line at 0.5.",
             "notes": "Boltz-2: score only "
             + _ba(stats["arms"]["boltz2"]["A"])
             + ", fact file "
@@ -183,24 +198,49 @@ def outline(run: Path, system: str, executor: str) -> dict[str, Any]:
         },
         {
             "type": "content",
-            "role": "decision",
-            "variant": "standard",
+            "role": "evidence",
+            "variant": "scientific-figure",
+            "title": "Decision per prediction",
+            "figures": [{"path": str(figs / "decisions.png"), "label": "A"}],
+            "figure_layout": "panel-grid",
+            "caption": "B2 Boltz-2, DD DiffDock-L. V valid, I invalid.",
+            "notes": f"Score only kept {allb['A']['fp']} of {allb['n_invalid']} invalid "
+            f"predictions; the fact file arm kept {allb['B']['tp']} of {allb['n_valid']} valid.",
+        },
+        {
+            "type": "content",
+            "role": "comparison",
+            "variant": "comparison-2col",
             "title": "What this run does and does not establish",
-            "bullets": [
-                f"Measured on {stats['n_predictions']} predictions of 4 systems",
-                "Perturbed systems are negatives by construction",
-                "The arms differ in prompt length as well as content",
-                "Intervals, not point estimates, carry the result",
-            ],
-            "notes": "Eight systems per executor support a demonstration, not a statistical claim. "
-            "A length-matched control arm was not run.",
+            "left": {
+                "title": "Measured",
+                "bullets": [
+                    f"{stats['n_predictions']} predictions of 4 systems, 2 executors",
+                    "Every prompt and response recorded",
+                    "Ground truth fixed before any decision",
+                ],
+            },
+            "right": {
+                "title": "Not established",
+                "bullets": [
+                    "A statistical difference between arms",
+                    "Binding loss beyond the source studies",
+                    "Effect of prompt length alone",
+                ],
+            },
+            "notes": "Eight systems per executor support a demonstration, not a statistical "
+            "claim. A length-matched control arm was not run.",
         },
     ]
+    for slide in slides:
+        if slide["type"] == "content":
+            slide.setdefault("sources", ["S1"])
+            slide.setdefault("footer", f"S1: bench/runs/{run.name} (stats.json, facts, renders)")
     return {
         "title": "Perturbation benchmark",
         "deck_style": {
             "style_preset": "lab-report",
-            "composition_grammar": "lab-readout-and-method-block",
+            "composition_grammar": "scientific-evidence-plate",
             "style_seed": "pah-perturbation-bench",
             "header_variant": "auto",
             "footer_mode": "source-line",
