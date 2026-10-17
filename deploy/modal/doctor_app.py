@@ -38,6 +38,8 @@ image = (
     .add_local_dir(REPO, REMOTE_REPO, copy=True, ignore=IGNORE)
     .run_commands(f"pip install --no-deps -e {REMOTE_REPO}")
     .env({"PAH_CONFIG_DIR": f"{REMOTE_REPO}/configs"})
+    # Default external assets (P2Rank, MMseqs2, Foldseek). Failures are recorded, not fatal.
+    .run_commands("pah fetch --profile modal")
 )
 
 app = modal.App("pah-doctor", image=image)
