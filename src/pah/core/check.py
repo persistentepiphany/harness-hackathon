@@ -124,7 +124,7 @@ class Check(ABC):
         gate: Gate,
         message: str,
         *,
-        measurements: Mapping[str, float | int | str | bool | None] | None = None,
+        measurements: Mapping[str, Any] | None = None,
         units: Mapping[str, str] | None = None,
         thresholds: tuple[Threshold, ...] = (),
         evidence: dict[str, Any] | None = None,

@@ -16,6 +16,7 @@ from pah.sources.clients import (
     PubChemCompound,
     SiftsMapping,
     SiftsSegment,
+    UniProtAnnotations,
     UniProtEntry,
 )
 
@@ -55,6 +56,12 @@ def _memo(ctx: CheckContext, key: str, fetch: Any) -> Any:
 
 def uniprot(ctx: CheckContext, accession: str) -> UniProtEntry:
     return _memo(ctx, f"uniprot:{accession}", lambda: ctx.sources.uniprot.entry(accession))
+
+
+def uniprot_annotations(ctx: CheckContext, accession: str) -> UniProtAnnotations:
+    return _memo(
+        ctx, f"uniprot_ann:{accession}", lambda: ctx.sources.uniprot.annotations(accession)
+    )
 
 
 def pdb_entry(ctx: CheckContext, pdb_id: str) -> PdbEntry:
@@ -295,3 +302,21 @@ def reference_inchikeys(ctx: CheckContext, lig: LigandInput) -> dict[str, str]:
     if lig.pubchem_cid:
         refs[f"PubChem {lig.pubchem_cid}"] = pubchem(ctx, lig.pubchem_cid).inchikey
     return refs
+
+
+def read_a3m(path: Path) -> list[tuple[str, str]]:
+    records: list[tuple[str, str]] = []
+    header: str | None = None
+    parts: list[str] = []
+    for line in path.read_text().splitlines():
+        if line.startswith("#"):
+            continue
+        if line.startswith(">"):
+            if header is not None:
+                records.append((header, "".join(parts)))
+            header, parts = line[1:].strip(), []
+        elif header is not None:
+            parts.append(line.strip())
+    if header is not None:
+        records.append((header, "".join(parts)))
+    return records

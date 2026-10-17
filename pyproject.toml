@@ -84,8 +84,9 @@ disallow_untyped_calls = false
 warn_return_any = false
 
 [[tool.mypy.overrides]]
-module = ["rdkit.*", "gemmi.*", "posebusters.*", "pymol.*", "plip.*", "freesasa.*", "spyrmsd.*", "modal.*", "submitit.*"]
+module = ["rdkit.*", "gemmi.*", "posebusters.*", "pymol.*", "plip.*", "freesasa.*", "spyrmsd.*", "modal.*", "submitit.*", "meeko.*", "dimorphite_dl.*", "propka.*", "scipy.*", "openmm.*", "pdbfixer.*", "vina.*", "prolif.*", "MDAnalysis.*", "openbabel.*"]
 ignore_missing_imports = true
+follow_imports = "skip"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

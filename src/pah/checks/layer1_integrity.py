@@ -155,24 +155,6 @@ class NoTruncationOrSubstitution(Check):
         )
 
 
-def _read_a3m(path: Path) -> list[tuple[str, str]]:
-    records: list[tuple[str, str]] = []
-    header: str | None = None
-    parts: list[str] = []
-    for line in path.read_text().splitlines():
-        if line.startswith("#"):
-            continue
-        if line.startswith(">"):
-            if header is not None:
-                records.append((header, "".join(parts)))
-            header, parts = line[1:].strip(), []
-        elif header is not None:
-            parts.append(line.strip())
-    if header is not None:
-        records.append((header, "".join(parts)))
-    return records
-
-
 def _query_residues(aligned: str) -> str:
     """A3M query row without gaps or lowercase insertions."""
     return "".join(c for c in aligned if c.isupper())
@@ -201,7 +183,7 @@ class MsaIntegrity(Check):
                 rows.append(row)
                 stop = True
                 continue
-            records = _read_a3m(path)
+            records = resolve.read_a3m(path)
             query = _query_residues(records[0][1]).upper() if records else ""
             expected = p.sequence or (resolve.uniprot(ctx, p.uniprot).sequence if p.uniprot else "")
             expected = expected.strip().upper()

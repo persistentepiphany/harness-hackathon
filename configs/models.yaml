@@ -1,0 +1,155 @@
+# Model registry: what layer 3 and layer 5 need to know about each executor.
+# training_cutoff is the PDB release-date cutoff of the structures the model was trained on.
+# null means not published; layer 3 stops a learned model with an unknown cutoff.
+# learned: false marks physics or empirical scoring engines (no training exposure).
+# validated_modalities lists the modalities covered by the tool's published benchmarks.
+# confidence: per model and per task, never carried across models (specification, layer 5).
+version: 1
+models:
+  boltz2:
+    name: Boltz-2
+    family: cofolding
+    learned: true
+    training_cutoff: "2023-06-01"
+    cutoff_origin: "Passaro et al. 2025, Boltz-2 technical report (training structures released before 2023-06-01); not stated in the repository (docs/EXECUTORS.md)"
+    cutoff_evidence: published
+    training_crop_tokens: 768
+    crop_origin: "Boltz-2 technical report, final training crop 768 tokens"
+    crop_evidence: suspected
+    validated_modalities: [protein, protein_ligand, protein_protein, nucleic_acid, metal_site, covalent]
+    endpoints: [pose, structure, interface, affinity_series]
+    confidence:
+      pocket_plddt: {value: 70, comparator: ">=", origin: "AlphaFold DB pLDDT bands (70 and above: confident backbone), applied to pocket residues; not calibrated for ligand pose", evidence: published}
+  boltz1:
+    name: Boltz-1
+    family: cofolding
+    learned: true
+    training_cutoff: "2021-09-30"
+    cutoff_origin: "Wohlwend et al. 2024, Boltz-1 (same cutoff as AlphaFold3)"
+    cutoff_evidence: published
+    training_crop_tokens: 512
+    crop_origin: "Boltz-1 technical report, training crop 512 tokens"
+    crop_evidence: suspected
+    validated_modalities: [protein, protein_ligand, protein_protein, nucleic_acid]
+    endpoints: [pose, structure, interface]
+    confidence:
+      pocket_plddt: {value: 70, comparator: ">=", origin: "AlphaFold DB pLDDT bands, applied to pocket residues; not calibrated for ligand pose", evidence: published}
+  protenix:
+    name: Protenix
+    family: cofolding
+    learned: true
+    training_cutoff: "2021-09-30"
+    cutoff_origin: "Protenix technical report (follows the AlphaFold3 cutoff)"
+    cutoff_evidence: published
+    training_crop_tokens: 768
+    crop_origin: "Protenix technical report, crop 768 tokens"
+    crop_evidence: suspected
+    validated_modalities: [protein, protein_ligand, protein_protein, nucleic_acid]
+    endpoints: [pose, structure, interface]
+    confidence:
+      pocket_plddt: {value: 70, comparator: ">=", origin: "AlphaFold DB pLDDT bands, applied to pocket residues; not calibrated for ligand pose", evidence: published}
+      iptm: {value: 0.99, comparator: ">=", origin: "Specification layer 5: reported reliability cut-off near 0.99 ipTM for Protenix", evidence: published}
+  alphafold3:
+    name: AlphaFold3
+    family: cofolding
+    learned: true
+    training_cutoff: "2021-09-30"
+    cutoff_origin: "Abramson et al. 2024, Nature 630:493 (training cutoff 2021-09-30)"
+    cutoff_evidence: published
+    training_crop_tokens: 768
+    crop_origin: "Abramson et al. 2024, final training crop 768 tokens"
+    crop_evidence: published
+    validated_modalities: [protein, protein_ligand, protein_protein, nucleic_acid, metal_site, covalent, antibody]
+    endpoints: [pose, structure, interface]
+    confidence:
+      pocket_plddt: {value: 70, comparator: ">=", origin: "AlphaFold DB pLDDT bands, applied to pocket residues; not calibrated for ligand pose", evidence: published}
+      iptm: {value: 0.8, comparator: ">=", origin: "Abramson et al. 2024, ipTM above 0.8 read as a confident interface", evidence: published}
+  chai1:
+    name: Chai-1
+    family: cofolding
+    learned: true
+    training_cutoff: "2021-01-12"
+    cutoff_origin: "Chai Discovery 2024, Chai-1 technical report (training cutoff 2021-01-12)"
+    cutoff_evidence: published
+    training_crop_tokens: 640
+    crop_origin: "Chai-1 technical report, crop 640 tokens"
+    crop_evidence: suspected
+    validated_modalities: [protein, protein_ligand, protein_protein, nucleic_acid, covalent]
+    endpoints: [pose, structure, interface]
+    confidence:
+      pocket_plddt: {value: 70, comparator: ">=", origin: "AlphaFold DB pLDDT bands, applied to pocket residues; not calibrated for ligand pose", evidence: published}
+      iptm: {value: 0.75, comparator: ">=", origin: "Specification layer 5: reported reliability cut-off near 0.75 ipTM for Chai-1", evidence: published}
+  colabfold:
+    name: ColabFold (AF2-multimer v3)
+    family: cofolding
+    learned: true
+    training_cutoff: "2021-09-30"
+    cutoff_origin: "AlphaFold-multimer v2.3 weights release notes (PDB cutoff 2021-09-30)"
+    cutoff_evidence: published
+    training_crop_tokens: 640
+    crop_origin: "Evans et al. 2021, AlphaFold-multimer crop 640 residues"
+    crop_evidence: suspected
+    validated_modalities: [protein, protein_protein]
+    endpoints: [structure, interface]
+    confidence:
+      plddt: {value: 70, comparator: ">=", origin: "AlphaFold DB pLDDT bands (70 and above: confident backbone)", evidence: published}
+      iptm: {value: 0.8, comparator: ">=", origin: "AlphaFold3 output documentation bands (ipTM above 0.8 confident) applied to AF2-multimer; not calibrated", evidence: suspected}
+  diffdock:
+    name: DiffDock-L
+    family: docking
+    learned: true
+    training_cutoff: "2019-01-01"
+    cutoff_origin: "PDBBind time split used by DiffDock (training complexes released before 2019)"
+    cutoff_evidence: published
+    validated_modalities: [protein_ligand]
+    endpoints: [pose]
+    confidence: {}
+  gnina:
+    name: Gnina
+    family: docking
+    learned: false
+    cutoff_origin: "Pose search uses the Vina scoring function; the CNN rescoring models were trained on CrossDocked2020 (no release-date cutoff published)"
+    validated_modalities: [protein_ligand]
+    endpoints: [pose, score_within_run]
+    confidence:
+      CNNscore: {value: 0.5, comparator: ">=", origin: "Gnina CNNscore is a pose probability; 0.5 is the decision boundary of the classifier; not calibrated on the harness benchmark", evidence: suspected}
+  vina:
+    name: AutoDock Vina
+    family: docking
+    learned: false
+    cutoff_origin: "Empirical scoring function; no training exposure"
+    validated_modalities: [protein_ligand]
+    endpoints: [pose, score_within_run]
+    confidence: {}
+  haddock3:
+    name: HADDOCK3
+    family: docking
+    learned: false
+    cutoff_origin: "Physics-based scoring; no training exposure"
+    validated_modalities: [protein_protein]
+    endpoints: [interface]
+    confidence: {}
+  pydock:
+    name: pyDock
+    family: docking
+    learned: false
+    cutoff_origin: "Physics-based scoring; no training exposure"
+    validated_modalities: [protein_protein]
+    endpoints: [interface]
+    confidence: {}
+
+# Endpoint each task's claim needs, and which tool outputs may support it (layer 3, l3.metric.endpoint).
+task_endpoints:
+  ligand_pose: pose
+  redocking: pose
+  blind_docking: pose
+  binding_site_identification: pose
+  interaction_discovery: interface
+  protein_protein_docking: interface
+  known_complex_assembly: structure
+  monomer_structure: structure
+  variant_effect: structure
+  design_validation: structure
+  affinity_ranking: affinity_series
+  series_scoring: score_within_run
+  virtual_screening: score_within_run

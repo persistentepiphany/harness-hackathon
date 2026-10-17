@@ -1,0 +1,76 @@
+# Thresholds for layers 2 to 5, keyed by check id. Each value carries its origin and evidence level
+# (reproduced, published, suspected, uncalibrated). Checks read these through resolve.configured().
+# Per-model confidence thresholds live in models.yaml.
+version: 1
+checks:
+  l2.msa.depth:
+    neff: {value: 30, comparator: ">=", origin: "Jumper et al. 2021, Nature 596:583, Fig. 5a: accuracy falls for Neff below about 30 (80 percent identity clustering)", evidence: published}
+    sequences: {value: 2, comparator: ">=", origin: "Specification layer 2: stop when the alignment holds the query only", evidence: published}
+    gap_fraction: {value: 0.5, comparator: "<=", origin: "Harness default; not yet calibrated", evidence: uncalibrated}
+  l2.msa.pairing:
+    paired_sequences: {value: 30, comparator: ">=", origin: "Harness default, Neff floor of l2.msa.depth applied to paired rows; not yet calibrated", evidence: uncalibrated}
+  l2.msa.paralog_ambiguity:
+    ambiguous_fraction: {value: 0.3, comparator: "<=", origin: "Harness default: fraction of paired species with more than one candidate sequence per chain; not yet calibrated", evidence: uncalibrated}
+  l2.disorder:
+    disordered_fraction: {value: 0.2, comparator: "<=", origin: "Harness default: fraction of the declared region annotated as disordered (UniProt, MobiDB-lite); not yet calibrated", evidence: uncalibrated}
+  l2.context.cofactors:
+    pocket_distance: {value: 8.0, comparator: "<=", origin: "Harness rule: a component of the reference entry within 8 Å of the declared ligand is required context; not yet calibrated", evidence: uncalibrated}
+  l2.pocket.resolved:
+    pocket_distance: {value: 6.0, comparator: "<=", origin: "Harness rule: pocket residues have a heavy atom within 6 Å of the ligand; not yet calibrated", evidence: uncalibrated}
+    missing_pocket_residues: {value: 0, comparator: "==", origin: "Specification layer 2: stop when the pocket is incomplete", evidence: published}
+  l2.receptor.protonation:
+    pka_margin: {value: 1.0, comparator: ">", origin: "Harness rule: a titratable pocket residue with PROPKA pKa within 1 unit of the stated pH has an ambiguous state; not yet calibrated", evidence: uncalibrated}
+  l2.ligand.protonation:
+    ph_window: {value: 1.0, comparator: "==", origin: "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated", evidence: uncalibrated}
+    states: {value: 1, comparator: "==", origin: "Specification layer 2: warn when more than one plausible state", evidence: published}
+  l2.ligand.conformers:
+    conformers: {value: 10, comparator: ">=", origin: "Harness default number of ETKDG conformers; not yet calibrated", evidence: uncalibrated}
+  l2.pocket.detection_agreement:
+    site_distance: {value: 4.0, comparator: "<=", origin: "Harness rule: a detected pocket centre within 4 Å of the known site centroid agrees; not yet calibrated", evidence: uncalibrated}
+  l2.library.properties:
+    property_gap: {value: 0.2, comparator: "<=", origin: "Harness default: difference in median between library subsets, as a fraction of the active range; not yet calibrated", evidence: uncalibrated}
+  l2.docking.box:
+    margin: {value: 2.0, comparator: ">=", origin: "Harness rule: every pocket heavy atom lies at least 2 Å inside the box; not yet calibrated", evidence: uncalibrated}
+  l3.exposure.pocket:
+    similarity: {value: 50, comparator: "<=", origin: "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50", evidence: published}
+    entries: {value: 5, comparator: "<=", origin: "Harness budget: pre-cutoff holo entries compared per run", evidence: uncalibrated}
+  l3.exposure.ligand_prevalence:
+    tanimoto: {value: 0.9, comparator: ">", origin: "Specification layer 3: analogues above 0.9 Tanimoto (RDKit topological fingerprint)", evidence: published}
+    systems: {value: 100, comparator: "<=", origin: "Specification layer 3: prevalent when analogues occur in more than 100 training systems", evidence: published}
+  l3.exposure.sequence:
+    identity: {value: 0.4, comparator: "<", origin: "Specification layer 3: conventional 40 percent identity leakage threshold, reported as a secondary measure only", evidence: published}
+  l4.torsion_strain:
+    torsion_energy: {value: 2.5, comparator: "<=", origin: "Harness rule: a rotatable torsion whose MMFF energy lies more than 2.5 kcal/mol above the minimum of its rigid scan is unlikely; not yet calibrated", evidence: uncalibrated}
+  l4.minimisation_drift:
+    drift: {value: 2.0, comparator: "<=", origin: "Specification layer 4: warn when the pose moves beyond 2 Å under restrained minimisation", evidence: published}
+  l4.interactions.unsatisfied_polars:
+    relative_sasa: {value: 0.1, comparator: "<", origin: "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated", evidence: uncalibrated}
+    hbond_distance: {value: 3.5, comparator: "<=", origin: "PLIP hydrogen bond distance cut-off (donor-acceptor 4.1 Å; harness uses 3.5 Å heavy-atom distance)", evidence: published}
+  l4.interactions.known_binders:
+    reproduced: {value: 1, comparator: ">=", origin: "Specification layer 4: warn when no key interaction is reproduced", evidence: published}
+  l4.structure.clashes:
+    clashscore: {value: 40, comparator: "<=", origin: "Harness heavy-atom approximation of the MolProbity clashscore; not yet calibrated", evidence: uncalibrated}
+    overlap: {value: 0.4, comparator: "<", origin: "MolProbity clash definition: van der Waals overlap of 0.4 Å or more", evidence: published}
+  l4.structure.topology:
+    segment_distance: {value: 2.5, comparator: ">=", origin: "Harness rule: Cα-trace segments of different chains closer than 2.5 Å indicate interpenetration; not yet calibrated", evidence: uncalibrated}
+  l4.interface.chemistry:
+    buried_area: {value: 800, comparator: ">=", origin: "Harness default; interfaces below 800 Å² buried area are small for an interaction claim; not yet calibrated", evidence: uncalibrated}
+  l5.sampling.seeds:
+    seeds_cofolding: {value: 5, comparator: ">=", origin: "Specification layer 5: default of five seeds per co-folding prediction", evidence: published}
+    seeds_docking: {value: 3, comparator: ">=", origin: "Harness default for independent docking seeds; not yet calibrated", evidence: uncalibrated}
+  l5.sampling.clusters:
+    cluster_rmsd: {value: 2.0, comparator: "<=", origin: "Specification layer 5: 2 Å symmetry-aware ligand RMSD (spyrmsd) separates pose clusters", evidence: published}
+    site_distance: {value: 4.0, comparator: "<=", origin: "Harness rule: a ligand centroid within 4 Å of the reference site centroid is placed in the site; not yet calibrated", evidence: uncalibrated}
+    largest_fraction: {value: 0.5, comparator: ">=", origin: "Harness rule: the largest cluster holds at least half of the poses; not yet calibrated", evidence: uncalibrated}
+  l5.agreement.cross_family:
+    rmsd: {value: 2.0, comparator: "<=", origin: "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 Å", evidence: published}
+  l5.controls.redocking:
+    rmsd: {value: 2.0, comparator: "<=", origin: "Specification layer 5: redocking must reproduce the crystal pose (2 Å ligand RMSD)", evidence: published}
+  l5.rmsd_to_crystal:
+    rmsd: {value: 2.0, comparator: "<=", origin: "Specification layer 5: pose accuracy at 2 Å ligand RMSD", evidence: published}
+  l5.confidence.length_confound:
+    length_ratio: {value: 3.0, comparator: "<=", origin: "Harness rule: partner length ratio above 3 confounds ipTM; not yet calibrated", evidence: uncalibrated}
+  l5.controls.decoys:
+    decoys: {value: 12, comparator: ">=", origin: "Task specification interaction_discovery: decoy panel of at least 12 partners", evidence: uncalibrated}
+  l5.enrichment:
+    auc: {value: 0.7, comparator: ">=", origin: "Harness default for ROC AUC of actives against decoys; not yet calibrated", evidence: uncalibrated}
