@@ -464,8 +464,17 @@ def test_tools_tasks_and_catalog_routes(client: TestClient) -> None:
     assert tools["boltz2"]["runtime"]["gpu"] == "required" and tools["boltz2"]["version"]
     assert tools["pydock"]["outputs"] == [] and "UNVERIFIED" in tools["pydock"]["outputsNote"]
     assert tools["alphafold3"]["aliases"] == ["af3"]
-    # no executor on this host: only Modal-routed ones (configs/dispatch.yaml) are available
-    assert all(t["available"] is (t["route"] == "modal") for t in tools.values())
+    # Modal-routed tools are available (they run remotely); the local route (Vina) probes its
+    # Python modules in this process; no other executor is installed on this host
+    import importlib.util
+
+    local_ok = all(importlib.util.find_spec(m) for m in ("vina", "meeko", "rdkit", "gemmi"))
+    for t in tools.values():
+        expected = t["route"] == "modal" or (t["route"] == "local" and local_ok)
+        assert t["available"] is expected, (t["id"], t["note"])
+    assert "not installed on this host" not in tools["boltz2"]["note"]
+    assert tools["vina"]["note"].startswith("runs in the API process (route local)")
+    assert tools["boltz2"]["eta"]["basis"] == "measured" and tools["boltz2"]["eta"]["perSeedS"]
 
     tasks = {t["id"]: t for t in client.get("/ui/tasks").json()}
     assert tasks["pose_known_pocket"]["pah"] == "ligand_pose"

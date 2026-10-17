@@ -366,8 +366,35 @@ def dispatch_info(executor_id: str) -> dict[str, Any]:
         out["dispatchReason"] = str(entry["reason"])
     if route == "modal":
         prefix = str(_dict(cfg.get("modal")).get("app_prefix") or "pah-gpu-")
-        out["dispatchApp"] = f"{prefix}{executor_id}"
+        out["dispatchApp"] = f"{prefix}{executor_id.replace('_', '-')}"
+    from pah.webui.execute import parse_eta
+
+    eta = parse_eta(entry.get("eta"))
+    # per-call estimate: cold start + first-seed extra + per seed (configs/dispatch.yaml `eta`)
+    out["eta"] = eta.wire() if eta else None
     return out
+
+
+def _local_route_probe(executor_id: str) -> tuple[bool, str] | None:
+    """The modules a local route needs in this process (`requires_modules`), or None when the
+    entry names none."""
+    import importlib.util
+
+    cfg = _dispatch_cached(str(config_dir()))
+    entry = _dict(_dict(cfg.get("executors")).get(executor_id))
+    modules = [str(m) for m in entry.get("requires_modules") or ()]
+    if not modules:
+        return None
+    missing = []
+    for m in modules:
+        try:
+            if importlib.util.find_spec(m) is None:
+                missing.append(m)
+        except (ImportError, ValueError):
+            missing.append(m)
+    if missing:
+        return False, f"Python modules missing in the API process: {', '.join(missing)}"
+    return True, f"Python modules present: {', '.join(modules)}"
 
 
 def tool_availability(executor_id: str, profile_name: str | None) -> tuple[bool, str]:
@@ -379,10 +406,11 @@ def tool_availability(executor_id: str, profile_name: str | None) -> tuple[bool,
         return True, f"runs remotely: Modal app {d.get('dispatchApp')}{gpu} (configs/dispatch.yaml)"
     if d["route"] == "none":
         return False, f"not dispatchable: {d.get('dispatchReason') or 'route none'}"
-    ok, note = availability(executor_id, profile_name)
     if d["route"] == "local":
-        note = f"runs in the API process (route local); {note}"
-    return ok, note
+        probe = _local_route_probe(executor_id)
+        ok, note = probe if probe is not None else availability(executor_id, profile_name)
+        return ok, f"runs in the API process (route local); {note}"
+    return availability(executor_id, profile_name)
 
 
 def tool_register(

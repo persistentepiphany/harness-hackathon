@@ -94,7 +94,7 @@ class Job:
 
 
 class JobStore:
-    def __init__(self, workers: int = 2) -> None:
+    def __init__(self, workers: int = 4) -> None:
         self._jobs: dict[str, Job] = {}
         self._lock = threading.Lock()
         self._pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="pah-job")

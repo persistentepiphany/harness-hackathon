@@ -252,3 +252,58 @@ def test_execute_without_token_skips_executors(
     ok = client.post("/ui/runs", json=body, headers={"X-Pah-Exec-Token": "s3cret"})
     assert _wait(offline_profile, ok.json()["runId"])["executionDenied"] is None
     assert len(fake.jobs) == 1
+
+
+def test_execute_run_returns_estimate_and_stores_calls(offline_profile: Profile) -> None:
+    from tests.test_webui_execute import FakeSpawner
+
+    fake = FakeSpawner()
+    client = _client(offline_profile, dispatchers={"modal": fake})
+    body = {**TRYPSIN, "tools": ["boltz2"], "seeds": 2, "execute": True, "layers": [0, 1]}
+    r = client.post("/ui/runs", json=body)
+    assert r.status_code == 202, r.text
+    run_id = r.json()["runId"]
+    est = r.json()["eta"]
+    assert r.json()["etaMs"] == est["etaMs"] > 0 and est["executors"][0]["executor"] == "boltz2"
+    assert est["executors"][0]["basis"] in ("measured", "estimate")
+    queued = _job(offline_profile, run_id)
+    assert queued["etaMs"] == est["etaMs"] and queued["eta"] == est
+    job = _wait(offline_profile, run_id)
+    assert job["status"] == "done", job
+    calls = routes_write.read_calls(Path(offline_profile.runs_dir) / run_id)
+    assert calls["boltz2"]["callId"] == "fc-1" and calls["boltz2"]["status"] == "done"
+    execute = [e for e in _events(offline_profile, run_id) if e["stage"] == "execute"]
+    assert all(e["data"]["runEtaMs"] == est["etaMs"] for e in execute)
+    assert any(e["data"]["callId"] == "fc-1" for e in execute)
+
+
+def test_spawned_calls_resume_after_restart(offline_profile: Profile) -> None:
+    from tests.test_webui_execute import MANIFEST, FakeSpawner
+
+    run_id = "ligand_pose-resume0001"
+    run_dir = Path(offline_profile.runs_dir) / run_id
+    run_dir.mkdir(parents=True)
+    (run_dir / "events.jsonl").write_text("")
+    manifest = {k: v for k, v in MANIFEST.items()}
+    manifest["model"] = {"executor": "boltz2", "seeds": [0]}
+    (run_dir / "manifest.yaml").write_text(json.dumps(manifest))
+    (run_dir / "job.json").write_text(
+        json.dumps({"id": run_id, "runId": run_id, "status": "running", "layers": [0, 1, 4]})
+    )
+    call = {"callId": "fc-7", "app": "pah-gpu-boltz2", "function": "predict",
+            "status": "spawned", "seeds": [0], "name": "trypsin_benzamidine",
+            "ligand": "benzamidine", "params": {}}  # fmt: skip
+    routes_write.write_calls(run_dir, {"boltz2": call})
+    fake = FakeSpawner()
+    jobs = JobStore()
+    submitter = routes_write.RunSubmitter(offline_profile, jobs, None, {"modal": fake})
+    assert submitter.resume_pending() == [run_id]
+    job = _wait(offline_profile, run_id)
+    assert job["status"] == "done", job
+    assert fake.spawned == [] and fake.waited == ["fc-7"]
+    assert routes_write.read_calls(run_dir)["boltz2"]["status"] == "done"
+    messages = [e["message"] for e in _events(offline_profile, run_id)]
+    assert any("server restarted: following 1 spawned call" in m for m in messages)
+    record = json.loads((run_dir / "record.json").read_text())
+    assert record["manifest"]["predictions"][0]["executor"] == "boltz2"
+    assert submitter.resume_pending() == []  # a finished run is not taken up again

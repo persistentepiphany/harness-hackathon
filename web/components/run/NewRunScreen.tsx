@@ -2,7 +2,7 @@
 
 // New run view (prototype `isNew` block): request box with Quick setup (interpreter steps streamed
 // as decisions) or Manual setup (task, executors, inputs, run plan); target and ligand pickers;
-// files; the Sources panel. Start run → POST /ui/runs → /jobs/<jobId>.
+// files; the Sources panel. Start run → POST /ui/runs → /reports/<jobId> (the report fills in live).
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -225,7 +225,7 @@ export function NewRunScreen() {
     const r = await start.run((api, signal) => api.startRun(settings, { signal }));
     if (!r) return;
     jobs.reload();
-    router.push(`/jobs/${encodeURIComponent(r.jobId)}`);
+    router.push(`/reports/${encodeURIComponent(r.jobId)}`);
   };
 
   const onFiles = (list: File[]) => {

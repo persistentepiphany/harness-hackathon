@@ -30,7 +30,7 @@ function checkRecord(r: UiRunRecord) {
       expect(['Stop', 'Warn', 'Reported']).toContain(c.gate);
       // a row either shows a real pairing or nothing
       const mvt = measuredVsThreshold(c);
-      if (mvt !== null) expect(mvt).toMatch(/ (==|!=|<=|>=|<|>|in) /);
+      if (mvt !== null) expect(mvt).toMatch(/ · (must be|must not be|at most|at least|below|above|one of) /);
     }
     const counted = Object.values(l.counts).reduce((a, b) => a + (b ?? 0), 0);
     expect(counted).toBe(l.checks.length);
@@ -70,8 +70,8 @@ describe('live fixtures', () => {
     if (stereo) {
       // the threshold names its measurement (Threshold.measurement); fixtures written before that carry no link and pair nothing
       const linked = { ...stereo, thresholds: stereo.thresholds?.map((t) => ({ ...t, measurement: 'undefined' })) };
-      expect(measuredVsThreshold(linked)).toBe('undefined 1 == 0');
-      expect(measuredVsThreshold(stereo)).toBe(stereo.thresholds?.[0]?.measurement ? 'undefined 1 == 0' : null);
+      expect(measuredVsThreshold(linked)).toBe('undefined 1 · must be 0');
+      expect(measuredVsThreshold(stereo)).toBe(stereo.thresholds?.[0]?.measurement ? 'undefined 1 · must be 0' : null);
     }
   });
 

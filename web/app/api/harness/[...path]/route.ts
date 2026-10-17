@@ -21,6 +21,8 @@ const DEFAULT_TIMEOUT_MS = 60000;
 /** First-byte limit for requests the API processes before answering (uploads, entity lookups). */
 const SLOW_TIMEOUT_MS = 240000;
 const SLOW_PATHS = new Set(['ui/uploads', 'ui/entities']);
+/** Header the API checks before it starts executors (configs/dispatch.yaml guard.header). */
+const EXEC_TOKEN_HEADER = 'x-pah-exec-token';
 
 // Hop-by-hop and origin-specific headers that must not be forwarded. Platform headers
 // (`modal-*` on Modal) are dropped in both directions: Modal rejects a response that carries one.
@@ -63,6 +65,11 @@ async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }
     const k = key.toLowerCase();
     if (!DROP_REQUEST.has(k) && !isPlatformHeader(k)) headers.set(key, value);
   });
+  // The execution token (PAH_EXEC_TOKEN, configs/dispatch.yaml guard) is added here, server
+  // side, from the proxy's own environment; a client-supplied value is never forwarded.
+  headers.delete(EXEC_TOKEN_HEADER);
+  const execToken = process.env.PAH_EXEC_TOKEN;
+  if (execToken) headers.set(EXEC_TOKEN_HEADER, execToken);
   // Stream bytes as they come; a compressed upstream body would be decoded by fetch anyway.
   headers.set('accept-encoding', 'identity');
   headers.set('x-forwarded-host', req.headers.get('host') || '');

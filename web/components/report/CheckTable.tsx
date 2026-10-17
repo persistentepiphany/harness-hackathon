@@ -4,7 +4,7 @@
 // `measured cmp threshold`, id · tool · gate · ms, result. Not-implemented checks are muted.
 
 import clsx from 'clsx';
-import { fmtMs, fmtNum, fmtSha, measuredVsThreshold, pairMeasurement, thresholdText } from '@/lib/format';
+import { checkValue, fmtMs, fmtNum, fmtSha, measuredVsThreshold, pairMeasurement, thresholdText } from '@/lib/format';
 import { assessmentOf, defaultLayerIndex, isNotApplicable, isNotImplemented, isPendingInput, RESULT_COLOR, thresholdLevelColor } from '@/lib/selectors/report';
 import type { RecordSource, UiCheck } from '@/lib/types';
 import { ResultDot, SectionTitle } from './parts';
@@ -170,8 +170,10 @@ export function CheckRow({ c, print, layer, preRun, sources = [], selected, onSe
           <span title={thresholdTitle(c)} data-testid="check-cmp">
             {cmp}
           </span>
+        ) : ni || pendingInput ? (
+          evidence
         ) : (
-          shortEvidence(evidence)
+          shortEvidence(checkValue(c) || evidence)
         )}
         {!cmp && thr && !ni && !pendingInput && <span className="ml-2 text-muted" title={thresholdTitle(c)}>{thr}</span>}
       </span>

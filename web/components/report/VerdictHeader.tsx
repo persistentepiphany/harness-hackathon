@@ -220,7 +220,8 @@ export function VerdictLine({
   actions,
   className,
 }: ReportBlockProps & { actions?: ReactNode }) {
-  const v = verdictView(record);
+  const live = record.status !== undefined && record.status !== 'done' && record.status !== 'failed';
+  const v = live ? { ...verdictView(record), label: 'Running', state: 'running', color: 'var(--color-accent-deep)' } : verdictView(record);
   const claim = record.verdict.claim || record.claim;
   const assess = null as string | null;
   return (

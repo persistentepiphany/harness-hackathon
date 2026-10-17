@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { StructureViewer } from '@/components/viewer/StructureViewer';
 import { useViewerConfig } from '@/components/viewer/config';
-import { defaultStructureId, referenceOnly, structureCaption, type CheckFocus } from '@/lib/selectors/report';
+import { defaultStructureId, referenceOnly, RESULT_COLOR, structureCaption, type CheckFocus } from '@/lib/selectors/report';
 import { StatCards } from './StatCards';
 import type { ReportBlockProps } from './types';
 import { useStructures } from './useStructures';
@@ -100,15 +100,21 @@ export function StructurePanel({ record, tools, className, cards = false, select
           className={clsx('rounded-card border border-line', fill ? 'h-full min-h-[280px]' : 'h-[400px]')}
         />
         <div
-          className={clsx('pointer-events-none absolute top-2.5 left-3 max-w-[75%] rounded-[4px] bg-white/90 px-2 py-[3px] font-mono text-[10.5px] text-ink2 transition-opacity duration-200', focus ? 'opacity-100' : 'opacity-0')}
+          className={clsx('pointer-events-none absolute top-2.5 left-3 max-w-[80%] rounded-[6px] border border-line bg-white/95 px-2.5 py-1.5 text-[12px] text-ink2 shadow-sm transition-opacity duration-200', focus ? 'opacity-100' : 'opacity-0')}
           data-testid="viewer-highlight"
           data-check={focus?.check}
           aria-hidden={!focus}
         >
           {focus && (
             <>
-              {focus.check}
-              {residues.length ? ` · ${residues.map((r) => `${r.name}${r.num}${r.chain ?? ''}`).join(', ')}` : focus.ligand && loads ? ' · ligand' : ' · no residues named'}
+              <div className="flex items-baseline gap-2">
+                <span className="font-medium text-ink">{focus.name ?? focus.check}</span>
+                {focus.result && <span className="text-[10.5px] font-semibold tracking-[.04em] uppercase" style={{ color: RESULT_COLOR[focus.result as keyof typeof RESULT_COLOR] }}>{focus.result}</span>}
+              </div>
+              {focus.value && <div className="tabular-nums">{focus.value}</div>}
+              <div className="text-[11px] text-muted">
+                {residues.length ? `highlighted: ${residues.map((r) => `${r.name}${r.num}${r.chain ?? ''}`).join(', ')}` : focus.ligand && loads ? 'ligand framed' : 'no residues named by this check'}
+              </div>
             </>
           )}
         </div>

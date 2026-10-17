@@ -7,7 +7,7 @@
 // thresholds, then run details, tools and provenance. Selecting a check or a pose drives the viewer.
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ErrorState, Spinner } from "@/components/ui";
 import { useRunRecord, useTools } from "@/lib/hooks";
 import {
@@ -19,6 +19,8 @@ import {
 } from "@/lib/selectors/report";
 import type { UiRunRecord } from "@/lib/types";
 import { DimensionStrip } from "./DimensionStrip";
+import { IssuesStrip } from "./IssuesStrip";
+import { isLive, LiveRunBar } from "./LiveRunBar";
 import { EnsembleTable } from "./EnsembleTable";
 import { ExecutionRow } from "./ExecutionRow";
 import { FiguresPanel } from "./FiguresPanel";
@@ -64,7 +66,19 @@ export function RecordGate({
   children: (record: UiRunRecord) => React.ReactNode;
 }) {
   const rec = useRunRecord(runId);
+  const starting = rec.error?.status === 404;
+  useEffect(() => {
+    if (!starting) return;
+    const t = window.setTimeout(rec.reload, 1500);
+    return () => window.clearTimeout(t);
+  }, [starting, rec.reload, rec.error]);
   if (rec.data) return <>{children(rec.data)}</>;
+  if (starting)
+    return (
+      <div className="flex items-center gap-2 text-muted" data-testid="record-starting">
+        <Spinner /> starting run {runId}
+      </div>
+    );
   if (rec.error)
     return (
       <ErrorState
@@ -165,6 +179,15 @@ function Report({ record }: { record: UiRunRecord }) {
             </button>
           </>
         }
+      />
+      {isLive(record) && <LiveRunBar record={record} className="mt-3" />}
+      <IssuesStrip
+        record={record}
+        className="mt-3"
+        onSelect={(id, layer) => {
+          setSel({ stage: stageOfLayer(layer), layer: null });
+          setCheck({ run: record.id, id });
+        }}
       />
       <div className="mt-3 grid min-w-0 gap-6 lg:h-[calc(100vh-128px)] lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-8">
         <aside

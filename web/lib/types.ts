@@ -68,6 +68,37 @@ export interface Job {
   assessment?: Assessment;
   /** Live API: one entry per executor the run dispatched (execution events). */
   execution?: UiExecution[];
+  /** Live API: estimated wall time of the execute stage (configs/dispatch.yaml `eta`). */
+  etaMs?: number | null;
+  eta?: RunEta | null;
+}
+
+/** Estimate of a run's execute stage: GPU executors in parallel, seeds in sequence per executor. */
+export interface RunEta {
+  etaMs: number | null;
+  gpuSeconds: number;
+  /** false when an executor has no estimate (the total is then a lower bound). */
+  complete: boolean;
+  parallel: string;
+  executors: {
+    executor: string;
+    route: string;
+    gpu?: string | null;
+    seeds: number;
+    etaMs: number | null;
+    basis: 'measured' | 'estimate' | null;
+    origin?: string | null;
+  }[];
+}
+
+/** Per-call duration estimate of one executor (`Tool.eta`, configs/dispatch.yaml). */
+export interface ToolEta {
+  perSeedS: number;
+  coldStartS: number;
+  firstSeedExtraS: number;
+  basis: 'measured' | 'estimate' | string;
+  origin: string;
+  measuredAt?: string | null;
 }
 
 // ---------------------------------------------------------------- execution (executor progress)
@@ -91,6 +122,14 @@ export interface UiExecution {
   routeNote?: string | null;
   startedAt?: string | null;
   elapsedMs?: number | null;
+  /** Estimate for this executor's call (cold start + seeds), from configs/dispatch.yaml. */
+  etaMs?: number | null;
+  /** Modal call id of the spawned predict call (runs/<id>/dispatch.json). */
+  callId?: string | null;
+  /** Kit mode that ran (fast, exact; off = stock in the kit image) and the kit's version. */
+  mode?: string | null;
+  kit?: string | null;
+  kitVersion?: string | null;
   seeds: UiExecutionSeed[];
   message?: string | null;
 }
@@ -176,6 +215,8 @@ export interface Tool {
   route?: 'modal' | 'local' | 'none' | null;
   dispatchReason?: string;
   dispatchApp?: string;
+  /** Live API: per-call duration estimate (cold start, first-seed extra, per seed). */
+  eta?: ToolEta | null;
 }
 
 /** `POST /ui/tools` body: an executor entered as `name:version` (the whole input as `image`). */

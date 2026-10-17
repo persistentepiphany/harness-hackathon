@@ -60,8 +60,9 @@ test.describe('mock mode', () => {
     await expect(add).toBeFocused();
     await expect(add).toHaveValue('');
     await page.locator('[data-testid=run-plan] [data-testid=start-run]').click();
-    await expect(page).toHaveURL(/\/jobs\/run_/);
-    await expect(page.getByTestId('executor-row').filter({ hasText: 'rosettafold' })).toHaveCount(1);
+    // Start run opens the live report, which lists the executors of the run
+    await expect(page).toHaveURL(/\/reports\/run_/);
+    await expect(page.getByTestId('report-details')).toContainText('rosettafold');
   });
 
   test('custom target and ligand are looked up and shown as not in the mock catalog', async ({ page }) => {
@@ -81,13 +82,14 @@ test.describe('mock mode', () => {
     await expect(page.locator('[data-testid=decision-row][data-field=claim]')).toHaveAttribute('data-state', 'ok', { timeout: 10_000 });
     await expect(rows).toHaveCount(9);
     await page.getByTestId('start-run').click();
-    await expect(page).toHaveURL(/\/jobs\/run_/);
-    await expect(page.getByTestId('run-header')).toContainText('ABL1 kinase · ligand pose');
-    await expect(page.locator('[data-testid=layer-strip] [data-testid=layer-cell]')).toHaveCount(6);
-    const lines = page.getByTestId('log-line');
-    await expect(lines.first()).toBeVisible();
-    const before = await lines.count();
-    await expect.poll(() => lines.count(), { timeout: 10_000 }).toBeGreaterThan(before);
+    // the report fills in live while the run is in progress: live bar, stage counts, log lines
+    await expect(page).toHaveURL(/\/reports\/run_/);
+    await expect(page.getByTestId('verdict')).toBeVisible();
+    await expect(page.getByTestId('live-run')).toBeVisible();
+    await expect(page.getByTestId('stage-tab')).toHaveCount(3);
+    const live = page.getByTestId('live-log');
+    const first = await live.textContent();
+    await expect.poll(() => live.textContent(), { timeout: 10_000 }).not.toBe(first);
   });
 
   test('jobs overview: three cards with six layer segments each', async ({ page }) => {

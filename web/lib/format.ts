@@ -147,7 +147,17 @@ export function measuredVsThreshold(check: Pick<UiCheck, 'measurements' | 'thres
   if (!pair) return null;
   const { m, t } = pair;
   const unit = m.unit ? `${THIN}${m.unit}` : '';
-  return `${m.name} ${fmtValue(m.value)}${unit} ${t.comparator} ${fmtValue(t.value)}${unit}`;
+  return `${humanName(m.name)} ${fmtValue(m.value)}${unit} · ${limitWord(t.comparator)} ${fmtValue(t.value)}${unit}`;
+}
+
+/** `max_states` → `max states`: measurement names read as words. */
+export function humanName(name: string): string {
+  return name.replace(/_/g, ' ');
+}
+
+/** The comparator as a limit a reader understands: `<=` → `at most`, `==` → `must be`. */
+export function limitWord(comparator: string): string {
+  return ({ '<': 'below', '<=': 'at most', '>': 'above', '>=': 'at least', '==': 'must be', '!=': 'must not be', in: 'one of' } as Record<string, string>)[comparator] ?? comparator;
 }
 
 const sameKind = (a: unknown, b: unknown) => (typeof a === 'boolean') === (typeof b === 'boolean');
@@ -251,4 +261,23 @@ export function splitUnit(text: Maybe<string>): { value: string; unit: string | 
   if (isMissing(text)) return { value: DASH, unit: null };
   const m = text.match(/^([−\-+]?[\d.,/]+(?:[eE][−\-+]?\d+)?)[\s  ]+([^\d\s][^\s]*)$/);
   return m ? { value: m[1], unit: m[2] } : { value: text, unit: null };
+}
+
+/**
+ * The value a check row shows, numbers first: the measured value against its threshold when the
+ * check pairs them, else up to three numeric measurements (those with units first, then counts),
+ * else the first clause of the evidence text.
+ */
+export function checkValue(check: Pick<UiCheck, 'measurements' | 'thresholds' | 'evidence' | 'message'>): string {
+  const cmp = measuredVsThreshold(check);
+  if (cmp) return cmp;
+  const nums = (check.measurements ?? []).filter((m) => typeof m.value === 'number' && Number.isFinite(m.value));
+  if (nums.length) {
+    const ranked = [...nums].sort((a, b) => Number(!!b.unit) - Number(!!a.unit));
+    return ranked
+      .slice(0, 3)
+      .map((m) => `${humanName(m.name)} ${fmtValue(m.value)}${m.unit ? `${THIN}${m.unit}` : ''}`)
+      .join(' · ');
+  }
+  return (check.evidence ?? check.message ?? '').split(' · ')[0];
 }

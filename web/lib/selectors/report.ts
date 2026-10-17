@@ -2,7 +2,7 @@
 // functions of the UI record and the tool register. Components render these; they never name an
 // executor or a metric. Missing stats blocks stay missing (null), so the UI can show "not computed".
 
-import { DASH, fmtNum, fmtQuantityParts, isMissing, quantityOf, type Quantity } from '../format';
+import { checkValue, DASH, fmtNum, fmtQuantityParts, isMissing, quantityOf, type Quantity } from '../format';
 import { familyOf, labelFor, outputFor, recordTools, toolById, type ResolvedTool } from '../tools';
 import type {
   Assessment,
@@ -1963,6 +1963,10 @@ export function overallMedians(summaries: RunSummary[]): (SummaryScore & { runs:
 // ---------------------------------------------------------------- check focus (check → viewer)
 
 export interface CheckFocus {
+  /** Check title, result and its value (measured vs threshold, else the first evidence clause). */
+  name?: string;
+  result?: string;
+  value?: string;
   check: string;
   /** Residues the check names (evidence, message, interaction rows of the interaction checks). */
   residues: FlaggedResidue[];
@@ -2004,7 +2008,8 @@ export function checkFocus(record: UiRunRecord, checkId: string): CheckFocus | n
   const poses = new Set((record.stats.ensemble ?? []).flatMap((e) => [e.pose, e.label].filter((x): x is string => !!x)));
   const pose = (text.match(/[\w.-]+(?:\/[\w.-]+)+/g) ?? []).find((p) => poses.has(p)) ?? null;
   const ligand = layer >= 4 || /ligand|pocket|docking|pose|interaction/.test(c.id);
-  return { check: c.id, residues, pose, ligand };
+  const value = checkValue(c);
+  return { check: c.id, residues, pose, ligand, name: c.name, result: c.result, value };
 }
 
 /** Source objects a check used (record.sources[].usedBy). */

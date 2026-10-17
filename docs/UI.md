@@ -55,7 +55,7 @@ The web client calls `/api/harness/ui/...`; files go through the native
 | `GET /ui/jobs/{id}/log` | SSE of `LogLine` | Replays the file, then tails it until `run_end`; `?format=json` returns `LogLine[]` |
 | `GET /ui/runs/{id}/record` | `UiRunRecord` | Built from `record.json`, or from `events.jsonl` while the run is still going |
 | `GET /runs/{id}/files/{rel}` | file bytes | Native route; only paths inside `runs/<id>/` |
-| `POST /ui/runs` | `{jobId, runId}` (202) | Body `RunSettings`; built into a manifest, started through the upstream `JobStore` |
+| `POST /ui/runs` | `{jobId, runId, etaMs?, eta?}` (202) | Body `RunSettings`; built into a manifest, started through the upstream `JobStore`. With `execute` (default true) the selected executors run first (see Execution); `eta` is the estimate of that stage. The request never waits for an executor |
 | `POST /ui/interpret` | `{settings: RunSettings, steps: Step[]}` | Rule-based port of `interpretRun()`; `steps[i] = {field, value, because}` |
 | `GET /ui/entities?q=` | `EntityGroup[]` | Same shape as `lookupEntities()`, resolved through `pah.sources` clients |
 | `GET /ui/catalog` | `{proteins[], ligands[]}` | From `configs/catalog.yaml` |
@@ -208,8 +208,10 @@ the same way:
 
 `GET /ui/tools` rows carry `endpoints` (`configs/models.yaml` `models[*].endpoints`) and the dispatch
 route from `configs/dispatch.yaml`: `route` (`modal`, `local`, `none`), `dispatchable`, `gpu`,
-`dispatchApp`, `dispatchReason`. A Modal-routed tool is `available` with a note naming the app (the
-host probe does not apply); route `none` is not available and the note gives the reason.
+`dispatchApp`, `dispatchReason`, `eta`. A Modal-routed tool is `available` with a note naming the
+app (the host probe does not apply); a local route probes the Python modules it lists
+(`requires_modules`) in the API process; route `none` is not available and the note gives the
+reason.
 `GET /ui/tasks` rows carry `endpoint` (`task_endpoints`), `compatibleTools` (executor ids whose
 endpoints include it), `quickSetup` and `group` (`configs/catalog.yaml`). `GET /ui/catalog` carries
 `prompts`, sample requests that map onto Quick setup tasks. `GET /ui/glossary` lists every executor
@@ -222,6 +224,55 @@ is missing, the result keeps the choice and lists the problem in `warnings` and 
 Checks that are listed in the task but not registered appear with `result: skip` and
 `skipReason: unknown_check`. The UI shows them in the check list as `not implemented` and counts
 them, so a viewer can see how much of each layer actually ran.
+
+## Execution
+
+`RunSettings.execute` (default true) runs the selected executors before the checks. The route of
+each comes from `configs/dispatch.yaml`: `modal` (the `predict` function of the deployed app
+`pah-gpu-<executor>`, GPU per `gpu`), `local` (Vina in the API process) or `none` (recorded as
+`skipped` with `reason`). The flow of one run:
+
+1. `POST /ui/runs` validates the settings, writes `job.json` (with `eta`) and answers 202. It never
+   waits for a GPU job.
+2. The job builds each executor's request from the manifest (`inputs/` under
+   `predictions/<executor>/`), emits `queued` with `etaMs`, and spawns the GPU calls with
+   `.spawn()` (fire and forget). Each call id is written at once to `runs/<id>/dispatch.json`
+   (`calls.<executor>`: `callId`, `app`, `function`, `seeds`, `status` spawned, done, failed or
+   skipped, `etaMs`, `entries` once done). Vina runs in the API process at the same time.
+3. The job follows the calls: progress from the Modal Dict `pah-gpu-progress` becomes `building`
+   and `running` events (per seed), the return value becomes `done` or `failed`. Outputs are read
+   back from the `pah-predictions` volume into `runs/<id>/predictions/<executor>/` and added to the
+   manifest as `predictions` entries (`settings` records `route`, `route_note`, `mode`, `kit`,
+   `kit_version`, `gpu`, `modal_image`, `modal_call`).
+4. Layers 0-5 then run on the manifest with its predictions; their events continue the sequence.
+
+If the API process ends while calls are out (a Modal container replaced), the next process reads
+`dispatch.json` at start, follows every `spawned` call of a job still `queued` or `running`
+(event `server restarted: following N spawned call(s)`), then runs the checks. Set
+`PAH_EXEC_RESUME=0` to switch this off.
+
+Guards: one GPU run per API process at a time (a second run waits with `queued`, message
+`waiting for the GPU slot`), at most `guard.max_seeds` (5) seeds per executor, and when
+`PAH_EXEC_TOKEN` is set on the API the request needs the header `X-Pah-Exec-Token`. The web proxy
+(`web/app/api/harness/[...path]/route.ts`) adds that header from its own `PAH_EXEC_TOKEN` and never
+forwards a client-supplied one. A run that may not execute records every executor as `skipped`
+with the reason (`job.executionDenied`), and the checks still run. An offline profile records the
+`modal` route as skipped (`profile <name> is offline`).
+
+Execution events: `kind=log`, `stage=execute`, `data` = `{stage, executor, phase, gpu, route,
+routeNote, mode, kit, kitVersion, seed, elapsedMs, etaMs, runEtaMs, callId, message}`. `phase` is
+`queued`, `building`, `running`, `done`, `failed` or `skipped`. `etaMs` is the executor's estimate,
+`runEtaMs` the run's. `UiExecution` (`record.execution`, `Job.execution`) is the latest state per
+executor with the same fields and per-seed `{seed, phase, ms}`.
+
+Estimates (`eta` in `configs/dispatch.yaml`, per executor): `per_seed_s`, `cold_start_s`,
+`first_seed_extra_s`, `basis` (`measured` with the records and dates in `origin`, or `estimate`
+with the reasoning) and `measured_at`. One call runs its seeds in sequence in one container, so an
+executor takes cold start + first-seed extra + per seed × seeds; GPU executors run in parallel, so
+the run estimate (`eta.etaMs`) is the longest of them (or the local executors' sum when longer),
+and `eta.gpuSeconds` sums the GPU containers. `eta.complete` is false when an executor has no
+estimate. `GET /ui/tools` rows carry the per-call `eta` (`perSeedS`, `coldStartS`,
+`firstSeedExtraS`, `basis`, `origin`, `measuredAt`).
 
 ## Number display
 

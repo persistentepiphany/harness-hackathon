@@ -207,3 +207,81 @@ def test_gpu_slot_queues_second_run(tmp_path: Path) -> None:
     slots.release()
     t.join(10)
     assert rec.phases("boltz2")[-1] == "done"
+
+
+class FakeSpawner(FakeBoltz):
+    """Spawns detached calls: `spawn` returns a handle at once, `wait` writes the outputs."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.spawned: list[str] = []
+        self.waited: list[str] = []
+
+    def spawn(self, job: DispatchJob) -> dict[str, Any]:
+        call_id = f"fc-{len(self.spawned) + 1}"
+        self.spawned.append(call_id)
+        return {"callId": call_id, "app": "pah-gpu-boltz2", "function": "predict"}
+
+    def wait(
+        self, job: DispatchJob, handle: Mapping[str, Any], progress: execute.Progress
+    ) -> dict[str, Any]:
+        self.waited.append(str(handle["callId"]))
+        return self.run(job, progress)
+
+
+def test_spawned_calls_are_stored_and_followed(tmp_path: Path) -> None:
+    from pah.webui.execute import Eta, estimate_run
+
+    eta = Eta(per_seed_s=100, cold_start_s=40, first_seed_extra_s=10, basis="measured")
+    spec = ExecutorDispatch("boltz2", "modal", gpu="A100", input="boltz_yaml",
+                            prediction={"path": "."}, eta=eta)  # fmt: skip
+    cfg = _config(boltz2=spec)
+    fake, rec, stored = FakeSpawner(), Recorder(), []
+    stage = ExecuteStage(cfg, {"modal": fake}, rec.emit, on_call=stored.append, run_eta_ms=123)
+    out = stage.run({**MANIFEST, "model": {"executor": "boltz2", "seeds": [0, 1]}}, ["boltz2"],
+                    "r", tmp_path)  # fmt: skip
+    assert fake.spawned == ["fc-1"] and fake.waited == ["fc-1"]
+    first, last = stored[0]["boltz2"], stored[-1]["boltz2"]
+    assert first["status"] == "spawned" and first["callId"] == "fc-1"
+    assert first["seeds"] == [0, 1] and first["etaMs"] == 250_000
+    assert last["status"] == "done" and last["entries"][0]["path"] == "predictions/boltz2"
+    queued = [d for _, d in rec.events if d["phase"] == "queued"]
+    assert queued[0]["etaMs"] == 250_000 and all(d["runEtaMs"] == 123 for _, d in rec.events)
+    assert any(d["callId"] == "fc-1" for d in queued)
+    assert out.manifest["predictions"][0]["settings"]["route"] == "kit"
+    est = estimate_run(cfg, ["boltz2", "nosuch"], [0, 1, 2, 3, 4, 5, 6])
+    assert est["etaMs"] == (40 + 10 + 100 * 5) * 1000 and est["gpuSeconds"] == 550.0
+    assert est["executors"][0]["seeds"] == 5 and est["complete"] is True
+
+
+def test_resume_follows_stored_calls_without_spawning(tmp_path: Path) -> None:
+    spec = ExecutorDispatch("boltz2", "modal", input="boltz_yaml", prediction={"path": "."})
+    cfg = _config(boltz2=spec)
+    fake, rec = FakeSpawner(), Recorder()
+    calls = {
+        "boltz2": {"callId": "fc-9", "app": "pah-gpu-boltz2", "function": "predict",
+                   "status": "spawned", "seeds": [3], "name": "trypsin_benzamidine",
+                   "ligand": "benzamidine", "params": {"samples": 1}},
+        "chai1": {"callId": "fc-8", "status": "done",
+                  "entries": [{"executor": "chai1", "path": "predictions/chai1", "seeds": [3]}]},
+    }  # fmt: skip
+    out = ExecuteStage(cfg, {"modal": fake}, rec.emit).resume(MANIFEST, calls, "r", tmp_path)
+    assert fake.spawned == [] and fake.waited == ["fc-9"]
+    assert fake.jobs[0].request.seeds == [3] and fake.jobs[0].request.ligand == "benzamidine"
+    assert rec.phases("boltz2")[0] == "running" and rec.phases("boltz2")[-1] == "done"
+    executors = [p["executor"] for p in out.manifest["predictions"]]
+    assert executors == ["boltz2", "chai1"]  # model.executor boltz2 is the primary
+
+
+def test_local_vina_runs_in_a_child_process(tmp_path: Path) -> None:
+    from pah.config import Profile
+    from pah.webui.execute import ExecRequest, LocalVinaDispatcher
+
+    profile = Profile(name="local", backend="local", cache_dir=tmp_path, runs_dir=tmp_path)
+    spec = ExecutorDispatch("vina", "local", options={"exhaustiveness": 4})
+    job = DispatchJob(spec, "r", ExecRequest("x", {}, {}, [0, 2]), tmp_path, tmp_path / "m.yaml")
+    argv = LocalVinaDispatcher(profile, python="py").command(job)
+    assert argv[:4] == ["py", "-m", "pah.interfaces.cli", "dock"]
+    assert argv[argv.index("--seeds") + 1] == "0,2" and "--no-redock" in argv
+    assert argv[argv.index("--exhaustiveness") + 1] == "4"
+    assert argv[argv.index("--profile") + 1] == "local"

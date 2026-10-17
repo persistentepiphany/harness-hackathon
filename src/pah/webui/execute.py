@@ -25,6 +25,7 @@ from __future__ import annotations
 import hmac
 import os
 import re
+import sys
 import threading
 import time
 from collections.abc import Callable, Iterator, Mapping, Sequence
@@ -46,6 +47,54 @@ _NAME = re.compile(r"[^A-Za-z0-9_]+")
 
 
 @dataclass(frozen=True)
+class Eta:
+    """Duration estimate of one executor call (configs/dispatch.yaml `eta`).
+
+    One call runs its seeds in sequence in one container: cold start, then the first seed with
+    its one-off extra (an MSA server query, a compile cache), then the other seeds.
+    `basis` is `measured` (with the runs it was measured on in `origin`) or `estimate` (with the
+    reasoning in `origin`)."""
+
+    per_seed_s: float
+    cold_start_s: float = 0.0
+    first_seed_extra_s: float = 0.0
+    basis: str = "estimate"
+    origin: str = ""
+    measured_at: str | None = None
+
+    def seconds(self, n_seeds: int) -> float:
+        n = max(1, n_seeds)
+        return self.cold_start_s + self.first_seed_extra_s + self.per_seed_s * n
+
+    def wire(self) -> dict[str, Any]:
+        return {
+            "perSeedS": self.per_seed_s,
+            "coldStartS": self.cold_start_s,
+            "firstSeedExtraS": self.first_seed_extra_s,
+            "basis": self.basis,
+            "origin": self.origin,
+            "measuredAt": self.measured_at,
+        }
+
+
+def parse_eta(row: Any) -> Eta | None:
+    """An `eta` block; None when absent or malformed (the estimate is then reported unknown)."""
+    if not isinstance(row, Mapping) or row.get("per_seed_s") is None:
+        return None
+    try:
+        return Eta(
+            per_seed_s=float(row["per_seed_s"]),
+            cold_start_s=float(row.get("cold_start_s") or 0.0),
+            first_seed_extra_s=float(row.get("first_seed_extra_s") or 0.0),
+            basis=str(row.get("basis") or "estimate"),
+            origin=str(row.get("origin") or ""),
+            measured_at=str(row["measured_at"]) if row.get("measured_at") else None,
+        )
+    except (TypeError, ValueError):
+        return None
+
+
+@dataclass(frozen=True)
 class ExecutorDispatch:
     id: str
     route: str
@@ -57,6 +106,11 @@ class ExecutorDispatch:
     prediction: Mapping[str, str] = field(default_factory=dict)
     max_seeds: int | None = None
     reason: str | None = None
+    eta: Eta | None = None
+    requires_modules: tuple[str, ...] = ()
+
+    def eta_ms(self, n_seeds: int) -> int | None:
+        return None if self.eta is None else int(self.eta.seconds(n_seeds) * 1000)
 
 
 @dataclass(frozen=True)
@@ -119,8 +173,66 @@ def load_dispatch(path: Path | None = None) -> DispatchConfig:
             prediction={str(k): str(v) for k, v in (row.get("prediction") or {}).items()},
             max_seeds=int(row["max_seeds"]) if row.get("max_seeds") else None,
             reason=row.get("reason"),
+            eta=parse_eta(row.get("eta")),
+            requires_modules=tuple(str(m) for m in row.get("requires_modules") or ()),
         )
     return DispatchConfig(guard, modal, executors)
+
+
+def seeds_for(cfg: DispatchConfig, spec: ExecutorDispatch, requested: Sequence[int]) -> list[int]:
+    """The seeds an executor runs: the requested ones, capped by guard and executor limits."""
+    cap = min(cfg.guard.max_seeds, spec.max_seeds or cfg.guard.max_seeds)
+    return [int(s) for s in requested][:cap] or [0]
+
+
+def estimate_run(
+    cfg: DispatchConfig, executors: Sequence[str], seeds: Sequence[int]
+) -> dict[str, Any]:
+    """Wall-time estimate of a run's execute stage from the `eta` blocks.
+
+    GPU executors are spawned together and run in parallel (one container each, seeds in
+    sequence); local executors run in this process at the same time, one after another. The run
+    estimate is the longer of the two; `gpuSeconds` sums the GPU containers. An executor without
+    an estimate is listed with `etaMs: null`, and the run estimate is then a lower bound
+    (`complete: false`)."""
+    rows: list[dict[str, Any]] = []
+    gpu_ms: list[int] = []
+    local_ms = 0
+    gpu_s = 0.0
+    complete = True
+    for eid in dict.fromkeys(executors):
+        spec = cfg.executors.get(eid)
+        if spec is None or spec.route not in ("modal", "local"):
+            continue
+        run_seeds = seeds_for(cfg, spec, seeds)
+        ms = spec.eta_ms(len(run_seeds))
+        rows.append(
+            {
+                "executor": eid,
+                "route": spec.route,
+                "gpu": spec.gpu,
+                "seeds": len(run_seeds),
+                "etaMs": ms,
+                "basis": spec.eta.basis if spec.eta else None,
+                "origin": spec.eta.origin if spec.eta else None,
+            }
+        )
+        if ms is None:
+            complete = False
+            continue
+        if spec.route == "local":
+            local_ms += ms
+        else:
+            gpu_ms.append(ms)
+            gpu_s += ms / 1000
+    total = max([local_ms, *gpu_ms]) if rows else 0
+    return {
+        "etaMs": total if rows else None,
+        "gpuSeconds": round(gpu_s, 1),
+        "complete": complete,
+        "parallel": "GPU executors in parallel, seeds in sequence per executor",
+        "executors": rows,
+    }
 
 
 # --------------------------------------------------------------------------- guard
@@ -434,6 +546,30 @@ class Dispatcher(Protocol):
     def run(self, job: DispatchJob, progress: Progress) -> dict[str, Any]: ...
 
 
+class SpawningDispatcher(Dispatcher, Protocol):
+    """A dispatcher whose calls run detached from this process (fire and forget).
+
+    `spawn` starts the call and returns at once with a handle ({callId, app, function}) that is
+    stored in runs/<id>/dispatch.json; `wait` follows a handle (also one read back after a
+    restart) until the call ends, fetches the outputs and returns the execution record."""
+
+    def spawn(self, job: DispatchJob) -> dict[str, Any]: ...
+
+    def wait(
+        self, job: DispatchJob, handle: Mapping[str, Any], progress: Progress
+    ) -> dict[str, Any]: ...
+
+
+def can_spawn(dispatcher: Dispatcher) -> bool:
+    return callable(getattr(dispatcher, "spawn", None)) and callable(
+        getattr(dispatcher, "wait", None)
+    )
+
+
+# Modal exceptions that end a spawned call without a result (the poll timeout is TimeoutError).
+_CALL_ENDED = frozenset({"FunctionTimeoutError", "OutputExpiredError", "InputCancellation"})
+
+
 class ModalDispatcher:
     """`pah-gpu-<executor>.predict` through the Modal client, outputs read back in batches."""
 
@@ -466,19 +602,56 @@ class ModalDispatcher:
             return None
 
     def run(self, job: DispatchJob, progress: Progress) -> dict[str, Any]:
+        return self.wait(job, self.spawn(job), progress)
+
+    def spawn(self, job: DispatchJob) -> dict[str, Any]:
+        """Starts `pah-gpu-<executor>.predict` and returns its handle without waiting."""
         ex = job.executor.id
         predict = self._function(ex, self.settings.predict_function)
+        try:
+            call = predict.spawn(job.run_id, job.request.wire())
+        except Exception as exc:  # quota, auth or network at submission
+            raise DispatchUnavailableError(
+                f"{self.settings.app(ex)}.{self.settings.predict_function}: spawn failed: "
+                f"{type(exc).__name__}: {exc}"
+            ) from exc
+        return {
+            "callId": str(call.object_id),
+            "app": self.settings.app(ex),
+            "function": self.settings.predict_function,
+        }
+
+    def _call(self, call_id: str) -> Any:
+        try:
+            import modal
+
+            return modal.FunctionCall.from_id(call_id)
+        except Exception as exc:  # recorded as the executor's skip reason
+            raise DispatchUnavailableError(
+                f"Modal call {call_id} not readable: {type(exc).__name__}: {exc}"
+            ) from exc
+
+    def wait(
+        self, job: DispatchJob, handle: Mapping[str, Any], progress: Progress
+    ) -> dict[str, Any]:
+        """Polls a spawned call (progress from the `pah-gpu-progress` Dict) until it returns,
+        then reads its outputs back into `job.dest`."""
+        ex = job.executor.id
+        call = self._call(str(handle["callId"]))
         store = self._progress_store()
         key = f"{job.run_id}/{ex}"
-        call = predict.spawn(job.run_id, job.request.wire())
         deadline = time.monotonic() + job.executor.timeout_s + 600
         record: dict[str, Any] | None = None
         while time.monotonic() < deadline:
             try:
                 record = call.get(timeout=self.poll_s)
                 break
-            except TimeoutError:
-                pass
+            except Exception as exc:  # poll timeout, or the call failed, timed out or expired
+                kind = type(exc).__name__
+                if kind in _CALL_ENDED:
+                    return {"status": "failed", "error": f"{kind}: {exc}"}
+                if kind != "TimeoutError":
+                    raise
             if store is not None:
                 try:
                     state = store.get(key)
@@ -539,35 +712,61 @@ class UnavailableDispatcher:
 
 
 class LocalVinaDispatcher:
-    """AutoDock Vina in this process through `pah.service.dock_manifest`."""
+    """AutoDock Vina on this host through `pah dock` in a child process.
 
-    def __init__(self, profile: Any) -> None:
+    A child process, not this one: Vina's SWIG bindings loaded next to Open Babel's (PLIP, in the
+    layer 4 checks) abort the process on the first Open Babel iterator (`terminate called after
+    throwing an instance of 'swig::stop_iteration'`), so the API process never imports vina."""
+
+    def __init__(self, profile: Any, python: str | None = None) -> None:
         self.profile = profile
+        self.python = python or sys.executable
+
+    def command(self, job: DispatchJob) -> list[str]:
+        assert job.manifest_path is not None
+        redock = bool(job.executor.options.get("redock", False))
+        return [
+            self.python, "-m", "pah.interfaces.cli", "dock", str(job.manifest_path),
+            "--out", str(job.dest), "--profile", str(self.profile.name),
+            "--seeds", ",".join(str(s) for s in job.request.seeds),
+            "--exhaustiveness", str(int(job.executor.options.get("exhaustiveness", 8))),
+            "--redock" if redock else "--no-redock", "--format", "jsonl",
+        ]  # fmt: skip
 
     def run(self, job: DispatchJob, progress: Progress) -> dict[str, Any]:
-        from pah.service import dock_manifest
+        import subprocess
 
         if job.manifest_path is None:
             raise DispatchUnavailableError("vina: no manifest file to dock from")
+        argv = self.command(job)
         progress({"phase": "running", "route": "local", "gpu": None,
-                  "message": f"vina, {len(job.request.seeds)} seeds"})  # fmt: skip
+                  "message": f"vina, {len(job.request.seeds)} seed(s): pah dock"})  # fmt: skip
         t0 = time.monotonic()
-        out = dock_manifest(
-            job.manifest_path,
-            self.profile,
-            job.dest,
-            seeds=job.request.seeds,
-            exhaustiveness=int(job.executor.options.get("exhaustiveness", 8)),
-            redock=bool(job.executor.options.get("redock", False)),
-        )
-        data = yaml.safe_load(out.read_text(encoding="utf-8")) or {}
-        preds = [p for p in data.get("predictions") or [] if p.get("executor") == "vina"]
+        try:
+            proc = subprocess.run(
+                argv, capture_output=True, text=True, timeout=job.executor.timeout_s, check=False
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            return {"status": "failed", "route": "local",
+                    "error": f"pah dock: {type(exc).__name__}: {exc}"}  # fmt: skip
+        (job.dest / "dock.log").write_text(proc.stdout + proc.stderr, encoding="utf-8")
+        out = job.dest / "manifest.yaml"
+        data = yaml.safe_load(out.read_text(encoding="utf-8")) if out.is_file() else None
+        preds = [p for p in (data or {}).get("predictions") or [] if p.get("executor") == "vina"]
+        error = None
+        if not preds:
+            tail = (proc.stderr or proc.stdout).strip().splitlines()[-3:]
+            error = f"pah dock exit {proc.returncode}, no vina predictions: {' | '.join(tail)}"
+        ms = int((time.monotonic() - t0) * 1000)
+        phase = "done" if preds else "failed"
+        per_seed = ms // max(1, len(job.request.seeds))  # one process docks the seeds in turn
         return {
-            "status": "done" if preds else "failed",
+            "status": phase,
             "route": "local",
-            "elapsedMs": int((time.monotonic() - t0) * 1000),
+            "elapsedMs": ms,
+            "seeds": [{"seed": s, "phase": phase, "ms": per_seed} for s in job.request.seeds],
             "predictions": preds,
-            "error": None if preds else "dock_manifest declared no vina predictions",
+            "error": error,
         }
 
 
@@ -584,8 +783,31 @@ class ExecuteOutcome:
     executions: list[dict[str, Any]]
 
 
+CallSink = Callable[[Mapping[str, Mapping[str, Any]]], None]
+"""Receives every executor's call record (runs/<id>/dispatch.json `calls`) when one changes."""
+
+# Execution row fields that progress snapshots and records may set (UiExecution).
+_ROW_FIELDS = ("gpu", "route", "routeNote", "startedAt", "mode", "kit", "kitVersion")
+
+
+@dataclass
+class _Planned:
+    spec: ExecutorDispatch
+    request: ExecRequest
+
+
+def _utc() -> str:
+    from datetime import UTC, datetime
+
+    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+
 class ExecuteStage:
-    """Runs the selected executors of one run and returns the manifest with predictions."""
+    """Runs the selected executors of one run and returns the manifest with predictions.
+
+    GPU executors whose dispatcher can spawn are started detached (`SpawningDispatcher.spawn`),
+    their handles go to `on_call` at once (the caller stores them in runs/<id>/dispatch.json),
+    and the stage then follows them; `resume` follows stored handles again after a restart."""
 
     def __init__(
         self,
@@ -595,14 +817,19 @@ class ExecuteStage:
         *,
         slots: threading.BoundedSemaphore | None = None,
         on_change: Callable[[list[dict[str, Any]]], None] | None = None,
+        on_call: CallSink | None = None,
+        run_eta_ms: int | None = None,
     ) -> None:
         self.config = config
         self.dispatchers = dispatchers
         self.emit = emit
         self.slots = slots or gpu_slots(config.guard.max_concurrent_gpu_runs)
         self.on_change = on_change
+        self.on_call = on_call
+        self.run_eta_ms = run_eta_ms
         self._lock = threading.Lock()
         self._rows: dict[str, dict[str, Any]] = {}
+        self._calls: dict[str, dict[str, Any]] = {}
 
     # one row per executor, the UiExecution shape (web/lib/types.ts)
     def _row(self, eid: str) -> dict[str, Any]:
@@ -616,8 +843,13 @@ class ExecuteStage:
                 "gpu": spec.gpu if spec else None,
                 "route": None,
                 "routeNote": None,
+                "mode": None,
+                "kit": None,
+                "kitVersion": None,
                 "startedAt": None,
                 "elapsedMs": None,
+                "etaMs": None,
+                "callId": None,
                 "seeds": [],
                 "message": None,
             },
@@ -637,8 +869,14 @@ class ExecuteStage:
                 "gpu": row.get("gpu"),
                 "route": row.get("route"),
                 "routeNote": row.get("routeNote"),
+                "mode": row.get("mode"),
+                "kit": row.get("kit"),
+                "kitVersion": row.get("kitVersion"),
                 "seed": seed,
                 "elapsedMs": row.get("elapsedMs"),
+                "etaMs": row.get("etaMs"),
+                "runEtaMs": self.run_eta_ms,
+                "callId": row.get("callId"),
                 "message": message,
             }
             self.emit(f"execute {eid}: {phase}" + (f" seed {seed}" if seed is not None else "")
@@ -646,6 +884,13 @@ class ExecuteStage:
             rows = [dict(r) for r in self._rows.values()]
         if self.on_change is not None:
             self.on_change(rows)
+
+    def _store_call(self, eid: str, **changes: Any) -> None:
+        with self._lock:
+            self._calls.setdefault(eid, {}).update(changes)
+            calls = {k: dict(v) for k, v in self._calls.items()}
+        if self.on_call is not None:
+            self.on_call(calls)
 
     def run(
         self,
@@ -662,56 +907,128 @@ class ExecuteStage:
         model = out.get("model") if isinstance(out.get("model"), Mapping) else {}
         assert isinstance(model, Mapping)
         all_seeds = [int(s) for s in model.get("seeds") or [0]]
-        jobs: list[tuple[ExecutorDispatch, ExecRequest]] = []
+        planned: list[_Planned] = []
         for eid in dict.fromkeys(tools):
             self._row(eid)["name"] = (names or {}).get(eid, eid)
-            spec = self.config.executors.get(eid)
-            if spec is None:
-                self._event(eid, "skipped", "no entry in configs/dispatch.yaml")
-                continue
-            if spec.route not in self.dispatchers:
-                self._event(eid, "skipped", spec.reason or f"route {spec.route} not available here")
-                continue
-            cap = min(self.config.guard.max_seeds, spec.max_seeds or self.config.guard.max_seeds)
-            seeds = all_seeds[:cap] or [0]
-            note = f"; seeds capped at {cap}" if len(all_seeds) > cap else ""
-            builder = BUILDERS.get(spec.input or "")
-            if spec.route != "local" and builder is None:
-                self._event(eid, "skipped", f"no input builder {spec.input!r}")
-                continue
-            try:
-                ctx = BuildContext(out, seeds, spec.options, spec.params, structures)
-                request = builder(ctx) if builder else ExecRequest(ctx.name(), {}, {}, seeds)
-            except BuildError as exc:
-                self._event(eid, "skipped", f"inputs: {exc}")
-                continue
-            except Exception as exc:  # a builder bug skips this executor only
-                self._event(eid, "skipped", f"inputs: {type(exc).__name__}: {exc}")
-                continue
-            request.params = {**spec.params, **request.params}
-            request.ligand = str(ctx.ligand["id"]) if ctx.ligand and ctx.ligand.get("id") else None
-            with self._lock:
-                self._row(eid)["seeds"] = [
-                    {"seed": s, "phase": "queued", "ms": None} for s in seeds
-                ]
-            self._event(eid, "queued", f"{spec.route}, {len(seeds)} seed(s){note}")
-            jobs.append((spec, request))
+            p = self._plan(out, eid, all_seeds, structures)
+            if p is not None:
+                planned.append(p)
+        preds = self._execute(planned, run_id, run_dir, manifest_path, {})
+        return self._outcome(out, model, preds)
+
+    def _plan(
+        self,
+        manifest: Mapping[str, Any],
+        eid: str,
+        all_seeds: list[int],
+        structures: StructureSource | None,
+    ) -> _Planned | None:
+        spec = self.config.executors.get(eid)
+        if spec is None:
+            self._event(eid, "skipped", "no entry in configs/dispatch.yaml")
+            return None
+        if spec.route not in self.dispatchers:
+            self._event(eid, "skipped", spec.reason or f"route {spec.route} not available here")
+            return None
+        seeds = seeds_for(self.config, spec, all_seeds)
+        cap = len(seeds)
+        note = f"; seeds capped at {cap}" if len(all_seeds) > cap else ""
+        builder = BUILDERS.get(spec.input or "")
+        if spec.route != "local" and builder is None:
+            self._event(eid, "skipped", f"no input builder {spec.input!r}")
+            return None
+        try:
+            ctx = BuildContext(manifest, seeds, spec.options, spec.params, structures)
+            request = builder(ctx) if builder else ExecRequest(ctx.name(), {}, {}, seeds)
+        except BuildError as exc:
+            self._event(eid, "skipped", f"inputs: {exc}")
+            return None
+        except Exception as exc:  # a builder bug skips this executor only
+            self._event(eid, "skipped", f"inputs: {type(exc).__name__}: {exc}")
+            return None
+        request.params = {**spec.params, **request.params}
+        request.ligand = str(ctx.ligand["id"]) if ctx.ligand and ctx.ligand.get("id") else None
+        eta = spec.eta_ms(len(seeds))
+        with self._lock:
+            self._row(eid)["seeds"] = [{"seed": s, "phase": "queued", "ms": None} for s in seeds]
+        basis = f"; estimate {round(eta / 1000)} s ({spec.eta.basis})" if eta and spec.eta else ""
+        self._event(eid, "queued", f"{spec.route}, {len(seeds)} seed(s){note}{basis}", etaMs=eta)
+        return _Planned(spec, request)
+
+    def resume(
+        self,
+        manifest: Mapping[str, Any],
+        calls: Mapping[str, Mapping[str, Any]],
+        run_id: str,
+        run_dir: Path,
+        *,
+        manifest_path: Path | None = None,
+        rows: Sequence[Mapping[str, Any]] = (),
+    ) -> ExecuteOutcome:
+        """Follows the calls a previous process spawned (dispatch.json) to their end."""
+        out = dict(manifest)
+        model = out.get("model") if isinstance(out.get("model"), Mapping) else {}
+        assert isinstance(model, Mapping)
+        for r in rows:
+            if r.get("executor"):
+                self._row(str(r["executor"])).update(dict(r))
+        self._calls = {k: dict(v) for k, v in calls.items()}
+        planned: list[_Planned] = []
+        handles: dict[str, Mapping[str, Any]] = {}
         preds: list[dict[str, Any]] = []
-        gpu = [(s, r) for s, r in jobs if s.route != "local"]
-        local = [(s, r) for s, r in jobs if s.route == "local"]
-        for spec, request in local:
-            preds += self._dispatch(spec, request, run_id, run_dir, manifest_path)
-        if gpu:
-            with (
-                self._gpu_slot([s.id for s, _ in gpu]),
-                ThreadPoolExecutor(max_workers=len(gpu), thread_name_prefix="pah-exec") as pool,
-            ):
-                futures = [
-                    pool.submit(self._dispatch, s, r, run_id, run_dir, manifest_path)
-                    for s, r in gpu
-                ]
-                for f in futures:
-                    preds += f.result()
+        for eid, call in calls.items():
+            status = call.get("status")
+            if status == "done":
+                preds += [dict(e) for e in call.get("entries") or [] if isinstance(e, Mapping)]
+                continue
+            if status != "spawned":
+                continue
+            spec = self.config.executors.get(eid)
+            if spec is None or spec.route not in self.dispatchers:
+                self._event(eid, "failed", f"cannot resume call {call.get('callId')}: no route")
+                self._store_call(eid, status="failed", endedAt=_utc())
+                continue
+            seeds = [int(s) for s in call.get("seeds") or [0]]
+            params = dict(call.get("params") or {})
+            ligand = str(call["ligand"]) if call.get("ligand") else None
+            request = ExecRequest(str(call.get("name") or eid), {}, params, seeds, ligand)
+            planned.append(_Planned(spec, request))
+            handles[eid] = call
+        preds += self._execute(planned, run_id, run_dir, manifest_path, handles)
+        return self._outcome(out, model, preds)
+
+    def _execute(
+        self,
+        planned: list[_Planned],
+        run_id: str,
+        run_dir: Path,
+        manifest_path: Path | None,
+        handles: Mapping[str, Mapping[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """Local executors run while the GPU executors (one GPU run per server) are followed."""
+        preds: list[dict[str, Any]] = []
+        if not planned:
+            return preds
+        gpu = [p for p in planned if p.spec.route != "local"]
+        local = [p for p in planned if p.spec.route == "local"]
+
+        def go(p: _Planned) -> list[dict[str, Any]]:
+            handle = handles.get(p.spec.id)
+            return self._dispatch(p.spec, p.request, run_id, run_dir, manifest_path, handle)
+
+        with ThreadPoolExecutor(max_workers=len(planned), thread_name_prefix="pah-exec") as pool:
+            local_futures = [pool.submit(go, p) for p in local]
+            if gpu:
+                with self._gpu_slot([p.spec.id for p in gpu]):
+                    for f in [pool.submit(go, p) for p in gpu]:
+                        preds += f.result()
+            for f in local_futures:
+                preds += f.result()
+        return preds
+
+    def _outcome(
+        self, out: dict[str, Any], model: Mapping[str, Any], preds: list[dict[str, Any]]
+    ) -> ExecuteOutcome:
         if preds:
             primary = model.get("executor")
             ordered = sorted(preds, key=lambda p: p["executor"] != primary)
@@ -740,6 +1057,7 @@ class ExecuteStage:
         run_id: str,
         run_dir: Path,
         manifest_path: Path | None,
+        handle: Mapping[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         eid = spec.id
         dest = run_dir / "predictions" / eid
@@ -747,14 +1065,17 @@ class ExecuteStage:
         for fname, text in request.files.items():
             (dest / "inputs").mkdir(exist_ok=True)
             (dest / "inputs" / fname).write_text(text, encoding="utf-8")
-        t0 = time.monotonic()
+        spawned = float(handle["spawnedEpoch"]) if handle and handle.get("spawnedEpoch") else None
+        t0 = time.monotonic() - (time.time() - spawned if spawned else 0.0)
         seen: dict[str, Any] = {}
 
+        def elapsed() -> int:
+            return int((time.monotonic() - t0) * 1000)
+
         def progress(state: Mapping[str, Any]) -> None:
-            elapsed = int((time.monotonic() - t0) * 1000)
             phase = str(state.get("phase") or "running")
             phase = phase if phase in ("building", "running") else "running"
-            extra = {k: state[k] for k in ("gpu", "route", "routeNote", "startedAt") if k in state}
+            extra = {k: state[k] for k in _ROW_FIELDS if k in state}
             seeds = state.get("seeds") if isinstance(state.get("seeds"), list) else None
             changed = (phase, state.get("message")) != seen.get("phase")
             if seeds is not None:
@@ -765,40 +1086,87 @@ class ExecuteStage:
                     if seen.get(f"seed{sid}") != sp and sp in ("running", "done", "failed"):
                         seen[f"seed{sid}"] = sp
                         self._event(
-                            eid, phase, f"seed {sid} {sp}", seed=sid, elapsedMs=elapsed, **extra
+                            eid, phase, f"seed {sid} {sp}", seed=sid, elapsedMs=elapsed(), **extra
                         )
                         changed = False
             if changed:
                 seen["phase"] = (phase, state.get("message"))
                 self._event(
-                    eid, phase, str(state.get("message") or phase), elapsedMs=elapsed, **extra
+                    eid, phase, str(state.get("message") or phase), elapsedMs=elapsed(), **extra
                 )
 
         job = DispatchJob(spec, run_id, request, dest, manifest_path)
         dispatcher = self.dispatchers[spec.route]
         try:
-            record = dispatcher.run(job, progress)
+            if can_spawn(dispatcher):
+                record = self._spawned(dispatcher, job, handle, progress)
+            else:
+                record = dispatcher.run(job, progress)
         except DispatchUnavailableError as exc:
             self._event(eid, "skipped", str(exc))
+            if eid in self._calls:
+                self._store_call(eid, status="skipped", endedAt=_utc(), error=str(exc))
             return []
         except Exception as exc:  # recorded; the run continues with the other executors
-            self._event(eid, "failed", f"{type(exc).__name__}: {exc}",
-                        elapsedMs=int((time.monotonic() - t0) * 1000))  # fmt: skip
+            error = f"{type(exc).__name__}: {exc}"
+            self._event(eid, "failed", error, elapsedMs=elapsed())
+            if eid in self._calls:
+                self._store_call(eid, status="failed", endedAt=_utc(), error=error)
             return []
-        elapsed = int((time.monotonic() - t0) * 1000)
-        extra = {k: record[k] for k in ("gpu", "route", "routeNote") if k in record}
+        extra = {k: record[k] for k in _ROW_FIELDS if k in record and k != "startedAt"}
         if isinstance(record.get("seeds"), list):
             with self._lock:
                 self._row(eid)["seeds"] = [dict(s) for s in record["seeds"]]
         if record.get("status") != "done":
-            self._event(
-                eid, "failed", str(record.get("error") or "no outputs"), elapsedMs=elapsed, **extra
-            )
+            error = str(record.get("error") or "no outputs")
+            self._event(eid, "failed", error, elapsedMs=elapsed(), **extra)
+            if eid in self._calls:
+                self._store_call(eid, status="failed", endedAt=_utc(), error=error)
             return []
-        self._event(eid, "done", f"outputs in predictions/{eid}", elapsedMs=elapsed, **extra)
+        self._event(eid, "done", f"outputs in predictions/{eid}", elapsedMs=elapsed(), **extra)
         if "predictions" in record:  # the local route declares its own entries
-            return [self._relocate(p, dest, run_dir) for p in record["predictions"]]
-        return self._entries(spec, request, record, run_dir)
+            entries = [self._relocate(p, dest, run_dir) for p in record["predictions"]]
+        else:
+            entries = self._entries(spec, request, record, run_dir)
+        if eid in self._calls:
+            self._store_call(eid, status="done", endedAt=_utc(), entries=entries)
+        return entries
+
+    def _spawned(
+        self,
+        dispatcher: Dispatcher,
+        job: DispatchJob,
+        handle: Mapping[str, Any] | None,
+        progress: Progress,
+    ) -> dict[str, Any]:
+        """Spawns the call (or takes the stored handle), records it, then follows it."""
+        sp: Any = dispatcher
+        eid = job.executor.id
+        if handle is None:
+            handle = dict(sp.spawn(job))
+            self._store_call(
+                eid,
+                **handle,
+                status="spawned",
+                spawnedAt=_utc(),
+                spawnedEpoch=time.time(),
+                seeds=list(job.request.seeds),
+                name=job.request.name,
+                ligand=job.request.ligand,
+                params=dict(job.request.params),
+                etaMs=job.executor.eta_ms(len(job.request.seeds)),
+            )
+            self._event(
+                eid,
+                "queued",
+                f"spawned {handle.get('app')}.{handle.get('function')} (call {handle['callId']})",
+                callId=handle["callId"],
+            )
+        else:
+            self._event(eid, "running", f"following call {handle['callId']} after a restart",
+                        callId=handle["callId"])  # fmt: skip
+        result: dict[str, Any] = sp.wait(job, handle, progress)
+        return result
 
     @staticmethod
     def _relocate(entry: Mapping[str, Any], dest: Path, run_dir: Path) -> dict[str, Any]:
@@ -822,7 +1190,10 @@ class ExecuteStage:
                 "route_note": record.get("routeNote"),
                 "gpu": record.get("gpu"),
                 "kit": record.get("kit"),
+                "mode": record.get("mode"),
+                "kit_version": record.get("kitVersion"),
                 "modal_image": (record.get("modal") or {}).get("MODAL_IMAGE_ID"),
+                "modal_call": record.get("callId"),
             }.items()
             if isinstance(v, str | int | float | bool)
         }

@@ -90,7 +90,7 @@ describe('measuredVsThreshold', () => {
       ],
       thresholds: [{ name: 'undefined_stereo', value: 0, comparator: '==', origin: 'spec', evidenceLevel: 'reproduced', measurement: 'undefined' }],
     };
-    expect(measuredVsThreshold(check)).toBe('undefined 1 == 0');
+    expect(measuredVsThreshold(check)).toBe('undefined 1 · must be 0');
   });
   it('never pairs by substring (pocket_residues is not missing_pocket_residues)', () => {
     const check = {
@@ -113,7 +113,7 @@ describe('measuredVsThreshold', () => {
       ],
       thresholds: [{ name: 'mismatches', value: 0, comparator: '==', origin: 'spec', evidenceLevel: 'reproduced' }],
     };
-    expect(measuredVsThreshold(check)).toBe('mismatches 0 == 0');
+    expect(measuredVsThreshold(check)).toBe('mismatches 0 · must be 0');
   });
   it('does not guess a pairing', () => {
     const check = {
@@ -129,7 +129,7 @@ describe('measuredVsThreshold', () => {
       measurements: [{ name: 'drift', value: 0.6, unit: 'Å' }],
       thresholds: [{ name: 'drift', value: 2, comparator: '<=', origin: 'spec', evidenceLevel: 'suspected' }],
     };
-    expect(measuredVsThreshold(check)).toBe(`drift 0.6${THIN}Å <= 2${THIN}Å`);
+    expect(measuredVsThreshold(check)).toBe(`drift 0.6${THIN}Å · at most 2${THIN}Å`);
   });
 });
 

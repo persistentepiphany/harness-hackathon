@@ -91,6 +91,11 @@ class JobFile:
         self._lock = threading.Lock()
         self._flush()
 
+    @property
+    def data(self) -> dict[str, Any]:
+        with self._lock:
+            return dict(self._data)
+
     def update(self, **changes: Any) -> None:
         with self._lock:
             self._data.update(changes)
@@ -99,6 +104,28 @@ class JobFile:
     def _flush(self) -> None:
         _atomic_text(self.path, json.dumps(self._data, indent=2) + "\n")
         persistence.persist(f"job.json {self._data.get('id')} {self._data.get('status')}")
+
+
+DISPATCH_FILE = "dispatch.json"
+_CALLS_LOCK = threading.Lock()
+
+
+def write_calls(run_dir: Path, calls: Mapping[str, Mapping[str, Any]]) -> None:
+    """`runs/<id>/dispatch.json`: every spawned executor call (Modal call id, app, seeds, status,
+    the predictions entries once done), so a restarted server can follow the calls again."""
+    with _CALLS_LOCK:
+        body = {"version": 1, "updatedAt": _now(), "calls": {k: dict(v) for k, v in calls.items()}}
+        _atomic_text(run_dir / DISPATCH_FILE, json.dumps(body, indent=2) + "\n")
+    persistence.persist(f"dispatch.json {run_dir.name}")
+
+
+def read_calls(run_dir: Path) -> dict[str, dict[str, Any]]:
+    try:
+        body = json.loads((run_dir / DISPATCH_FILE).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    calls = body.get("calls") if isinstance(body, dict) else None
+    return {str(k): dict(v) for k, v in (calls or {}).items() if isinstance(v, dict)}
 
 
 def _last_seq(events: Path) -> int | None:
@@ -190,8 +217,9 @@ class RunSubmitter:
 
     def submit(
         self, settings: RunSettings, headers: Mapping[str, str] | None = None
-    ) -> dict[str, str]:
-        """Returns {jobId, runId} once job.json and an empty events.jsonl exist.
+    ) -> dict[str, Any]:
+        """Returns {jobId, runId} (plus {etaMs, eta} when executors run) once job.json and an
+        empty events.jsonl exist; executors are spawned by the job, never by this request.
 
         Raises SettingsError for settings that cannot become a run.
         """
@@ -212,14 +240,31 @@ class RunSubmitter:
         (run_dir / "events.jsonl").touch()
         if plan.manifest is not None:
             self._write_manifest(run_dir, plan.manifest)
-        job_file = JobFile(run_dir / "job.json", self._job_record(run_id, plan, denied))
+        eta = self.estimate(plan, denied)
+        job_file = JobFile(run_dir / "job.json", self._job_record(run_id, plan, denied, eta))
         self.jobs.start(
             Job(id=run_id, kind="run"),
             lambda sinks: self._work(plan, run_id, run_dir, job_file, sinks, denied),
         )
-        return {"jobId": run_id, "runId": run_id}
+        out: dict[str, Any] = {"jobId": run_id, "runId": run_id}
+        if eta is not None:
+            out["etaMs"], out["eta"] = eta.get("etaMs"), eta
+        return out
 
-    def _job_record(self, run_id: str, plan: RunPlan, denied: str | None) -> dict[str, Any]:
+    def estimate(self, plan: RunPlan, denied: str | None) -> dict[str, Any] | None:
+        """Execute-stage estimate from configs/dispatch.yaml `eta` (None when nothing runs)."""
+        from pah.webui.execute import estimate_run
+
+        if not plan.execute or denied is not None or not plan.executors:
+            return None
+        cfg, _ = self.dispatch_config()
+        if cfg is None:
+            return None
+        return estimate_run(cfg, plan.executors, list(range(max(1, plan.seeds))))
+
+    def _job_record(
+        self, run_id: str, plan: RunPlan, denied: str | None, eta: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         manifest = "manifest.yaml"
         if plan.manifest_path is not None:
             root = repo_root()
@@ -238,6 +283,8 @@ class RunSubmitter:
             "lookups": list(plan.lookups),
             "executors": EXECUTORS_RUN if plan.execute and denied is None else EXECUTORS_NOT_RUN,
             "execute": plan.execute,
+            "etaMs": eta.get("etaMs") if eta else None,
+            "eta": eta,
             "execution": [],
             "executionDenied": denied,
             "seeds": plan.seeds,
@@ -273,12 +320,7 @@ class RunSubmitter:
         """Runs the selected executors; returns the manifest with their predictions."""
         from pah.sources import CachedHttp, ContentCache, Sources
         from pah.webui.catalog import load_executors
-        from pah.webui.execute import (
-            ExecuteStage,
-            LocalVinaDispatcher,
-            ModalDispatcher,
-            UnavailableDispatcher,
-        )
+        from pah.webui.execute import ExecuteStage
 
         def emit(message: str, data: Mapping[str, Any]) -> None:
             write_event(run_dir, run_id, message, data, stage="execute")
@@ -297,16 +339,13 @@ class RunSubmitter:
                              "seeds": [], "message": reason})  # fmt: skip
             job.update(execution=rows)
             return manifest
-        dispatchers = self.dispatchers or {
-            "modal": UnavailableDispatcher(
-                f"profile {self.profile.name} is offline; Modal dispatch needs the network"
-            )
-            if self.profile.offline
-            else ModalDispatcher(cfg.modal, cfg.guard.poll_s),
-            "local": LocalVinaDispatcher(self.profile),
-        }
         stage = ExecuteStage(
-            cfg, dispatchers, emit, on_change=lambda rows: job.update(execution=rows)
+            cfg,
+            self._dispatchers(cfg),
+            emit,
+            on_change=lambda rows: job.update(execution=rows),
+            on_call=lambda calls: write_calls(run_dir, calls),
+            run_eta_ms=(job.data.get("eta") or {}).get("etaMs"),
         )
         cache = ContentCache(resolve_path(self.profile.cache_dir))
         with self.client_factory() as client:
@@ -328,6 +367,145 @@ class RunSubmitter:
         self._write_manifest(run_dir, outcome.manifest)
         return outcome.manifest
 
+    def _dispatchers(self, cfg: DispatchConfig) -> Mapping[str, Dispatcher]:
+        from pah.webui.execute import LocalVinaDispatcher, ModalDispatcher, UnavailableDispatcher
+
+        if self.dispatchers is not None:
+            return self.dispatchers
+        modal: Dispatcher = (
+            UnavailableDispatcher(
+                f"profile {self.profile.name} is offline; Modal dispatch needs the network"
+            )
+            if self.profile.offline
+            else ModalDispatcher(cfg.modal, cfg.guard.poll_s)
+        )
+        return {"modal": modal, "local": LocalVinaDispatcher(self.profile)}
+
+    def resume_pending(self) -> list[str]:
+        """Takes up runs whose executor calls were spawned by a server process that has ended
+        (job queued or running, calls `spawned` in dispatch.json): follows the calls to their
+        end, then runs the checks. Returns the run ids taken up."""
+        from pah.interfaces.api import Job
+
+        runs_dir = resolve_path(self.profile.runs_dir)
+        taken: list[str] = []
+        if not runs_dir.is_dir():
+            return taken
+        for run_dir in sorted(p for p in runs_dir.iterdir() if (p / DISPATCH_FILE).is_file()):
+            calls = read_calls(run_dir)
+            if not any(c.get("status") == "spawned" for c in calls.values()):
+                continue
+            try:
+                data = json.loads((run_dir / "job.json").read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            run_id = run_dir.name
+            if data.get("status") not in ("queued", "running") or self.jobs.get(run_id):
+                continue
+            job_file = JobFile(run_dir / "job.json", data)
+
+            def work(
+                sinks: Sequence[Sink],
+                run_id: str = run_id,
+                run_dir: Path = run_dir,
+                job_file: JobFile = job_file,
+                calls: dict[str, dict[str, Any]] = calls,
+            ) -> dict[str, Any]:
+                return self._resume_work(run_id, run_dir, job_file, calls, sinks)
+
+            self.jobs.start(Job(id=run_id, kind="run"), work)
+            taken.append(run_id)
+        return taken
+
+    def _resume_work(
+        self,
+        run_id: str,
+        run_dir: Path,
+        job: JobFile,
+        calls: dict[str, dict[str, Any]],
+        sinks: Sequence[Sink],
+    ) -> dict[str, Any]:
+        from pah.webui.execute import ExecuteStage
+
+        data = job.data
+        layers = tuple(int(x) for x in data.get("layers") or ())
+        halt = bool(data.get("halt"))
+        try:
+            manifest = yaml.safe_load((run_dir / "manifest.yaml").read_text(encoding="utf-8"))
+            cfg, err = self.dispatch_config()
+            if cfg is None or not isinstance(manifest, dict):
+                raise RuntimeError(err or "manifest.yaml unreadable")
+            pending = sorted(k for k, c in calls.items() if c.get("status") == "spawned")
+            append_event(
+                run_dir,
+                run_id,
+                f"server restarted: following {len(pending)} spawned call(s) "
+                f"({', '.join(pending)}) from dispatch.json",
+                resumed=pending,
+            )
+
+            def emit(message: str, ev: Mapping[str, Any]) -> None:
+                write_event(run_dir, run_id, message, ev, stage="execute")
+
+            stage = ExecuteStage(
+                cfg,
+                self._dispatchers(cfg),
+                emit,
+                on_change=lambda rows: job.update(execution=rows),
+                on_call=lambda c: write_calls(run_dir, c),
+                run_eta_ms=data.get("etaMs"),
+            )
+            rows = [r for r in data.get("execution") or [] if isinstance(r, dict)]
+            outcome = stage.resume(
+                manifest, calls, run_id, run_dir, manifest_path=run_dir / "manifest.yaml",
+                rows=rows,
+            )  # fmt: skip
+            job.update(execution=outcome.executions)
+            self._write_manifest(run_dir, outcome.manifest)
+            return self._check(outcome.manifest, layers, halt, run_id, run_dir, job, sinks)
+        except Exception as exc:  # recorded in the run and on the job; the server keeps serving
+            message = f"{type(exc).__name__}: {exc}"
+            try:
+                append_event(run_dir, run_id, f"job failed: {message}", status="error")
+            finally:
+                job.update(status="failed", finishedAt=_now(), error=message)
+            raise
+        finally:
+            persistence.persist(f"run {run_id} ended")
+
+    def _check(
+        self,
+        source: Any,
+        layers: tuple[int, ...],
+        halt: bool,
+        run_id: str,
+        run_dir: Path,
+        job: JobFile,
+        sinks: Sequence[Sink],
+    ) -> dict[str, Any]:
+        """Runs the checks on the (executed) manifest and records the verdict on the job."""
+        from pah.service import RunOptions, run_manifest
+
+        options = RunOptions(layers=layers, halt=halt, report=True)
+        result = run_manifest(
+            source,
+            self.profile,
+            options,
+            list(sinks),
+            run_id=run_id,
+            run_dir=run_dir,
+            base_dir=run_dir,
+            seq_start=_last_seq(run_dir / "events.jsonl") or 0,
+        )
+        summary = result.summary()
+        job.update(
+            status="done",
+            finishedAt=_now(),
+            verdict=summary.get("verdict"),
+            reportError=result.report_error,
+        )
+        return summary
+
     def _work(
         self,
         plan: RunPlan,
@@ -337,7 +515,6 @@ class RunSubmitter:
         sinks: Sequence[Sink],
         denied: str | None = None,
     ) -> dict[str, Any]:
-        from pah.service import RunOptions, run_manifest
         from pah.sources import CachedHttp, ContentCache, Sources
 
         job.update(status="running", startedAt=_now())
@@ -374,25 +551,7 @@ class RunSubmitter:
                 )
                 if executed is not None:
                     source = executed
-            options = RunOptions(layers=plan.layers, halt=plan.halt, report=True)
-            result = run_manifest(
-                source,
-                self.profile,
-                options,
-                list(sinks),
-                run_id=run_id,
-                run_dir=run_dir,
-                base_dir=run_dir,
-                seq_start=_last_seq(run_dir / "events.jsonl") or 0,
-            )
-            summary = result.summary()
-            job.update(
-                status="done",
-                finishedAt=_now(),
-                verdict=summary.get("verdict"),
-                reportError=result.report_error,
-            )
-            return summary
+            return self._check(source, plan.layers, plan.halt, run_id, run_dir, job, sinks)
         except Exception as exc:  # recorded in the run and on the job; the server keeps serving
             message = f"{type(exc).__name__}: {exc}"
             try:
@@ -450,6 +609,11 @@ def build_router(
     """Routes relative to /ui. `dispatchers` replaces the executor dispatchers (tests)."""
     router = APIRouter()
     submitter = RunSubmitter(profile, jobs, client_factory, dispatchers)
+    if os.environ.get("PAH_EXEC_RESUME", "1") != "0":
+        # calls spawned before a restart are followed again in the background (dispatch.json)
+        threading.Thread(
+            target=submitter.resume_pending, name="pah-exec-resume", daemon=True
+        ).start()
     factory = client_factory or _default_client
     runs_dir = resolve_path(profile.runs_dir)
 
