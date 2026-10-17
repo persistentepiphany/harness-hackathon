@@ -1,6 +1,7 @@
 # Executors: tools that produce predictions. Not installed in the harness environment.
 # The harness builds their inputs, parses their outputs and records their provenance.
 # Probes here check that code and weights are reachable from the current host.
+# I/O contracts with source citations: docs/EXECUTORS.md.
 version: 1
 executors:
   - id: boltz2
@@ -29,12 +30,13 @@ executors:
     repo: https://github.com/bytedance/Protenix
     probes:
       - {id: protenix.code, kind: git, url: "https://github.com/bytedance/Protenix"}
-      - {id: protenix.weights, kind: http, url: "https://af3-dev.tos-cn-beijing.volces.com/release_model/protenix_base_default_v0.5.0.pt"}
+      - {id: protenix.weights, kind: http, url: "https://protenix.tos-cn-beijing.volces.com/checkpoint/protenix_base_default_v1.0.0.pt"}
+      - {id: protenix.esm_weights, kind: http, url: "https://af3-dev.tos-cn-beijing.volces.com/release_model/esm2_t36_3B_UR50D_ism.pt"}
   - id: alphafold3
     name: AlphaFold3
     family: cofolding
     mvp: false
-    licence: CC-BY-NC-SA-4.0 (code); weights by request
+    licence: Apache-2.0 (code); weights under separate terms, by request
     repo: https://github.com/google-deepmind/alphafold3
     probes:
       - {id: alphafold3.code, kind: git, url: "https://github.com/google-deepmind/alphafold3"}
@@ -43,7 +45,7 @@ executors:
     name: Chai-1
     family: cofolding
     mvp: false
-    licence: Apache-2.0
+    licence: Apache-2.0 (code and weights)
     repo: https://github.com/chaidiscovery/chai-lab
     probes:
       - {id: chai1.code, kind: git, url: "https://github.com/chaidiscovery/chai-lab"}
