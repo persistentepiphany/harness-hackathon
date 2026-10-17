@@ -703,6 +703,10 @@ export interface PoseThumbView {
   /** `Confidence 0.81`, `Vina score −9.2 kcal/mol`; null when the pose reports none. */
   score: string | null;
   badge: { text: string; tone: 'pass' | 'warn' | 'stop' | 'muted' };
+  /** `pending` while the report stage has not rendered this structure yet. */
+  status: 'rendered' | 'pending' | 'failed';
+  /** The structure rendered first (medoid or top-ranked pose). */
+  main: boolean;
 }
 
 function poseBadge(checks: UiPoseCheck[]): PoseThumbView['badge'] {
@@ -719,9 +723,15 @@ function poseBadge(checks: UiPoseCheck[]): PoseThumbView['badge'] {
 /** Thumbnails of predicted poses (renders with an executor, or every render when none says). */
 export function poseThumbs(record: UiRunRecord | null | undefined, executor?: string | null): PoseThumbView[] {
   const renders: RecordRender[] = record?.renders ?? [];
-  const poseRenders = renders.filter((r) => r.executor || r.seed !== undefined || r.pose);
-  return poseRenders
-    .filter((r) => !executor || r.executor === executor)
+  const poseRenders = renders.filter((r) => (r.executor || r.seed !== undefined || r.pose) && (!executor || r.executor === executor));
+  // one thumbnail per structure (the overview view when there are several), main structure first
+  const byStructure = new Map<string, RecordRender>();
+  for (const r of poseRenders) {
+    const cur = byStructure.get(r.structure);
+    if (!cur || (cur.view !== 'overview' && r.view === 'overview')) byStructure.set(r.structure, r);
+  }
+  return [...byStructure.values()]
+    .sort((a, b) => Number(!!b.main) - Number(!!a.main))
     .map((r, i) => {
       const fromRecord = r.pose ? record?.poseChecks?.find((p) => p.pose === r.pose)?.checks : undefined;
       const checks = r.checks?.length ? r.checks : (fromRecord ?? []);
@@ -735,6 +745,8 @@ export function poseThumbs(record: UiRunRecord | null | undefined, executor?: st
         label,
         score: r.score ? `${r.score.label} ${fmtNumber(r.score.value)}${r.score.unit ? `${' '}${r.score.unit}` : ''}` : null,
         badge: poseBadge(checks),
+        status: r.status ?? (r.png ? 'rendered' : 'pending'),
+        main: !!r.main,
       };
     });
 }

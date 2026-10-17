@@ -866,6 +866,17 @@ export interface RecordRender {
   score?: UiPoseScore | null;
   /** Output checks already reported for the pose; empty while they are pending. */
   checks?: UiPoseCheck[];
+  /** Render state: the main structure renders first, the rest in parallel afterwards. */
+  status?: 'rendered' | 'pending' | 'failed';
+  /** True for the structure rendered first (medoid or top-ranked pose; the reference when nothing was predicted). */
+  main?: boolean;
+}
+
+/** Render progress of the report stage: `done` of `total` structures, `failed` among them. */
+export interface UiRenderProgress {
+  done: number;
+  total: number;
+  failed: number;
 }
 
 /** Live API: l0.sources.resolved counts and the receptor chains present (l1.receptor.chains). */
@@ -957,6 +968,8 @@ export interface UiRunRecord {
   record: RecordMeta;
   structures?: RecordStructure[];
   renders?: RecordRender[];
+  /** Report stage render progress (structures rendered of total); absent on records written before it existed. */
+  renderProgress?: UiRenderProgress;
   /** UI addition (prototype): threshold table. */
   thresholds?: RecordThreshold[];
   /** UI addition (prototype): executor lines for the job view (mock records). */

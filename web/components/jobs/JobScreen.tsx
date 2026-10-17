@@ -211,7 +211,7 @@ export function JobScreen({ jobId }: { jobId: string | null }) {
           ) : (
             <div className="text-[12.5px] text-muted">No execution reported: the run checks outputs supplied with the manifest, if any.</div>
           )}
-          <PoseThumbs thumbs={thumbs} />
+          <PoseThumbs thumbs={thumbs} progress={rec?.renderProgress} />
           <div className="mt-3">
             <StageBar stages={stages} />
           </div>

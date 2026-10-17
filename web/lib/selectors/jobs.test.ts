@@ -18,6 +18,7 @@ import {
   toolLabel,
   verdictMeta,
   worstResult,
+  poseThumbs,
 } from './jobs';
 
 const dir = path.join(__dirname, '..', '..', 'tests', 'fixtures', 'live');
@@ -240,5 +241,26 @@ describe('incomplete layers', () => {
     const seg = jobSegments(layerCells(job, null));
     expect(seg[2]).toMatchObject({ incomplete: ['l2.x'], color: 'var(--color-faint)', title: 'incomplete: l2.x' });
     expect(seg[1].incomplete).toEqual([]);
+  });
+});
+
+describe('pose thumbnails', () => {
+  const r = (structure: string, view: string, extra: Partial<NonNullable<UiRunRecord['renders']>[number]> = {}) => ({ structure, view, png: `renders/${structure}_${view}.png`, pse: `renders/${structure}.pse`, executor: 'vina', seed: 0, ...extra });
+  it('shows one thumbnail per structure, the main one first, pending ones without a PNG', () => {
+    const record = {
+      renders: [
+        r('a', 'overview'),
+        r('a', 'pocket'),
+        r('b', 'overview', { main: true }),
+        r('c', 'overview', { png: '', pse: '', status: 'pending' }),
+      ],
+    } as unknown as UiRunRecord;
+    const thumbs = poseThumbs(record);
+    expect(thumbs.map((t) => [t.main, t.status])).toEqual([
+      [true, 'rendered'],
+      [false, 'rendered'],
+      [false, 'pending'],
+    ]);
+    expect(thumbs[1].png).toBe('renders/a_overview.png');
   });
 });
