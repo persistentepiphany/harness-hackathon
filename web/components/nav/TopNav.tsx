@@ -67,11 +67,11 @@ export function TopNav() {
       data-testid="top-nav"
       className="sticky top-0 z-20 flex h-11 items-center gap-8 border-b border-line bg-canvas px-6"
     >
-      <Link href="/runs/new" className="flex items-center gap-[9px] text-ink hover:text-ink" aria-label="Harness">
+      <Link href="/runs/new" className="flex items-center gap-[9px] text-ink hover:text-ink" aria-label="Dock Harness">
         <span className="relative h-3.5 w-3.5 rounded-[3px] border-[1.5px] border-ink">
           <span className="absolute inset-[3px] rounded-[1px] bg-accent" />
         </span>
-        <span className="text-[13px] font-semibold">Harness</span>
+        <span className="text-[13px] font-semibold">Dock Harness</span>
       </Link>
       <div className="flex flex-1 gap-0.5">
         {tabs.map((t) => (

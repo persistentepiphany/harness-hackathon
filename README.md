@@ -14,7 +14,7 @@ returns pass, warn, stop or skip with the values and thresholds behind it. The d
 | 1 | Package skeleton, event stream, `pah doctor` (reachability of sources, tools, weights, skills), `pah fetch` |
 | 2 | Engine, run manifest, task specifications, Layer 0 source clients with a sha256 content cache and offline mode, Layer 0 and Layer 1 checks, `pah run` |
 | 3 | Layers 2 to 5 (68 registered checks), output parsers for nine executors, `pah dock` (local Vina), reports in the web UI style, MCP server, HTTP API, executor runtimes for GPU hosts, perturbation benchmark on Modal |
-| 4 | Web UI in `web/` (Next.js; new run, jobs with the live log, report, ensemble with Mol* viewers, documents, agent monitor) over the `/ui` routes of `pah serve`, in live or mock mode; HTTP API and web UI deployed on Modal (`scripts/deploy_modal.sh`) |
+| 4 | Web UI Dock Harness in `web/` (Next.js; new run, jobs with the live log, report, ensemble with Mol* viewers, documents, agent monitor) over the `/ui` routes of `pah serve`, in live or mock mode; HTTP API and web UI deployed on Modal (`scripts/deploy_modal.sh`) |
 
 Every check listed in the three implemented task specifications (`ligand_pose`,
 `interaction_discovery`, `virtual_screening`) is registered. Controls without a manifest input

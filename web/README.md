@@ -1,6 +1,6 @@
-# Harness web UI
+# Dock Harness web UI
 
-Next.js 16 (App Router, TypeScript, Tailwind CSS v4) port of `design/prototype/Harness v2.dc.html`.
+Dock Harness is the web UI of `pah`: a Next.js 16 (App Router, TypeScript, Tailwind CSS v4) port of `design/prototype/Harness v2.dc.html`.
 The contract is `../docs/UI.md`; routes, components and tokens follow `design/prototype/HANDOFF.md`.
 Screenshots of each prototype view at 1440x900 are in `design/reference-shots/<view>.png`.
 

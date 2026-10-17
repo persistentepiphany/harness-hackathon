@@ -5,8 +5,8 @@ import { TopNav } from '@/components/nav/TopNav';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Harness',
-  description: 'Prediction Assurance Harness: whether a co-folding or docking result can support a declared claim.',
+  title: 'Dock Harness',
+  description: 'Dock Harness (Prediction Assurance Harness): whether a co-folding or docking result can support a declared claim.',
 };
 
 export const viewport: Viewport = {

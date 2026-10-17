@@ -8,7 +8,7 @@ const TABS = ['New run', 'Jobs', 'Reports', 'Ensemble', 'Agent', 'Documents'];
 async function expectNav(page: Page, active: string) {
   const nav = page.getByTestId('top-nav');
   await expect(nav).toBeVisible();
-  await expect(nav.getByRole('link')).toHaveText(['Harness', ...TABS.map((t) => new RegExp(`^${t}`))]);
+  await expect(nav.getByRole('link')).toHaveText(['Dock Harness', ...TABS.map((t) => new RegExp(`^${t}`))]);
   await expect(page.getByTestId(`nav-tab-${active}`)).toHaveAttribute('data-state', 'active');
   await expect(page.getByTestId('api-status')).toHaveAttribute('data-state', 'mock');
 }
