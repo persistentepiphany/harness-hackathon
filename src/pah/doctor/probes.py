@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import time
@@ -54,6 +55,18 @@ Runner = Callable[[Sequence[str], float], subprocess.CompletedProcess[str]]
 
 def run_command(argv: Sequence[str], timeout: float) -> subprocess.CompletedProcess[str]:
     return subprocess.run(list(argv), capture_output=True, text=True, timeout=timeout, check=False)
+
+
+_VERSION = re.compile(r"\d+\.\d+")
+
+
+def _version_line(*texts: str, limit: int = 160) -> str | None:
+    """First line that contains a dotted version number, else the first non-empty line."""
+    lines = [ln.strip() for t in texts for ln in t.splitlines() if ln.strip()]
+    for line in lines:
+        if _VERSION.search(line):
+            return line[:limit]
+    return lines[0][:limit] if lines else None
 
 
 def _first_line(text: str, limit: int = 160) -> str:
@@ -216,7 +229,7 @@ class BinaryProbe(_Base):
             return self._result(ProbeStatus.ERROR, f"{found} timed out", started)
         except OSError as exc:
             return self._result(ProbeStatus.ERROR, f"{found}: {exc}", started)
-        version = _first_line(proc.stdout) or _first_line(proc.stderr) or None
+        version = _version_line(proc.stdout, proc.stderr)
         detail = f"{found} (exit {proc.returncode})"
         return self._result(ProbeStatus.OK, detail, started, version=version)
 

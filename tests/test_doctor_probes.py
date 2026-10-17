@@ -170,3 +170,15 @@ def test_file_and_manual_probes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     assert manual.run().status is ProbeStatus.MANUAL
     monkeypatch.setenv("PAH_W", str(tmp_path))
     assert manual.run().status is ProbeStatus.OK
+
+
+def test_binary_version_prefers_dotted_number() -> None:
+    result = BinaryProbe(
+        id="b",
+        category="t",
+        target="apbs",
+        executable="apbs",
+        which=lambda n, p: "/x/apbs",
+        runner=FakeRunner(completed(rc=13, out="-----\nAPBS 3.4.1\n")),
+    ).run()
+    assert result.version == "APBS 3.4.1"
