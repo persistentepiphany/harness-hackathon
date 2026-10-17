@@ -15,7 +15,7 @@ This repository is engineering only. The scientific thresholds come from the spe
 - Commit as `persistentepiphany <tennesseeshtick@proton.me>` (repo-local `git config`).
 - No Claude, Anthropic or AI attribution anywhere: no `Co-Authored-By` trailers, no session links,
   no footers in commits, PR bodies, code or docs.
-- Development branch: `claude/blissful-johnson-j76s9r`. Do not push elsewhere without asking.
+- Development branch: `harness-core`. Do not push elsewhere without asking.
 
 ## Commits
 
