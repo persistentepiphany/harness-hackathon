@@ -5,7 +5,11 @@ from pah.executors.parsers import (
     boltz,
     chai,
     colabfold,
+    diffdock,
+    gnina,
+    haddock,
     protenix,
+    vina,
 )
 
 __all__ = [
@@ -13,5 +17,9 @@ __all__ = [
     "boltz",
     "chai",
     "colabfold",
+    "diffdock",
+    "gnina",
+    "haddock",
     "protenix",
+    "vina",
 ]
