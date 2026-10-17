@@ -182,3 +182,12 @@ def test_binary_version_prefers_dotted_number() -> None:
         runner=FakeRunner(completed(rc=13, out="-----\nAPBS 3.4.1\n")),
     ).run()
     assert result.version == "APBS 3.4.1"
+
+
+def test_run_command_uses_temp_cwd(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from pah.doctor.probes import run_command
+
+    monkeypatch.chdir(tmp_path)
+    proc = run_command(["sh", "-c", "pwd; touch side.file"], 10)
+    assert proc.stdout.strip() != str(tmp_path)
+    assert not (tmp_path / "side.file").exists()

@@ -6,6 +6,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
@@ -54,7 +55,11 @@ Runner = Callable[[Sequence[str], float], subprocess.CompletedProcess[str]]
 
 
 def run_command(argv: Sequence[str], timeout: float) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(list(argv), capture_output=True, text=True, timeout=timeout, check=False)
+    """Runs in a throwaway directory so tools that write side files (APBS io.mc) leave no trace."""
+    with tempfile.TemporaryDirectory(prefix="pah-probe-") as cwd:
+        return subprocess.run(
+            list(argv), capture_output=True, text=True, timeout=timeout, check=False, cwd=cwd
+        )
 
 
 _VERSION = re.compile(r"\d+\.\d+")
