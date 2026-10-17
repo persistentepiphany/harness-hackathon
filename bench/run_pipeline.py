@@ -55,49 +55,58 @@ def commands(run_id: str, run: Path) -> dict[str, list[list[str]]]:
     }
 
 
+HEADER = [
+    "run_id",
+    "recorded",
+    "seeds",
+    "scope",
+    "n",
+    "score_only_ba",
+    "score_only_ci",
+    "fact_file_ba",
+    "fact_file_ci",
+    "mcnemar_p",
+    "agent_model",
+    "repeat_agreement_a",
+    "repeat_agreement_b",
+    "call_errors",
+]
+
+
 def record_scores(run: Path) -> None:
+    """Write this run's rows to bench/scores.csv, replacing any rows an earlier scoring of the same
+    run left there."""
+
     stats = json.loads((run / "results" / "stats.json").read_text())
     cfg = yaml.safe_load((run / "config" / "targets.yaml").read_text())
     path = REPO / "bench" / "scores.csv"
-    new = not path.is_file()
-    with path.open("a", newline="") as fh:
-        w = csv.writer(fh)
-        if new:
-            w.writerow(
-                [
-                    "run_id",
-                    "recorded",
-                    "seeds",
-                    "scope",
-                    "n",
-                    "score_only_ba",
-                    "score_only_ci",
-                    "fact_file_ba",
-                    "fact_file_ci",
-                    "mcnemar_p",
-                    "agent_model",
-                    "repeat_agreement_a",
-                    "repeat_agreement_b",
-                ]
-            )
-        for scope, block in stats["arms"].items():
-            w.writerow(
-                [
-                    run.name,
-                    datetime.now(UTC).isoformat(timespec="seconds"),
-                    " ".join(map(str, cfg["seeds"])),
-                    scope,
-                    block["n"],
-                    block["A"]["balanced_accuracy"],
-                    block["A"]["ci95"],
-                    block["B"]["balanced_accuracy"],
-                    block["B"]["ci95"],
-                    block["mcnemar"]["p_exact"],
-                    cfg["agent"]["model"],
-                    stats["repeat_agreement"]["A"],
-                    stats["repeat_agreement"]["B"],
-                ]
-            )
+    kept: list[dict[str, str]] = []
+    if path.is_file():
+        with path.open(newline="") as fh:
+            kept = [r for r in csv.DictReader(fh) if r["run_id"] != run.name]
+    now = datetime.now(UTC).isoformat(timespec="seconds")
+    for scope, block in stats["arms"].items():
+        values = [
+            run.name,
+            now,
+            " ".join(map(str, cfg["seeds"])),
+            scope,
+            block["n"],
+            block["A"]["balanced_accuracy"],
+            block["A"]["ci95"],
+            block["B"]["balanced_accuracy"],
+            block["B"]["ci95"],
+            block["mcnemar"]["p_exact"],
+            cfg["agent"]["model"],
+            stats["repeat_agreement"]["A"],
+            stats["repeat_agreement"]["B"],
+            stats["call_errors"],
+        ]
+        kept.append(dict(zip(HEADER, map(str, values), strict=True)))
+    with path.open("w", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=HEADER, restval="")
+        w.writeheader()
+        w.writerows(kept)
 
 
 def main() -> None:
