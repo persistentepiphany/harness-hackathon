@@ -334,6 +334,24 @@ live from RCSB. All passed.
 | fpocket | conda-forge | Pocket detection on the receptor |
 | APBS | 3.4.1 | Version |
 
+## Perturbation benchmark
+
+`bench/` runs the perturbation benchmark from the runbook: four protein-ligand systems (FtsE 8X61,
+CDK2 1B38, MEK1 7XLP, glucose dehydrogenase 2VWH), each wild type and perturbed, predicted by
+Boltz-2 and DiffDock-L on Modal A100 GPUs with three seeds, checked by the harness, and judged by
+GLM-4.6 once from the confidence score and once from the harness fact file. Ground truth is fixed
+by construction. Setup, stages and files: [bench/README.md](bench/README.md). Each run records
+its scores in `bench/scores.csv`.
+
+| Run | Predictions | Score only, balanced accuracy (95% CI) | Fact file, balanced accuracy (95% CI) | McNemar exact p |
+| --- | --- | --- | --- | --- |
+| [2026-10-17T1611Z-426bfe9](bench/runs/2026-10-17T1611Z-426bfe9/report.md) | 16 (6 valid, 10 invalid) | 0.50 (0.24 to 0.77) | 0.53 (0.38 to 0.75) | 0.69 |
+
+In that run the score-only arm called all eight Boltz-2 predictions valid, including the four
+perturbed ones; the fact-file arm called all four perturbed Boltz-2 predictions invalid and also
+rejected 5 of the 6 valid poses. The agent's stated reasons for each misclassification are in the
+run report.
+
 ## Executors
 
 The harness does not install co-folding or docking engines. It writes their inputs, parses their

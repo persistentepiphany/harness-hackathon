@@ -33,6 +33,9 @@ make check                     # ruff + mypy + pytest
 .venv/bin/pah fetch            # binaries and data from configs/externals.yaml
 .venv/bin/pah run examples/3ptb_ligand_pose/manifest.yaml   # layers 0-1, streamed findings
 .venv/bin/pah tasks && .venv/bin/pah checks
+.venv/bin/pah dock <manifest> --out <dir>    # local Vina, writes a manifest with predictions
+.venv/bin/pah lint <file.md>                 # humanizer rules for generated prose
+.venv/bin/python bench/run_pipeline.py --seeds 4,5,6   # perturbation benchmark (Modal, Z.AI)
 ```
 
 Adding a check: subclass `pah.core.check.Check` in `src/pah/checks/layer<n>_*.py`, decorate with
