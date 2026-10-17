@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from pah.checks import resolve
-from pah.core.check import Check, CheckContext, register
-from pah.core.models import Finding, Gate, Layer, ToolRef
+from pah.core.check import Check, CheckContext, SkipReason, register
+from pah.core.models import Finding, Gate, Layer, Threshold, ToolRef
 from pah.sources import SourceUnavailableError
 
 SPEC_L1 = "Specification, Layer 1 (input integrity)"
@@ -37,15 +37,18 @@ class SequenceMatchesRecord(Check):
         for p in _proteins_with_sequence(ctx):
             ref, label = resolve.reference_sequence(ctx, p)
             seq = p.sequence.strip().upper()
-            full = resolve.uniprot(ctx, p.uniprot).sequence
+            full = resolve.mutated_uniprot(ctx, p)
+            errors = resolve.mutation_errors(ctx, p)
             rows.append(
                 {
                     "protein": p.id,
                     "reference": label,
                     "length": len(seq),
                     "reference_length": len(ref),
-                    "identical": seq == ref,
-                    "contained_in_canonical": seq in full,
+                    "identical": seq == ref and not errors,
+                    "contained_in_reference": seq in full,
+                    "declared_mutations": list(p.mutations),
+                    "declaration_errors": errors,
                 }
             )
         bad = [r for r in rows if not r["identical"]]
@@ -53,9 +56,11 @@ class SequenceMatchesRecord(Check):
         measurements = {"proteins": len(rows), "differing": len(bad)}
         if bad:
             ids = ", ".join(r["protein"] for r in bad)
+            errs = [e for r in bad for e in r["declaration_errors"]]
             return self.finding(
                 Gate.STOP,
-                f"sequence differs from record for {ids}",
+                f"sequence differs from record for {ids}"
+                + (f"; {'; '.join(errs[:3])}" if errs else ""),
                 measurements=measurements,
                 thresholds=th,
                 evidence={"proteins": rows},
@@ -266,51 +271,64 @@ class LigandSanitization(Check):
         for lig in _ligands(ctx):
             row: dict[str, Any] = {"ligand": lig.id}
             try:
-                mol, origin = resolve.ligand_mol(ctx, lig)
-                row["origin"] = origin
-                problems = Chem.DetectChemistryProblems(mol)
-                row["problems"] = [f"{p.GetType()}: {p.Message()}" for p in problems]
-                if problems:
-                    stop = True
-                else:
-                    Chem.SanitizeMol(mol)
-                    charge = Chem.GetFormalCharge(mol)
-                    radicals = sum(a.GetNumRadicalElectrons() for a in mol.GetAtoms())
-                    row.update(
-                        {
-                            "heavy_atoms": mol.GetNumHeavyAtoms(),
-                            "net_charge": charge,
-                            "radicals": radicals,
-                        }
-                    )
-                    stop = stop or radicals > 0
-                    warn = warn or abs(charge) > max_charge
-            except (ValueError, SourceUnavailableError) as exc:
-                row["error"] = str(exc)
+                prep = resolve.prepared_ligand(ctx, lig)
+            except SourceUnavailableError as exc:
+                rows.append({**row, "error": str(exc)})
                 stop = True
+                continue
+            row.update(
+                {
+                    "origin": prep.origin,
+                    "problems": list(prep.problems),
+                    "metal": prep.metal,
+                    "metal_disconnected": prep.metal_disconnected,
+                }
+            )
+            if prep.mol is None:
+                stop = True
+            else:
+                mol = prep.mol
+                charge = Chem.GetFormalCharge(mol)
+                radicals = sum(a.GetNumRadicalElectrons() for a in mol.GetAtoms())
+                row.update(
+                    {
+                        "heavy_atoms": mol.GetNumHeavyAtoms(),
+                        "net_charge": charge,
+                        "radicals": radicals,
+                    }
+                )
+                stop = stop or radicals > 0
+                warn = warn or abs(charge) > max_charge
             rows.append(row)
-        th = (
+        th: tuple[Threshold, ...] = (
             resolve.threshold("chemistry_problems", 0, "==", SPEC_L1, "published"),
             resolve.threshold("radicals", 0, "==", SPEC_L1, "published"),
             resolve.threshold("abs_net_charge", max_charge, "<=", HARNESS_DEFAULT),
         )
+        if any(r.get("metal_disconnected") for r in rows):
+            th += (
+                resolve.threshold(
+                    "valence_problems_only_on_metal_bonds", True, "==", resolve.METAL_RULE
+                ),
+            )
         tool = ToolRef(name="rdkit", version=rdBase.rdkitVersion)
+        failed = sum(
+            1 for r in rows if r.get("error") or "net_charge" not in r or r.get("radicals")
+        )
         measurements = {
             "ligands": len(rows),
-            "failed": sum(
-                1 for r in rows if r.get("problems") or r.get("error") or r.get("radicals")
-            ),
+            "failed": failed,
+            "metal_disconnected": sum(1 for r in rows if r.get("metal_disconnected")),
             "max_abs_charge": max((abs(r.get("net_charge", 0)) for r in rows), default=0),
         }
         if stop:
-            gate, msg = (
-                Gate.STOP,
-                f"{measurements['failed']} ligands failed parsing or valence checks",
-            )
+            gate, msg = Gate.STOP, f"{failed} ligands failed parsing or valence checks"
         elif warn:
             gate, msg = Gate.WARN, f"net charge beyond ±{max_charge}"
         else:
-            gate, msg = Gate.PASS, f"{len(rows)} ligands sanitised"
+            disc = measurements["metal_disconnected"]
+            note = f"; metal bonds disconnected for {disc}" if disc else ""
+            gate, msg = Gate.PASS, f"{len(rows)} ligands sanitised{note}"
         return self.finding(
             gate,
             msg,
@@ -335,12 +353,17 @@ class LigandStereo(Check):
         from rdkit import Chem, rdBase
 
         rows = []
+        unparsed = []
         for lig in _ligands(ctx):
-            mol, origin = resolve.ligand_mol(ctx, lig)
-            Chem.SanitizeMol(mol)
-            if mol.GetNumConformers() and mol.GetConformer().Is3D():
-                Chem.AssignStereochemistryFrom3D(mol)
-            info = Chem.FindPotentialStereo(mol)
+            prep = resolve.prepared_ligand(ctx, lig)
+            if prep.mol is None:
+                unparsed.append(lig.id)
+                continue
+            mol = Chem.Mol(prep.mol)
+            with rdBase.BlockLogs():
+                if mol.GetNumConformers() and mol.GetConformer().Is3D():
+                    Chem.AssignStereochemistryFrom3D(mol)
+                info = Chem.FindPotentialStereo(mol)
             undefined = [
                 f"{str(i.type).split('.')[-1]}@{i.centeredOn}"
                 for i in info
@@ -349,10 +372,15 @@ class LigandStereo(Check):
             rows.append(
                 {
                     "ligand": lig.id,
-                    "origin": origin,
+                    "origin": prep.origin,
                     "stereo_elements": len(info),
                     "undefined": undefined,
                 }
+            )
+        if unparsed and not rows:
+            return self.skip(
+                SkipReason.NOT_APPLICABLE,
+                f"no sanitised structure for {', '.join(unparsed)}; see l1.ligand.sanitization",
             )
         n_undef = sum(len(r["undefined"]) for r in rows)
         th = (resolve.threshold("undefined_stereo", 0, "==", SPEC_L1, "published"),)
@@ -360,6 +388,7 @@ class LigandStereo(Check):
         measurements = {
             "stereo_elements": sum(r["stereo_elements"] for r in rows),
             "undefined": n_undef,
+            "unparsed": len(unparsed),
         }
         gate = Gate.WARN if n_undef else Gate.PASS
         msg = f"{n_undef} stereo elements undefined" if n_undef else "all stereo elements defined"
@@ -368,7 +397,7 @@ class LigandStereo(Check):
             msg,
             measurements=measurements,
             thresholds=th,
-            evidence={"ligands": rows},
+            evidence={"ligands": rows, "unparsed": unparsed},
             tool=tool,
         )
 
@@ -386,51 +415,33 @@ class LigandIdentity(Check):
         return None
 
     def run(self, ctx: CheckContext) -> Finding:
-        from rdkit import Chem, rdBase
+        from rdkit import rdBase
+
+        from pah.checks.layer0_provenance import inchikey_finding
 
         rows = []
         for lig in _ligands(ctx):
             refs = resolve.reference_inchikeys(ctx, lig)
             if not refs:
                 continue
-            mol, origin = resolve.ligand_mol(ctx, lig)
-            Chem.SanitizeMol(mol)
-            if mol.GetNumConformers() and mol.GetConformer().Is3D():
-                Chem.AssignStereochemistryFrom3D(mol)
-            key = Chem.MolToInchiKey(Chem.RemoveHs(mol))
+            prep = resolve.prepared_ligand(ctx, lig)
+            key = resolve.inchikey(prep)
             for ref, ref_key in refs.items():
+                gate, note = resolve.compare_inchikey(key, ref_key, prep.metal)
                 rows.append(
                     {
                         "ligand": lig.id,
-                        "input": origin,
+                        "input": prep.origin,
                         "reference": ref,
                         "input_inchikey": key,
                         "reference_inchikey": ref_key,
-                        "match": key == ref_key,
-                        "skeleton_match": key[:14] == ref_key[:14],
+                        "gate": gate.value,
+                        "comparison": note,
+                        "metal": prep.metal,
+                        "metal_disconnected": prep.metal_disconnected,
                     }
                 )
-        bad = [r for r in rows if not r["match"]]
-        th = (resolve.threshold("inchikey_equal", True, "==", SPEC_L1, "published"),)
-        tool = ToolRef(name="rdkit", version=rdBase.rdkitVersion)
-        measurements = {"comparisons": len(rows), "mismatches": len(bad)}
-        if bad:
-            return self.finding(
-                Gate.STOP,
-                f"{len(bad)} of {len(rows)} ligand identities differ from their records",
-                measurements=measurements,
-                thresholds=th,
-                evidence={"comparisons": rows},
-                tool=tool,
-            )
-        return self.finding(
-            Gate.PASS,
-            f"{len(rows)} ligand identities match their records",
-            measurements=measurements,
-            thresholds=th,
-            evidence={"comparisons": rows},
-            tool=tool,
-        )
+        return inchikey_finding(self, rows, "ligand identities", rdBase.rdkitVersion, SPEC_L1)
 
 
 def _gemmi_version() -> str:

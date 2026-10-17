@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, TypeVar
 
 from pah.core.check import CheckContext
 from pah.core.manifest import LigandInput, ProteinInput
-from pah.core.models import Threshold
+from pah.core.models import Gate, Threshold
 from pah.sources.clients import (
     ChemComp,
     PdbEntry,
@@ -99,20 +100,50 @@ def sifts_segments(ctx: CheckContext, p: ProteinInput) -> list[SiftsSegment]:
     ]
 
 
+def parse_mutation(m: str) -> tuple[str, int, str]:
+    return m[0], int(m[1:-1]), m[-1]
+
+
+def mutation_errors(ctx: CheckContext, p: ProteinInput) -> list[str]:
+    """Declared mutations whose wild-type residue disagrees with UniProt."""
+    if not (p.uniprot and p.mutations):
+        return []
+    full = uniprot(ctx, p.uniprot).sequence
+    errors = []
+    for m in p.mutations:
+        wt, pos, _ = parse_mutation(m)
+        if pos < 1 or pos > len(full):
+            errors.append(f"{m}: position outside {p.uniprot} (length {len(full)})")
+        elif full[pos - 1] != wt:
+            errors.append(f"{m}: {p.uniprot} has {full[pos - 1]} at {pos}")
+    return errors
+
+
+def mutated_uniprot(ctx: CheckContext, p: ProteinInput) -> str:
+    """Canonical UniProt sequence with the declared mutations applied."""
+    assert p.uniprot
+    seq = list(uniprot(ctx, p.uniprot).sequence)
+    for m in p.mutations:
+        _, pos, mut = parse_mutation(m)
+        if 1 <= pos <= len(seq):
+            seq[pos - 1] = mut
+    return "".join(seq)
+
+
 def reference_sequence(ctx: CheckContext, p: ProteinInput) -> tuple[str, str]:
     """Expected sequence for a protein input and a label for where it came from.
 
     With a PDB chain mapped by SIFTS, the expected construct is the mapped UniProt range;
-    otherwise it is the full canonical UniProt sequence.
+    otherwise it is the full canonical UniProt sequence. Declared mutations are applied.
     """
-    assert p.uniprot
-    full = uniprot(ctx, p.uniprot).sequence
+    full = mutated_uniprot(ctx, p)
+    note = f" with {len(p.mutations)} declared mutations" if p.mutations else ""
     segs = sifts_segments(ctx, p)
     if segs:
         lo = min(s.unp_start for s in segs)
         hi = max(s.unp_end for s in segs)
-        return full[lo - 1 : hi], f"{p.uniprot}[{lo}-{hi}] via SIFTS {p.pdb_id}"
-    return full, f"{p.uniprot} canonical"
+        return full[lo - 1 : hi], f"{p.uniprot}[{lo}-{hi}] via SIFTS {p.pdb_id}{note}"
+    return full, f"{p.uniprot} canonical{note}"
 
 
 def ligand_smiles(ctx: CheckContext, lig: LigandInput) -> tuple[str | None, str]:
@@ -127,29 +158,127 @@ def ligand_smiles(ctx: CheckContext, lig: LigandInput) -> tuple[str | None, str]
     return None, "none"
 
 
-def ligand_mol(ctx: CheckContext, lig: LigandInput) -> tuple[Any, str]:
-    """RDKit molecule as given to the run (file first, then SMILES), unsanitised errors raised."""
+METALS = frozenset({
+    "Li", "Na", "K", "Rb", "Cs", "Be", "Mg", "Ca", "Sr", "Ba", "Al", "Ga", "In", "Tl", "Sn",
+    "Pb", "Bi", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Y", "Zr", "Nb",
+    "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au",
+    "Hg", "La", "Ce", "Pr", "Nd", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu",
+    "U",
+})  # fmt: skip
+
+
+@dataclass(frozen=True)
+class PreparedMol:
+    """A ligand after sanitisation. `mol` is None when the structure could not be sanitised."""
+
+    mol: Any | None
+    origin: str
+    problems: tuple[str, ...] = ()
+    metal: bool = False
+    metal_disconnected: bool = False
+
+
+def _problem_atoms(problem: Any) -> set[int]:
+    if hasattr(problem, "GetAtomIdx"):
+        return {int(problem.GetAtomIdx())}
+    if hasattr(problem, "GetAtomIndices"):
+        return {int(i) for i in problem.GetAtomIndices()}
+    return set()
+
+
+def prepare(mol: Any, origin: str) -> PreparedMol:
+    """Sanitises an RDKit molecule. When every chemistry problem sits on an atom bonded to a
+    metal, the metal bonds are disconnected (as standard InChI does) and sanitisation retried."""
+    from rdkit import Chem, rdBase
+    from rdkit.Chem.MolStandardize import rdMolStandardize
+
+    with rdBase.BlockLogs():
+        metal_idx = {a.GetIdx() for a in mol.GetAtoms() if a.GetSymbol() in METALS}
+        problems = list(Chem.DetectChemistryProblems(mol))
+        texts = tuple(f"{p.GetType()}: {p.Message()}" for p in problems)
+        if not problems:
+            Chem.SanitizeMol(mol)
+            return PreparedMol(mol, origin, metal=bool(metal_idx))
+        near_metal = set(metal_idx)
+        for i in metal_idx:
+            near_metal |= {n.GetIdx() for n in mol.GetAtomWithIdx(i).GetNeighbors()}
+        on_metal = all(_problem_atoms(p) and _problem_atoms(p) <= near_metal for p in problems)
+        if metal_idx and on_metal:
+            mol.UpdatePropertyCache(strict=False)
+            fixed = rdMolStandardize.MetalDisconnector().Disconnect(mol)
+            if not Chem.DetectChemistryProblems(fixed):
+                Chem.SanitizeMol(fixed)
+                return PreparedMol(fixed, origin, texts, metal=True, metal_disconnected=True)
+        return PreparedMol(None, origin, texts, metal=bool(metal_idx))
+
+
+def mol_from_smiles(smiles: str, origin: str) -> PreparedMol:
     from rdkit import Chem, rdBase
 
     with rdBase.BlockLogs():
-        return _parse_ligand(ctx, lig, Chem)
-
-
-def _parse_ligand(ctx: CheckContext, lig: LigandInput, chem: Any) -> tuple[Any, str]:
-    Chem = chem  # noqa: N806 - RDKit module alias
-    if lig.file:
-        path = ctx.manifest.path(lig.file)
-        mol = Chem.MolFromMolFile(str(path), sanitize=False, removeHs=False)
-        if mol is None:
-            raise ValueError(f"cannot parse {path}")
-        return mol, f"file {lig.file}"
-    smiles, origin = ligand_smiles(ctx, lig)
-    if not smiles:
-        raise ValueError("no ligand structure available")
-    mol = Chem.MolFromSmiles(smiles, sanitize=False)
+        mol = Chem.MolFromSmiles(smiles, sanitize=False)
     if mol is None:
-        raise ValueError(f"cannot parse SMILES {smiles!r}")
-    return mol, f"SMILES ({origin})"
+        return PreparedMol(None, origin, (f"cannot parse SMILES {smiles!r}",))
+    return prepare(mol, origin)
+
+
+def prepared_ligand(ctx: CheckContext, lig: LigandInput) -> PreparedMol:
+    """The ligand as given to the run: the file when declared, otherwise its SMILES."""
+
+    def build() -> PreparedMol:
+        from rdkit import Chem, rdBase
+
+        if lig.file:
+            path = ctx.manifest.path(lig.file)
+            origin = f"file {lig.file}"
+            if not path.is_file():
+                return PreparedMol(None, origin, (f"file not found: {path}",))
+            try:
+                with rdBase.BlockLogs():
+                    mol = Chem.MolFromMolFile(str(path), sanitize=False, removeHs=False)
+            except OSError as exc:
+                return PreparedMol(None, origin, (f"cannot read {path}: {exc}",))
+            if mol is None:
+                return PreparedMol(None, origin, (f"cannot parse {path}",))
+            return prepare(mol, origin)
+        smiles, origin = ligand_smiles(ctx, lig)
+        if not smiles:
+            return PreparedMol(None, "none", ("no ligand structure available",))
+        return mol_from_smiles(smiles, f"SMILES ({origin})")
+
+    return ctx.memo(f"ligand:{lig.id}", build)
+
+
+def inchikey(prep: PreparedMol) -> str | None:
+    """InChIKey with stereo from 3D coordinates when present; None when unavailable."""
+    from rdkit import Chem, rdBase
+
+    if prep.mol is None:
+        return None
+    with rdBase.BlockLogs():
+        mol = Chem.Mol(prep.mol)
+        if mol.GetNumConformers() and mol.GetConformer().Is3D():
+            Chem.AssignStereochemistryFrom3D(mol)
+        key = Chem.MolToInchiKey(Chem.RemoveHs(mol, sanitize=False))
+    return key or None
+
+
+def compare_inchikey(key: str | None, ref: str, metal: bool) -> tuple[Gate, str]:
+    """Full match passes. For metal-containing ligands a skeleton-only match warns, because
+    the stereo and charge blocks depend on how each toolkit represents metal bonds."""
+    if key == ref:
+        return Gate.PASS, "identical"
+    if key and metal and key[:14] == ref[:14]:
+        return (
+            Gate.WARN,
+            "skeleton identical; stereo/charge blocks differ (metal-containing ligand)",
+        )
+    if key and key[:14] == ref[:14]:
+        return Gate.STOP, "skeleton identical; stereo or protonation blocks differ"
+    return Gate.STOP, "different molecule" if key else "no InChIKey for input"
+
+
+METAL_RULE = "Harness rule for metal-containing ligands (InChIKey skeleton); uncalibrated"
 
 
 def reference_inchikeys(ctx: CheckContext, lig: LigandInput) -> dict[str, str]:

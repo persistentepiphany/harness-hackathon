@@ -6,7 +6,7 @@ from typing import Any
 
 from pah.checks import resolve
 from pah.core.check import Check, CheckContext, register
-from pah.core.models import Finding, Gate, Layer, ToolRef
+from pah.core.models import Finding, Gate, Layer, Threshold, ToolRef
 from pah.sources import SourceUnavailableError
 
 SPEC_L0 = "Specification, Layer 0 (cross-source checks)"
@@ -111,6 +111,11 @@ class UniProtSeqresAgreement(Check):
                 stop = True
                 continue
             unp = resolve.uniprot(ctx, p.uniprot).sequence
+            declared = {pos: mut for _, pos, mut in map(resolve.parse_mutation, p.mutations)}
+            errors = resolve.mutation_errors(ctx, p)
+            if errors:
+                rows.append({"protein": p.id, "error": "declared mutations", "detail": errors})
+                stop = True
             entities = {e.entity_id: e for e in resolve.pdb_molecules(ctx, p.pdb_id).entities}
             for s in segs:
                 seqres = entities.get(s.entity_id)
@@ -123,7 +128,14 @@ class UniProtSeqresAgreement(Check):
                 a = unp[s.unp_start - 1 : s.unp_end]
                 b = seqres.sequence[s.seq_start - 1 : s.seq_end]
                 n = min(len(a), len(b))
-                diffs = [f"{a[i]}{s.unp_start + i}{b[i]}" for i in range(n) if a[i] != b[i]]
+                diffs: list[str] = []
+                seen_declared: list[str] = []
+                for i in range(n):
+                    if a[i] == b[i]:
+                        continue
+                    pos = s.unp_start + i
+                    label = f"{a[i]}{pos}{b[i]}"
+                    (seen_declared if declared.get(pos) == b[i] else diffs).append(label)
                 length_diff = abs(len(a) - len(b))
                 stop = stop or bool(diffs) or length_diff > 0
                 rows.append(
@@ -134,40 +146,43 @@ class UniProtSeqresAgreement(Check):
                         "seqres_range": [s.seq_start, s.seq_end],
                         "compared": n,
                         "mismatches": len(diffs),
+                        "declared_mutations_observed": seen_declared,
                         "length_difference": length_diff,
                         "first_mismatches": diffs[:20],
                     }
                 )
         compared = sum(r.get("compared", 0) for r in rows)
         mismatches = sum(r.get("mismatches", 0) for r in rows)
+        declared_seen = sum(len(r.get("declared_mutations_observed", [])) for r in rows)
+        declaration_errors = [
+            e for r in rows if r.get("error") for e in r.get("detail", [r["error"]])
+        ]
         th = (resolve.threshold("mismatches", 0, "==", SPEC_L0, "published"),)
         measurements = {
-            "segments": len(rows),
+            "segments": sum(1 for r in rows if "compared" in r),
             "residues_compared": compared,
             "mismatches": mismatches,
+            "declared_mutations": declared_seen,
+            "declaration_errors": len(declaration_errors),
         }
         if stop:
             return self.finding(
                 Gate.STOP,
-                f"UniProt and SEQRES disagree: {mismatches} mismatches over {compared} residues",
+                f"UniProt and SEQRES disagree: {mismatches} undeclared mismatches over "
+                f"{compared} residues"
+                + (f"; {'; '.join(declaration_errors[:3])}" if declaration_errors else ""),
                 measurements=measurements,
                 thresholds=th,
                 evidence={"segments": rows},
             )
         return self.finding(
             Gate.PASS,
-            f"{compared} residues identical across {len(rows)} mapped segments",
+            f"{compared} residues agree across {len(rows)} mapped segments"
+            + (f" ({declared_seen} declared mutations)" if declared_seen else ""),
             measurements=measurements,
             thresholds=th,
             evidence={"segments": rows},
         )
-
-
-def _inchikey(smiles: str) -> str | None:
-    from rdkit import Chem
-
-    mol = Chem.MolFromSmiles(smiles)
-    return Chem.MolToInchiKey(mol) if mol is not None else None
 
 
 @register
@@ -189,36 +204,53 @@ class LigandInchikeyAgreement(Check):
         for lig in ctx.manifest.ligands:
             if not (lig.smiles and (lig.ccd or lig.pubchem_cid)):
                 continue
-            key = _inchikey(lig.smiles)
+            prep = resolve.mol_from_smiles(lig.smiles, "manifest SMILES")
+            key = resolve.inchikey(prep)
             for ref, ref_key in resolve.reference_inchikeys(ctx, lig).items():
+                gate, note = resolve.compare_inchikey(key, ref_key, prep.metal)
                 rows.append(
                     {
                         "ligand": lig.id,
                         "reference": ref,
                         "smiles_inchikey": key,
                         "reference_inchikey": ref_key,
-                        "match": key == ref_key,
-                        "skeleton_match": key is not None and key[:14] == ref_key[:14],
+                        "gate": gate.value,
+                        "comparison": note,
+                        "metal": prep.metal,
+                        "metal_disconnected": prep.metal_disconnected,
+                        "problems": list(prep.problems),
                     }
                 )
-        mismatched = [r for r in rows if not r["match"]]
-        th = (resolve.threshold("inchikey_equal", True, "==", SPEC_L0, "published"),)
-        tool = ToolRef(name="rdkit", version=rdBase.rdkitVersion)
-        measurements = {"comparisons": len(rows), "mismatches": len(mismatched)}
-        if mismatched:
-            return self.finding(
-                Gate.STOP,
-                f"{len(mismatched)} of {len(rows)} InChIKey comparisons differ",
-                measurements=measurements,
-                thresholds=th,
-                evidence={"comparisons": rows},
-                tool=tool,
-            )
-        return self.finding(
-            Gate.PASS,
-            f"{len(rows)} InChIKey comparisons identical",
-            measurements=measurements,
-            thresholds=th,
-            evidence={"comparisons": rows},
-            tool=tool,
+        return inchikey_finding(self, rows, "InChIKey comparisons", rdBase.rdkitVersion, SPEC_L0)
+
+
+def inchikey_finding(
+    check: Check, rows: list[dict[str, Any]], noun: str, rdkit_version: str, spec: str
+) -> Finding:
+    """Shared gate logic for InChIKey comparisons in layers 0 and 1."""
+    gates = [Gate(r["gate"]) for r in rows]
+    stops = gates.count(Gate.STOP)
+    warns = gates.count(Gate.WARN)
+    thresholds: tuple[Threshold, ...] = (
+        resolve.threshold("inchikey_equal", True, "==", spec, "published"),
+    )
+    if any(r["metal"] for r in rows):
+        thresholds += (
+            resolve.threshold("skeleton_equal_if_metal", True, "==", resolve.METAL_RULE),
         )
+    measurements = {"comparisons": len(rows), "mismatches": stops, "metal_skeleton_only": warns}
+    tool = ToolRef(name="rdkit", version=rdkit_version)
+    if stops:
+        gate, msg = Gate.STOP, f"{stops} of {len(rows)} {noun} differ"
+    elif warns:
+        gate, msg = Gate.WARN, f"{warns} of {len(rows)} {noun} match on skeleton only (metal)"
+    else:
+        gate, msg = Gate.PASS, f"{len(rows)} {noun} identical"
+    return check.finding(
+        gate,
+        msg,
+        measurements=measurements,
+        thresholds=thresholds,
+        evidence={"comparisons": rows},
+        tool=tool,
+    )

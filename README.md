@@ -31,8 +31,11 @@ Layers 2 to 5, executor adapters, reports, the MCP server and the HTTP API come 
 ```
 
 A manifest names the task, the claim, and the inputs as given to the executor: protein
-accessions, PDB chain and sequence, MSA file, ligand SMILES, CCD code, PubChem CID or SDF file,
-the receptor and the model version. The engine runs each layer in order. It prints every finding
+accessions, PDB chain and sequence, MSA file, intended mutations, ligand SMILES, CCD code,
+PubChem CID or SDF file, the receptor and the model version. Mutations are written in UniProt
+numbering (`mutations: [L99A, M102Q]`). Each must match the UniProt wild-type residue. Declared
+substitutions are applied to the reference sequence and accepted against SEQRES; any other
+difference stops the run. The engine runs each layer in order. It prints every finding
 the moment the check returns and writes it to `runs/<run-id>/findings/` at the same time.
 Each layer ends with a count line. A stop in a pre-run layer skips the later layers unless
 `--no-halt` is given.
@@ -80,13 +83,13 @@ back to the network.
 | --- | --- | --- |
 | `l0.sources.resolved` | stop | Every declared identifier resolves to a record with checksum |
 | `l0.cross.uniprot_seqres` | stop | UniProt sequence against PDB SEQRES over the SIFTS-mapped range |
-| `l0.cross.ligand_inchikey` | stop | InChIKey of the declared SMILES against CCD and PubChem |
+| `l0.cross.ligand_inchikey` | stop; warn for metal ligands matching on skeleton only | InChIKey of the declared SMILES against CCD and PubChem |
 | `l1.sequence.matches_record` | stop | Sequence given to the run against the record (SIFTS range when a PDB chain is declared) |
 | `l1.sequence.no_truncation_substitution` | stop | N- and C-terminal truncation, substitutions, deletions, insertions, non-standard residues |
 | `l1.msa.integrity` | stop | MSA query equals the chain, alignment is not query-only, one file is not shared by different chains |
 | `l1.ligand.sanitization` | stop; warn above net charge ±2 | RDKit chemistry problems, valence, radicals |
 | `l1.ligand.stereo_defined` | warn | Unassigned stereocentres and double bonds |
-| `l1.ligand.identity` | stop | InChIKey of the ligand file (3D stereo assigned) against CCD and PubChem |
+| `l1.ligand.identity` | stop; warn for metal ligands matching on skeleton only | InChIKey of the ligand file (3D stereo assigned) against CCD and PubChem |
 | `l1.receptor.chains` | stop | Declared chains present; residue names against SEQRES at each label_seq position |
 | `l1.receptor.altlocs` | warn | Alternate locations present without a declared `altloc_policy` |
 | `l1.context.composition` | stop | Declared copies against the chains of the reference entity (co-folding tasks) |
@@ -94,6 +97,33 @@ back to the network.
 
 Every threshold in a finding carries its origin, either the specification section or "harness
 default, not yet calibrated", and an evidence level.
+
+Ligands containing a metal get one extra step. When every RDKit valence problem sits on an atom
+bonded to the metal, the metal bonds are disconnected, as standard InChI does, and
+sanitisation is retried. Any other valence problem still stops. The InChIKey stereo and charge
+blocks of such ligands depend on how each toolkit draws the metal bonds. So a match on the
+first block alone is a warning carrying that reason, and a different first block still stops.
+
+### Validation on further targets
+
+Layers 0 and 1 were run live on these entries with manifests built from SIFTS, UniProt and
+RCSB.
+
+| Entry | Content | Verdict | Non-pass findings |
+| --- | --- | --- | --- |
+| 1STP | Streptavidin, biotin (3 stereocentres) | pass | none |
+| 1HSG | HIV-1 protease homodimer, indinavir (5 stereocentres) | pass | none |
+| 2RH1 | beta2 adrenergic receptor with T4 lysozyme insert, carazolol; 7 declared mutations over two UniProt entries on one chain | pass | none |
+| 4HHB | Haemoglobin, two entities with two copies each, haem | pass_with_warnings | InChIKey skeleton-only match for haem (metal rule), layers 0 and 1 |
+| 1M17 | EGFR kinase domain, erlotinib | pass_with_warnings | 2 residues with alternate locations, no policy declared |
+| 3HTB | T4 lysozyme L99A, 6 declared mutations | pass_with_warnings | 10 residues with alternate locations, no policy declared |
+| 4HHB alpha/beta | Interaction discovery task | pass | none |
+| 1M17 + 4 ligands | Virtual screening task; one SMILES paired with the wrong CID, racemic ibuprofen | stop | InChIKey mismatch in layers 0 and 1; one undefined stereocentre |
+
+Without declared mutations, 3HTB and 2RH1 stop in `l0.cross.uniprot_seqres` and list the
+substitutions (L99A, M102Q, C54T, C97A, N187E and others). Declaring a mutation with the wrong
+wild-type residue stops with the UniProt residue named. A missing ligand file stops in
+`l1.ligand.sanitization`.
 
 ### Examples
 

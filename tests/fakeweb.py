@@ -17,6 +17,7 @@ ROUTES: dict[str, tuple[str, dict[str, str]]] = {
     "https://www.ebi.ac.uk/pdbe/api/pdb/entry/molecules/3ptb": ("pdbe_molecules_3ptb.json", {}),
     "https://www.ebi.ac.uk/pdbe/api/mappings/uniprot/3ptb": ("sifts_3ptb.json", {}),
     "https://data.rcsb.org/rest/v1/core/chemcomp/BEN": ("chemcomp_BEN.json", {}),
+    "https://data.rcsb.org/rest/v1/core/chemcomp/HEM": ("chemcomp_HEM.json", {}),
     "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2332/property/InChIKey,SMILES/JSON": (
         "pubchem_2332.json",
         {},

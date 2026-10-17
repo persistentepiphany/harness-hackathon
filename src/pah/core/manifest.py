@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+_MUTATION = re.compile(r"[ACDEFGHIKLMNPQRSTVWY]\d+[ACDEFGHIKLMNPQRSTVWY]")
 
 
 class _Input(BaseModel):
@@ -20,6 +23,17 @@ class ProteinInput(_Input):
     sequence: str | None = Field(None, description="Sequence exactly as given to the executor")
     copies: int = 1
     msa: Path | None = Field(None, description="A3M alignment paired with this chain")
+    mutations: tuple[str, ...] = Field(
+        (), description="Intended substitutions in UniProt numbering, e.g. L99A"
+    )
+
+    @field_validator("mutations")
+    @classmethod
+    def _mutation_format(cls, v: tuple[str, ...]) -> tuple[str, ...]:
+        bad = [m for m in v if not _MUTATION.fullmatch(m)]
+        if bad:
+            raise ValueError(f"mutations must look like L99A (UniProt numbering): {bad}")
+        return v
 
     @field_validator("sequence")
     @classmethod
