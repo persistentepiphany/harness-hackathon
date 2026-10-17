@@ -1,6 +1,66 @@
 # Perturbation benchmark, run 2026-10-17T1859Z-849c856
 
-## Summary
+Four systems, each predicted wild type and perturbed by Boltz-2 and DiffDock-L over 3 seeds: 16 predictions. With this many systems the per-system cases below carry the result; the pooled accuracy near the end is reported with its interval and is not the headline.
+
+## Results by system
+
+The representative pose is the medoid of the largest cluster at 2.0 Å over the seeds. Its RMSD to the deposited ligand defines wild-type truth (valid under 2.0 Å) and is never part of a fact file. Deposited interactions recovered counts how many of the deposited complex's contacts the pose reproduces, in the reference numbering.
+
+### CDK2: 1B38 chain A, ATP
+
+Perturbation: 13 contacts within 3.5 Å cut to glycine.
+
+| Prediction | State | Medoid RMSD to deposited (Å) | Deposited interactions recovered | Truth | Score only | Fact file |
+| --- | --- | --- | --- | --- | --- | --- |
+| Boltz-2 | wild type | 1.823 | 6 of 9 | valid | valid | invalid |
+| DiffDock-L | wild type | 0.732 | 9 of 9 | valid | invalid | invalid |
+| Boltz-2 | perturbed | 2.231 | 1 of 9 | invalid | valid | invalid |
+| DiffDock-L | perturbed | 0.868 | 1 of 9 | invalid | invalid | invalid |
+
+Wild-type medoids recover 6 (Boltz-2) and 9 (DiffDock-L) of 9 deposited contacts; the perturbed medoids recover 1 and 1.
+
+### FtsE: 8X61 chain A, ATP
+
+Perturbation: 7 contacts within 3.5 Å cut to glycine.
+
+| Prediction | State | Medoid RMSD to deposited (Å) | Deposited interactions recovered | Truth | Score only | Fact file |
+| --- | --- | --- | --- | --- | --- | --- |
+| Boltz-2 | wild type | 2.662 | 9 of 16 | invalid | valid | invalid |
+| DiffDock-L | wild type | 1.037 | 10 of 16 | valid | invalid | invalid |
+| Boltz-2 | perturbed | 16.401 | 1 of 16 | invalid | valid | invalid |
+| DiffDock-L | perturbed | 17.821 | 1 of 16 | invalid | invalid | invalid |
+
+Wild-type medoids recover 9 (Boltz-2) and 10 (DiffDock-L) of 16 deposited contacts; the perturbed medoids recover 1 and 1.
+
+### glucose dehydrogenase (glucose-binding): 2VWH chain A, BGC
+
+Perturbation: 3 ring hydroxyls methylated (O2, O3, O4).
+
+| Prediction | State | Medoid RMSD to deposited (Å) | Deposited interactions recovered | Truth | Score only | Fact file |
+| --- | --- | --- | --- | --- | --- | --- |
+| Boltz-2 | wild type | 0.291 | 5 of 6 | valid | valid | valid |
+| DiffDock-L | wild type | 4.079 | 2 of 6 | invalid | invalid | invalid |
+| Boltz-2 | perturbed | n/a | 3 of 6 | invalid | valid | invalid |
+| DiffDock-L | perturbed | n/a | 0 of 6 | invalid | invalid | invalid |
+
+Wild-type medoids recover 5 (Boltz-2) and 2 (DiffDock-L) of 6 deposited contacts; the perturbed medoids recover 3 and 0.
+
+### MEK1: 7XLP chain A, FZC
+
+Perturbation: 11 contacts within 3.5 Å cut to glycine.
+
+| Prediction | State | Medoid RMSD to deposited (Å) | Deposited interactions recovered | Truth | Score only | Fact file |
+| --- | --- | --- | --- | --- | --- | --- |
+| Boltz-2 | wild type | 0.706 | 2 of 3 | valid | valid | valid |
+| DiffDock-L | wild type | 1.489 | 3 of 3 | valid | invalid | valid |
+| Boltz-2 | perturbed | 2.886 | 0 of 3 | invalid | valid | invalid |
+| DiffDock-L | perturbed | 1.494 | 0 of 3 | invalid | invalid | invalid |
+
+Wild-type medoids recover 2 (Boltz-2) and 3 (DiffDock-L) of 3 deposited contacts; the perturbed medoids recover 0 and 0.
+
+## Aggregate over this run
+
+Reported for completeness. With four systems per state the intervals are wide and no comparison below reaches significance; read it as a direction, not a measured effect.
 
 | Scope | Predictions | Score only, balanced accuracy (95% CI) | Fact file, balanced accuracy (95% CI) | McNemar exact p |
 | --- | --- | --- | --- | --- |
@@ -97,7 +157,7 @@ Ground truth and majority decision per prediction. Data: `results/figures/decisi
 
 ## Run record
 
-- Commit 375f6ac on claude/blissful-johnson-j76s9r.
+- Commit baae127 on claude/blissful-johnson-j76s9r.
 - GPUs: NVIDIA A100-SXM4-40GB, 610.57.04, 40960 MiB, NVIDIA A100-SXM4-80GB, 610.57.04, 81920 MiB on Modal; images {'boltz2': 'im-sC7Kxfl8WRyiLZEjfHoql9', 'diffdock': 'im-x9zfDmm5IJzmQ6ydao7RUw'}.
 - Executors: Boltz-2 2.2.1, DiffDock-L v1.1.3 (rbgcsail/diffdock image); seeds [7, 8, 9]; DiffDock samples per run 10. DiffDock has no seed option; its seeds label replicate runs.
 - Agent: glm-4.6 through https://api.z.ai/api/paas/v4; every prompt and response in `agent/calls.jsonl`.

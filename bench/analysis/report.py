@@ -103,11 +103,73 @@ def report(run: Path, cfg: dict[str, Any], man: dict[str, Any]) -> str:
     }
     facts = {p.stem: json.loads(p.read_text()) for p in sorted((run / "facts").glob("*.json"))}
     allb = stats["arms"]["all"]
+    tr = {(r["system"], r["executor"]): r for r in truth}
     out: list[str] = []
     w = out.append
     w(f"# Perturbation benchmark, run {run.name}")
     w("")
-    w("## Summary")
+    w(
+        f"Four systems, each predicted wild type and perturbed by Boltz-2 and DiffDock-L over "
+        f"{len(cfg['seeds'])} seeds: {stats['n_predictions']} predictions. With this many systems "
+        "the per-system cases below carry the result; the pooled accuracy near the end is reported "
+        "with its interval and is not the headline."
+    )
+    w("")
+    w("## Results by system")
+    w("")
+    w(
+        "The representative pose is the medoid of the largest cluster at 2.0 Å over the seeds. Its "
+        f"RMSD to the deposited ligand defines wild-type truth (valid under {stats['cutoff_A']} Å) "
+        "and is never part of a fact file. Deposited interactions recovered counts how many of the "
+        "deposited complex's contacts the pose reproduces, in the reference numbering."
+    )
+    w("")
+    for sysn, m in ((n.removesuffix("_pert"), v) for n, v in metas.items() if v["state"] == "pert"):
+        kind = m["perturbation"]["kind"]
+        detail = (
+            f"{len(m['mutations'])} contacts within {m['contacts_within_A']} Å cut to glycine"
+            if kind == "pocket_to_gly"
+            else f"{len(m['methylated_oxygens'])} ring hydroxyls methylated (O2, O3, O4)"
+        )
+        w(f"### {m['protein']}: {m['pdb']} chain {m['chain']}, {m['ligand_code']}")
+        w("")
+        w(f"Perturbation: {detail}.")
+        w("")
+        w(
+            "| Prediction | State | Medoid RMSD to deposited (Å) | Deposited interactions "
+            "recovered | Truth | Score only | Fact file |"
+        )
+        w("| --- | --- | --- | --- | --- | --- | --- |")
+        rec = {}
+        for state in ("wt", "pert"):
+            for ex in ("boltz2", "diffdock"):
+                f = facts[f"{sysn}_{state}_{ex}"]
+                r = tr[(f"{sysn}_{state}", ex)]
+                rec[(state, ex)] = (
+                    f["key_interactions_recovered"],
+                    f["key_interactions_reference"],
+                )
+                w(
+                    f"| {EXEC[ex]} | {'wild type' if state == 'wt' else 'perturbed'} "
+                    f"| {_fmt(r['rmsd_A'])} "
+                    f"| {_fmt(f['key_interactions_recovered'])} of "
+                    f"{_fmt(f['key_interactions_reference'])} "
+                    f"| {_fmt(r['truth'])} | {_fmt(r['arm_A'])} | {_fmt(r['arm_B'])} |"
+                )
+        w("")
+        ref = rec[("wt", "boltz2")][1]
+        w(
+            f"Wild-type medoids recover {rec[('wt', 'boltz2')][0]} (Boltz-2) and "
+            f"{rec[('wt', 'diffdock')][0]} (DiffDock-L) of {ref} deposited contacts; the perturbed "
+            f"medoids recover {rec[('pert', 'boltz2')][0]} and {rec[('pert', 'diffdock')][0]}."
+        )
+        w("")
+    w("## Aggregate over this run")
+    w("")
+    w(
+        "Reported for completeness. With four systems per state the intervals are wide and no "
+        "comparison below reaches significance; read it as a direction, not a measured effect."
+    )
     w("")
     w(
         "| Scope | Predictions | Score only, balanced accuracy (95% CI) | Fact file, balanced "
