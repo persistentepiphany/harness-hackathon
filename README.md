@@ -343,18 +343,30 @@ GLM-4.6 once from the confidence score and once from the harness fact file. Grou
 by construction. Setup, stages and files: [bench/README.md](bench/README.md). Each run records
 its scores in `bench/scores.csv`.
 
+At this size the per-system cases carry the result, so each report opens with them and keeps the
+pooled accuracy in a later section. What the perturbation does to a pose, taking the third run:
+cutting 7 FtsE contacts to glycine moves the ATP medoid 16 Å (Boltz-2) and 18 Å (DiffDock-L) from
+the deposited position, and contact recovery falls from 9 and 10 of 16 to 1 and 1. CDK2 is the
+quieter case: the perturbed medoid still sits 2.2 Å from the deposited ATP, but recovers 1 of 9
+contacts instead of 6. Confidence and PoseBusters stay clean on both. Full tables per system are in
+each run's report.
+
 | Run | Seeds | Predictions | Score only, balanced accuracy (95% CI) | Fact file, balanced accuracy (95% CI) | McNemar exact p |
 | --- | --- | --- | --- | --- | --- |
 | [2026-10-17T1611Z-426bfe9](bench/runs/2026-10-17T1611Z-426bfe9/report.md) | 1, 2, 3 | 16 (6 valid, 10 invalid) | 0.50 (0.24 to 0.77) | 0.53 (0.38 to 0.75) | 0.69 |
 | [2026-10-17T1752Z-2f5a1c7](bench/runs/2026-10-17T1752Z-2f5a1c7/report.md) | 4, 5, 6 | 16 (6 valid, 10 invalid) | 0.50 (0.24 to 0.77) | 0.58 (0.50 to 0.75) | 0.45 |
+| [2026-10-17T1859Z-849c856](bench/runs/2026-10-17T1859Z-849c856/report.md) | 7, 8, 9 | 16 (6 valid, 10 invalid) | 0.50 (0.24 to 0.77) | 0.75 (0.50 to 1.0) | 0.13 |
 
-The score-only arm called every Boltz-2 prediction valid in both runs, including the perturbed
-ones. The fact-file arm rejected all perturbed Boltz-2 poses in both runs; it also rejected some
-valid poses, five of six in the first run and three of six in the second. Across both runs the
-intervals overlap 0.5 and the McNemar test is not significant; eight systems per executor are a
-demonstration, not a statistical result. The agent's stated reason for each misclassification is in
-the per-run report. Each run also writes a slide deck ([deck.pptx](bench/runs/2026-10-17T1752Z-2f5a1c7/results/deck.pptx),
-reviewed against its rendered slides with a hash-bound receipt) and a walkthrough video.
+The score-only arm called every Boltz-2 prediction valid in all three runs, including the perturbed
+ones. The fact-file arm rejected every perturbed Boltz-2 pose in all three; it also rejected valid
+poses, five of six in the first run, three of six in the second and third. Its false negatives are
+mostly DiffDock-L poses with sub-Å geometry and high estimated torsion strain, which is a limit of
+the strain method rather than a property of the pose. In every run the intervals overlap 0.5 and no
+McNemar test reaches significance; eight systems per executor are a demonstration, not a
+statistical result. The agent's stated reason for each misclassification is in the per-run report.
+Each run also writes a slide deck ([deck.pptx](bench/runs/2026-10-17T1859Z-849c856/results/deck.pptx),
+reviewed against its rendered slides with a hash-bound receipt) and a
+[walkthrough video](bench/runs/2026-10-17T1859Z-849c856/results/walkthrough.mp4).
 
 ## Executors
 
