@@ -21,8 +21,11 @@ class FakeRunner:
         self.result = result
         self.calls: list[list[str]] = []
 
-    def __call__(self, argv: Sequence[str], timeout: float) -> subprocess.CompletedProcess[str]:
+    def __call__(
+        self, argv: Sequence[str], timeout: float, env: dict[str, str] | None = None
+    ) -> subprocess.CompletedProcess[str]:
         self.calls.append(list(argv))
+        self.env = env
         if isinstance(self.result, Exception):
             raise self.result
         return self.result

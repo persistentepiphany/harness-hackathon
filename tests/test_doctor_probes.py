@@ -191,3 +191,36 @@ def test_run_command_uses_temp_cwd(tmp_path: Path, monkeypatch: pytest.MonkeyPat
     proc = run_command(["sh", "-c", "pwd; touch side.file"], 10)
     assert proc.stdout.strip() != str(tmp_path)
     assert not (tmp_path / "side.file").exists()
+
+
+def test_binary_probe_passes_search_dirs_on_path_and_skips_jvm_banner() -> None:
+    runner = FakeRunner(
+        completed(rc=1, err="Picked up JAVA_TOOL_OPTIONS: -Dx=127.0.0.1\nP2Rank 2.6\n")
+    )
+    result = BinaryProbe(
+        id="b",
+        category="t",
+        target="prank",
+        executable="prank",
+        search_dirs=(Path("/conda/bin"),),
+        which=lambda n, p: "/tools/bin/prank",
+        runner=runner,
+    ).run()
+    assert result.version == "P2Rank 2.6"
+    assert runner.env is not None and runner.env["PATH"].startswith("/conda/bin")
+
+
+def test_binary_probe_expect_pattern() -> None:
+    def probe(out: str) -> BinaryProbe:
+        return BinaryProbe(
+            id="b",
+            category="t",
+            target="x",
+            executable="x",
+            expect="(?i)p2rank",
+            which=lambda n, p: "/x",
+            runner=FakeRunner(completed(rc=1, err=out)),
+        )
+
+    assert probe("Error: Could not find main class").run().status is ProbeStatus.ERROR
+    assert probe("P2Rank 2.6-alpha.8").run().status is ProbeStatus.OK

@@ -59,6 +59,7 @@ class Profile(BaseModel):
     runs_dir: Path
     offline: bool = False
     conda_prefix: Path | None = None
+    tools_dir: Path = Path(".tools")
     doctor: DoctorSettings = Field(default_factory=DoctorSettings)
 
 
@@ -67,10 +68,17 @@ def load_profile(name_or_path: str) -> Profile:
     if path.suffix not in {".yaml", ".yml"}:
         path = config_dir() / "profiles" / f"{name_or_path}.yaml"
     raw = load_yaml(path.name, path.parent)
-    for key in ("cache_dir", "runs_dir", "conda_prefix"):
+    for key in ("cache_dir", "runs_dir", "conda_prefix", "tools_dir"):
         if isinstance(raw.get(key), str):
             raw[key] = _expand(raw[key])
     return Profile.model_validate(raw)
+
+
+def resolve_path(path: Path, root: Path | None = None) -> Path:
+    """Relative profile paths are taken from the repository root, else the working directory."""
+    if path.is_absolute():
+        return path
+    return (root or repo_root() or Path.cwd()) / path
 
 
 def available_profiles() -> list[str]:
