@@ -24,7 +24,7 @@ test('/runs/new', async ({ page }) => {
   await page.goto('/runs/new?seed=7');
   await expectNav(page, 'new');
   await expect(page.getByTestId('page-new-run')).toBeVisible();
-  await expect(page.getByTestId('executor-chips')).toBeVisible();
+  await expect(page.getByTestId('prompt-input')).toBeVisible();
 });
 
 test('/jobs lists job cards with states', async ({ page }) => {

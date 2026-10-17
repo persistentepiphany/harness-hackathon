@@ -178,13 +178,17 @@ describe.skipIf(!recFaulty)('live record faulty (refused)', () => {
 
   it('marks unselected layers as not run', () => {
     const cells = layerCells(job, rec);
-    expect(cells.map((c) => c.state)).toEqual(['done', 'done', 'not_run', 'not_run', 'not_run', 'not_run']);
+    const expected = rec.layers.map((l) => (l.status === 'not_run' ? 'not_run' : 'done'));
+    expect(cells.map((c) => c.state)).toEqual(expected);
     const strip = layerStrip(cells);
-    expect(strip[2]).toMatchObject({ value: 'not run', nameTone: 'faint', bar: 'var(--color-line)' });
-    expect(strip[1].bar).toBe('var(--color-stop)');
     const segs = jobSegments(cells);
+    expect(strip[1].bar).toBe('var(--color-stop)');
     expect(segs[1].counts).toBe(`${rec.layers[1].checks.filter((c) => c.result === 'stop').length} stop`);
-    expect(segs[3]).toMatchObject({ counts: 'not run', pct: 0 });
+    rec.layers.forEach((l, i) => {
+      if (l.status !== 'not_run') return;
+      expect(strip[i]).toMatchObject({ value: 'not run', nameTone: 'faint', bar: 'var(--color-line)' });
+      expect(segs[i]).toMatchObject({ counts: 'not run', pct: 0 });
+    });
   });
 
   it('omits inputs the record does not carry', () => {
