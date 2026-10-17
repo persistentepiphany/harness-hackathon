@@ -159,7 +159,8 @@ def gate_matrix(records: dict[str, RunRecord]) -> tuple[list[str], dict[str, dic
             if f.check_id not in layer_of:
                 layer_of[f.check_id] = int(f.layer)
                 order.append(f.check_id)
-    order.sort(key=lambda c: (layer_of[c], order.index(c)))
+    first = {c: i for i, c in enumerate(order)}
+    order.sort(key=lambda c: (layer_of[c], first[c]))
     matrix = {
         name: {f.check_id: f.gate.value for f in rec.findings} for name, rec in records.items()
     }

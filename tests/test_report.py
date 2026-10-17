@@ -94,6 +94,7 @@ def test_render_failure_is_recorded_not_fatal(clean_run: Path) -> None:
     assert (clean_run / "report.md").is_file()
 
 
+@pytest.mark.pymol
 def test_real_pymol_render(clean_run: Path) -> None:
     pytest.importorskip("pymol")
     report, _ = write_run_report(clean_run)

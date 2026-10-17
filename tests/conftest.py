@@ -72,3 +72,39 @@ class FakeRenderer:
         pse = Path(f"{out_stem}.pse")
         pse.write_bytes(b"pse")
         return {"pngs": pngs, "pse": str(pse), "organic": ["BEN"], "chains": ["A"]}
+
+
+@pytest.fixture
+def offline_profile(tmp_path: Path):  # type: ignore[no-untyped-def]
+    """Profile with offline mode and a cache pre-filled from recorded fixtures (3PTB)."""
+    pytest.importorskip("rdkit")
+    pytest.importorskip("gemmi")
+    from pah.config import Profile
+    from pah.sources import CachedHttp, ContentCache, Sources
+    from tests.fakeweb import FakeWeb
+
+    cache = tmp_path / "cache"
+    s = Sources(CachedHttp(FakeWeb().client(), ContentCache(cache)))
+    s.uniprot.entry("P00760")
+    s.rcsb.entry("3PTB")
+    s.rcsb.mmcif("3PTB")
+    s.rcsb.chemcomp("BEN")
+    s.pdbe.molecules("3ptb")
+    s.pdbe.sifts("3ptb")
+    s.pubchem.compound(2332)
+    return Profile(
+        name="offline", backend="local", cache_dir=cache, runs_dir=tmp_path / "runs", offline=True
+    )
+
+
+@pytest.fixture(autouse=True)
+def _fake_pymol(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Replaces PyMOL ray tracing with placeholder files unless a test is marked `pymol`."""
+    if request.node.get_closest_marker("pymol"):
+        return
+    from pah.report import renders
+
+    fake = FakeRenderer()
+    monkeypatch.setattr(
+        renders.PymolRenderer, "render", lambda self, s, lig, stem: fake.render(s, lig, stem)
+    )

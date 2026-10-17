@@ -10,7 +10,7 @@ import json
 import sys
 from enum import StrEnum
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated
 
 import httpx
 import typer
@@ -41,8 +41,12 @@ def _profiles_help() -> str:
         return "Deployment profile name or path to a profile YAML"
 
 
+def _sink(fmt: OutputFormat) -> Sink:
+    return ConsoleSink() if fmt is OutputFormat.console else StdoutJsonlSink()
+
+
 def _bus(run_id: str, fmt: OutputFormat, events_file: Path | None) -> EventBus:
-    sinks: list[Sink] = [ConsoleSink() if fmt is OutputFormat.console else StdoutJsonlSink()]
+    sinks: list[Sink] = [_sink(fmt)]
     if events_file is not None:
         sinks.append(JsonlSink(events_file))
     return EventBus(run_id, sinks)
@@ -204,6 +208,9 @@ def run(
     halt: Annotated[
         bool, typer.Option("--halt/--no-halt", help="Skip later layers after a stop")
     ] = True,
+    report: Annotated[
+        bool, typer.Option("--report/--no-report", help="Write report, figures, renders, graph")
+    ] = True,
     out: Annotated[
         Path | None, typer.Option(help="Run directory (default: <runs_dir>/<id>)")
     ] = None,
@@ -214,65 +221,80 @@ def run(
     ] = False,
 ) -> None:
     """Run a task's checks on a manifest, streaming each finding as it is produced."""
-    import pah.checks  # noqa: F401 - registers the check library
-    from pah.core.check import CheckContext
-    from pah.core.engine import Engine
-    from pah.core.manifest import load_manifest
-    from pah.core.policy import Outcome
-    from pah.core.task import load_task
-    from pah.sources import CachedHttp, ContentCache, Sources
+    from pah.service import InputError, RunOptions, run_manifest
 
     prof = _profile(profile, fmt)
-    selected = _parse_layers(layers)
+    options = RunOptions(
+        layers=_parse_layers(layers),
+        offline=offline,
+        refresh=refresh,
+        halt=halt,
+        timeout=timeout,
+        report=report,
+    )
     try:
-        man = load_manifest(manifest)
-        task = load_task(man.task)
-    except (OSError, ValueError, ValidationError) as exc:
+        result = run_manifest(manifest, prof, options, [_sink(fmt)], run_dir=out)
+    except InputError as exc:
         raise _fail(f"{manifest}: {exc}", fmt) from exc
-    run_id = new_run_id(task.id)
-    run_dir = out or (resolve_path(prof.runs_dir) / run_id)
-    is_offline = prof.offline if offline is None else offline
-    cache = ContentCache(resolve_path(prof.cache_dir))
-    with (
-        httpx.Client(follow_redirects=True, timeout=timeout) as client,
-        _bus(run_id, fmt, run_dir / "events.jsonl") as bus,
-    ):
-        sources = Sources(CachedHttp(client, cache, offline=is_offline, refresh=refresh))
-        ctx = CheckContext(man, task, sources, run_dir)
-        bus.emit(
-            EventKind.LOG,
-            "run",
-            f"manifest={manifest} profile={prof.name} offline={is_offline} cache={cache.root}",
-        )
-        record = Engine(bus, ctx, halt_on_stop=halt).run(selected)
-        for name in ("record.json", "provenance.json", "events.jsonl"):
-            bus.emit(EventKind.ARTIFACT, "run", str(run_dir / name), path=str(run_dir / name))
-    ok = {Outcome.PASS, Outcome.PASS_WITH_WARNINGS}
-    if strict and (record.verdict is None or record.verdict.outcome not in ok):
+    if strict and not result.ok:
         raise typer.Exit(code=1)
+
+
+@app.command()
+def batch(
+    spec: Annotated[Path, typer.Argument(help="Batch spec YAML (targets: [manifest paths])")],
+    profile: ProfileOpt = "local",
+    fmt: FormatOpt = OutputFormat.console,
+    timeout: Annotated[float, typer.Option(help="HTTP timeout per request, seconds")] = 30.0,
+    strict: Annotated[
+        bool, typer.Option(help="Exit 1 if any target did not run or did not pass")
+    ] = False,
+) -> None:
+    """Run several manifests and write a comparative batch report."""
+    from pah.batch import load_batch_spec, run_batch
+    from pah.service import InputError
+
+    prof = _profile(profile, fmt)
+    try:
+        result = run_batch(load_batch_spec(spec), prof, [_sink(fmt)], timeout=timeout)
+    except InputError as exc:
+        raise _fail(str(exc), fmt) from exc
+    failed = len(result.results) < len(result.targets) or not all(r.ok for r in result.results)
+    if strict and failed:
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def report(
+    path: Annotated[Path, typer.Argument(help="Run or batch directory")],
+    fmt: FormatOpt = OutputFormat.console,
+) -> None:
+    """Regenerate report files from record.json (or batch_report.json) without re-running."""
+    from pah.service import InputError, regenerate_report
+
+    try:
+        regenerate_report(path, [_sink(fmt)])
+    except InputError as exc:
+        raise _fail(str(exc), fmt) from exc
+
+
+@app.command()
+def schema(
+    out: Annotated[Path, typer.Option(help="Directory for JSON Schema files")] = Path("schemas"),
+) -> None:
+    """Write JSON Schemas for manifests, events, findings, run records and reports."""
+    from pah.schemas import write_schemas
+
+    for path in write_schemas(out):
+        typer.echo(str(path))
 
 
 @app.command()
 def tasks(fmt: FormatOpt = OutputFormat.console) -> None:
     """List task specifications and how many of their checks are implemented."""
-    import pah.checks  # noqa: F401
-    from pah.core.check import CHECKS
-    from pah.core.task import list_tasks, load_task
+    from pah.service import task_rows
 
-    rows: list[dict[str, Any]] = []
-    for tid in list_tasks():
-        spec = load_task(tid)
-        ids = [c for layer in spec.layers.values() for c in layer]
-        rows.append(
-            {
-                "id": tid,
-                "status": spec.status,
-                "families": list(spec.families),
-                "claim": spec.claim,
-                "checks": len(ids),
-                "implemented": sum(c in CHECKS for c in ids),
-            }
-        )
+    rows = task_rows()
     if fmt is OutputFormat.jsonl:
         for r in rows:
             sys.stdout.write(json.dumps(r) + "\n")
@@ -287,21 +309,9 @@ def tasks(fmt: FormatOpt = OutputFormat.console) -> None:
 @app.command()
 def checks(fmt: FormatOpt = OutputFormat.console) -> None:
     """List registered checks by layer."""
-    import pah.checks  # noqa: F401
-    from pah.core.check import CHECKS
+    from pah.service import check_rows
 
-    rows = sorted(
-        (
-            {
-                "id": c.id,
-                "layer": int(c.layer),
-                "title": c.title,
-                "requires": list(c.requires_modules),
-            }
-            for c in CHECKS.values()
-        ),
-        key=lambda r: (r["layer"], r["id"]),
-    )
+    rows = check_rows()
     if fmt is OutputFormat.jsonl:
         for r in rows:
             sys.stdout.write(json.dumps(r) + "\n")
