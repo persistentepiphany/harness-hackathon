@@ -870,15 +870,15 @@ class DockingBoxCheck(Check):
             {
                 "ligand_atoms_inside_margin": int(inside_margin.sum()),
                 "ligand_atoms": len(inside_margin),
-                "pocket_residues": len(pocket),
-                "pocket_residues_outside": len(outside),
+                "contact_residues": len(pocket),
+                "contact_residues_outside": len(outside),
             }
         )
-        ev["pocket_outside"] = outside
+        ev["contacts_outside"] = outside
         if outside or not inside_margin.all():
             return self.finding(
                 Gate.STOP,
-                f"box excludes {len(outside)} pocket residues and "
+                f"box excludes {len(outside)} contact residues and "
                 f"{int((~inside_margin).sum())} reference ligand atoms lie "
                 f"within {margin} Å of its faces",
                 measurements=m,
@@ -889,7 +889,7 @@ class DockingBoxCheck(Check):
         prefix = "no box declared; derived box" if derived else "box"
         return self.finding(
             gate,
-            f"{prefix} encloses {len(pocket)} pocket residues and the "
+            f"{prefix} encloses {len(pocket)} contact residues and the "
             f"{ref.code} ligand with {margin} Å margin",
             measurements=m,
             thresholds=th,

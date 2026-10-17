@@ -181,7 +181,11 @@ def run_vina(
         vina_version=version,
         notes=notes,
     )
-    record = {k: (str(v) if isinstance(v, Path) else v) for k, v in asdict(run).items()}
-    record["outputs"] = [str(p) for p in outputs]
+
+    def rel(p: Path) -> str:
+        return str(p.relative_to(out_dir)) if p.is_relative_to(out_dir) else p.name
+
+    record = {k: (rel(v) if isinstance(v, Path) else v) for k, v in asdict(run).items()}
+    record["outputs"] = [rel(p) for p in outputs]
     (out_dir / "vina_run.json").write_text(json.dumps(record, indent=2))
     return run
