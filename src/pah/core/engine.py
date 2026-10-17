@@ -105,6 +105,8 @@ class Engine:
             f"task={task.id} layers={','.join(map(str, layers))} claim={claim!r}",
             task=task.id,
             layers=list(layers),
+            claim=claim,
+            manifest=record.manifest,
         )
         self._register_inputs()
         halted_by: str | None = None
@@ -112,7 +114,9 @@ class Engine:
             ids = task.layers.get(layer, ())
             name = LAYER_NAMES.get(Layer(layer), str(layer))
             stage = f"L{layer}"
-            self._bus.emit(EventKind.STAGE_START, stage, f"{name}: {len(ids)} checks")
+            self._bus.emit(
+                EventKind.STAGE_START, stage, f"{name}: {len(ids)} checks", checks=list(ids)
+            )
             layer_findings: list[Finding] = []
             for cid in ids:
                 if halted_by:

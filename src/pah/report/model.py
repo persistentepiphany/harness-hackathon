@@ -25,6 +25,7 @@ class FigureEntry(_Model):
     alt: str
     data_path: str | None = None
     session_path: str | None = None
+    layer: int | None = Field(None, description="Layer the figure belongs to; None for the run")
 
 
 class FindingRow(_Model):

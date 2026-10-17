@@ -123,7 +123,7 @@ def build_run_report(
     not_run = tuple(x for x in range(6) if x not in record.layers)
     limitations = (
         f"This report covers layers {', '.join(map(str, record.layers))}."
-        + (f" Layers {', '.join(map(str, not_run))} were not run." if not_run else ""),
+        + (f" Layers not run: {', '.join(map(str, not_run))}." if not_run else ""),
         *RUN_LIMITATIONS,
     )
     return RunReport(

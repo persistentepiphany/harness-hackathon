@@ -69,6 +69,7 @@ class RunResult:
             "run_dir": str(self.run_dir),
             "report_md": str(self.run_dir / "report.md") if self.report_files else None,
             "report_json": str(self.run_dir / "report.json") if self.report_files else None,
+            "report_html": str(self.run_dir / "report.html") if self.report_files else None,
             "report_error": self.report_error,
         }
 

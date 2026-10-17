@@ -1,20 +1,32 @@
-"""Markdown from report models. Values and provenance only; no commentary.
+"""Markdown reports with the structure of the HTML report: verdict, meta table, layers with key
+figures, stats tables and checks, then provenance and files. Values only; no commentary.
 
-Section order follows the scientific-writing skill: summary, inputs, results, figures,
-limitations, record. The text is plain enough to be expanded into prose with that skill.
+The run report reads the `UiRunRecord` (pah.api.adapter) for everything the HTML shows, and the
+`RunReport` for the file list and limitations, so the two formats cannot disagree.
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
+from itertools import count
+from typing import Any
 
-from pah.report.model import BatchReport, FigureEntry, LayerSection, RunReport
+from pah.report import fmt
+from pah.report.model import BatchReport, FigureEntry, RunReport
+from pah.report.view import Block, Card, Cell, controls_table, stats_blocks
 
 GATE_ORDER = ("pass", "warn", "stop", "skip")
+NA = "n/a"
+OUTCOME_LABEL = {
+    "supported": "Supported",
+    "narrowed": "Narrowed",
+    "refused": "Refused",
+    "incomplete": "Incomplete",
+}
 
 
 def _cell(value: object) -> str:
-    text = "" if value is None else str(value)
+    text = NA if value is None else str(value)
     return text.replace("|", "\\|").replace("\n", " ")
 
 
@@ -28,190 +40,250 @@ def _counts(counts: dict[str, int]) -> str:
     return ", ".join(f"{counts.get(g, 0)} {g}" for g in GATE_ORDER)
 
 
-def _measurements(ms: Iterable[object]) -> str:
-    parts = []
-    for m in ms:
-        name, value, unit = m.name, m.value, m.unit  # type: ignore[attr-defined]
-        parts.append(f"{name}={value}{unit or ''}")
-    return "; ".join(parts)
+def _code(value: object) -> str | None:
+    return None if value is None or value == "" else f"`{value}`"
 
 
-def _figures(figures: Sequence[FigureEntry], start: int = 1) -> list[str]:
+def _figures(figures: Sequence[FigureEntry], numbers: Iterable[int]) -> list[str]:
     lines: list[str] = []
-    for i, f in enumerate(figures, start=start):
-        lines += [f"![{f.alt}]({f.path})", "", f"Figure {i}. {f.caption}"]
+    for f, n in zip(figures, numbers, strict=False):
+        lines += [f"![{f.alt}]({f.path})", "", f"Fig. {n} · {f.caption}"]
         extras = []
         if f.data_path:
-            extras.append(f"data: [{f.data_path}]({f.data_path})")
+            extras.append(f"data [{f.data_path}]({f.data_path})")
         if f.session_path:
-            extras.append(f"PyMOL session: [{f.session_path}]({f.session_path})")
+            extras.append(f"PyMOL session [{f.session_path}]({f.session_path})")
         if extras:
             lines.append(f"Files: {'; '.join(extras)}.")
         lines.append("")
     return lines
 
 
-def _section(sec: LayerSection) -> list[str]:
-    lines = [f"### Layer {sec.layer}: {sec.name}", "", f"Outcomes: {_counts(sec.counts)}.", ""]
-    lines += _table(
-        ["Check", "Gate", "Result", "Measurements"],
-        ((f.check_id, f.gate, f.message, _measurements(f.measurements)) for f in sec.findings),
-    )
-    return [*lines, ""]
+def _cell_text(c: Cell) -> str | None:
+    if c.text is None:
+        return None
+    return f"{c.text} ({c.sub})" if c.sub else c.text
 
 
-def _thresholds(report: RunReport) -> list[str]:
-    rows = [
-        (f.check_id, t.name, t.comparator, t.value, t.origin, t.evidence_level.value)
-        for sec in report.sections
-        for f in sec.findings
-        for t in f.thresholds
-    ]
-    if not rows:
-        return []
-    return [
-        "### Thresholds",
-        "",
-        *_table(["Check", "Threshold", "Comparator", "Value", "Origin", "Evidence level"], rows),
-        "",
-    ]
-
-
-def _inputs(report: RunReport) -> list[str]:
-    inp = report.inputs
-    lines = ["## Inputs", ""]
-    if inp.proteins:
-        lines += _table(
-            ["Protein", "UniProt", "PDB", "Chain", "Length", "Copies", "Declared mutations", "MSA"],
-            (
-                (
-                    p.get("id"), p.get("uniprot"), p.get("pdb_id"), p.get("chain"),
-                    p.get("sequence_length"), p.get("copies", 1),
-                    ", ".join(p.get("mutations", []) or []) or "none", p.get("msa", ""),
-                )
-                for p in inp.proteins
-            ),
-        )  # fmt: skip
-        lines.append("")
-    if inp.ligands:
-        lines += _table(
-            ["Ligand", "SMILES", "CCD", "PubChem CID", "File"],
-            (
-                (
-                    lig.get("id"),
-                    lig.get("smiles"),
-                    lig.get("ccd"),
-                    lig.get("pubchem_cid"),
-                    lig.get("file"),
-                )
-                for lig in inp.ligands
-            ),
-        )
-        lines.append("")
-    if inp.receptor:
-        r = inp.receptor
-        chains = ", ".join(r.get("chains", []) or [])
-        lines += [
-            f"Receptor: {r.get('pdb_id') or r.get('file')}, chains {chains or 'all'}, "
-            f"altloc policy {r.get('altloc_policy') or 'not declared'}.",
+def _block(b: Block) -> list[str]:
+    if isinstance(b, Card):
+        return [
+            f"#### {b.title}",
+            "",
+            *_table(["Field", "Value"], ((k, _cell_text(v)) for k, v in b.rows)),
             "",
         ]
-    if inp.model:
-        m = inp.model
-        seeds = len(m.get("seeds", []) or [])
-        fields = ", ".join(
-            f"{k} {m[k]}"
-            for k in ("executor", "version", "checkpoint", "database_snapshot")
-            if m.get(k)
-        )
-        lines += [f"Model: {fields}; {seeds} seeds.", ""]
+    head = f"#### {b.title}" + (f" · {b.summary}" if b.summary else "")
+    rows = [[_cell_text(c) for c in r.cells] for r in b.rows]
+    if b.footer:
+        rows.append([_cell_text(c) for c in b.footer.cells])
+    lines = [head, "", *_table(list(b.columns), rows), ""]
+    if b.caption:
+        lines += [b.caption, ""]
     return lines
 
 
-def _provenance(report: RunReport) -> list[str]:
-    lines = ["## Provenance", ""]
+def _checks(checks: Sequence[Mapping[str, Any]]) -> list[str]:
+    def evidence(c: Mapping[str, Any]) -> str | None:
+        if c.get("result") == "pending":
+            return None
+        if c.get("skipReason") == "unknown_check":
+            return "not implemented"
+        ev = c.get("evidence") or c.get("message")
+        reason = c.get("skipReason")
+        return f"{ev} · {str(reason).replace('_', ' ')}" if reason else ev
+
+    def ident(c: Mapping[str, Any]) -> str:
+        ms = fmt.duration(c.get("ms"))
+        return f"`{c['id']}`" + (f" · {ms}" if ms else "")
+
+    return _table(
+        ["Check", "Result", "Measured cmp threshold", "Evidence", "Id · time"],
+        ((c["name"], c["result"], _code(fmt.compare(c)), evidence(c), ident(c)) for c in checks),
+    )
+
+
+def _layer(
+    layer: Mapping[str, Any],
+    stats: Mapping[str, Any],
+    figures: Sequence[FigureEntry],
+    numbers: Iterable[int],
+) -> list[str]:
+    i = layer["i"]
+    lines = [f"## L{i} {layer['name']}", "", f"{layer.get('question', '')}", ""]
+    if layer.get("status") == "not_run":
+        return [*lines, "Status: not run.", ""]
+    dur = fmt.duration(layer.get("durationMs"))
+    lines += [
+        f"Status: {layer.get('status')}. Checks: {fmt.counts_text(layer.get('counts', {}))}"
+        + (f". Time: {dur}." if dur else "."),
+        "",
+    ]
+    if layer.get("figures"):
+        lines += ["#### Key figures", "", *_table(["Figure", "Value"], layer["figures"]), ""]
+    for b in stats_blocks(stats, i):
+        lines += _block(b)
+    lines += _figures(figures, numbers)
+    if layer.get("checks"):
+        lines += ["#### Checks", "", *_checks(layer["checks"]), ""]
+    return lines
+
+
+def _meta(ui: Mapping[str, Any], report: RunReport) -> list[str]:
+    inputs = ui.get("inputs") or {}
+    tools = ", ".join(
+        f"{t['name']}"
+        + (f" {t['version']}" if t.get("version") else "")
+        + (f" ({t['family']})" if t.get("family") else "")
+        for t in ui.get("tools", [])
+    )
+    finished = report.finished_at.isoformat(timespec="seconds") if report.finished_at else None
+    rows: list[tuple[str, object]] = [
+        ("Task", f"{ui.get('taskName')} (`{report.task}`)"),
+        ("Tools", tools or None),
+        ("Target", _code(inputs.get("target"))),
+        ("Partner", _code(inputs.get("partner"))),
+        ("Ligand", _code(inputs.get("ligand"))),
+        ("Reference", _code(inputs.get("reference"))),
+        ("pH", fmt.number(inputs.get("ph"))),
+        ("Seeds", fmt.number(inputs.get("seeds"))),
+        ("Layers run", ", ".join(map(str, report.layers))),
+        ("Run", f"`{report.run_id}`"),
+        ("Created", fmt.when(ui.get("createdAt"))),
+        ("Finished", fmt.when(finished)),
+        ("pah version", report.pah_version),
+        ("Report schema", report.schema_version),
+    ]
+    if not inputs.get("partner"):
+        rows = [r for r in rows if r[0] != "Partner"]
+    return [*_table(["Field", "Value"], rows), ""]
+
+
+def _layers_table(ui: Mapping[str, Any]) -> list[str]:
+    from pah.api.adapter import worst
+
+    def row(layer: Mapping[str, Any]) -> list[object]:
+        c = layer.get("counts") or {}
+        run = layer.get("status") != "not_run"
+        result = worst(x["result"] for x in layer.get("checks", [])) if run else None
+        return [
+            f"L{layer['i']} {layer['name']}",
+            str(layer.get("status")).replace("_", " "),
+            result,
+            *(c.get(g) if run else None for g in GATE_ORDER),
+            fmt.duration(layer.get("durationMs")),
+        ]
+
+    header = ["Layer", "Status", "Result", *GATE_ORDER, "Time"]
+    return [*_table(header, (row(x) for x in ui.get("layers", []))), ""]
+
+
+def _provenance(ui: Mapping[str, Any], report: RunReport) -> list[str]:
+    sources = ui.get("sources") or []
+    cached = sum(1 for s in sources if s.get("cached") is True)
+    network = sum(1 for s in sources if s.get("cached") is False)
+    lines = [
+        "## Provenance",
+        "",
+        f"{len(sources)} objects · {cached} cached · {network} network.",
+        "",
+    ]
+    used = {p.sha256: p.used_by for p in report.provenance}
     lines += _table(
-        ["Source", "Accession", "Release", "Retrieved (UTC)", "Bytes", "SHA-256", "Used by", "URL"],
+        ["Source", "Accession", "Release", "SHA-256", "Retrieved", "Bytes", "Cache", "Used by"],
         (
             (
-                p.source, p.accession, p.release or "not reported",
-                p.retrieved_at.strftime("%Y-%m-%d %H:%M:%S"), p.size_bytes, p.sha256[:16],
-                ", ".join(p.used_by), p.url,
+                s.get("source"), s.get("accession"), s.get("release"),
+                _code(fmt.sha12(s.get("sha256"))),
+                fmt.when(s.get("retrievedAt")), s.get("sizeBytes"),
+                {True: "hit", False: "miss"}.get(bool(s["cached"])) if "cached" in s else None,
+                ", ".join(used.get(str(s.get("sha256")), ())) or None,
             )
-            for p in report.provenance
+            for s in sources
         ),
     )  # fmt: skip
     lines.append("")
     if report.graph:
-        lines.append(
-            "Provenance graph: "
-            + ", ".join(f"[{k}]({v})" for k, v in report.graph.items())
-            + ". Nodes are source records, files, tools, checks and the verdict."
-        )
-        lines.append("")
-    if report.tool_versions:
-        versions = ", ".join(f"{k} {v}" for k, v in sorted(report.tool_versions.items()))
-        lines += [f"Tool versions: {versions}.", ""]
+        lines += [
+            "Provenance graph: " + ", ".join(f"[{k}]({v})" for k, v in report.graph.items()) + ".",
+            "",
+        ]
     return lines
 
 
-def run_markdown(report: RunReport) -> str:
-    v = report.verdict
-    finished = report.finished_at.isoformat(timespec="seconds") if report.finished_at else "n/a"
-    lines = [
-        f"# Assurance report: {report.task_title}, run {report.run_id}",
+def _thresholds(ui: Mapping[str, Any]) -> list[str]:
+    rows = [
+        (f"`{c['id']}`", t["name"], f"{t['comparator']} {fmt.number(t['value'])}", t["origin"],
+         t["evidenceLevel"])
+        for layer in ui.get("layers", [])
+        for c in layer.get("checks", [])
+        for t in c.get("thresholds") or []
+    ]  # fmt: skip
+    if not rows:
+        return []
+    return [
+        "## Thresholds",
         "",
-        *_table(
-            ["Field", "Value"],
-            [
-                ("Task", report.task),
-                ("Claim", report.claim),
-                ("Layers run", ", ".join(map(str, report.layers))),
-                ("Verdict", v.outcome.value),
-                ("Started (UTC)", report.started_at.isoformat(timespec="seconds")),
-                ("Finished (UTC)", finished),
-                ("pah version", report.pah_version),
-                ("Report schema", report.schema_version),
-            ],
-        ),
-        "",
-        "## Summary",
-        "",
-        f'Verdict for the claim "{report.claim}" over layers '
-        f"{', '.join(map(str, report.layers))}: {v.outcome.value}. "
-        f"{sum(report.counts.values())} checks: {_counts(report.counts)}.",
+        *_table(["Check", "Threshold", "Value", "Origin", "Evidence level"], rows),
         "",
     ]
-    findings = {f.check_id: f for s in report.sections for f in s.findings}
-    for label, ids in (
-        ("Stops", v.stops),
-        ("Warnings", v.warnings),
-        ("Not verified", v.incomplete),
-    ):
-        if ids:
-            lines.append(f"{label}:")
-            lines += [f"- `{cid}`: {findings[cid].message}" for cid in ids if cid in findings]
-            lines.append("")
-    if v.not_applicable:
-        lines += [
-            f"Not applicable to these inputs: {', '.join(f'`{c}`' for c in v.not_applicable)}.",
-            "",
-        ]
-    lines += _inputs(report)
-    lines += ["## Results by layer", ""]
-    for sec in report.sections:
-        lines += _section(sec)
-    lines += _thresholds(report)
-    if report.figures:
-        lines += ["## Figures", "", *_figures(report.figures)]
+
+
+def _renders(report: RunReport) -> list[str]:
+    renders = [f for f in report.figures if f.kind == "render"]
+    if not renders:
+        return []
+    lines = ["## Structures", "", f"{len(renders)} PyMOL renders.", ""]
+    for f in renders:
+        session = f" PyMOL session: [{f.session_path}]({f.session_path})." if f.session_path else ""
+        lines += [f"![{f.alt}]({f.path})", "", f"{f.caption}{session}", ""]
+    return lines
+
+
+def run_markdown(report: RunReport, ui: Mapping[str, Any]) -> str:
+    v = ui.get("verdict") or {}
+    outcome = str(v.get("outcome", "incomplete"))
+    numbers = count(1)
+    plots = [f for f in report.figures if f.kind != "render"]
+    stats = ui.get("stats") or {}
+    lines = [
+        f"# Run report · {report.task_title}",
+        "",
+        f"Prediction assurance · run `{report.run_id}` · {fmt.when(ui.get('createdAt')) or NA}",
+        "",
+        f'**{OUTCOME_LABEL.get(outcome, outcome)}** for the claim "{report.claim}".',
+        "",
+        v.get("statement", ""),
+        "",
+    ]
+    for label, key in (("Stops", "stops"), ("Warnings", "warnings")):
+        if v.get(key):
+            lines += [f"{label}: {', '.join(f'`{c}`' for c in v[key])}.", ""]
+    if v.get("incomplete"):
+        lines += [f"Not verified: {len(v['incomplete'])} checks.", ""]
+    lines += _meta(ui, report)
+    lines += ["## Layers", "", *_layers_table(ui)]
+    top = [f for f in plots if f.layer is None]
+    if top:
+        lines += ["## Figures", "", *_figures(top, numbers)]
+    lines += _renders(report)
+    for layer in ui.get("layers", []):
+        lines += _layer(layer, stats, [f for f in plots if f.layer == layer["i"]], numbers)
+    controls = controls_table(ui.get("controls") or [])
+    if controls:
+        lines += ["## Controls", "", *_block(controls)[2:]]
     if report.render_errors:
-        lines += ["Render errors:", *[f"- {e}" for e in report.render_errors], ""]
-    lines += _provenance(report)
+        lines += ["Render and figure errors:", "", *[f"- {e}" for e in report.render_errors], ""]
+    lines += _provenance(ui, report)
+    lines += _thresholds(ui)
+    if report.tool_versions:
+        versions = ", ".join(f"{k} {v}" for k, v in sorted(report.tool_versions.items()))
+        lines += [f"Tool versions: {versions}.", ""]
     lines += ["## Limitations", "", *[f"- {x}" for x in report.limitations], ""]
     lines += ["## Files", ""]
     lines += _table(
         ["Path", "Kind", "Bytes", "SHA-256"],
-        ((a.path, a.kind.value, a.size_bytes, a.sha256[:16]) for a in report.artifacts),
+        ((a.path, a.kind.value, a.size_bytes, f"`{a.sha256[:12]}`") for a in report.artifacts),
     )
     return "\n".join(lines) + "\n"
 
@@ -275,6 +347,6 @@ def batch_markdown(report: BatchReport) -> str:
     )
     lines.append("")
     if report.figures:
-        lines += ["## Figures", "", *_figures(report.figures)]
+        lines += ["## Figures", "", *_figures(report.figures, count(1))]
     lines += ["## Limitations", "", *[f"- {x}" for x in report.limitations], ""]
     return "\n".join(lines) + "\n"
