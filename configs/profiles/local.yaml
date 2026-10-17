@@ -1,0 +1,9 @@
+# Workstation or sandbox. Checks run in-process; executors are not run here.
+name: local
+backend: local
+cache_dir: ./cache
+runs_dir: ./runs
+offline: false
+conda_prefix: ./.tools/conda-env
+doctor:
+  categories: [sources, tools, executors, skills, infrastructure]

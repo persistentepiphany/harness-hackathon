@@ -1,0 +1,178 @@
+# Layer 0 sources. One entry per source in the specification (section "Layer 0").
+# probe: a cheap request that proves the host serves the payload type the harness needs.
+# accept: HTTP codes that count as reachable for this probe.
+version: 1
+sources:
+  - id: uniprot
+    name: UniProt
+    supplies: canonical sequences, isoforms, PTMs, active sites, cross-references
+    provenance: [accession, entry_version, sequence_version, release, sequence_sha256]
+    probe: {kind: http, url: "https://rest.uniprot.org/uniprotkb/P00533.fasta"}
+  - id: uniprot_ftp
+    name: UniProt release files
+    supplies: release date and bulk downloads
+    provenance: [release]
+    probe: {kind: http, url: "https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/reldate.txt"}
+  - id: rcsb_data
+    name: RCSB PDB data API
+    supplies: entry metadata, resolution, method, release dates
+    provenance: [pdb_id, revision, release_date]
+    probe: {kind: http, url: "https://data.rcsb.org/rest/v1/core/entry/4HHB"}
+  - id: rcsb_files
+    name: RCSB PDB file service
+    supplies: mmCIF and PDB files, ligand SDF
+    provenance: [pdb_id, revision, mmcif_sha256]
+    probe: {kind: http, url: "https://files.rcsb.org/download/4HHB.cif"}
+  - id: rcsb_models
+    name: RCSB ModelServer
+    supplies: ligand and residue subsets of entries
+    provenance: [pdb_id, query]
+    probe: {kind: http, url: "https://models.rcsb.org/v1/4hhb/ligand?label_comp_id=HEM&encoding=sdf"}
+  - id: rcsb_search
+    name: RCSB search API
+    supplies: sequence, structure and chemical search
+    provenance: [query_hash]
+    probe: {kind: http, url: "https://search.rcsb.org/rcsbsearch/v2/query", accept: [200, 400, 405]}
+  - id: pdbe
+    name: PDBe API
+    supplies: entry summaries, bound ligands, release status
+    provenance: [pdb_id, revision]
+    probe: {kind: http, url: "https://www.ebi.ac.uk/pdbe/api/pdb/entry/summary/4hhb"}
+  - id: pdbe_kb
+    name: PDBe-KB graph API
+    supplies: known binding sites aggregated across entries
+    provenance: [release]
+    probe: {kind: http, url: "https://www.ebi.ac.uk/pdbe/graph-api/uniprot/P00533"}
+  - id: sifts_api
+    name: SIFTS mappings (PDBe API)
+    supplies: residue-level PDB to UniProt mapping
+    provenance: [sifts_release]
+    probe: {kind: http, url: "https://www.ebi.ac.uk/pdbe/api/mappings/uniprot/4hhb"}
+  - id: sifts_flatfiles
+    name: SIFTS flat files
+    supplies: bulk chain to UniProt mapping
+    provenance: [sifts_release]
+    probe: {kind: http, url: "https://ftp.ebi.ac.uk/pub/databases/msd/sifts/flatfiles/csv/pdb_chain_uniprot.csv.gz"}
+  - id: alphafold_db
+    name: AlphaFold DB
+    supplies: predicted structures with pLDDT and PAE
+    provenance: [accession, model_version, file_sha256]
+    probe: {kind: http, url: "https://alphafold.ebi.ac.uk/api/prediction/P00533"}
+  - id: ccd
+    name: PDB Chemical Component Dictionary
+    supplies: ligand definitions and ideal geometry
+    provenance: [ccd_code, dictionary_version]
+    probe: {kind: http, url: "https://files.wwpdb.org/pub/pdb/data/monomers/components.cif.gz"}
+  - id: pubchem
+    name: PubChem PUG REST
+    supplies: ligand identity and properties
+    provenance: [cid, inchikey]
+    probe: {kind: http, url: "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2244/property/InChIKey/JSON"}
+  - id: chembl
+    name: ChEMBL API
+    supplies: bioactivities, actives and inactives
+    provenance: [chembl_id, chembl_release]
+    probe: {kind: http, url: "https://www.ebi.ac.uk/chembl/api/data/status.json"}
+  - id: bindingdb
+    name: BindingDB
+    supplies: measured affinities
+    provenance: [release, record_ids]
+    probe: {kind: http, url: "https://www.bindingdb.org/"}
+  - id: binding_moad
+    name: Binding MOAD
+    supplies: biologically relevant complexes with affinities
+    provenance: [release, record_ids]
+    probe: {kind: http, url: "https://www.bindingmoad.org/"}
+  - id: biolip2
+    name: BioLiP2
+    supplies: biologically relevant ligand-protein interactions
+    provenance: [release, record_ids]
+    probe: {kind: http, url: "https://zhanggroup.org/BioLiP/"}
+  - id: interpro
+    name: InterPro and Pfam
+    supplies: domain boundaries
+    provenance: [release]
+    probe: {kind: http, url: "https://www.ebi.ac.uk/interpro/api/"}
+  - id: mobidb
+    name: MobiDB
+    supplies: disorder annotation
+    provenance: [release]
+    probe: {kind: http, url: "https://mobidb.org/api/download?acc=P04637&format=json"}
+  - id: disprot
+    name: DisProt
+    supplies: curated disorder annotation
+    provenance: [release]
+    probe: {kind: http, url: "https://disprot.org/api/search?release=current&page_size=1"}
+  - id: string
+    name: STRING
+    supplies: known partners, candidate non-cognate partners
+    provenance: [release, evidence_channel]
+    probe: {kind: http, url: "https://string-db.org/api/json/version"}
+  - id: intact
+    name: IntAct
+    supplies: experimental interactions
+    provenance: [release]
+    probe: {kind: http, url: "https://www.ebi.ac.uk/intact/ws/interaction/countTotal"}
+  - id: colabfold_msa
+    name: ColabFold MSA server
+    supplies: multiple sequence alignments
+    provenance: [server_version, query_hash]
+    probe: {kind: http, url: "https://api.colabfold.com/queue"}
+  - id: colabfold_db
+    name: ColabFold database downloads (UniRef30, ColabFoldDB)
+    supplies: local MMseqs2 databases
+    provenance: [database_snapshot]
+    notes: Host taken from ColabFold setup_databases.sh (commit 297da92fdff1).
+    probe: {kind: http, url: "https://opendata.mmseqs.org/colabfold/mini_swissprot2503.tar.gz"}
+  - id: mmseqs_binaries
+    name: MMseqs2 and Foldseek static binaries
+    supplies: local alignment and structural search executables
+    provenance: [binary_version, file_sha256]
+    probe: {kind: http, url: "https://mmseqs.com/foldseek/foldseek-linux-avx2.tar.gz"}
+  - id: foldseek_server
+    name: Foldseek server
+    supplies: structural similarity search
+    provenance: [database, server_version]
+    probe: {kind: http, url: "https://search.foldseek.com/"}
+  - id: plinder
+    name: PLINDER
+    supplies: similarity-aware protein-ligand sets
+    provenance: [release]
+    notes: Bucket gs://plinder denies anonymous reads; authenticate with gcloud.
+    probe: {kind: http, url: "https://storage.googleapis.com/plinder/2024-06/v2/index/annotation_table.parquet"}
+  - id: pinder
+    name: PINDER
+    supplies: similarity-aware protein-protein sets
+    provenance: [release]
+    notes: Bucket gs://pinder denies anonymous reads; authenticate with gcloud.
+    probe: {kind: http, url: "https://storage.googleapis.com/pinder/2024-02/index.parquet"}
+  - id: dude
+    name: DUD-E
+    supplies: property-matched decoys
+    provenance: [release, set_id]
+    probe: {kind: http, url: "https://dude.docking.org/"}
+  - id: dekois
+    name: DEKOIS 2.0
+    supplies: decoy sets
+    provenance: [release, set_id]
+    probe: {kind: http, url: "https://www.pharmchem.uni-tuebingen.de/"}
+  - id: lit_pcba
+    name: LIT-PCBA
+    supplies: confirmed inactives
+    provenance: [release, set_id]
+    probe: {kind: http, url: "https://drugdesign.unistra.fr/LIT-PCBA/"}
+  - id: card
+    name: CARD
+    supplies: resistance variants
+    provenance: [catalogue_version]
+    probe: {kind: http, url: "https://card.mcmaster.ca/"}
+  - id: who_tb_catalogue
+    name: WHO TB mutation catalogue
+    supplies: resistance variants
+    provenance: [catalogue_version, commit]
+    probe: {kind: git, url: "https://github.com/GTB-tbsequencing/mutation-catalogue-2023"}
+  - id: zenodo
+    name: Zenodo
+    supplies: benchmark archives (Runs N' Poses and others)
+    provenance: [record_id, file_sha256]
+    probe: {kind: http, url: "https://zenodo.org/api/records?q=plinder&size=1"}

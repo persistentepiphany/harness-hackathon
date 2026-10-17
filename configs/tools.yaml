@@ -1,0 +1,224 @@
+# Tool register (specification section "Tool register"), check-layer and infrastructure tools.
+# Executors (co-folding and docking engines) are declared in executors.yaml.
+# install.route: pypi | conda | github_release | licence | system
+version: 1
+tools:
+  - id: rdkit
+    role: ligand parsing, stereo, conformers, fingerprints, torsion strain
+    layers: [1, 2, 3, 4]
+    mvp: true
+    install: {route: pypi, package: rdkit}
+    probe: {kind: python, module: rdkit, dist: rdkit}
+  - id: dimorphite_dl
+    role: ligand protonation
+    layers: [2]
+    mvp: true
+    install: {route: pypi, package: dimorphite-dl}
+    probe: {kind: python, module: dimorphite_dl, dist: dimorphite-dl}
+  - id: meeko
+    role: Vina ligand preparation
+    layers: [2]
+    mvp: true
+    install: {route: pypi, package: meeko}
+    probe: {kind: python, module: meeko, dist: meeko}
+  - id: pdbfixer
+    role: missing residues and atoms
+    layers: [1, 2]
+    mvp: true
+    install: {route: pypi, package: pdbfixer}
+    probe: {kind: python, module: pdbfixer, dist: pdbfixer}
+  - id: propka
+    role: receptor pKa
+    layers: [2]
+    mvp: true
+    install: {route: pypi, package: propka}
+    probe: {kind: python, module: propka, dist: propka}
+  - id: pdb2pqr
+    role: receptor protonation and charges
+    layers: [2, 4]
+    mvp: true
+    install: {route: pypi, package: pdb2pqr}
+    probe: {kind: python, module: pdb2pqr, dist: pdb2pqr}
+  - id: gemmi
+    role: structure parsing and validation
+    layers: [1, 2, 4]
+    mvp: true
+    install: {route: pypi, package: gemmi}
+    probe: {kind: python, module: gemmi, dist: gemmi}
+  - id: posebusters
+    role: ligand physical validity
+    layers: [4]
+    mvp: true
+    install: {route: pypi, package: posebusters}
+    probe: {kind: python, module: posebusters, dist: posebusters}
+  - id: alphajudge
+    role: interface confidence and descriptors
+    layers: [4, 5]
+    mvp: true
+    install: {route: pypi, package: alphajudge}
+    probe: {kind: python, module: alphajudge, dist: alphajudge}
+  - id: plip
+    role: interaction fingerprints and diagrams
+    layers: [4]
+    mvp: true
+    install: {route: pypi, package: plip}
+    probe: {kind: python, module: plip, dist: plip}
+  - id: prolif
+    role: fingerprint comparison across poses
+    layers: [4]
+    mvp: true
+    install: {route: pypi, package: prolif}
+    probe: {kind: python, module: prolif, dist: prolif}
+  - id: freesasa
+    role: burial, unsatisfied polars, complementarity
+    layers: [4]
+    mvp: true
+    install: {route: pypi, package: freesasa}
+    probe: {kind: python, module: freesasa, dist: freesasa}
+  - id: openmm
+    role: restrained minimisation, MM/GBSA, short MD
+    layers: [4]
+    mvp: true
+    install: {route: pypi, package: openmm}
+    probe: {kind: python, module: openmm, dist: openmm}
+  - id: openff_toolkit
+    role: small-molecule force field parameters
+    layers: [4]
+    mvp: true
+    install: {route: conda, package: openff-toolkit-base, channel: conda-forge}
+    probe: {kind: conda_python, module: openff.toolkit}
+  - id: spyrmsd
+    role: symmetry-aware RMSD and clustering
+    layers: [5]
+    mvp: true
+    install: {route: pypi, package: spyrmsd}
+    probe: {kind: python, module: spyrmsd, dist: spyrmsd}
+  - id: dockq
+    role: complex accuracy against a reference
+    layers: [5]
+    mvp: true
+    install: {route: pypi, package: DockQ}
+    probe: {kind: python, module: DockQ, dist: DockQ}
+  - id: vina_python
+    role: Vina Python bindings for scoring and redocking
+    layers: [5]
+    mvp: true
+    install: {route: pypi, package: vina}
+    probe: {kind: python, module: vina, dist: vina}
+  - id: fpocket
+    role: pocket detection and volume
+    layers: [2]
+    mvp: true
+    install: {route: conda, package: fpocket, channel: conda-forge}
+    probe: {kind: binary, executable: fpocket, args: []}
+  - id: p2rank
+    role: pocket prediction
+    layers: [2]
+    mvp: true
+    install: {route: github_release, package: rdk/p2rank}
+    probe: {kind: binary, executable: prank, args: ["-v"]}
+  - id: java
+    role: runtime for P2Rank
+    layers: [2]
+    mvp: true
+    install: {route: conda, package: openjdk, channel: conda-forge}
+    probe: {kind: binary, executable: java, args: ["-version"]}
+  - id: molprobity
+    role: protein geometry (Phenix)
+    layers: [4]
+    mvp: false
+    install: {route: licence, package: phenix}
+    probe: {kind: binary, executable: phenix.molprobity, args: ["--version"]}
+  - id: apbs
+    role: electrostatics
+    layers: [4]
+    mvp: false
+    install: {route: conda, package: apbs, channel: conda-forge}
+    probe: {kind: binary, executable: apbs, args: ["--version"]}
+  - id: pymol
+    role: mandatory structure renders and sessions
+    layers: [report]
+    mvp: true
+    install: {route: pypi, package: pymol-open-source-whl}
+    probe: {kind: python, module: pymol, dist: pymol-open-source-whl}
+  - id: matplotlib
+    role: figures
+    layers: [report]
+    mvp: true
+    install: {route: pypi, package: matplotlib}
+    probe: {kind: python, module: matplotlib, dist: matplotlib}
+  - id: networkx
+    role: provenance graph
+    layers: [report]
+    mvp: true
+    install: {route: pypi, package: networkx}
+    probe: {kind: python, module: networkx, dist: networkx}
+  - id: papermill
+    role: reproducible notebook from the run record
+    layers: [report]
+    mvp: true
+    install: {route: pypi, package: papermill}
+    probe: {kind: python, module: papermill, dist: papermill}
+  - id: mcp
+    role: MCP server interface
+    layers: [interface]
+    mvp: true
+    install: {route: pypi, package: mcp}
+    probe: {kind: python, module: mcp, dist: mcp}
+  - id: fastapi
+    role: HTTP API for the frontend
+    layers: [interface]
+    mvp: true
+    install: {route: pypi, package: fastapi}
+    probe: {kind: python, module: fastapi, dist: fastapi}
+
+infrastructure:
+  - id: git
+    role: source and skill pinning
+    profiles: [local, csf3, modal]
+    probe: {kind: binary, executable: git, args: ["--version"]}
+  - id: sbatch
+    role: Slurm submission on CSF3
+    profiles: [csf3]
+    probe: {kind: binary, executable: sbatch, args: ["--version"]}
+  - id: apptainer
+    role: executor containers on CSF3
+    profiles: [csf3]
+    probe: {kind: binary, executable: apptainer, args: ["--version"]}
+  - id: nvidia_smi
+    role: GPU visibility
+    profiles: [csf3, modal]
+    probe: {kind: binary, executable: nvidia-smi, args: ["-L"]}
+  - id: modal_client
+    role: Modal deployment client
+    profiles: [modal]
+    probe: {kind: python, module: modal, dist: modal}
+  - id: modal_token
+    role: Modal credentials
+    profiles: [modal]
+    probe: {kind: env, variables: [MODAL_TOKEN_ID, MODAL_TOKEN_SECRET], alt_file: "~/.modal.toml"}
+  - id: modal_api
+    role: Modal control plane
+    profiles: [modal]
+    probe: {kind: http, url: "https://api.modal.com", accept: [200, 401, 404]}
+  - id: submitit
+    role: Slurm job arrays from Python
+    profiles: [csf3]
+    probe: {kind: python, module: submitit, dist: submitit}
+
+skills:
+  - id: humanizer
+    path: third_party/skills/humanizer/SKILL.md
+    probe: {kind: git, url: "https://github.com/blader/humanizer"}
+  - id: scientific_writing
+    path: third_party/skills/claude-scientific-writer/skills/scientific-writing/SKILL.md
+    probe: {kind: git, url: "https://github.com/K-Dense-AI/claude-scientific-writer"}
+  - id: scientific_visualization
+    path: third_party/skills/scientific-agent-skills/skills/scientific-visualization/SKILL.md
+    probe: {kind: git, url: "https://github.com/k-dense-ai/scientific-agent-skills"}
+  - id: readthedocs_search
+    path: third_party/skills/readthedocs-skills/skills/readthedocs-search-api/SKILL.md
+    probe: {kind: git, url: "https://github.com/readthedocs/skills"}
+  - id: readthedocs_api
+    path: third_party/skills/readthedocs-skills/skills/readthedocs-api/SKILL.md
+    probe: {kind: http, url: "https://app.readthedocs.org/api/v3/search/?q=project:autodock-vina%20pdbqt"}
