@@ -179,7 +179,7 @@ image = (
     .run_commands(
         f"curl -fsSL {MICROMAMBA_URL} | tar -xj -C /usr/local bin/micromamba",
         f"{MAMBA} create -y -p {CONDA_PREFIX} -f {CONDA_SPEC}",
-        f"{MAMBA} clean -a -y",
+        f"{MAMBA} clean -a -y || true",  # cache cleanup only; its failure must not fail the image
     )
     .uv_pip_install(*_pip_requirements())
     .add_local_dir(REPO, REMOTE_REPO, copy=True, ignore=IGNORE)
