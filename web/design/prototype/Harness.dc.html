@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/molstar@4/build/viewer/molstar.css">
+<script src="https://cdn.jsdelivr.net/npm/molstar@4/build/viewer/molstar.js"></script>
+<style>
+html,body{margin:0;padding:0;background:#F6F6F3;color:#1A1A18;font-family:Geist,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#B07E2C;text-decoration:none}a:hover{color:#8E6420;text-decoration:underline}
+input,textarea,button{font-family:inherit}
+input:focus,textarea:focus{outline:none;border-color:#B07E2C !important;box-shadow:0 0 0 3px rgba(176,126,44,.12)}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#DEDED9;border-radius:8px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+@media print{[data-print="hide"]{display:none !important}body{background:#fff}[data-print="page"]{box-shadow:none !important;border:0 !important;margin:0 !important;width:auto !important;min-height:0 !important}}
+.msp-plugin .msp-viewport-controls{display:none}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;font-size:13px;line-height:1.45">
+  <nav data-print="hide" style="height:46px;background:#fff;border-bottom:1px solid #E6E6E1;display:flex;align-items:center;padding:0 20px;gap:28px;position:sticky;top:0;z-index:20">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:16px;height:16px;border:1.5px solid #1A1A18;border-radius:4px;position:relative"><div style="position:absolute;inset:3px;background:#B07E2C;border-radius:1.5px"></div></div>
+      <div style="font-weight:600;font-size:13.5px;letter-spacing:-.01em">Harness</div>
+      <div style="color:#8B8B85;font-size:12px">Prediction assurance</div>
+    </div>
+    <div style="display:flex;gap:2px;flex:1">
+      <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="4">
+        <button onClick="{{ tab.go }}" style="background:{{ tab.bg }};color:{{ tab.color }};border:0;border-radius:6px;padding:6px 11px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;flex:none;transition:background .15s,color .15s" style-hover="background:#F1F1ED">
+          <span>{{ tab.label }}</span>
+          <sc-if value="{{ tab.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="background:{{ tab.badgeBg }};color:{{ tab.badgeColor }};border-radius:10px;padding:0 6px;font-size:11px;font-family:'Geist Mono',ui-monospace,monospace;line-height:17px">{{ tab.badge }}</span></sc-if>
+        </button>
+      </sc-for>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;color:#55554F;font-size:12px">
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:50%;background:{{ clusterDotColor }};animation:{{ clusterDotAnim }}"></span><span>{{ clusterStatus }}</span></div>
+      <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:#8B8B85">CSF3 · SLURM</div>
+      <div style="width:26px;height:26px;border-radius:50%;background:#F1F1ED;border:1px solid #E6E6E1;display:grid;place-items:center;font-size:11px;font-weight:600;color:#55554F">H</div>
+    </div>
+  </nav>
+
+  <!-- ============ NEW RUN ============ -->
+  <sc-if value="{{ isNew }}" hint-placeholder-val="{{ true }}">
+  <div style="max-width:1240px;width:100%;margin:0 auto;padding:28px 24px 60px;display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,340px);gap:24px;align-items:start;animation:fadeUp .3s ease-out">
+    <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+      <div>
+        <h1 style="margin:0 0 4px;font-size:20px;font-weight:600;letter-spacing:-.015em">New run</h1>
+        <p style="margin:0;color:#8B8B85;max-width:60ch;text-wrap:pretty">Describe the run in plain language or set it up by hand. The harness decides, before and after the prediction, whether the result can support the claim you intend to make.</p>
+      </div>
+
+      <div style="background:#fff;border:1px solid #E6E6E1;border-radius:8px;padding:18px 20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#8B8B85">Describe the run</div>
+          <div style="font-size:11.5px;color:#8B8B85">Interpreter is mocked · swap for a constrained model call</div>
+        </div>
+        <textarea value="{{ nlText }}" onChange="{{ onNlText }}" placeholder="e.g. Dock imatinib into the ABL1 pocket with Boltz-2 and Gnina, 5 seeds at pH 7.4" rows="3" style="width:100%;resize:vertical;border:1px solid #E6E6E1;border-radius:6px;padding:10px 12px;font-size:13.5px;line-height:1.5;background:#FBFBF9;color:#1A1A18;min-height:76px"></textarea>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center">
+          <sc-for list="{{ samplePrompts }}" as="p" hint-placeholder-count="3">
+            <button onClick="{{ p.use }}" style="background:#F6F6F3;border:1px solid #E6E6E1;border-radius:20px;padding:5px 11px;font-size:12px;color:#55554F;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:border-color .15s" style-hover="border-color:#B07E2C;color:#1A1A18">{{ p.short }}</button>
+          </sc-for>
+          <div style="flex:1"></div>
+          <button onClick="{{ interpret }}" disabled="{{ interpretDisabled }}" style="background:#1A1A18;color:#fff;border:0;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:8px;opacity:{{ interpretOpacity }};transition:opacity .2s">
+            <sc-if value="{{ interpreting }}" hint-placeholder-val="{{ false }}"><span style="width:7px;height:7px;border-radius:50%;background:#B07E2C;animation:pulse 1s infinite"></span></sc-if>
+            <span>{{ interpretLabel }}</span>
+          </button>
+        </div>
+        <sc-if value="{{ hasSteps }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:14px;border-top:1px solid #EFEFEB;padding-top:12px;display:grid;grid-template-columns:96px minmax(0,1fr);gap:6px 14px;font-size:12.5px">
+            <sc-for list="{{ nlSteps }}" as="s" hint-placeholder-count="0">
+              <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:#8B8B85;padding-top:2px;animation:fadeUp .3s ease-out both">{{ s.field }}</div>
+              <div style="animation:fadeUp .3s ease-out both;min-width:0"><span style="font-weight:500;word-break:break-all">{{ s.value }}</span> <span style="color:#8B8B85">— {{ s.because }}</span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="background:#fff;border:1px solid #E6E6E1;border-radius:8px;padding:18px 20px">
+        <div style="font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#8B8B85;margin-bottom:12px">Task</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
+          <sc-for list="{{ taskOptions }}" as="t" hint-placeholder-count="3">
+            <button onClick="{{ t.select }}" style="text-align:left;background:{{ t.bg }};border:1px solid {{ t.border }};border-radius:8px;padding:12px 14px;cursor:pointer;transition:border-color .15s,background .15s;display:flex;flex-direction:column;gap:6px;min-width:0" style-hover="border-color:#B07E2C">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="font-weight:600;font-size:13px">{{ t.name }}</span><span style="width:8px;height:8px;border-radius:50%;background:{{ t.dot }};border:1.5px solid {{ t.dotBorder }}"></span></div>
+              <div style="font-size:11.5px;color:#8B8B85">{{ t.family }}</div>
+              <div style="font-size:12px;color:#55554F;text-wrap:pretty"><span style="color:#8B8B85">Permitted claim ·</span> {{ t.claim }}</div>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #E6E6E1;border-radius:8px;padding:18px 20px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#8B8B85">Executors</div>
+          <div style="font-size:11.5px;color:#8B8B85">Agreement across families carries more weight than seeds of one model</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{ toolChips }}" as="c" hint-placeholder-count="7">
+            <button onClick="{{ c.toggle }}" disabled="{{ c.disabled }}" title="{{ c.note }}" style="display:flex;align-items:center;gap:8px;background:{{ c.bg }};border:1px solid {{ c.border }};border-radius:6px;padding:7px 11px;cursor:{{ c.cursor }};opacity:{{ c.opacity }};transition:all .15s" style-hover="border-color:#B07E2C">
+              <span style="width:7px;height:7px;border-radius:2px;background:{{ c.famColor }}"></span>
+              <span style="font-weight:500;font-size:12.5px">{{ c.name }}</span>
+              <span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:10.5px;color:#8B8B85">{{ c.version }}</span>
+              <sc-if value="{{ c.disabled }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;color:#8B8B85">· {{ c.note }}</span></sc-if>
+            </button>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:14px;margin-top:10px;font-size:11.5px;color:#8B8B85"><span style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:2px;background:#B07E2C"></span>co-folding</span><span style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:2px;background:#5B7FA6"></span>docking</span></div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #E6E6E1;border-radius:8px;padding:18px 20px">
+        <div style="font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#8B8B85;margin-bottom:12px">Inputs</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px 14px">
+          <label style="display:flex;flex-direction:column;gap:5px"><span style="font-size:12px;color:#55554F">Target · UniProt accession</span><input value="{{ form.target }}" onChange="{{ onTarget }}" style="width:100%;border:1px solid #E6E6E1;border-radius:6px;padding:8px 10px;font-size:13px;background:#FBFBF9;font-family:'Geist Mono',ui-monospace,monospace"></label>
+          <sc-if value="{{ showPartner }}" hint-placeholder-val="{{ false }}"><label style="display:flex;flex-direction:column;gap:5px"><span style="font-size:12px;color:#55554F">Partner · UniProt accession</span><input value="{{ form.partner }}" onChange="{{ onPartner }}" style="width:100%;border:1px solid #E6E6E1;border-radius:6px;padding:8px 10px;font-size:13px;background:#FBFBF9;font-family:'Geist Mono',ui-monospace,monospace"></label></sc-if>
+          <label style="display:flex;flex-direction:column;gap:5px"><span style="font-size:12px;color:#55554F">Reference · PDB entry</span><input value="{{ form.reference }}" onChange="{{ onReference }}" style="width:100%;border:1px solid #E6E6E1;border-radius:6px;padding:8px 10px;font-size:13px;background:#FBFBF9;font-family:'Geist Mono',ui-monospace,monospace"></label>
+          <label style="display:flex;flex-direction:column;gap:5px"><span style="font-size:12px;color:#55554F">Seeds · independent</span><input type="number" min="1" max="20" value="{{ form.seeds }}" onChange="{{ onSeeds }}" style="width:100%;border:1px solid #E6E6E1;border-radius:6px;padding:8px 10px;font-size:13px;background:#FBFBF9;font-family:'Geist Mono',ui-monospace,monospace"></label>
+          <sc-if value="{{ showLigand }}" hint-placeholder-val="{{ true }}"><label style="display:flex;flex-direction:column;gap:5px"><span style="font-size:12px;color:#55554F">pH · protonation</span><input type="number" step="0.1" value="{{ form.ph }}" onChange="{{ onPh }}" style="width:100%;border:1px solid #E6E6E1;border-radius:6px;padding:8px 10px;font-size:13px;background:#FBFBF9;font-family:'Geist Mono',ui-monospace,monospace"></label></sc-if>
+        </div>
+        <sc-if value="{{ showLigand }}" hint-placeholder-val="{{ true }}">
+          <label style="display:flex;flex-direction:column;gap:5px;margin-top:12px"><span style="font-size:12px;color:#55554F">{{ ligandLabel }}</span><input value="{{ form.ligand }}" onChange="{{ onLigand }}" style="width:100%;border:1px solid #E6E6E1;border-radius:6px;padding:8px 10px;font-size:12.5px;background:#FBFBF9;font-family:'Geist Mono',ui-monospace,monospace"></label>
+          <div style="font-size:11.5px;color:#8B8B85;margin-top:6px">Identity is checked against CCD and PubChem by InChIKey before the run starts.</div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="position:sticky;top:70px;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#fff;border:1px solid #E6E6E1;border-radius:8px;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+        <div style="font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#8B8B85">Run plan</div>
+        <input value="{{ form.name }}" onChange="{{ onName }}" placeholder="{{ nameSuggestion }}" style="width:100%;border:1px solid #E6E6E1;border-radius:6px;padding:8px 10px;font-size:13px;background:#FBFBF9;font-weight:500">
+        <div style="background:#F6EEDC;border-radius:6px;padding:10px 12px">
+          <div style="font-size:11px;color:#8E6420;font-weight:500;margin-bottom:3px">Claim this run may support</div>
+          <div style="font-size:13px;color:#1A1A18;text-wrap:pretty">{{ planClaim }}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <sc-for list="{{ planLayers }}" as="l" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;gap:10px;font-size:12.5px"><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:#8B8B85;width:16px">L{{ l.i }}</span><span style="flex:1">{{ l.name }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:#8B8B85">{{ l.budget }}</span></div>
+          </sc-for>
+        </div>
+        <div style="border-top:1px solid #EFEFEB;padding-top:12px;display:flex;flex-direction:column;gap:8px;font-size:12.5px">
+          <div style="display:flex;justify-content:space-between"><span style="color:#8B8B85">Executors</span><span style="font-weight:500;text-align:right">{{ planTools }}</span></div>
+          <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#8B8B85">Controls</span><span style="text-align:right;text-wrap:pretty">{{ planControls }}</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:#8B8B85">Sources fetched</span><span>{{ planSources }}</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:#8B8B85">Est. harness time</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11.5px">{{ planTime }}</span></div>
+        </div>
+        <button onClick="{{ submit }}" style="background:#1A1A18;color:#fff;border:0;border-radius:6px;padding:10px 14px;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s" style-hover="background:#333330">Submit run</button>
+        <div style="font-size:11.5px;color:#8B8B85;text-wrap:pretty">Pre-run layers can refuse the run before compute is spent. Post-run layers narrow the claim.</div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ JOBS ============ -->
+  <sc-if value="{{ isJobs }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1240px;width:100%;margin:0 auto;padding:28px 24px 60px;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,400px);gap:24px;align-items:start;animation:fadeUp .3s ease-out">
+    <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px">
+        <div><h1 style="margin:0 0 4px;font-size:20px;font-weight:600;letter-spacing:-.015em">Jobs</h1><div style="color:#8B8B85">{{ jobsSummary }}</div></div>
+        <button onClick="{{ goNew }}" style="background:#fff;border:1px solid #E6E6E1;border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:500;cursor:pointer;color:#1A1A18" style-hover="border-color:#B07E2C">New run</button>
+      </div>
+      <sc-for list="{{ jobCards }}" as="j" hint-placeholder-count="3">
+        <div onClick="{{ j.select }}" style="background:#fff;border:1px solid {{ j.border }};border-radius:8px;padding:16px 18px;cursor:pointer;transition:border-color .15s,box-shadow .15s;box-shadow:{{ j.shadow }};animation:fadeUp .3s ease-out both">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px">
+            <div style="min-width:0">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-weight:600;font-size:14px">{{ j.name }}</span><span style="font-size:11.5px;color:#55554F;background:#F6F6F3;border-radius:4px;padding:1px 7px">{{ j.taskName }}</span></div>
+              <div style="font-size:12px;color:#8B8B85;margin-top:3px;font-family:'Geist Mono',ui-monospace,monospace">{{ j.id }} · {{ j.tools }} · {{ j.seeds }} seeds</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex:none">
+              <sc-if value="{{ j.done }}" hint-placeholder-val="{{ false }}">
+                <span style="background:{{ j.verdictBg }};color:{{ j.verdictColor }};border-radius:4px;padding:3px 9px;font-size:12px;font-weight:600;letter-spacing:.01em">{{ j.verdictLabel }}</span>
+                <button onClick="{{ j.openReport }}" style="background:#1A1A18;color:#fff;border:0;border-radius:6px;padding:6px 11px;font-size:12px;font-weight:500;cursor:pointer">Open report</button>
+              </sc-if>
+              <sc-if value="{{ j.notDone }}" hint-placeholder-val="{{ true }}">
+                <span style="display:flex;align-items:center;gap:7px;font-size:12px;color:#55554F"><span style="width:7px;height:7px;border-radius:50%;background:{{ j.dot }};animation:{{ j.dotAnim }}"></span>{{ j.statusLabel }}</span>
+              </sc-if>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px">
+            <sc-for list="{{ j.segs }}" as="s" hint-placeholder-count="6">
+              <div>
+                <div style="height:6px;background:#ECECE8;border-radius:3px;overflow:hidden;position:relative"><div style="height:100%;width:{{ s.pct }}%;background:{{ s.color }};border-radius:3px;transition:width .12s linear"></div></div>
+                <div style="display:flex;justify-content:space-between;gap:4px;margin-top:5px;font-size:10.5px;color:{{ s.labelColor }};min-width:0"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">L{{ s.i }} {{ s.name }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;flex:none;margin-left:4px">{{ s.counts }}</span></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:11.5px;color:#8B8B85;font-family:'Geist Mono',ui-monospace,monospace"><span>{{ j.phase }}</span><span>{{ j.elapsed }}</span></div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="position:sticky;top:70px;display:flex;flex-direction:column;gap:12px;min-width:0">
+      <div style="background:#1A1A18;color:#E8E8E3;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;height:min(560px,calc(100vh - 110px))">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08)">
+          <div style="display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;border-radius:50%;background:{{ logDot }};animation:{{ logDotAnim }}"></span><span style="font-weight:500;font-size:12.5px">Fetch log · {{ logJobName }}</span></div>
+          <span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:#8B8B85">{{ logCount }} lines</span>
+        </div>
+        <div ref="{{ logRef }}" style="flex:1;overflow:auto;padding:10px 14px;font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;line-height:1.6">
+          <sc-for list="{{ logLines }}" as="ln" hint-placeholder-count="0">
+            <div style="display:grid;grid-template-columns:52px 22px minmax(0,1fr);gap:8px;animation:fadeIn .25s ease-out both;padding:1px 0">
+              <span style="color:#6B6B66">{{ ln.t }}</span>
+              <span style="color:{{ ln.layerColor }}">L{{ ln.layer }}</span>
+              <span style="color:{{ ln.color }};overflow-wrap:anywhere">{{ ln.text }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ logEmpty }}" hint-placeholder-val="{{ false }}"><div style="color:#6B6B66">Queued. Waiting for a slot.</div></sc-if>
+        </div>
+        <div style="display:flex;gap:16px;padding:10px 14px;border-top:1px solid rgba(255,255,255,.08);font-size:11.5px">
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:#6FBF8A"></span>{{ evPass }} pass</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:#E3B45A"></span>{{ evWarn }} warn</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:#E8826E"></span>{{ evStop }} stop</span>
+          <span style="margin-left:auto;color:#8B8B85">{{ evFetched }} fetched</span>
+        </div>
+      </div>
+      <div style="font-size:11.5px;color:#8B8B85;padding:0 4px;text-wrap:pretty">Every fetch records accession, release, retrieval time and SHA-256. A run never falls back silently to the network or to a different release.</div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ REPORT ============ -->
+  <sc-if value="{{ isReport }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1240px;width:100%;margin:0 auto;padding:28px 24px 60px;display:flex;flex-direction:column;gap:16px;animation:fadeUp .3s ease-out">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap">
+      <div><h1 style="margin:0 0 4px;font-size:20px;font-weight:600;letter-spacing:-.015em">Report</h1><div style="color:#8B8B85">Generated from the run record. Nothing here can disagree with what was computed.</div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <sc-for list="{{ reportPicker }}" as="r" hint-placeholder-count="1">
+          <button onClick="{{ r.pick }}" style="background:{{ r.bg }};color:{{ r.color }};border:1px solid {{ r.border }};border-radius:20px;padding:5px 12px;font-size:12px;font-weight:500;cursor:pointer">{{ r.name }}</button>
+        </sc-for>
+      </div>
+    </div>
+    <sc-if value="{{ noReport }}" hint-placeholder-val="{{ false }}"><div style="background:#fff;border:1px dashed #E6E6E1;border-radius:8px;padding:40px;text-align:center;color:#8B8B85">No completed run yet. Reports appear here when a job finishes.</div></sc-if>
+    <sc-if value="{{ hasReport }}" hint-placeholder-val="{{ false }}">
+    <div style="background:#fff;border:1px solid #E6E6E1;border-radius:8px;padding:22px 24px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:start">
+      <div style="min-width:0">
+        <div style="display:flex;align-items:center;gap:6px 10px;margin-bottom:12px;flex-wrap:wrap">
+          <span style="background:{{ rp.verdictBg }};color:{{ rp.verdictColor }};border-radius:5px;padding:4px 11px;font-size:13px;font-weight:600;letter-spacing:.01em">{{ rp.verdictLabel }}</span>
+          <span style="font-size:12.5px;color:#55554F">for the claim</span>
+          <span style="font-size:13.5px;font-weight:500;text-wrap:pretty">“{{ rp.claim }}”</span>
+        </div>
+        <p style="margin:0;font-size:14px;line-height:1.55;max-width:78ch;text-wrap:pretty">{{ rp.statement }}</p>
+        <div style="display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;font-size:12px;color:#55554F">
+          <span><span style="color:#8B8B85">Run</span> <span style="font-family:'Geist Mono',ui-monospace,monospace">{{ rp.id }}</span></span>
+          <span><span style="color:#8B8B85">Task</span> {{ rp.taskName }}</span>
+          <span><span style="color:#8B8B85">Executors</span> {{ rp.tools }}</span>
+          <span><span style="color:#8B8B85">Target</span> <span style="font-family:'Geist Mono',ui-monospace,monospace">{{ rp.target }}</span> · <span style="font-family:'Geist Mono',ui-monospace,monospace">{{ rp.reference }}</span></span>
+          <span><span style="color:#8B8B85">Seeds</span> {{ rp.seeds }}</span>
+          <span><span style="color:#8B8B85">Completed</span> {{ rp.date }}</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:stretch">
+        <button onClick="{{ openDoc }}" style="background:#1A1A18;color:#fff;border:0;border-radius:6px;padding:9px 14px;font-size:12.5px;font-weight:500;cursor:pointer">Generate document</button>
+        <button onClick="{{ downloadRecord }}" style="background:#fff;border:1px solid #E6E6E1;border-radius:6px;padding:8px 14px;font-size:12.5px;font-weight:500;cursor:pointer;color:#1A1A18">Run record · JSON</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px">
+      <sc-for list="{{ rp.layerStrip }}" as="l" hint-placeholder-count="6">
+        <button onClick="{{ l.select }}" style="text-align:left;background:{{ l.bg }};border:1px solid {{ l.border }};border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s;min-width:0" style-hover="border-color:#B07E2C">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:#8B8B85">L{{ l.i }}</span><span style="width:8px;height:8px;border-radius:50%;background:{{ l.dot }}"></span></div>
+          <div style="font-weight:500;font-size:12.5px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ l.name }}</div>
+          <div style="font-size:11px;color:#8B8B85;margin-top:2px;font-family:'Geist Mono',ui-monospace,monospace">{{ l.counts }}</div>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,1fr);gap:16px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+        <div style="background:#fff;border:1px solid #E6E6E1;border-radius:8px;overflow:hidden">
+          <div style="padding:14px 18px;border-bottom:1px solid #EFEFEB;display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+            <div><span style="font-weight:600">Layer {{ rp.layer.i }} · {{ rp.layer.name }}</span><span style="color:#8B8B85;margin-left:10px;font-size:12.5px">{{ rp.layer.question }}</span></div>
+            <span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:#8B8B85;flex:none">{{ rp.layer.duration }}</span>
+          </div>
+          <div>
+            <sc-for list="{{ rp.layer.checks }}" as="c" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:4px 12px;padding:11px 18px;border-bottom:1px solid #F1F1ED;animation:fadeUp .25s ease-out both">
+                <span style="width:9px;height:9px;border-radius:50%;background:{{ c.dot }};margin-top:5px;border:1.5px solid {{ c.dotBorder }}"></span>
+                <div style="min-width:0">
+                  <div style="font-size:13px;font-weight:500;text-wrap:pretty">{{ c.name }}</div>
+                  <div style="font-size:12px;color:#55554F;margin-top:2px;text-wrap:pretty">{{ c.evidence }}</div>
+                  <div style="font-size:11px;color:#8B8B85;margin-top:4px;font-family:'Geist Mono',ui-monospace,monospace">{{ c.id }} · {{ c.tool }}</div>
+                </div>
+                <div style="text-align:right;flex:none"><div style="font-size:11.5px;font-weight:600;color:{{ c.color }};text-transform:uppercase;letter-spacing:.04em">{{ c.result }}</div><div style="font-size:11px;color:#8B8B85;margin-top:2px">gate {{ c.gate }}</div></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #E6E6E1;border-radius:8px;padding:18px 20px">
+          <div style="font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#8B8B85;margin-bottom:10px">Confidence metrics · one input to the verdict, not evidence of correctness</div>
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{ rp.metrics }}" as="m" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:minmax(0,1.2fr) 90px minmax(0,1.4fr);gap:12px;padding:8px 0;border-top:1px solid {{ m.border }};font-size:12.5px;align-items:baseline">
+                <span style="font-weight:500">{{ m.name }}<span style="color:#8B8B85;font-weight:400;font-size:11.5px"> · {{ m.tool }}</span></span>
+                <span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:12.5px;color:{{ m.valueColor }}">{{ m.value }}</span>
+                <span style="color:#55554F">{{ m.read }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+            <div style="background:#F6F6F3;border-radius:6px;padding:10px 12px"><div style="font-size:11px;color:#8B8B85;margin-bottom:2px">Site placement</div><div style="font-size:12.5px;font-weight:500">{{ rp.sitePlacement }}</div></div>
+            <div style="background:#F6F6F3;border-radius:6px;padding:10px 12px"><div style="font-size:11px;color:#8B8B85;margin-bottom:2px">Pose accuracy · reported separately</div><div style="font-size:12.5px;font-weight:500">{{ rp.poseAccuracy }}</div></div>
+          </div>
+        </div>
+
+        <sc-if value="{{ rp.hasPerturbation }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid #E6E6E1;border-radius:8px;padding:18px 20px">
+          <div style="font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#8B8B85;margin-bottom:10px">Perturbation response · precomputed</div>
+          <sc-for list="{{ rp.perturbation }}" as="p" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:14px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:12px;padding:8px 0;border-top:1px solid #F1F1ED;font-size:12.5px;align-items:baseline">
+              <span style="width:8px;height:8px;border-radius:50%;background:{{ p.dot }};position:relative;top:1px"></span>
+              <span style="font-weight:500">{{ p.name }}<div style="font-weight:400;color:#8B8B85;font-size:11.5px">{{ p.construction }}</div></span>
+              <span style="color:#55554F">{{ p.expected }}</span>
+              <span style="color:{{ p.color }}">{{ p.observed }}</span>
+            </div>
+          </sc-for>
+        </div>
+        </sc-if>
+
+        <div style="background:#fff;border:1px solid #E6E6E1;border-radius:8px;padding:18px 20px">
+          <div style="font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#8B8B85;margin-bottom:10px">Textual analysis · written from the findings</div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;line-height:1.55;color:#1A1A18;max-width:80ch">
+            <sc-for list="{{ rp.narrative }}" as="n" hint-placeholder-count="7"><p style="margin:0;text-wrap:pretty">{{ n.text }}</p></sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;min-width:0;position:sticky;top:70px">
+        <div style="background:#fff;border:1px solid #E6E6E1;border-radius:8px;overflow:hidden">
+          <div style="padding:12px 16px;border-bottom:1px solid #EFEFEB;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-weight:600;font-size:12.5px">Structure · <span style="font-family:'Geist Mono',ui-monospace,monospace;font-weight:500">{{ rp.reference }}</span></span>
+            <span style="font-size:11px;color:#8B8B85">Mol* · RCSB · drag to orbit</span>
+          </div>
+          <div style="position:relative;height:340px;background:#F6F6F3">
+            <sc-if value="{{ useMolstar }}" hint-placeholder-val="{{ true }}"><div ref="{{ viewerRef }}" style="position:absolute;inset:0"></div></sc-if>
+            <sc-if value="{{ usePlaceholder }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:grid;place-items:center;color:#8B8B85;font-size:12px;border:1px dashed #E6E6E1;margin:12px;border-radius:6px">Structure view · {{ rp.reference }}</div></sc-if>
+          </div>
+          <div style="padding:10px 16px;font-size:11.5px;color:#8B8B85;display:flex;gap:14px;flex-wrap:wrap;border-top:1px solid #EFEFEB"><span>Pocket confidence colouring, flagged residues and unsatisfied polar atoms mark up this view when the live record carries per-residue data.</span></div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #E6E6E1;border-radius:8px;overflow:hidden">
+          <div style="display:flex;border-bottom:1px solid #EFEFEB;padding:0 8px">
+            <sc-for list="{{ vizTabs }}" as="v" hint-placeholder-count="4">
+              <button onClick="{{ v.select }}" style="background:none;border:0;border-bottom:2px solid {{ v.underline }};color:{{ v.color }};padding:11px 10px 9px;font-size:12.5px;font-weight:500;cursor:pointer;margin-bottom:-1px">{{ v.label }}</button>
+            </sc-for>
+          </div>
+          <div style="padding:16px">
+            <sc-if value="{{ vizPae }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+                <canvas ref="{{ paeRef }}" width="220" height="220" style="width:220px;height:220px;border-radius:4px;border:1px solid #EFEFEB;flex:none"></canvas>
+                <div style="font-size:12px;color:#55554F;min-width:140px;flex:1;display:flex;flex-direction:column;gap:8px">
+                  <div style="font-weight:500;color:#1A1A18">Predicted aligned error</div>
+                  <div style="text-wrap:pretty">{{ rp.paeCaption }}</div>
+                  <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#8B8B85"><span>0 Å</span><span style="flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,#2F6B4F,#B9D7C3,#F6F6F3)"></span><span>30 Å</span></div>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ vizSeeds }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:12px;color:#55554F;margin-bottom:10px"><span style="font-weight:500;color:#1A1A18">Seed spread</span> · RMSD to the medoid of the largest cluster. The spread sets the noise floor.</div>
+              <svg viewBox="0 0 320 150" style="width:100%;height:auto;display:block">
+                <line x1="40" y1="120" x2="310" y2="120" stroke="#E6E6E1"></line>
+                <line x1="{{ rp.seedCut }}" y1="14" x2="{{ rp.seedCut }}" y2="120" stroke="#C28A1A" stroke-dasharray="3 3"></line>
+                <text x="{{ rp.seedCut }}" y="10" font-size="9" fill="#C28A1A" text-anchor="middle" font-family="Geist Mono">2 Å</text>
+                <sc-for list="{{ rp.seedPts }}" as="s" hint-placeholder-count="5">
+                  <circle cx="{{ s.cx }}" cy="{{ s.cy }}" r="6" fill="{{ s.fill }}" stroke="#fff" stroke-width="1.5"></circle>
+                  <text x="{{ s.cx }}" y="{{ s.ty }}" font-size="8.5" fill="#8B8B85" text-anchor="middle" font-family="Geist Mono">{{ s.label }}</text>
+                </sc-for>
+                <text x="40" y="138" font-size="9" fill="#8B8B85" font-family="Geist Mono">0</text>
+                <text x="310" y="138" font-size="9" fill="#8B8B85" text-anchor="end" font-family="Geist Mono">8 Å</text>
+                <text x="10" y="70" font-size="9" fill="#8B8B85" font-family="Geist Mono" transform="rotate(-90 10 70)">conf.</text>
+              </svg>
+            </sc-if>
+            <sc-if value="{{ vizAgree }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:12px;color:#55554F;margin-bottom:10px"><span style="font-weight:500;color:#1A1A18">Agreement between methods</span> · weighted by how independently they can fail.</div>
+              <div style="display:grid;grid-template-columns:90px repeat({{ rp.agreeN }},minmax(0,1fr));gap:4px;font-size:11.5px">
+                <div></div>
+                <sc-for list="{{ rp.agreeHead }}" as="h" hint-placeholder-count="3"><div style="text-align:center;color:#8B8B85;padding-bottom:2px">{{ h.name }}</div></sc-for>
+                <sc-for list="{{ rp.agreeRows }}" as="row" hint-placeholder-count="3">
+                  <div style="color:#55554F;display:flex;align-items:center">{{ row.method }}</div>
+                  <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="3">
+                    <div style="background:{{ cell.bg }};border-radius:4px;padding:9px 6px;text-align:center;color:{{ cell.color }}"><div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:12px;font-weight:500">{{ cell.value }}</div><div style="font-size:10px;opacity:.8;margin-top:1px">{{ cell.weight }}</div></div>
+                  </sc-for>
+                </sc-for>
+              </div>
+              <div style="font-size:11px;color:#8B8B85;margin-top:8px">{{ rp.agreeUnit }}</div>
+            </sc-if>
+            <sc-if value="{{ vizCalib }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:12px;color:#55554F;margin-bottom:10px"><span style="font-weight:500;color:#1A1A18">Calibration on the benchmark</span> · failure rate against crystal structures by confidence band.</div>
+              <svg viewBox="0 0 320 160" style="width:100%;height:auto;display:block">
+                <line x1="40" y1="130" x2="310" y2="130" stroke="#E6E6E1"></line><line x1="40" y1="10" x2="40" y2="130" stroke="#E6E6E1"></line>
+                <polyline points="{{ rp.calibFlagged }}" fill="none" stroke="#C4513B" stroke-width="2"></polyline>
+                <polyline points="{{ rp.calibPassed }}" fill="none" stroke="#3B8A58" stroke-width="2"></polyline>
+                <text x="44" y="18" font-size="9" fill="#C4513B" font-family="Geist Mono">flagged by harness</text>
+                <text x="44" y="30" font-size="9" fill="#3B8A58" font-family="Geist Mono">passed</text>
+                <text x="40" y="146" font-size="9" fill="#8B8B85" font-family="Geist Mono">0.5 confidence</text>
+                <text x="310" y="146" font-size="9" fill="#8B8B85" text-anchor="end" font-family="Geist Mono">1.0</text>
+                <text x="12" y="70" font-size="9" fill="#8B8B85" font-family="Geist Mono" transform="rotate(-90 12 70)">failure rate</text>
+              </svg>
+            </sc-if>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #E6E6E1;border-radius:8px;padding:16px 18px;display:flex;flex-direction:column;gap:12px">
+          <div style="font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#8B8B85">Controls</div>
+          <sc-for list="{{ rp.controls }}" as="c" hint-placeholder-count="2">
+            <div style="display:flex;gap:10px;font-size:12.5px;align-items:flex-start"><span style="width:8px;height:8px;border-radius:50%;background:{{ c.dot }};margin-top:5px;flex:none"></span><div><div style="font-weight:500">{{ c.name }}</div><div style="color:#8B8B85;font-size:12px">{{ c.note }}</div></div></div>
+          </sc-for>
+          <div style="font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#8B8B85;margin-top:4px">Tool outputs · attached unchanged</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <sc-for list="{{ rp.outputs }}" as="o" hint-placeholder-count="5"><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;background:#F6F6F3;border:1px solid #E6E6E1;border-radius:4px;padding:3px 7px">{{ o.name }}</span></sc-for>
+          </div>
+          <div style="font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#8B8B85;margin-top:4px">Run record</div>
+          <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:#55554F;line-height:1.7">{{ rp.recordLine1 }}<br>{{ rp.recordLine2 }}<br>{{ rp.recordLine3 }}</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <!-- ============ DOCUMENTS ============ -->
+  <sc-if value="{{ isDocs }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1240px;width:100%;margin:0 auto;padding:28px 24px 60px;display:grid;grid-template-columns:minmax(220px,280px) minmax(0,1fr);gap:24px;align-items:start;animation:fadeUp .3s ease-out">
+    <div data-print="hide" style="display:flex;flex-direction:column;gap:12px;position:sticky;top:70px">
+      <div><h1 style="margin:0 0 4px;font-size:20px;font-weight:600;letter-spacing:-.015em">Documents</h1><div style="color:#8B8B85">One report per completed run.</div></div>
+      <sc-for list="{{ docList }}" as="d" hint-placeholder-count="1">
+        <button onClick="{{ d.pick }}" style="text-align:left;background:{{ d.bg }};border:1px solid {{ d.border }};border-radius:8px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:3px" style-hover="border-color:#B07E2C">
+          <span style="font-weight:600;font-size:13px">{{ d.name }}</span>
+          <span style="font-size:11.5px;color:#8B8B85;font-family:'Geist Mono',ui-monospace,monospace">{{ d.id }}</span>
+          <span style="font-size:11.5px;color:{{ d.verdictColor }};font-weight:500">{{ d.verdictLabel }} · {{ d.date }}</span>
+        </button>
+      </sc-for>
+      <sc-if value="{{ noReport }}" hint-placeholder-val="{{ false }}"><div style="color:#8B8B85;font-size:12.5px">No documents yet.</div></sc-if>
+      <sc-if value="{{ hasReport }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+        <button onClick="{{ printDoc }}" style="background:#1A1A18;color:#fff;border:0;border-radius:6px;padding:9px 14px;font-size:12.5px;font-weight:500;cursor:pointer">Save as PDF</button>
+        <button onClick="{{ downloadRecord }}" style="background:#fff;border:1px solid #E6E6E1;border-radius:6px;padding:8px 14px;font-size:12.5px;font-weight:500;cursor:pointer;color:#1A1A18">Run record · JSON</button>
+        <button onClick="{{ downloadNotebook }}" style="background:#fff;border:1px solid #E6E6E1;border-radius:6px;padding:8px 14px;font-size:12.5px;font-weight:500;cursor:pointer;color:#1A1A18">Reproducible notebook · ipynb</button>
+      </div>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ hasReport }}" hint-placeholder-val="{{ false }}">
+    <div data-print="page" style="background:#fff;border:1px solid #E6E6E1;box-shadow:0 2px 12px rgba(0,0,0,.05);width:794px;max-width:100%;min-height:1123px;padding:64px 64px 72px;font-size:11.5pt;line-height:1.5;color:#1A1A18;justify-self:center">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #1A1A18;padding-bottom:14px;margin-bottom:22px">
+        <div><div style="font-size:9pt;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85">Prediction Assurance Harness · Report</div><div style="font-size:18pt;font-weight:600;letter-spacing:-.01em;margin-top:4px">{{ rp.name }}</div></div>
+        <div style="text-align:right;font-family:'Geist Mono',ui-monospace,monospace;font-size:9pt;color:#55554F">{{ rp.id }}<br>{{ rp.date }}</div>
+      </div>
+
+      <div style="font-size:9pt;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:6px">1 · Verdict</div>
+      <div style="display:flex;gap:12px;align-items:baseline;margin-bottom:6px"><span style="background:{{ rp.verdictBg }};color:{{ rp.verdictColor }};border-radius:4px;padding:2px 9px;font-weight:600;font-size:10.5pt">{{ rp.verdictLabel }}</span><span style="font-weight:500">“{{ rp.claim }}”</span></div>
+      <p style="margin:0 0 18px;text-wrap:pretty">{{ rp.statement }}</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px 18px;font-size:10pt;margin-bottom:22px;color:#55554F">
+        <div><span style="color:#8B8B85">Task</span><br>{{ rp.taskName }}</div>
+        <div><span style="color:#8B8B85">Executors</span><br>{{ rp.toolsLong }}</div>
+        <div><span style="color:#8B8B85">Inputs</span><br><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:9pt">{{ rp.target }} · {{ rp.reference }} · {{ rp.seeds }} seeds · pH {{ rp.ph }}</span></div>
+      </div>
+
+      <div style="font-size:9pt;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:6px">2 · Layer summary</div>
+      <div style="border-top:1px solid #1A1A18;margin-bottom:22px">
+        <sc-for list="{{ rp.layerStrip }}" as="l" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:28px minmax(0,1fr) 110px 130px;gap:10px;padding:6px 0;border-bottom:1px solid #E6E6E1;font-size:10pt;align-items:center">
+            <span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:9pt;color:#8B8B85">L{{ l.i }}</span><span>{{ l.name }}</span>
+            <span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:9pt;color:#55554F">{{ l.countsLong }}</span>
+            <span style="display:flex;align-items:center;gap:6px;color:{{ l.resultColor }};font-weight:500"><span style="width:7px;height:7px;border-radius:50%;background:{{ l.dot }}"></span>{{ l.result }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="font-size:9pt;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:6px">3 · Findings that warned or stopped</div>
+      <div style="margin-bottom:22px;font-size:10.5pt">
+        <sc-for list="{{ rp.flagged }}" as="c" hint-placeholder-count="2">
+          <div style="display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;padding:6px 0;border-bottom:1px solid #EFEFEB"><span style="font-weight:600;color:{{ c.color }};text-transform:uppercase;font-size:9pt;letter-spacing:.04em;padding-top:2px">{{ c.result }}</span><div><div style="font-weight:500">{{ c.name }}</div><div style="color:#55554F">{{ c.evidence }}</div><div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:8.5pt;color:#8B8B85">{{ c.id }} · {{ c.tool }} · gate {{ c.gate }}</div></div></div>
+        </sc-for>
+        <sc-if value="{{ rp.noFlags }}" hint-placeholder-val="{{ false }}"><div style="color:#55554F">No check warned or stopped.</div></sc-if>
+      </div>
+
+      <div style="font-size:9pt;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:6px">4 · Textual analysis</div>
+      <div style="margin-bottom:22px;display:flex;flex-direction:column;gap:8px;font-size:10.5pt"><sc-for list="{{ rp.narrative }}" as="n" hint-placeholder-count="7"><p style="margin:0;text-wrap:pretty">{{ n.text }}</p></sc-for></div>
+
+      <div style="font-size:9pt;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:6px">5 · Statistical analysis</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;font-size:10pt">
+        <div>
+          <div style="font-weight:500;margin-bottom:4px">Seed spread · RMSD to medoid</div>
+          <sc-for list="{{ rp.seedRows }}" as="s" hint-placeholder-count="5"><div style="display:grid;grid-template-columns:60px 1fr 50px;gap:8px;padding:2px 0;align-items:center"><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:9pt;color:#8B8B85">{{ s.seed }}</span><span style="height:6px;background:#ECECE8;border-radius:3px;overflow:hidden"><span style="display:block;height:100%;width:{{ s.pct }}%;background:{{ s.fill }}"></span></span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:9pt;text-align:right">{{ s.rmsd }} Å</span></div></sc-for>
+        </div>
+        <div>
+          <div style="font-weight:500;margin-bottom:4px">Agreement matrix · {{ rp.agreeUnit }}</div>
+          <sc-for list="{{ rp.agreeRows }}" as="row" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:70px repeat({{ rp.agreeN }},1fr);gap:4px;padding:2px 0;align-items:center"><span style="color:#55554F">{{ row.method }}</span><sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="3"><span style="background:{{ cell.bg }};color:{{ cell.color }};border-radius:3px;text-align:center;font-family:'Geist Mono',ui-monospace,monospace;font-size:9pt;padding:3px 0">{{ cell.value }}</span></sc-for></div></sc-for>
+          <div style="margin-top:10px;font-weight:500;margin-bottom:2px">Sampling</div>
+          <div style="color:#55554F">{{ rp.sitePlacement }}<br>{{ rp.poseAccuracy }}</div>
+        </div>
+      </div>
+
+      <div style="font-size:9pt;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:6px">6 · Run record · provenance</div>
+      <div style="border-top:1px solid #1A1A18;margin-bottom:14px;font-size:9.5pt">
+        <sc-for list="{{ rp.sources }}" as="s" hint-placeholder-count="8">
+          <div style="display:grid;grid-template-columns:120px minmax(0,1fr) 90px 120px;gap:8px;padding:4px 0;border-bottom:1px solid #EFEFEB;align-items:baseline"><span style="font-weight:500">{{ s.source }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:8.5pt;color:#55554F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.accession }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:8.5pt;color:#8B8B85">{{ s.release }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:8.5pt;color:#8B8B85">sha256 {{ s.sha }}</span></div>
+        </sc-for>
+      </div>
+      <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:8.5pt;color:#55554F;line-height:1.7">{{ rp.recordLine1 }}<br>{{ rp.recordLine2 }}<br>{{ rp.recordLine3 }}<br>notebook {{ rp.notebook }} reruns every query and check from this record</div>
+      <div style="margin-top:28px;padding-top:10px;border-top:1px solid #E6E6E1;font-size:8.5pt;color:#8B8B85;text-wrap:pretty">The harness establishes when a result should not be trusted and does not establish that a result is correct. Absence of a detected failure is not evidence of accuracy.</div>
+    </div>
+    </sc-if>
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;simSpeed&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1,&quot;min&quot;:0.25,&quot;max&quot;:6,&quot;step&quot;:0.25,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Simulation&quot;,&quot;unit&quot;:&quot;×&quot;},&quot;maxConcurrent&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:3,&quot;min&quot;:1,&quot;max&quot;:8,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Simulation&quot;},&quot;viewerMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;molstar&quot;,&quot;options&quot;:[&quot;molstar&quot;,&quot;placeholder&quot;],&quot;tsType&quot;:&quot;'molstar' | 'placeholder'&quot;,&quot;section&quot;:&quot;Report&quot;}}">
+class Component extends DCLogic {
+  state = {
+    view: 'new', data: null, jobs: [], selectedJobId: null, reportJobId: null, reportLayer: 4, vizTab: 'pae', docJobId: null,
+    nl: { text: '', interpreting: false, steps: [] },
+    form: { task: 'ligand_pose', tools: ['boltz2', 'gnina'], target: 'P00519', ligand: 'Cc1ccc(NC(=O)c2ccc(CN3CCN(C)CC3)cc2)cc1Nc1nccc(-c2cccnc2)n1', partner: '', reference: '1IEP', ph: 7.4, seeds: 5, name: '' },
+    tick: 0,
+  };
+  P = { pass: '#3B8A58', warn: '#C28A1A', stop: '#C4513B', reported: '#8B8B85', pending: '#D7D7D2', accent: '#B07E2C' };
+  T = { pass: '#E4F1E8', warn: '#FAF0D9', stop: '#F9E5E0', reported: '#EFEFEB' };
+  LOGC = { pass: '#6FBF8A', warn: '#E3B45A', stop: '#E8826E', reported: '#A9A9A3', fetch: '#C9C9C3', cache: '#8B8B85' };
+  LAYERC = ['#9BB7D4', '#B5A2D6', '#E0B35A', '#C9A27A', '#7FC4A3', '#D48FA4'];
+
+  async componentDidMount() {
+    const data = await import('./data/runs.js');
+    const now = Date.now();
+    const jobs = data.PRESET_JOBS.map((p, i) => this.makeJob(data, p.form, p.name, now - (3 - i) * 95000, p.status, p.layerIdx));
+    this.setState({ data, jobs, selectedJobId: jobs[1].id, reportJobId: jobs[0].id, docJobId: jobs[0].id });
+    this._last = performance.now();
+    this._timer = setInterval(() => this.tick(), 110);
+  }
+  componentWillUnmount() { clearInterval(this._timer); this._viewer?.dispose?.(); }
+  componentDidUpdate() {
+    if (this._logEl) this._logEl.scrollTop = this._logEl.scrollHeight;
+    this.ensureViewer();
+    if (this._paeEl) this.drawPae(this._paeEl);
+  }
+
+  makeJob(data, form, name, createdAt, status = 'queued', layerIdx = 0) {
+    const record = data.makeRunRecord(form, createdAt);
+    const job = { id: record.id, name: name || this.suggestName(form), form, record, status, layerIdx: status === 'done' ? 6 : layerIdx, progress: 0, elapsedMs: 0, log: [], emitted: {}, createdAt };
+    if (status === 'done') { for (let i = 0; i < 6; i++) this.emitLayer(job, i, 1); job.elapsedMs = record.layers.reduce((a, l) => a + l.durationMs, 0); }
+    if (status === 'running') { for (let i = 0; i < layerIdx; i++) this.emitLayer(job, i, 1); job.elapsedMs = record.layers.slice(0, layerIdx).reduce((a, l) => a + l.durationMs, 0); }
+    return job;
+  }
+  suggestName(form) {
+    const d = this.state.data; if (!d) return '';
+    const t = d.TASKS.find(x => x.id === form.task);
+    return `${form.target} · ${t ? t.name.toLowerCase() : 'run'}`;
+  }
+  linesFor(job, i) {
+    const rec = job.record;
+    if (i === 0) return rec.sources.map(s => ({ layer: 0, kind: s.cached ? 'cache' : 'fetch', result: null, text: `${s.cached ? 'cache hit' : 'GET'} ${s.source} ${s.accession} · ${s.release} · sha256 ${s.sha256.slice(0, 10)}… · ${s.ms} ms` }))
+      .concat(rec.layers[0].checks.map(c => ({ layer: 0, kind: 'check', result: c.result, text: `${c.id} → ${c.result} · ${c.evidence}` })));
+    return rec.layers[i].checks.map(c => ({ layer: i, kind: 'check', result: c.result, text: `${c.id} [${c.tool}] → ${c.result} · ${c.evidence}` }));
+  }
+  emitLayer(job, i, frac) {
+    const lines = this.linesFor(job, i);
+    const want = Math.min(lines.length, Math.floor(frac * lines.length + 1e-6));
+    const have = job.emitted[i] || 0;
+    for (let k = have; k < want; k++) job.log.push({ ...lines[k], t: ((job.elapsedMs) / 1000).toFixed(1) + 's' });
+    job.emitted[i] = Math.max(have, want);
+    if (frac >= 1 && !job.log.some(l => l.kind === 'layer' && l.layer === i)) {
+      const chk = job.record.layers[i].checks; const stops = chk.filter(c => c.result === 'stop').length; const warns = chk.filter(c => c.result === 'warn').length;
+      job.log.push({ layer: i, kind: 'layer', result: stops ? 'stop' : warns ? 'warn' : 'pass', t: (job.elapsedMs / 1000).toFixed(1) + 's', text: `layer ${i} complete · ${chk.length} checks · ${stops ? stops + ' stop' : warns ? warns + ' warn' : 'clean'}${stops && i < 4 ? ' · run refused for the declared claim; post-run checks continue on the precomputed prediction' : ''}` });
+    }
+  }
+  tick() {
+    const now = performance.now(); const dt = Math.min(400, now - this._last); this._last = now;
+    const speed = this.props.simSpeed ?? 1; const maxC = this.props.maxConcurrent ?? 3;
+    let changed = false;
+    const jobs = this.state.jobs.map(j => ({ ...j }));
+    let running = jobs.filter(j => j.status === 'running').length;
+    for (const j of jobs) {
+      if (j.status === 'queued' && running < maxC) { j.status = 'running'; j.log = [...j.log, { layer: 0, kind: 'fetch', t: '0.0s', text: `slot acquired · SLURM array ${j.record.record.scheduler.split(' ').pop()} · ${j.record.tools.map(t => t.container).join(', ')}` }]; running++; changed = true; }
+      if (j.status !== 'running') continue;
+      changed = true;
+      j.elapsedMs += dt * speed;
+      const dur = j.record.layers[j.layerIdx].durationMs;
+      j.progress += (dt * speed) / dur;
+      j.log = [...j.log]; j.emitted = { ...j.emitted };
+      if (j.progress >= 1) { this.emitLayer(j, j.layerIdx, 1); j.layerIdx += 1; j.progress = 0; if (j.layerIdx >= 6) { j.status = 'done'; j.log.push({ layer: 5, kind: 'layer', result: j.record.verdict.outcome === 'refused' ? 'stop' : j.record.verdict.outcome === 'narrowed' ? 'warn' : 'pass', t: (j.elapsedMs / 1000).toFixed(1) + 's', text: `verdict · ${j.record.verdict.outcome} · report generated from run record` }); } }
+      else this.emitLayer(j, j.layerIdx, j.progress);
+    }
+    if (changed) this.setState({ jobs, tick: this.state.tick + 1 });
+  }
+
+  viewerRef = (el) => { if (!el) { try { this._viewer?.dispose?.(); } catch (e) {} this._viewer = null; this._viewerPdb = null; this._viewerEl = null; return; } this._viewerEl = el; this.ensureViewer(); };
+  ensureViewer() {
+    const rec = this.reportRecord(); if (!rec || !this._viewerEl || !window.molstar || this._creating) return;
+    const pdb = rec.inputs.reference; if (this._viewerPdb === pdb) return;
+    this._viewerPdb = pdb;
+    const opts = { layoutIsExpanded: false, layoutShowControls: false, layoutShowSequence: false, layoutShowLog: false, layoutShowLeftPanel: false, viewportShowExpand: false, viewportShowSelectionMode: false, viewportShowAnimation: false, viewportShowSettings: false, viewportShowTrajectoryControls: false, pdbProvider: 'rcsb', emdbProvider: 'rcsb' };
+    if (!this._viewer) {
+      this._creating = true;
+      window.molstar.Viewer.create(this._viewerEl, opts).then(v => { this._creating = false; this._viewer = v; try { v.plugin.canvas3d?.setProps({ renderer: { backgroundColor: 0xF6F6F3 } }); } catch (e) {} return v.loadPdb(pdb); }).catch(() => { this._creating = false; });
+    } else { try { this._viewer.plugin.clear(); this._viewer.loadPdb(pdb); } catch (e) {} }
+  }
+  paeRef = (el) => { this._paeEl = el; if (el) this.drawPae(el); };
+  drawPae(el) {
+    const rec = this.reportRecord(); if (!rec) return; if (el._pdb === rec.id) return; el._pdb = rec.id;
+    const ctx = el.getContext('2d'); const n = 44; const cell = 220 / n; const disc = rec.task === 'interaction_discovery'; const split = disc ? 26 : 36;
+    let s = 7; const r = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+      const same = (i < split) === (j < split); const d = Math.abs(i - j);
+      let pae = same ? Math.min(30, 1 + d * 0.25 + r() * 2.5) : (disc ? 9 + r() * 12 : 3 + r() * 3);
+      if (!same && !disc && (i >= split || j >= split)) pae = 2.5 + r() * 2;
+      const t = Math.min(1, pae / 30);
+      const c = t < 0.5 ? mix([47, 107, 79], [185, 215, 195], t * 2) : mix([185, 215, 195], [246, 246, 243], (t - 0.5) * 2);
+      ctx.fillStyle = `rgb(${c.join(',')})`; ctx.fillRect(i * cell, j * cell, cell + 0.5, cell + 0.5);
+    }
+    ctx.strokeStyle = '#B07E2C'; ctx.lineWidth = 1; ctx.strokeRect(split * cell + 0.5, 0.5, (n - split) * cell - 1, (n - split) * cell - 1 > 0 ? split * cell - 1 : 0);
+    function mix(a, b, t) { return a.map((x, k) => Math.round(x + (b[k] - x) * t)); }
+  }
+  logRef = (el) => { this._logEl = el; if (el) el.scrollTop = el.scrollHeight; };
+
+  reportRecord() { const j = this.state.jobs.find(x => x.id === this.state.reportJobId && x.status === 'done'); return j ? j.record : null; }
+  go(view) { return () => this.setState({ view }); }
+  setForm(k, fn = v => v) { return (e) => this.setState({ form: { ...this.state.form, [k]: fn(e.target.value) } }); }
+  interpret = () => {
+    const { data, nl } = this.state; if (!data || !nl.text.trim()) return;
+    this.setState({ nl: { ...nl, interpreting: true, steps: [] } });
+    const res = data.interpretRun(nl.text);
+    res.steps.forEach((s, i) => setTimeout(() => {
+      const cur = this.state.nl; const f = { ...this.state.form };
+      if (s.field !== 'claim') f[s.field] = s.value;
+      this.setState({ nl: { ...cur, steps: [...cur.steps, s], interpreting: i < res.steps.length - 1 }, form: f });
+    }, 260 + i * 240));
+  };
+  submit = () => {
+    const { data, form } = this.state; if (!data) return;
+    const job = this.makeJob(data, { ...form, seeds: +form.seeds || 5, ph: +form.ph || 7.4 }, form.name || this.suggestName(form), Date.now(), 'queued');
+    this.setState({ jobs: [job, ...this.state.jobs], selectedJobId: job.id, view: 'jobs', form: { ...form, name: '' }, nl: { text: '', interpreting: false, steps: [] } });
+  };
+  download(name, text, type = 'application/json') { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+  downloadRecord = () => { const r = this.reportRecord(); if (r) this.download(`${r.id}.json`, JSON.stringify(r, null, 2)); };
+  downloadNotebook = () => {
+    const r = this.reportRecord(); if (!r) return;
+    const cell = (src) => ({ cell_type: 'code', metadata: {}, outputs: [], execution_count: null, source: src });
+    const nb = { nbformat: 4, nbformat_minor: 5, metadata: { kernelspec: { name: 'python3', display_name: 'Python 3' }, papermill: { parameters: { run_record: `${r.id}.json` } } }, cells: [
+      { cell_type: 'markdown', metadata: {}, source: `# ${r.id}\nReruns every query and check from the run record.` },
+      cell(`import json\nrecord = json.load(open('${r.id}.json'))`),
+      cell(`# Layer 0: refetch every source and compare SHA-256\nfor s in record['sources']:\n    assert fetch(s['source'], s['accession'], s['release']).sha256 == s['sha256'], s`),
+      ...r.layers.slice(1).map(l => cell(`# Layer ${l.i}: ${l.name}\nfor c in record['layers'][${l.i}]['checks']:\n    assert run_check(c['id'], record['inputs']).result == c['result'], c['id']`)),
+    ] };
+    this.download(r.record.notebook, JSON.stringify(nb, null, 2));
+  };
+
+  renderVals() {
+    const { view, data, jobs, form, nl } = this.state; const P = this.P, T = this.T;
+    const running = jobs.filter(j => j.status === 'running').length, queued = jobs.filter(j => j.status === 'queued').length, done = jobs.filter(j => j.status === 'done').length;
+    const tabs = [['new', 'New run'], ['jobs', 'Jobs', running + queued], ['report', 'Reports', done], ['docs', 'Documents', done]].map(([id, label, badge]) => ({ label, go: this.go(id), bg: view === id ? '#F1F1ED' : 'transparent', color: view === id ? '#1A1A18' : '#55554F', hasBadge: !!badge, badge, badgeBg: id === 'jobs' && running ? '#F6EEDC' : '#ECECE8', badgeColor: id === 'jobs' && running ? '#8E6420' : '#55554F' }));
+    const vals = {
+      tabs, isNew: view === 'new', isJobs: view === 'jobs', isReport: view === 'report', isDocs: view === 'docs', goNew: this.go('new'),
+      clusterStatus: running ? `${running} running · ${queued} queued` : queued ? `${queued} queued` : 'idle', clusterDotColor: running ? P.accent : '#B9B9B3', clusterDotAnim: running ? 'pulse 1.4s infinite' : 'none',
+      useMolstar: (this.props.viewerMode ?? 'molstar') === 'molstar', usePlaceholder: (this.props.viewerMode ?? 'molstar') !== 'molstar',
+    };
+    if (!data) return vals;
+    const task = data.TASKS.find(t => t.id === form.task) || data.TASKS[0];
+    // ----- New run -----
+    const isDisc = task.id === 'interaction_discovery';
+    Object.assign(vals, {
+      nlText: nl.text, onNlText: e => this.setState({ nl: { ...nl, text: e.target.value } }), interpret: this.interpret, interpreting: nl.interpreting, interpretDisabled: nl.interpreting || !nl.text.trim(), interpretOpacity: nl.interpreting || !nl.text.trim() ? 0.5 : 1, interpretLabel: nl.interpreting ? 'Interpreting' : 'Interpret and set up',
+      hasSteps: nl.steps.length > 0, nlSteps: nl.steps.map(s => ({ ...s, value: Array.isArray(s.value) ? s.value.map(id => data.TOOLS.find(t => t.id === id)?.name || id).join(', ') : s.field === 'task' ? data.TASKS.find(t => t.id === s.value)?.name : String(s.value) })),
+      samplePrompts: data.SAMPLE_PROMPTS.map(p => ({ short: p.length > 58 ? p.slice(0, 56) + '…' : p, use: () => this.setState({ nl: { text: p, interpreting: false, steps: [] } }) })),
+      taskOptions: data.TASKS.map(t => ({ ...t, select: () => this.setState({ form: { ...form, task: t.id, tools: t.defaultTools, partner: t.id === 'interaction_discovery' ? (form.partner || 'P04049') : form.partner } }), bg: form.task === t.id ? '#FBF7EE' : '#fff', border: form.task === t.id ? P.accent : '#E6E6E1', dot: form.task === t.id ? P.accent : 'transparent', dotBorder: form.task === t.id ? P.accent : '#D7D7D2' })),
+      toolChips: data.TOOLS.map(t => { const on = form.tools.includes(t.id); return { ...t, disabled: !t.available, note: t.note || '', cursor: t.available ? 'pointer' : 'not-allowed', opacity: t.available ? 1 : 0.5, bg: on ? '#FBF7EE' : '#fff', border: on ? P.accent : '#E6E6E1', famColor: t.family === 'co-folding' ? P.accent : '#5B7FA6', toggle: () => this.setState({ form: { ...form, tools: on ? form.tools.filter(x => x !== t.id) : [...form.tools, t.id] } }) }; }),
+      form, showPartner: isDisc, showLigand: !isDisc, ligandLabel: task.id === 'affinity_ranking' ? 'Series · SMILES of the reference member' : 'Ligand · SMILES',
+      onTarget: this.setForm('target'), onPartner: this.setForm('partner'), onReference: this.setForm('reference'), onSeeds: this.setForm('seeds'), onPh: this.setForm('ph'), onLigand: this.setForm('ligand'), onName: this.setForm('name'),
+      nameSuggestion: this.suggestName(form), planClaim: task.claim, planLayers: data.LAYERS, planTools: form.tools.map(id => data.TOOLS.find(t => t.id === id)?.name).filter(Boolean).join(' + ') || 'none selected', planControls: task.controls.join(', '), planSources: isDisc ? '10 objects · 9 sources' : '10 objects · 10 sources', planTime: '25–50 s per prediction', submit: this.submit,
+    });
+    // ----- Jobs -----
+    const sel = jobs.find(j => j.id === this.state.selectedJobId) || jobs[0];
+    const worst = (checks) => checks.some(c => c.result === 'stop') ? 'stop' : checks.some(c => c.result === 'warn') ? 'warn' : 'pass';
+    const verdictMeta = (o) => o === 'refused' ? { label: 'Refused', bg: T.stop, color: P.stop } : o === 'narrowed' ? { label: 'Narrowed', bg: T.warn, color: '#8E6420' } : { label: 'Supported', bg: T.pass, color: P.pass };
+    vals.jobsSummary = `${running} running · ${queued} queued · ${done} completed · up to ${this.props.maxConcurrent ?? 3} concurrent`;
+    vals.jobCards = jobs.map(j => {
+      const vm = verdictMeta(j.record.verdict.outcome); const L = j.record.layers[Math.min(j.layerIdx, 5)];
+      return {
+        ...j, taskName: data.TASKS.find(t => t.id === j.form.task)?.name, tools: j.record.tools.map(t => t.name).join(' + '), seeds: j.form.seeds, select: () => this.setState({ selectedJobId: j.id }),
+        border: sel && sel.id === j.id ? P.accent : '#E6E6E1', shadow: sel && sel.id === j.id ? '0 0 0 3px rgba(176,126,44,.10)' : 'none',
+        done: j.status === 'done', notDone: j.status !== 'done', verdictLabel: vm.label, verdictBg: vm.bg, verdictColor: vm.color, openReport: (e) => { e.stopPropagation(); this.setState({ reportJobId: j.id, docJobId: j.id, view: 'report', reportLayer: j.record.verdict.outcome === 'refused' ? j.record.layers.findIndex(l => l.checks.some(c => c.result === 'stop')) : 4 }); },
+        dot: j.status === 'running' ? P.accent : '#B9B9B3', dotAnim: j.status === 'running' ? 'pulse 1.2s infinite' : 'none', statusLabel: j.status === 'running' ? `Layer ${j.layerIdx} · ${L.name}` : 'Queued',
+        phase: j.status === 'done' ? `complete · ${j.record.layers.reduce((a, l) => a + l.checks.length, 0)} checks` : j.status === 'running' ? `L${j.layerIdx} ${L.question}` : 'waiting for a slot', elapsed: `${(j.elapsedMs / 1000).toFixed(1)} s`,
+        segs: j.record.layers.map((l, i) => { const doneL = i < j.layerIdx; const cur = i === j.layerIdx && j.status === 'running'; const w = doneL ? worst(l.checks) : null; const n = j.emitted[i] || 0; const emittedChecks = j.log.filter(x => x.layer === i && x.kind === 'check'); const p = emittedChecks.filter(c => c.result === 'pass').length, wn = emittedChecks.filter(c => c.result === 'warn').length, st = emittedChecks.filter(c => c.result === 'stop').length;
+          return { i, name: l.name, pct: doneL ? 100 : cur ? Math.round(j.progress * 100) : 0, color: doneL ? P[w] : P.accent, labelColor: doneL || cur ? '#55554F' : '#B9B9B3', counts: doneL || cur ? `${p}${wn ? ' ·' + wn + 'w' : ''}${st ? ' ·' + st + 's' : ''}` : '' }; }),
+      };
+    });
+    const lines = sel ? sel.log : [];
+    Object.assign(vals, {
+      logJobName: sel ? sel.name : '—', logDot: sel && sel.status === 'running' ? P.accent : sel && sel.status === 'done' ? '#6FBF8A' : '#6B6B66', logDotAnim: sel && sel.status === 'running' ? 'pulse 1.2s infinite' : 'none', logCount: lines.length, logEmpty: lines.length === 0, logRef: this.logRef,
+      logLines: lines.map(l => ({ ...l, layerColor: this.LAYERC[l.layer], color: l.kind === 'layer' ? '#fff' : l.result ? this.LOGC[l.result] : this.LOGC[l.kind] })),
+      evPass: lines.filter(l => l.kind === 'check' && l.result === 'pass').length, evWarn: lines.filter(l => l.kind === 'check' && l.result === 'warn').length, evStop: lines.filter(l => l.kind === 'check' && l.result === 'stop').length, evFetched: lines.filter(l => l.kind === 'fetch' || l.kind === 'cache').length,
+    });
+    // ----- Report / Docs -----
+    const doneJobs = jobs.filter(j => j.status === 'done');
+    const rj = doneJobs.find(j => j.id === this.state.reportJobId) || doneJobs[0];
+    vals.reportPicker = doneJobs.map(j => ({ name: j.name, pick: () => this.setState({ reportJobId: j.id, docJobId: j.id }), bg: rj && rj.id === j.id ? '#1A1A18' : '#fff', color: rj && rj.id === j.id ? '#fff' : '#55554F', border: rj && rj.id === j.id ? '#1A1A18' : '#E6E6E1' }));
+    vals.docList = doneJobs.map(j => { const vm = verdictMeta(j.record.verdict.outcome); return { name: j.name, id: j.id, pick: () => this.setState({ reportJobId: j.id, docJobId: j.id }), bg: rj && rj.id === j.id ? '#FBF7EE' : '#fff', border: rj && rj.id === j.id ? P.accent : '#E6E6E1', verdictLabel: vm.label, verdictColor: vm.color, date: new Date(j.record.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) }; });
+    vals.noReport = !rj; vals.hasReport = !!rj;
+    if (!rj) { vals.rp = {}; return vals; }
+    if (rj.id !== this.state.reportJobId) setTimeout(() => this.setState({ reportJobId: rj.id, docJobId: rj.id }), 0);
+    const r = rj.record; const vm = verdictMeta(r.verdict.outcome); const li = Math.min(5, Math.max(0, this.state.reportLayer)); const L = r.layers[li];
+    const resColor = (res) => res === 'reported' ? P.reported : P[res];
+    const lig = r.task !== 'interaction_discovery';
+    const seedPts = r.stats.seeds.map((s, i) => ({ cx: 40 + Math.min(8, s.rmsdToMedoid) / 8 * 270, cy: 118 - (s.confidence - 0.5) / 0.5 * 100, ty: 118 - (s.confidence - 0.5) / 0.5 * 100 + 16, fill: s.rmsdToMedoid < 2 ? P.pass : P.warn, label: `s${s.seed}` }));
+    const calib = (key) => r.stats.calibration.map(p => `${40 + (p.x - 0.5) / 0.5 * 270},${130 - p[key] * 115}`).join(' ');
+    const flagged = r.layers.flatMap(l => l.checks.filter(c => c.result === 'warn' || c.result === 'stop')).map(c => ({ ...c, color: P[c.result] }));
+    vals.vizTabs = [['pae', 'PAE'], ['seeds', 'Seeds'], ['agree', 'Agreement'], ['calib', 'Calibration']].map(([id, label]) => ({ label, select: () => this.setState({ vizTab: id }), underline: this.state.vizTab === id ? P.accent : 'transparent', color: this.state.vizTab === id ? '#1A1A18' : '#8B8B85' }));
+    vals.vizPae = this.state.vizTab === 'pae'; vals.vizSeeds = this.state.vizTab === 'seeds'; vals.vizAgree = this.state.vizTab === 'agree'; vals.vizCalib = this.state.vizTab === 'calib';
+    vals.viewerRef = this.viewerRef; vals.paeRef = this.paeRef; vals.openDoc = () => this.setState({ view: 'docs', docJobId: rj.id }); vals.downloadRecord = this.downloadRecord; vals.downloadNotebook = this.downloadNotebook; vals.printDoc = () => window.print();
+    vals.rp = {
+      name: rj.name, id: r.id, claim: r.claim, statement: r.verdict.statement, verdictLabel: vm.label, verdictBg: vm.bg, verdictColor: vm.color, taskName: r.taskName, tools: r.tools.map(t => t.name).join(' + '), toolsLong: r.tools.map(t => `${t.name} ${t.version}`).join(', '),
+      target: r.inputs.target, reference: r.inputs.reference, seeds: r.inputs.seeds, ph: r.inputs.ph, date: new Date(r.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }),
+      layerStrip: r.layers.map((l, i) => { const w = worst(l.checks); const p = l.checks.filter(c => c.result === 'pass').length, wn = l.checks.filter(c => c.result === 'warn').length, st = l.checks.filter(c => c.result === 'stop').length; return { i, name: l.name, select: () => this.setState({ reportLayer: i }), bg: li === i ? '#FBF7EE' : '#fff', border: li === i ? P.accent : '#E6E6E1', dot: P[w], counts: `${p} pass${wn ? ` · ${wn} warn` : ''}${st ? ` · ${st} stop` : ''}`, countsLong: `${l.checks.length} checks · ${p}/${wn}/${st}`, result: w === 'stop' ? 'Stopped' : w === 'warn' ? 'Warned' : 'Passed', resultColor: P[w] }; }),
+      layer: { i: L.i, name: L.name, question: L.question, duration: `${(L.durationMs / 1000).toFixed(1)} s`, checks: L.checks.map(c => ({ ...c, dot: c.result === 'reported' ? 'transparent' : resColor(c.result), dotBorder: resColor(c.result), color: resColor(c.result) })) },
+      metrics: r.stats.metrics.map((m, i) => ({ ...m, border: m.separate ? P.accent : i === 0 ? 'transparent' : '#F1F1ED', valueColor: m.separate ? '#8E6420' : '#1A1A18' })),
+      sitePlacement: r.stats.sitePlacement, poseAccuracy: r.stats.poseAccuracy,
+      hasPerturbation: r.stats.perturbation.length > 0, perturbation: r.stats.perturbation.map(p => ({ ...p, dot: p.ok ? P.pass : P.warn, color: p.ok ? '#1A1A18' : '#8E6420' })),
+      narrative: r.narrative.map(text => ({ text })),
+      paeCaption: lig ? `Pocket block (outlined) at ${r.stats.metrics[1].value}. The interface block is read, never the whole matrix.` : `Interface block (outlined) at ${r.stats.metrics[1].value}, high relative to intra-chain error.`,
+      seedPts, seedCut: 40 + 2 / 8 * 270, seedRows: r.stats.seeds.map(s => ({ seed: `s${s.seed}`, rmsd: s.rmsdToMedoid.toFixed(2), pct: Math.min(100, s.rmsdToMedoid / 8 * 100), fill: s.rmsdToMedoid < 2 ? P.pass : P.warn })),
+      agreeN: r.stats.agreement.length, agreeHead: r.stats.agreement.map(a => ({ name: a.method })), agreeUnit: lig ? 'Symmetry-aware ligand RMSD, Å (spyrmsd)' : 'Interface RMSD, Å (DockQ)',
+      agreeRows: r.stats.agreement.map(a => ({ method: a.method, cells: a.cells.map(c => { const t = Math.min(1, c.value / 8); return { value: c.value === 0 ? '—' : c.value.toFixed(1), weight: c.weight, bg: c.value === 0 ? '#F6F6F3' : t < 0.25 ? T.pass : t < 0.6 ? T.warn : T.stop, color: c.value === 0 ? '#B9B9B3' : t < 0.25 ? P.pass : t < 0.6 ? '#8E6420' : P.stop }; }) })),
+      calibFlagged: calib('flagged'), calibPassed: calib('passed'),
+      controls: r.controls.map(c => ({ ...c, dot: c.status === 'sound' ? P.pass : P.stop })), outputs: r.outputs.map(name => ({ name })),
+      recordLine1: `${r.record.hardware}`, recordLine2: `${r.record.scheduler} · containers ${r.record.containers.join(', ')} · accelerated ${r.record.acceleratedMode}`, recordLine3: `seeds ${r.record.seeds.join(' ')} · ${r.inputs.samples} samples each · ${r.sources.length} sources pinned`,
+      notebook: r.record.notebook, flagged, noFlags: flagged.length === 0, sources: r.sources.map(s => ({ ...s, sha: s.sha256.slice(0, 12) + '…' })),
+    };
+    return vals;
+  }
+}
+</script>
+</body>
+</html>

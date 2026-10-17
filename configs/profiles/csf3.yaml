@@ -1,0 +1,25 @@
+# Manchester CSF3. Slurm + Apptainer. Compute nodes may have no outbound network,
+# so the content cache is filled on the login node and runs on compute nodes use offline mode.
+name: csf3
+backend: slurm
+cache_dir: ${HOME}/scratch/pah/cache
+runs_dir: ${HOME}/scratch/pah/runs
+offline: true
+tools_dir: ${HOME}/scratch/pah/.tools
+conda_prefix: ${HOME}/scratch/pah/.tools/conda-env
+slurm:
+  # Partition and module names are unverified here. Confirm with `sinfo -s` and `module avail` on CSF3.
+  partition_cpu: multicore
+  partition_gpu: gpu_l40s
+  account: null
+  time_cpu: "01:00:00"
+  time_gpu: "04:00:00"
+  cpus_per_task: 4
+  gpus_per_task: 1
+  array_max_parallel: 64
+  modules: [tools/apptainer]
+apptainer:
+  image_dir: ${HOME}/scratch/pah/images
+  bind: ["${HOME}/scratch/pah:/pah"]
+doctor:
+  categories: [sources, tools, executors, skills, infrastructure]

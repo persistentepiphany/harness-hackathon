@@ -1,0 +1,18 @@
+# Modal. One image per executor; GPU functions for executors, CPU for checks.
+name: modal
+backend: modal
+cache_dir: /cache
+runs_dir: /runs
+offline: false
+tools_dir: /opt/pah-tools
+conda_prefix: /opt/conda
+modal:
+  app_name: pah
+  volume_cache: pah-cache
+  volume_runs: pah-runs
+  gpu: L40S
+  cpu: 4
+  memory_mb: 16384
+  timeout_s: 3600
+doctor:
+  categories: [sources, tools, executors, skills, infrastructure]

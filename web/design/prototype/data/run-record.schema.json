@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RunRecord",
+  "description": "Machine-readable run record behind every harness report. The UI renders exclusively from this object; the report is generated from it so nothing in the report can disagree with what was computed.",
+  "type": "object",
+  "required": ["id", "createdAt", "task", "claim", "tools", "inputs", "sources", "layers", "verdict", "stats", "narrative", "controls", "outputs", "record"],
+  "properties": {
+    "id": { "type": "string" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "task": { "enum": ["ligand_pose", "interaction_discovery", "affinity_ranking", "monomer", "known_complex", "binding_site", "variant_effect", "design_validation", "redocking", "pose_known_pocket", "blind_docking", "virtual_screening", "series_scoring", "protein_protein_docking"] },
+    "taskName": { "type": "string" },
+    "claim": { "type": "string", "description": "The permitted claim for this task; the verdict is scoped to it." },
+    "tools": { "type": "array", "items": { "type": "object", "required": ["id", "name", "version"], "properties": { "id": { "type": "string" }, "name": { "type": "string" }, "version": { "type": "string" }, "family": { "enum": ["co-folding", "docking"] }, "container": { "type": "string" } } } },
+    "inputs": { "type": "object", "properties": { "target": { "type": "string", "description": "UniProt accession" }, "partner": { "type": ["string", "null"] }, "ligand": { "type": ["string", "null"], "description": "SMILES" }, "reference": { "type": "string", "description": "PDB ID" }, "ph": { "type": "number" }, "seeds": { "type": "integer" }, "samples": { "type": "integer" }, "assembly": { "type": "string" } } },
+    "sources": { "type": "array", "description": "Layer 0 provenance, one entry per fetched object.", "items": { "type": "object", "required": ["source", "accession", "release", "sha256", "retrievedAt"], "properties": { "source": { "type": "string" }, "supplies": { "type": "string" }, "accession": { "type": "string" }, "release": { "type": "string" }, "version": { "type": "string" }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }, "retrievedAt": { "type": "string", "format": "date-time" }, "cached": { "type": "boolean" }, "ms": { "type": "integer" } } } },
+    "layers": { "type": "array", "minItems": 6, "maxItems": 6, "items": { "type": "object", "required": ["i", "key", "name", "checks"], "properties": { "i": { "type": "integer" }, "key": { "enum": ["provenance", "integrity", "adequacy", "applicability", "validity", "support"] }, "name": { "type": "string" }, "question": { "type": "string" }, "durationMs": { "type": "integer" }, "checks": { "type": "array", "items": { "$ref": "#/$defs/check" } } } } },
+    "verdict": { "type": "object", "required": ["claim", "outcome", "statement"], "properties": { "claim": { "type": "string" }, "outcome": { "enum": ["supported", "narrowed", "refused"] }, "statement": { "type": "string" }, "stops": { "type": "array", "items": { "type": "string" } }, "warnings": { "type": "array", "items": { "type": "string" } } } },
+    "stats": { "type": "object", "properties": {
+      "seeds": { "type": "array", "items": { "type": "object", "properties": { "seed": { "type": "integer" }, "rmsdToMedoid": { "type": "number" }, "cluster": { "type": "integer" }, "confidence": { "type": "number" } } } },
+      "agreement": { "type": "array", "items": { "type": "object", "properties": { "method": { "type": "string" }, "cells": { "type": "array", "items": { "type": "object", "properties": { "vs": { "type": "string" }, "value": { "type": "number" }, "unit": { "type": "string" }, "weight": { "enum": ["—", "low", "moderate", "high", "decisive"] } } } } } } },
+      "perturbation": { "type": "array", "items": { "type": "object", "properties": { "name": { "type": "string" }, "construction": { "type": "string" }, "expected": { "type": "string" }, "observed": { "type": "string" }, "ok": { "type": "boolean" } } } },
+      "calibration": { "type": "array", "items": { "type": "object", "properties": { "x": { "type": "number" }, "passed": { "type": "number" }, "flagged": { "type": "number" } } } },
+      "metrics": { "type": "array", "items": { "type": "object", "properties": { "name": { "type": "string" }, "value": { "type": "string" }, "read": { "type": "string" }, "tool": { "type": "string" }, "separate": { "type": "boolean", "description": "Reported on its own line (e.g. Boltz-2 affinity, never pose quality)." } } } },
+      "sitePlacement": { "type": "string" }, "poseAccuracy": { "type": "string" } } },
+    "narrative": { "type": "array", "items": { "type": "string" }, "description": "Textual analysis, one paragraph per layer plus the verdict, templated from findings." },
+    "controls": { "type": "array", "items": { "type": "object", "properties": { "name": { "type": "string" }, "status": { "enum": ["sound", "incomplete", "missing"] }, "note": { "type": "string" } } } },
+    "outputs": { "type": "array", "items": { "type": "string" }, "description": "Raw tool outputs attached unchanged." },
+    "record": { "type": "object", "properties": { "hardware": { "type": "string" }, "scheduler": { "type": "string" }, "containers": { "type": "array", "items": { "type": "string" } }, "acceleratedMode": { "type": "string" }, "seeds": { "type": "array", "items": { "type": "integer" } }, "notebook": { "type": "string" } } }
+  },
+  "$defs": {
+    "check": { "type": "object", "required": ["id", "name", "gate", "result"], "properties": { "id": { "type": "string", "description": "Shared-library check id, e.g. ppi.msa.integrity" }, "name": { "type": "string" }, "tool": { "type": "string" }, "gate": { "enum": ["Stop", "Warn", "Reported"] }, "result": { "enum": ["pass", "warn", "stop", "reported", "pending"] }, "evidence": { "type": "string" }, "threshold": { "type": "object", "properties": { "value": { "type": "string" }, "origin": { "type": "string" }, "evidenceLevel": { "type": "string" } } } } }
+  }
+}

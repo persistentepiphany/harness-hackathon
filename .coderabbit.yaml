@@ -1,0 +1,14 @@
+language: en-GB
+reviews:
+  profile: assertive
+  auto_review:
+    enabled: true
+    drafts: true
+  path_filters:
+    - "!third_party/**"
+    - "!docs/SPECIFICATION.md"
+  path_instructions:
+    - path: "src/**/*.py"
+      instructions: "Check SOLID, typed interfaces, no silent fallbacks, heavy imports kept local. Rules in CLAUDE.md."
+    - path: "configs/**/*.yaml"
+      instructions: "Check URLs, ids unique, probe kinds valid."

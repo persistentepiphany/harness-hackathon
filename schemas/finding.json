@@ -1,0 +1,238 @@
+{
+  "$defs": {
+    "EvidenceLevel": {
+      "description": "Strength of the evidence behind a threshold or failure mode.",
+      "enum": [
+        "reproduced",
+        "published",
+        "suspected",
+        "uncalibrated"
+      ],
+      "title": "EvidenceLevel",
+      "type": "string"
+    },
+    "Gate": {
+      "description": "Outcome of a single check.",
+      "enum": [
+        "pass",
+        "warn",
+        "stop",
+        "skip"
+      ],
+      "title": "Gate",
+      "type": "string"
+    },
+    "Layer": {
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "title": "Layer",
+      "type": "integer"
+    },
+    "Measurement": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "Measurement",
+      "type": "object"
+    },
+    "Threshold": {
+      "additionalProperties": false,
+      "properties": {
+        "comparator": {
+          "description": "One of <, <=, >, >=, ==, !=, in",
+          "title": "Comparator",
+          "type": "string"
+        },
+        "evidence_level": {
+          "$ref": "#/$defs/EvidenceLevel",
+          "default": "uncalibrated"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "origin": {
+          "description": "Citation or calibration run the value comes from",
+          "title": "Origin",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "name",
+        "value",
+        "comparator",
+        "origin"
+      ],
+      "title": "Threshold",
+      "type": "object"
+    },
+    "ToolRef": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "ToolRef",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/persistentepiphany/harness-hackathon/schemas/finding.json",
+  "additionalProperties": false,
+  "description": "Result of one check, with the values and thresholds that produced the gate.",
+  "properties": {
+    "artifacts": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "check_id": {
+      "title": "Check Id",
+      "type": "string"
+    },
+    "duration_s": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Duration S"
+    },
+    "evidence": {
+      "additionalProperties": true,
+      "title": "Evidence",
+      "type": "object"
+    },
+    "gate": {
+      "$ref": "#/$defs/Gate"
+    },
+    "layer": {
+      "$ref": "#/$defs/Layer"
+    },
+    "measurements": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Measurement"
+      },
+      "title": "Measurements",
+      "type": "array"
+    },
+    "message": {
+      "title": "Message",
+      "type": "string"
+    },
+    "thresholds": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Threshold"
+      },
+      "title": "Thresholds",
+      "type": "array"
+    },
+    "tool": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ToolRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "check_id",
+    "layer",
+    "gate",
+    "message"
+  ],
+  "title": "Finding",
+  "type": "object"
+}

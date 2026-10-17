@@ -1,0 +1,29 @@
+# 1STP BTN: streptavidin + biotin (stereocentres)
+task: ligand_pose
+claim: Pose within stated uncertainty
+proteins:
+- id: P22629_e1
+  uniprot: P22629
+  pdb_id: 1STP
+  chain: A
+  sequence: DPSKDSKAQVSAAEAGITGTWYNQLGSTFIVTAGADGALTGTYESAVGNAESRYVLTGRYDSAPATDGSGTALGWTVAWKNNYRNAHSATTWSGQYVGGAEARINTQWLLTSGTTEANAWKSTLVGHDTFTKVKPSAASIDAAKKAGVNNGNPLDAVQQ
+  copies: 1
+ligands:
+- id: btn
+  ccd: BTN
+  smiles: C1[C@H]2[C@@H]([C@@H](S1)CCCCC(=O)O)NC(=O)N2
+  file: BTN.sdf
+receptor:
+  pdb_id: 1STP
+  chains:
+  - A
+model:
+  executor: boltz2
+  version: 2.2.1
+  checkpoint: boltz2_conf.ckpt
+  seeds:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4

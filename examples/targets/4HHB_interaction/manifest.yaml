@@ -1,0 +1,25 @@
+# 4HHB alpha/beta, interaction discovery, layers 0-1
+task: interaction_discovery
+proteins:
+- id: P69905_e1
+  uniprot: P69905
+  pdb_id: 4HHB
+  chain: A
+  sequence: VLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSHGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR
+  copies: 2
+- id: P68871_e2
+  uniprot: P68871
+  pdb_id: 4HHB
+  chain: B
+  sequence: VHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH
+  copies: 2
+model:
+  executor: alphafold3
+  version: 3.0.1
+  checkpoint: af3.bin.zst
+  seeds:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5

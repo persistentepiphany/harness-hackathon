@@ -1,0 +1,97 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pah"
+version = "0.1.0"
+description = "Prediction assurance harness for co-folding and docking outputs"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "GPL-3.0-or-later"
+authors = [{ name = "persistentepiphany", email = "tennesseeshtick@proton.me" }]
+dependencies = [
+  "pydantic>=2.7",
+  "pyyaml>=6.0",
+  "httpx>=0.27",
+  "typer>=0.12",
+  "rich>=13.7",
+]
+
+[project.optional-dependencies]
+checks = [
+  "rdkit>=2024.3",
+  "posebusters>=0.6",
+  "gemmi>=0.7",
+  "pdbfixer>=1.10",
+  "openmm>=8.1",
+  "plip>=2.4",
+  "prolif>=2.0",
+  "freesasa>=2.2",
+  "spyrmsd>=0.8",
+  "DockQ>=2.1",
+  "meeko>=0.6",
+  "dimorphite-dl>=2.0",
+  "propka>=3.5",
+  "pdb2pqr>=3.6",
+  "vina>=1.2.5",
+  "alphajudge>=1.4",
+  "numpy>=1.26",
+  "scipy>=1.11",
+  "pandas>=2.1",
+  "scikit-learn>=1.4",
+]
+report = [
+  "pymol-open-source-whl>=3.0",
+  "matplotlib>=3.8",
+  "networkx>=3.2",
+  "papermill>=2.5",
+]
+mcp = ["mcp>=1.2"]
+api = ["fastapi>=0.110", "uvicorn>=0.29", "sse-starlette>=2.0"]
+modal = ["modal>=0.64"]
+slurm = ["submitit>=1.5"]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.5", "mypy>=1.10", "types-PyYAML"]
+all = ["pah[checks,report,mcp,api,modal,slurm]"]
+
+[project.scripts]
+pah = "pah.interfaces.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pah"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"configs" = "pah/_configs"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["third_party", ".claude/skills", "web"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "N", "PTH", "TID"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src/pah"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+# Checks wrap untyped scientific libraries (RDKit, gemmi); calls into them are not typed.
+module = ["pah.checks.*"]
+disallow_untyped_calls = false
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = ["rdkit.*", "gemmi.*", "posebusters.*", "pymol.*", "plip.*", "freesasa.*", "spyrmsd.*", "modal.*", "submitit.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+  "network: requires outbound network",
+  "tools: requires the checks extra",
+  "pymol: renders with real PyMOL",
+]

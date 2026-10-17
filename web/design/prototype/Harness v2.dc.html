@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/molstar@4/build/viewer/molstar.css">
+<script src="https://cdn.jsdelivr.net/npm/molstar@4/build/viewer/molstar.js"></script>
+<style>
+html,body{margin:0;padding:0;background:#F7F7F4;color:#1A1A18;font-family:Geist,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#1A1A18;text-decoration:none}a:hover{color:#B07E2C}
+input,textarea,button{font-family:inherit}
+input:focus,textarea:focus{outline:none;border-color:#B07E2C !important}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#DEDED9;border-radius:8px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media print{[data-print="hide"]{display:none !important}body{background:#fff}[data-print="page"]{box-shadow:none !important;border:0 !important;margin:0 !important;width:auto !important;min-height:0 !important}}
+.msp-plugin .msp-viewport-controls{display:none}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;font-size:13px;line-height:1.45">
+  <nav data-print="hide" style="height:44px;background:#F7F7F4;border-bottom:1px solid #E6E6E1;display:flex;align-items:center;padding:0 24px;gap:32px;position:sticky;top:0;z-index:20">
+    <div style="display:flex;align-items:center;gap:9px"><div style="width:14px;height:14px;border:1.5px solid #1A1A18;border-radius:3px;position:relative"><div style="position:absolute;inset:3px;background:#B07E2C;border-radius:1px"></div></div><div style="font-weight:600;font-size:13px">Harness</div></div>
+    <div style="display:flex;gap:2px;flex:1">
+      <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="5">
+        <button onClick="{{ tab.go }}" style="background:transparent;color:{{ tab.color }};border:0;border-bottom:1.5px solid {{ tab.underline }};border-radius:0;padding:12px 10px 11px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;flex:none;transition:color .15s" style-hover="color:#1A1A18">
+          <span>{{ tab.label }}</span>
+          <sc-if value="{{ tab.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="color:#8B8B85;font-size:11px;font-family:'Geist Mono',ui-monospace,monospace">{{ tab.badge }}</span></sc-if>
+        </button>
+      </sc-for>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;color:#55554F;font-size:12px"><span style="width:6px;height:6px;border-radius:50%;background:{{ clusterDotColor }};animation:{{ clusterDotAnim }}"></span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px">{{ clusterStatus }}</span></div>
+  </nav>
+
+  <!-- ============ NEW RUN ============ -->
+  <sc-if value="{{ isNew }}" hint-placeholder-val="{{ true }}">
+  <div style="max-width:1160px;width:100%;margin:0 auto;padding:44px 24px 80px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:48px;align-items:start;animation:fadeUp .3s ease-out">
+    <div style="display:flex;flex-direction:column;gap:30px;min-width:0">
+      <h1 style="margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em">New run</h1>
+      <div>
+        <textarea value="{{ nlText }}" onChange="{{ onNlText }}" placeholder="Dock imatinib into the ABL1 pocket with Boltz-2, 5 seeds, compare against 1IEP" rows="3" style="width:100%;resize:none;border:1px solid #E6E6E1;border-radius:8px;padding:14px 16px;font-size:15px;line-height:1.5;background:#fff;color:#1A1A18;min-height:92px"></textarea>
+        <div style="display:flex;gap:14px;margin-top:12px;flex-wrap:wrap">
+          <sc-for list="{{ samplePrompts }}" as="p" hint-placeholder-count="3"><button onClick="{{ p.use }}" style="background:none;border:0;padding:0;font-size:12px;color:#8B8B85;cursor:pointer;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis" style-hover="color:#1A1A18">{{ p.short }}</button></sc-for>
+        </div>
+        <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:12px">
+          <button onClick="{{ manualSetup }}" style="background:transparent;border:1px solid #E6E6E1;border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:500;cursor:pointer;color:#55554F" style-hover="border-color:#1A1A18;color:#1A1A18">Manual setup</button>
+          <button onClick="{{ quickSetup }}" disabled="{{ quickDisabled }}" style="background:#1A1A18;color:#fff;border:0;border-radius:6px;padding:8px 14px;font-size:12.5px;font-weight:500;cursor:pointer;opacity:{{ quickOpacity }};transition:opacity .2s">Quick setup</button>
+        </div>
+      </div>
+
+      <sc-if value="{{ streamVisible }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;border-left:1px solid #E6E6E1;padding-left:18px;margin-left:6px">
+          <sc-for list="{{ stream }}" as="s" hint-placeholder-count="0">
+            <div style="display:grid;grid-template-columns:14px 92px minmax(0,1fr);gap:12px;align-items:baseline;padding:7px 0;animation:fadeUp .3s ease-out both">
+              <span style="position:relative;top:2px;width:10px;height:10px;border-radius:50%;border:1.5px solid {{ s.ring }};border-top-color:{{ s.ringTop }};animation:{{ s.anim }};background:{{ s.fill }}"></span>
+              <span style="font-size:12px;color:#8B8B85">{{ s.label }}</span>
+              <span style="font-size:13.5px;color:{{ s.color }};overflow-wrap:anywhere">{{ s.value }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ streamDone }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:10px;padding:14px 0 4px 26px;animation:fadeUp .3s ease-out both">
+              <button onClick="{{ submit }}" style="background:#1A1A18;color:#fff;border:0;border-radius:6px;padding:8px 14px;font-size:12.5px;font-weight:500;cursor:pointer">Start run</button>
+              <button onClick="{{ manualSetup }}" style="background:transparent;border:0;padding:8px 6px;font-size:12.5px;color:#8B8B85;cursor:pointer" style-hover="color:#1A1A18">Adjust manually</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- Targets -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px"><div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85">Targets</div><span style="font-size:11px;color:#B9B9B3">examples · any UniProt accession or name works</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <sc-for list="{{ targetChips }}" as="t" hint-placeholder-count="6"><button onClick="{{ t.select }}" style="background:{{ t.bg }};color:{{ t.color }};border:1px solid {{ t.border }};border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:500;cursor:pointer;display:flex;gap:8px;align-items:baseline;transition:all .15s" style-hover="border-color:#1A1A18"><span>{{ t.label }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:10.5px;color:{{ t.sub }}">{{ t.accession }}</span></button></sc-for>
+          <input value="{{ addTarget }}" onChange="{{ onAddTarget }}" onKeyDown="{{ onAddTargetKey }}" placeholder="+ accession or name" style="border:1px dashed #D7D7D2;border-radius:6px;padding:7px 11px;font-size:12.5px;background:transparent;width:170px;font-family:'Geist Mono',ui-monospace,monospace">
+        </div>
+        <sc-if value="{{ hasTargetDetail }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:14px;background:#fff;border:1px solid #E6E6E1;border-radius:8px;padding:16px 18px;animation:fadeUp .3s ease-out">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:12px"><div style="font-weight:600;font-size:14px">{{ td.label }} <span style="font-family:'Geist Mono',ui-monospace,monospace;font-weight:400;font-size:12px;color:#8B8B85;margin-left:6px">{{ td.entry }} · {{ td.accession }}</span></div><sc-if value="{{ td.loading }}" hint-placeholder-val="{{ false }}"><span style="width:9px;height:9px;border-radius:50%;border:1.5px solid #E6E6E1;border-top-color:#B07E2C;animation:spin .8s linear infinite"></span></sc-if></div>
+            <sc-if value="{{ td.ready }}" hint-placeholder-val="{{ true }}">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 18px;font-size:12.5px;animation:fadeIn .3s ease-out">
+                <sc-for list="{{ td.rows }}" as="r" hint-placeholder-count="8"><div><div style="color:#8B8B85;font-size:11px">{{ r.k }}</div><div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:12px;margin-top:1px">{{ r.v }}</div></div></sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{ showLigand }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px"><div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85">Ligands</div><span style="font-size:11px;color:#B9B9B3">examples · paste any SMILES, CCD code or name</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <sc-for list="{{ ligandChips }}" as="l" hint-placeholder-count="3"><button onClick="{{ l.select }}" style="background:{{ l.bg }};color:{{ l.color }};border:1px solid {{ l.border }};border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:500;cursor:pointer;display:flex;gap:8px;align-items:baseline;transition:all .15s" style-hover="border-color:#1A1A18"><span>{{ l.label }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:10.5px;color:{{ l.sub }}">{{ l.ccd }}</span></button></sc-for>
+          <input value="{{ addLigand }}" onChange="{{ onAddLigand }}" onKeyDown="{{ onAddLigandKey }}" placeholder="+ SMILES, CCD or name" style="border:1px dashed #D7D7D2;border-radius:6px;padding:7px 11px;font-size:12.5px;background:transparent;width:190px;font-family:'Geist Mono',ui-monospace,monospace">
+        </div>
+        <sc-if value="{{ hasLigandDetail }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:14px;background:#fff;border:1px solid #E6E6E1;border-radius:8px;padding:16px 18px;animation:fadeUp .3s ease-out">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px"><div style="font-weight:600;font-size:14px">{{ ld.label }} <span style="font-family:'Geist Mono',ui-monospace,monospace;font-weight:400;font-size:12px;color:#8B8B85;margin-left:6px">{{ ld.formula }} · {{ ld.mw }}</span></div><sc-if value="{{ ld.loading }}" hint-placeholder-val="{{ false }}"><span style="width:9px;height:9px;border-radius:50%;border:1.5px solid #E6E6E1;border-top-color:#B07E2C;animation:spin .8s linear infinite"></span></sc-if></div>
+            <sc-if value="{{ ld.ready }}" hint-placeholder-val="{{ true }}">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 18px;font-size:12.5px;animation:fadeIn .3s ease-out">
+                <sc-for list="{{ ld.rows }}" as="r" hint-placeholder-count="6"><div style="min-width:0"><div style="color:#8B8B85;font-size:11px">{{ r.k }}</div><div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:12px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.v }}</div></div></sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px"><div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85">Files</div><span style="font-size:11px;color:#B9B9B3">receptor, sequence, ligand or series · parsed on drop</span></div>
+          <div onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}" onClick="{{ browseFiles }}" style="border:1px dashed {{ dropBorder }};background:{{ dropBg }};border-radius:8px;padding:18px;display:flex;align-items:center;justify-content:center;gap:10px;color:#8B8B85;font-size:12.5px;cursor:pointer;transition:all .15s;min-height:72px">
+            <input type="file" multiple ref="{{ fileInputRef }}" onChange="{{ onFiles }}" accept=".pdb,.cif,.mmcif,.fasta,.fa,.sdf,.mol,.mol2,.smi,.csv,.json" style="display:none">
+            <sc-if value="{{ noFiles }}" hint-placeholder-val="{{ true }}"><span>Drop PDB, mmCIF, FASTA, SDF or SMILES files</span></sc-if>
+            <sc-if value="{{ hasFiles }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-wrap:wrap;gap:6px;width:100%">
+                <sc-for list="{{ files }}" as="f" hint-placeholder-count="0">
+                  <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #E6E6E1;border-radius:6px;padding:5px 9px;font-size:12px;color:#1A1A18;animation:fadeUp .25s ease-out both">
+                    <span style="width:8px;height:8px;border-radius:50%;border:1.5px solid {{ f.ring }};border-top-color:{{ f.ringTop }};animation:{{ f.anim }};background:{{ f.fill }}"></span>
+                    <span style="font-family:'Geist Mono',ui-monospace,monospace">{{ f.name }}</span><span style="color:#8B8B85">{{ f.parsed }}</span>
+                    <button onClick="{{ f.remove }}" style="background:none;border:0;color:#B9B9B3;cursor:pointer;padding:0 0 0 2px;font-size:13px;line-height:1" style-hover="color:#1A1A18">×</button>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+      </div>
+
+      <sc-if value="{{ manualVisible }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:30px;animation:fadeUp .3s ease-out">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px"><div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85">Task · co-folding</div><span style="font-size:11px;color:#B9B9B3">{{ taskClaimHint }}</span></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <sc-for list="{{ taskOptionsCofold }}" as="t" hint-placeholder-count="8"><button onClick="{{ t.select }}" style="background:{{ t.bg }};color:{{ t.color }};border:1px solid {{ t.border }};border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:500;cursor:pointer;transition:all .15s" style-hover="border-color:#1A1A18">{{ t.name }}</button></sc-for>
+          </div>
+          <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#B9B9B3;margin:16px 0 8px">Task · docking</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <sc-for list="{{ taskOptionsDock }}" as="t" hint-placeholder-count="6"><button onClick="{{ t.select }}" style="background:{{ t.bg }};color:{{ t.color }};border:1px dashed {{ t.border }};border-radius:6px;padding:6px 11px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s" style-hover="border-color:#1A1A18">{{ t.name }}</button></sc-for>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px"><div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85">Co-folding</div><span style="font-size:11px;color:#B9B9B3">registered executors · add any tool with a container</span></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            <sc-for list="{{ cofoldChips }}" as="c" hint-placeholder-count="4"><button onClick="{{ c.toggle }}" disabled="{{ c.disabled }}" title="{{ c.note }}" style="display:flex;align-items:center;gap:8px;background:{{ c.bg }};border:1px solid {{ c.border }};border-radius:6px;padding:7px 12px;cursor:{{ c.cursor }};opacity:{{ c.opacity }};transition:all .15s" style-hover="border-color:#1A1A18"><span style="font-weight:500;font-size:12.5px">{{ c.name }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:10.5px;color:#8B8B85">{{ c.version }}</span></button></sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;margin:18px 0 8px"><div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#B9B9B3">Docking · cross-check</div><div style="flex:1;border-top:1px solid #EFEFEB"></div></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <sc-for list="{{ dockChips }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.toggle }}" disabled="{{ c.disabled }}" title="{{ c.note }}" style="display:flex;align-items:center;gap:8px;background:{{ c.bg }};border:1px dashed {{ c.border }};border-radius:6px;padding:5px 10px;cursor:{{ c.cursor }};opacity:{{ c.opacity }};transition:all .15s" style-hover="border-color:#1A1A18"><span style="font-weight:500;font-size:12px;color:#55554F">{{ c.name }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:10.5px;color:#B9B9B3">{{ c.version }}</span></button></sc-for>
+            <input value="{{ addTool }}" onChange="{{ onAddTool }}" onKeyDown="{{ onAddToolKey }}" placeholder="+ executor · image:tag" style="border:1px dashed #D7D7D2;border-radius:6px;padding:5px 10px;font-size:12px;background:transparent;width:180px;font-family:'Geist Mono',ui-monospace,monospace">
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:10px">Inputs</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+            <input value="{{ form.target }}" onChange="{{ onTarget }}" placeholder="Target · UniProt" style="width:100%;border:1px solid #E6E6E1;border-radius:6px;padding:9px 11px;font-size:13px;background:#fff;font-family:'Geist Mono',ui-monospace,monospace">
+            <sc-if value="{{ showPartner }}" hint-placeholder-val="{{ false }}"><input value="{{ form.partner }}" onChange="{{ onPartner }}" placeholder="Partner · UniProt" style="width:100%;border:1px solid #E6E6E1;border-radius:6px;padding:9px 11px;font-size:13px;background:#fff;font-family:'Geist Mono',ui-monospace,monospace"></sc-if>
+            <input value="{{ form.reference }}" onChange="{{ onReference }}" placeholder="Reference · PDB" style="width:100%;border:1px solid #E6E6E1;border-radius:6px;padding:9px 11px;font-size:13px;background:#fff;font-family:'Geist Mono',ui-monospace,monospace">
+            <input type="number" min="1" max="20" value="{{ form.seeds }}" onChange="{{ onSeeds }}" placeholder="Seeds" style="width:100%;border:1px solid #E6E6E1;border-radius:6px;padding:9px 11px;font-size:13px;background:#fff;font-family:'Geist Mono',ui-monospace,monospace">
+            <sc-if value="{{ showLigand }}" hint-placeholder-val="{{ true }}"><input type="number" step="0.1" value="{{ form.ph }}" onChange="{{ onPh }}" placeholder="pH" style="width:100%;border:1px solid #E6E6E1;border-radius:6px;padding:9px 11px;font-size:13px;background:#fff;font-family:'Geist Mono',ui-monospace,monospace"></sc-if>
+          </div>
+          <sc-if value="{{ showLigand }}" hint-placeholder-val="{{ true }}"><input value="{{ form.ligand }}" onChange="{{ onLigand }}" placeholder="Ligand · SMILES" style="width:100%;border:1px solid #E6E6E1;border-radius:6px;padding:9px 11px;font-size:12.5px;background:#fff;font-family:'Geist Mono',ui-monospace,monospace;margin-top:10px"></sc-if>
+        </div>
+      </div>
+      </sc-if>
+    </div>
+
+    <div style="position:sticky;top:68px;display:flex;flex-direction:column;gap:28px;min-width:0">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px"><div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85">Sources</div><sc-if value="{{ entitiesBusy }}" hint-placeholder-val="{{ false }}"><span style="width:9px;height:9px;border-radius:50%;border:1.5px solid #E6E6E1;border-top-color:#B07E2C;animation:spin .8s linear infinite"></span></sc-if></div>
+        <sc-if value="{{ noEntities }}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px;color:#B9B9B3">Records load here as targets and ligands are named.</div></sc-if>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ entityGroups }}" as="g" hint-placeholder-count="0">
+            <div style="animation:fadeUp .3s ease-out both">
+              <div style="font-weight:600;font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;border-radius:2px;background:{{ g.color }}"></span>{{ g.title }}</div>
+              <div style="display:flex;flex-direction:column;gap:1px">
+                <sc-for list="{{ g.items }}" as="e" hint-placeholder-count="0">
+                  <div style="display:grid;grid-template-columns:12px 84px minmax(0,1fr);gap:8px;padding:5px 0;border-top:1px solid #EFEFEB;animation:fadeIn .3s ease-out both;align-items:start">
+                    <span style="position:relative;top:4px;width:8px;height:8px;border-radius:50%;border:1.5px solid {{ e.ring }};border-top-color:{{ e.ringTop }};animation:{{ e.anim }};background:{{ e.fill }}"></span>
+                    <span style="font-size:11.5px;color:#8B8B85;padding-top:1px">{{ e.source }}</span>
+                    <div style="min-width:0;font-size:12px">
+                      <sc-if value="{{ e.loading }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Geist Mono',ui-monospace,monospace;color:#B9B9B3">{{ e.query }}</span></sc-if>
+                      <sc-if value="{{ e.ok }}" hint-placeholder-val="{{ true }}"><sc-for list="{{ e.rows }}" as="r" hint-placeholder-count="0"><div style="display:flex;gap:8px;min-width:0;animation:fadeIn .25s ease-out both"><span style="color:#8B8B85;flex:none">{{ r.k }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.v }}</span></div></sc-for></sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <sc-if value="{{ manualVisible }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:12px;border-top:1px solid #E6E6E1;padding-top:18px">
+        <input value="{{ form.name }}" onChange="{{ onName }}" placeholder="{{ nameSuggestion }}" style="width:100%;border:0;border-bottom:1px solid #E6E6E1;border-radius:0;padding:4px 0 8px;font-size:14px;background:transparent;font-weight:600">
+        <div style="font-size:12.5px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;gap:12px"><span style="color:#8B8B85;width:72px;flex:none">Claim</span><span style="text-wrap:pretty">{{ planClaim }}</span></div>
+          <div style="display:flex;gap:12px"><span style="color:#8B8B85;width:72px;flex:none">Executors</span><span>{{ planTools }}</span></div>
+          <div style="display:flex;gap:12px"><span style="color:#8B8B85;width:72px;flex:none">Controls</span><span style="text-wrap:pretty">{{ planControls }}</span></div>
+        </div>
+        <button onClick="{{ submit }}" style="background:#1A1A18;color:#fff;border:0;border-radius:6px;padding:9px 14px;font-size:12.5px;font-weight:500;cursor:pointer;margin-top:4px">Start run</button>
+      </div>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ JOBS (overview) ============ -->
+  <sc-if value="{{ isJobs }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1000px;width:100%;margin:0 auto;padding:44px 24px 80px;display:flex;flex-direction:column;gap:10px;animation:fadeUp .3s ease-out">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px"><h1 style="margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em">Jobs <span style="color:#8B8B85;font-weight:400;font-size:13px;margin-left:8px">{{ jobsSummary }}</span></h1><button onClick="{{ goNew }}" style="background:transparent;border:1px solid #E6E6E1;border-radius:6px;padding:6px 11px;font-size:12.5px;font-weight:500;cursor:pointer;color:#55554F" style-hover="border-color:#1A1A18;color:#1A1A18">New run</button></div>
+    <sc-for list="{{ jobCards }}" as="j" hint-placeholder-count="3">
+      <div onClick="{{ j.open }}" style="background:transparent;border-top:1px solid #E6E6E1;padding:22px 0 24px;cursor:pointer;display:grid;grid-template-columns:44px minmax(0,1fr) 180px;gap:24px;align-items:start;animation:fadeUp .3s ease-out both" style-hover="background:#fff">
+        <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:12px;color:#8B8B85;padding-top:3px">{{ j.num }}</div>
+        <div style="min-width:0;display:flex;flex-direction:column;gap:14px">
+          <div style="font-weight:600;font-size:15px;letter-spacing:-.01em">{{ j.name }}</div>
+          <div style="display:grid;grid-template-columns:72px minmax(0,1fr);gap:5px 16px;font-size:12.5px">
+            <span style="color:#8B8B85">Task</span><span>{{ j.taskLong }}</span>
+            <span style="color:#8B8B85">Models</span><span>{{ j.toolsLong }}</span>
+            <span style="color:#8B8B85">Inputs</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:12px">{{ j.inputs }}</span>
+            <span style="color:#8B8B85">Claim</span><span style="text-wrap:pretty">{{ j.claim }}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;margin-top:2px">
+            <sc-for list="{{ j.segs }}" as="s" hint-placeholder-count="6"><div title="{{ s.name }}"><div style="height:3px;background:#ECECE8;border-radius:2px;overflow:hidden"><div style="height:100%;width:{{ s.pct }}%;background:{{ s.color }};transition:width .12s linear"></div></div><div style="display:flex;justify-content:space-between;gap:6px;margin-top:5px;font-size:10.5px;color:{{ s.labelColor }}"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;flex:none">{{ s.counts }}</span></div></div></sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding-top:2px">
+          <sc-if value="{{ j.done }}" hint-placeholder-val="{{ false }}"><span style="color:{{ j.verdictColor }};font-size:14px;font-weight:600">{{ j.verdictLabel }}</span></sc-if>
+          <sc-if value="{{ j.notDone }}" hint-placeholder-val="{{ true }}"><span style="display:flex;align-items:center;gap:7px;color:#1A1A18;font-size:13px;font-weight:500"><span style="width:6px;height:6px;border-radius:50%;background:{{ j.dot }};animation:{{ j.dotAnim }}"></span>{{ j.statusLabel }}</span></sc-if>
+          <span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:12px;color:#55554F">{{ j.elapsed }}</span>
+          <span style="font-size:11.5px;color:#8B8B85;text-align:right">{{ j.checksLine }}</span>
+          <span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:10.5px;color:#B9B9B3">{{ j.id }}</span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
+
+  <!-- ============ RUN (single job) ============ -->
+  <sc-if value="{{ isRun }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1160px;width:100%;margin:0 auto;padding:44px 24px 80px;display:flex;flex-direction:column;gap:28px;animation:fadeUp .3s ease-out">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+      <div>
+        <button onClick="{{ goJobs }}" style="background:none;border:0;padding:0;font-size:12px;color:#8B8B85;cursor:pointer;margin-bottom:8px" style-hover="color:#1A1A18">← All jobs</button>
+        <h1 style="margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em">{{ rj.name }}</h1>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,max-content));gap:8px 28px;margin-top:12px;font-size:12.5px">
+          <div><div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:2px">Task</div><div>{{ rj.taskName }}</div></div>
+          <div><div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:2px">Models</div><div>{{ rj.tools }}</div></div>
+          <div><div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:2px">Sampling</div><div>{{ rj.seeds }} seeds × 5 samples</div></div>
+          <div><div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:2px">Run</div><div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:12px">{{ rj.id }}</div></div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:30px;font-weight:500;letter-spacing:-.02em;line-height:1">{{ rj.elapsed }}</div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:6px;font-size:12px;color:{{ rj.statusColor }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ rj.dot }};animation:{{ rj.dotAnim }}"></span>{{ rj.statusLabel }}</div>
+        <sc-if value="{{ rj.done }}" hint-placeholder-val="{{ false }}"><button onClick="{{ rj.openReport }}" style="background:#1A1A18;color:#fff;border:0;border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:500;cursor:pointer;margin-top:10px">Open report</button></sc-if>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px">
+      <sc-for list="{{ rj.layers }}" as="l" hint-placeholder-count="6">
+        <div style="border-top:2px solid {{ l.bar }};padding-top:8px;transition:border-color .2s">
+          <div style="font-size:12px;color:{{ l.color }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ l.name }}</div>
+          <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:12px;margin-top:3px;color:{{ l.valueColor }}">{{ l.value }}</div>
+          <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:10.5px;color:#8B8B85;margin-top:2px">{{ l.counts }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,360px);gap:32px;align-items:start">
+      <div style="background:{{ logBg }};color:{{ logFg }};border:1px solid {{ logBorder }};border-radius:8px;overflow:hidden;display:flex;flex-direction:column;height:min(620px,calc(100vh - 300px));min-height:320px;transition:background .2s">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px 10px 14px;border-bottom:1px solid {{ logLine }}">
+          <span style="font-size:12px;color:{{ logMuted }};font-family:'Geist Mono',ui-monospace,monospace">{{ rj.currentStep }}</span>
+          <div style="display:flex;gap:2px;background:{{ logToggleBg }};border-radius:5px;padding:2px;flex:none">
+            <button onClick="{{ setPlain }}" style="background:{{ plainBg }};color:{{ plainFg }};border:0;border-radius:4px;padding:3px 9px;font-size:11px;font-weight:500;cursor:pointer">Plain</button>
+            <button onClick="{{ setTerminal }}" style="background:{{ termBg }};color:{{ termFg }};border:0;border-radius:4px;padding:3px 9px;font-size:11px;font-weight:500;cursor:pointer">Terminal</button>
+          </div>
+        </div>
+        <div ref="{{ logRef }}" style="flex:1;overflow:auto;padding:10px 14px;font-family:{{ logFont }};font-size:{{ logSize }};line-height:1.6">
+          <sc-for list="{{ logLines }}" as="ln" hint-placeholder-count="0">
+            <div style="display:grid;grid-template-columns:44px 14px minmax(0,1fr);gap:10px;animation:fadeIn .25s ease-out both;padding:{{ logPad }} 0">
+              <span style="color:{{ logMuted }}">{{ ln.t }}</span>
+              <span style="width:6px;height:6px;border-radius:50%;background:{{ ln.dotColor }};position:relative;top:6px"></span>
+              <span style="color:{{ ln.color }};overflow-wrap:anywhere;font-weight:{{ ln.weight }}">{{ ln.text }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ logEmpty }}" hint-placeholder-val="{{ false }}"><div style="color:{{ logMuted }}">Waiting for a slot.</div></sc-if>
+        </div>
+        <div style="display:flex;gap:14px;padding:9px 14px;border-top:1px solid {{ logLine }};font-size:11px;font-family:'Geist Mono',ui-monospace,monospace;color:{{ logMuted }}"><span style="color:#6FBF8A">{{ evPass }} pass</span><span style="color:#E3B45A">{{ evWarn }} warn</span><span style="color:#E8826E">{{ evStop }} stop</span><span style="margin-left:auto">{{ evFetched }} fetched · {{ evChecks }} checks</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:22px">
+        <div>
+          <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:8px">Executors</div>
+          <sc-for list="{{ rj.execution }}" as="e" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:12px minmax(0,1fr);gap:10px;padding:7px 0;border-top:1px solid #EFEFEB;font-size:12.5px"><span style="position:relative;top:5px;width:8px;height:8px;border-radius:50%;border:1.5px solid {{ e.ring }};border-top-color:{{ e.ringTop }};animation:{{ e.anim }};background:{{ e.fill }}"></span><div><div style="font-weight:500">{{ e.tool }}</div><div style="color:#55554F;font-size:12px;text-wrap:pretty">{{ e.plain }}</div></div></div></sc-for>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:8px">Inputs</div>
+          <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11.5px;color:#55554F;line-height:1.8">{{ rj.inputsLine1 }}<br>{{ rj.inputsLine2 }}</div>
+        </div>
+        <sc-if value="{{ rj.done }}" hint-placeholder-val="{{ false }}">
+          <div style="border-top:1px solid #E6E6E1;padding-top:14px"><div style="font-size:16px;font-weight:600;color:{{ rj.verdictColor }}">{{ rj.verdictLabel }}</div><div style="font-size:12.5px;margin-top:3px">“{{ rj.claim }}”</div><div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11.5px;color:#8B8B85;margin-top:6px">{{ rj.verdictCounts }}</div></div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ REPORT ============ -->
+  <sc-if value="{{ isReport }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1280px;width:100%;margin:0 auto;padding:44px 24px 80px;display:flex;flex-direction:column;gap:28px;animation:fadeUp .3s ease-out">
+    <sc-if value="{{ noReport }}" hint-placeholder-val="{{ false }}"><div style="color:#8B8B85">No completed run yet.</div></sc-if>
+    <sc-if value="{{ hasReport }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap">
+      <div style="min-width:0">
+        <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap"><sc-for list="{{ reportPicker }}" as="r" hint-placeholder-count="1"><button onClick="{{ r.pick }}" style="background:transparent;color:{{ r.color }};border:0;border-bottom:1.5px solid {{ r.underline }};border-radius:0;padding:2px 0 5px;margin-right:14px;font-size:12.5px;font-weight:500;cursor:pointer" style-hover="color:#1A1A18">{{ r.name }}</button></sc-for></div>
+        <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><span style="font-size:22px;font-weight:600;letter-spacing:-.015em;color:{{ rp.verdictColor }}">{{ rp.verdictLabel }}</span><span style="font-size:15px">“{{ rp.claim }}”</span></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,max-content));gap:10px 32px;margin-top:16px;font-size:12.5px">
+          <div><div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:3px">Task</div><div>{{ rp.taskName }}</div></div>
+          <div><div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:3px">Models</div><div>{{ rp.toolsLong }}</div></div>
+          <div><div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:3px">Inputs</div><div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:12px">{{ rp.target }} · {{ rp.reference }}</div></div>
+          <div><div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:3px">Sampling</div><div>{{ rp.seeds }} seeds × 5 samples</div></div>
+          <div><div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:3px">Run</div><div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:12px">{{ rp.id }}</div></div>
+          <div><div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:3px">Completed</div><div>{{ rp.date }}</div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px"><button onClick="{{ goEnsemble }}" style="background:transparent;border:1px solid #E6E6E1;border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:500;cursor:pointer;color:#1A1A18" style-hover="border-color:#1A1A18">Ensemble</button><button onClick="{{ openDoc }}" style="background:#1A1A18;color:#fff;border:0;border-radius:6px;padding:8px 14px;font-size:12.5px;font-weight:500;cursor:pointer">Document</button><button onClick="{{ downloadRecord }}" style="background:transparent;border:1px solid #E6E6E1;border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:500;cursor:pointer;color:#1A1A18" style-hover="border-color:#1A1A18">JSON</button></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;align-items:start">
+      <div style="position:sticky;top:68px;display:flex;flex-direction:column;gap:24px">
+        <div>
+          <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:8px">Layers</div>
+          <sc-for list="{{ rp.layerNav }}" as="l" hint-placeholder-count="6">
+            <button onClick="{{ l.select }}" style="display:block;width:100%;text-align:left;background:transparent;border:0;border-left:2px solid {{ l.bar }};padding:8px 0 8px 12px;cursor:pointer;transition:border-color .15s" style-hover="border-color:#B9B9B3">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="font-weight:{{ l.weight }};font-size:13px;color:{{ l.color }}">{{ l.name }}</span><span style="width:7px;height:7px;border-radius:50%;background:{{ l.dot }}"></span></div>
+              <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:#8B8B85;margin-top:3px;line-height:1.5">{{ l.summary }}</div>
+            </button>
+          </sc-for>
+        </div>
+        <div style="border-top:1px solid #E6E6E1;padding-top:14px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85">{{ rp.layer.name }}</div><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:10.5px;color:#8B8B85">{{ rp.layer.duration }}</span></div>
+          <sc-for list="{{ rp.sideFigures }}" as="f" hint-placeholder-count="7"><div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #F3F3EF;font-size:12px"><span style="color:#55554F">{{ f.k }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11.5px;text-align:right;color:#1A1A18">{{ f.v }}</span></div></sc-for>
+          <div style="display:flex;flex-direction:column;gap:3px;margin-top:12px"><sc-for list="{{ rp.sideChecks }}" as="c" hint-placeholder-count="6"><div style="display:grid;grid-template-columns:8px minmax(0,1fr);gap:8px;align-items:baseline;font-size:11.5px;color:#55554F"><span style="position:relative;top:1px;width:6px;height:6px;border-radius:50%;background:{{ c.dot }};border:1.5px solid {{ c.color }}"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.name }}</span></div></sc-for></div>
+        </div>
+        <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:#8B8B85;line-height:1.7;padding-left:14px">{{ rp.traceChecks }} checks · {{ rp.traceMs }}<br><sc-for list="{{ rp.toolVersions }}" as="t" hint-placeholder-count="2">{{ t.line }}<br></sc-for></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:40px;min-width:0">
+        <!-- Structure -->
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:12px;flex-wrap:wrap">
+            <div style="display:flex;gap:4px;flex-wrap:wrap"><sc-for list="{{ rp.structChips }}" as="c" hint-placeholder-count="8"><button onClick="{{ c.select }}" style="background:{{ c.bg }};color:{{ c.color }};border:1px solid {{ c.border }};border-radius:5px;padding:4px 9px;font-size:11.5px;font-weight:500;cursor:pointer;font-family:'Geist Mono',ui-monospace,monospace;transition:all .15s" style-hover="border-color:#1A1A18">{{ c.label }}</button></sc-for></div>
+            <span style="font-size:11px;color:#8B8B85;font-family:'Geist Mono',ui-monospace,monospace">{{ rp.structCaption }}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(330px,1fr);gap:16px;align-items:stretch">
+            <div style="position:relative;height:400px;background:#fff;border:1px solid #E6E6E1;border-radius:8px;overflow:hidden">
+              <sc-if value="{{ useMolstar }}" hint-placeholder-val="{{ true }}"><div ref="{{ viewerRef }}" style="position:absolute;inset:0"></div></sc-if>
+              <sc-if value="{{ usePlaceholder }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:grid;place-items:center;color:#B9B9B3;font-size:12px">{{ rp.reference }}</div></sc-if>
+              <sc-if value="{{ viewerBusy }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:12px;bottom:10px;display:flex;align-items:center;gap:7px;font-size:11px;color:#8B8B85;font-family:'Geist Mono',ui-monospace,monospace;background:rgba(255,255,255,.85);padding:3px 8px;border-radius:4px"><span style="width:8px;height:8px;border-radius:50%;border:1.5px solid #E6E6E1;border-top-color:#B07E2C;animation:spin .8s linear infinite"></span>{{ viewerStatus }}</div></sc-if>
+            </div>
+            <div style="background:#fff;border:1px solid #E6E6E1;border-radius:8px;overflow:auto;font-size:11.5px">
+              <div style="display:grid;grid-template-columns:minmax(104px,1.5fr) repeat(4,minmax(0,1fr));gap:6px;padding:8px 12px;border-bottom:1px solid #EFEFEB;color:#8B8B85;font-family:'Geist Mono',ui-monospace,monospace;font-size:10.5px"><span>structure</span><span style="text-align:right">RMSD</span><span style="text-align:right">pLDDT</span><span style="text-align:right">{{ rp.col4 }}</span><span style="text-align:right">PB</span></div>
+              <sc-for list="{{ rp.ensembleRows }}" as="e" hint-placeholder-count="8">
+                <div onClick="{{ e.select }}" style="display:grid;grid-template-columns:minmax(104px,1.5fr) repeat(4,minmax(0,1fr));gap:6px;padding:6px 12px;border-bottom:1px solid #F3F3EF;background:{{ e.bg }};cursor:pointer;font-family:'Geist Mono',ui-monospace,monospace;font-size:11.5px" style-hover="background:#F7F7F4">
+                  <span style="display:flex;align-items:center;gap:6px;min-width:0"><span style="width:6px;height:6px;border-radius:50%;background:{{ e.dot }};flex:none"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:{{ e.labelColor }}">{{ e.label }}</span></span>
+                  <span style="text-align:right;color:{{ e.rmsdColor }}">{{ e.rmsd }}</span><span style="text-align:right">{{ e.plddt }}</span><span style="text-align:right">{{ e.col4 }}</span><span style="text-align:right">{{ e.pb }}</span>
+                </div>
+              </sc-for>
+              <div style="padding:10px 12px;display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:11.5px;color:#55554F;font-family:'Geist Mono',ui-monospace,monospace">
+                <span style="color:#8B8B85">medoid cluster</span><span>{{ rp.clusterPop }}</span>
+                <span style="color:#8B8B85">pairwise RMSD</span><span>{{ rp.pairwise }}</span>
+                <span style="color:#8B8B85">site placement</span><span>{{ rp.sitePlacement }}</span>
+                <span style="color:#8B8B85">pose accuracy</span><span>{{ rp.poseAccuracy }}</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:16px">
+            <sc-for list="{{ rp.statCards }}" as="card" hint-placeholder-count="3">
+              <div style="border-top:1px solid #1A1A18;padding-top:10px">
+                <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:8px">{{ card.title }}</div>
+                <sc-for list="{{ card.rows }}" as="r" hint-placeholder-count="6"><div style="display:flex;justify-content:space-between;gap:12px;padding:3px 0;font-size:12px"><span style="color:#55554F">{{ r.k }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11.5px;text-align:right">{{ r.v }}</span></div></sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- Checks for selected layer -->
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><div style="font-weight:600;font-size:14px">{{ rp.layer.name }}</div><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:#8B8B85">{{ rp.layer.duration }}</span></div>
+          <div style="border-top:1px solid #E6E6E1">
+            <sc-for list="{{ rp.layer.checks }}" as="c" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:12px minmax(0,1.2fr) minmax(0,1fr) 150px 56px;gap:14px;padding:10px 0;border-bottom:1px solid #EFEFEB;align-items:baseline;animation:fadeUp .25s ease-out both">
+                <span style="position:relative;top:1px;width:8px;height:8px;border-radius:50%;background:{{ c.dot }};border:1.5px solid {{ c.dotBorder }}"></span>
+                <span style="font-size:13px">{{ c.name }}</span>
+                <span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11.5px;color:#55554F;text-wrap:pretty">{{ c.evidence }}</span>
+                <span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:10.5px;color:#8B8B85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.id }} · {{ c.ms }} ms</span>
+                <span style="font-size:11px;font-weight:600;color:{{ c.color }};text-transform:uppercase;letter-spacing:.04em;text-align:right">{{ c.result }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- Physical validity -->
+        <sc-if value="{{ rp.hasPB }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><div style="font-weight:600;font-size:14px">Physical validity · PoseBusters</div><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:#8B8B85">{{ rp.pbSummary }}</span></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 16px;border-top:1px solid #E6E6E1;padding-top:8px">
+            <sc-for list="{{ rp.posebusters }}" as="p" hint-placeholder-count="20"><div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-family:'Geist Mono',ui-monospace,monospace;font-size:11px"><span style="display:flex;align-items:center;gap:7px;min-width:0;color:#55554F"><span style="width:6px;height:6px;border-radius:50%;background:{{ p.dot }};flex:none"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.test }}</span></span><span style="color:#8B8B85;flex:none">{{ p.value }}</span></div></sc-for>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- Per-seed physics -->
+        <div>
+          <div style="font-weight:600;font-size:14px;margin-bottom:8px">Per-seed statistics</div>
+          <div style="border-top:1px solid #E6E6E1;font-family:'Geist Mono',ui-monospace,monospace;font-size:11.5px">
+            <div style="display:grid;grid-template-columns:70px repeat({{ rp.physCols }},minmax(0,1fr));gap:8px;padding:7px 0;border-bottom:1px solid #EFEFEB;color:#8B8B85;font-size:10.5px"><span>seed</span><sc-for list="{{ rp.physHead }}" as="h" hint-placeholder-count="7"><span style="text-align:right">{{ h.name }}</span></sc-for></div>
+            <sc-for list="{{ rp.physRows }}" as="row" hint-placeholder-count="5"><div style="display:grid;grid-template-columns:70px repeat({{ rp.physCols }},minmax(0,1fr));gap:8px;padding:6px 0;border-bottom:1px solid #F3F3EF;color:{{ row.color }}"><span>{{ row.seed }}</span><sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="7"><span style="text-align:right">{{ c.v }}</span></sc-for></div></sc-for>
+            <div style="display:grid;grid-template-columns:70px repeat({{ rp.physCols }},minmax(0,1fr));gap:8px;padding:7px 0;color:#1A1A18;font-weight:500"><span>median</span><sc-for list="{{ rp.physMedian }}" as="c" hint-placeholder-count="7"><span style="text-align:right">{{ c.v }}</span></sc-for></div>
+          </div>
+        </div>
+
+        <!-- Visual analysis -->
+        <div>
+          <div style="display:flex;gap:18px;border-bottom:1px solid #E6E6E1;margin-bottom:18px"><sc-for list="{{ vizTabs }}" as="v" hint-placeholder-count="5"><button onClick="{{ v.select }}" style="background:none;border:0;border-bottom:1.5px solid {{ v.underline }};color:{{ v.color }};padding:0 0 9px;margin-bottom:-1px;font-size:12.5px;font-weight:500;cursor:pointer">{{ v.label }}</button></sc-for></div>
+          <sc-if value="{{ vizPae }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap">
+              <canvas ref="{{ paeRef }}" width="240" height="240" style="width:240px;height:240px;border-radius:4px;flex:none"></canvas>
+              <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11.5px;color:#55554F;line-height:1.9;min-width:160px">{{ rp.paeBlock }}<br>{{ rp.paeIntra }}<br>{{ rp.paeTokens }}<div style="display:flex;align-items:center;gap:8px;margin-top:8px;color:#8B8B85"><span>0</span><span style="width:120px;height:6px;border-radius:3px;background:linear-gradient(90deg,#2F6B4F,#B9D7C3,#F6F6F3)"></span><span>30 Å</span></div></div>
+            </div>
+            <div style="font-size:11px;color:#8B8B85;margin-top:10px">Fig. 1 · Predicted aligned error; the outlined block is the one read for the verdict.</div>
+          </sc-if>
+          <sc-if value="{{ vizInter }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,300px);gap:24px;align-items:start">
+              <svg viewBox="0 0 360 300" style="width:100%;max-width:420px;height:auto;display:block">
+                <sc-for list="{{ rp.interNodes }}" as="n" hint-placeholder-count="8"><line x1="180" y1="150" x2="{{ n.x }}" y2="{{ n.y }}" stroke="{{ n.stroke }}" stroke-width="1.5" stroke-dasharray="{{ n.dash }}"></line><circle cx="{{ n.x }}" cy="{{ n.y }}" r="17" fill="#fff" stroke="{{ n.stroke }}" stroke-width="1.5"></circle><text x="{{ n.x }}" y="{{ n.y }}" dy="3.5" font-size="8.5" text-anchor="middle" fill="#1A1A18" font-family="Geist Mono">{{ n.residue }}</text><text x="{{ n.lx }}" y="{{ n.ly }}" font-size="8" text-anchor="middle" fill="#8B8B85" font-family="Geist Mono">{{ n.distance }} Å</text></sc-for>
+                <rect x="150" y="136" width="60" height="28" rx="6" fill="#1A1A18"></rect><text x="180" y="154" font-size="9" text-anchor="middle" fill="#fff" font-family="Geist Mono">{{ rp.ligandLabel }}</text>
+              </svg>
+              <div style="font-size:11.5px;display:flex;flex-direction:column;gap:4px;font-family:'Geist Mono',ui-monospace,monospace"><sc-for list="{{ rp.interList }}" as="i" hint-placeholder-count="8"><div style="display:grid;grid-template-columns:54px minmax(0,1fr) 36px 40px;gap:8px;color:#55554F"><span style="color:#1A1A18">{{ i.residue }}</span><span style="color:{{ i.stroke }}">{{ i.type }}</span><span style="text-align:right">{{ i.distance }}</span><span style="text-align:right;color:#8B8B85">{{ i.knownLabel }}</span></div></sc-for></div>
+            </div>
+            <div style="font-size:11px;color:#8B8B85;margin-top:10px">Fig. 2 · Interaction fingerprint (PLIP) of the medoid pose; {{ rp.interSummary }}.</div>
+          </sc-if>
+          <sc-if value="{{ vizSeeds }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,260px);gap:24px;align-items:start">
+              <svg viewBox="0 0 360 170" style="width:100%;height:auto;display:block">
+                <line x1="40" y1="130" x2="350" y2="130" stroke="#E6E6E1"></line><rect x="{{ rp.ciX1 }}" y="124" width="{{ rp.ciW }}" height="12" fill="#F6EEDC"></rect>
+                <line x1="{{ rp.seedCut }}" y1="14" x2="{{ rp.seedCut }}" y2="130" stroke="#C28A1A" stroke-dasharray="3 3"></line><text x="{{ rp.seedCut }}" y="10" font-size="8.5" fill="#C28A1A" text-anchor="middle" font-family="Geist Mono">2 Å</text>
+                <sc-for list="{{ rp.seedPts }}" as="s" hint-placeholder-count="5"><circle cx="{{ s.cx }}" cy="{{ s.cy }}" r="5.5" fill="{{ s.fill }}" stroke="#fff" stroke-width="1.5"></circle><text x="{{ s.cx }}" y="{{ s.ty }}" font-size="8" fill="#8B8B85" text-anchor="middle" font-family="Geist Mono">{{ s.label }}</text></sc-for>
+                <text x="40" y="150" font-size="8.5" fill="#8B8B85" font-family="Geist Mono">0</text><text x="350" y="150" font-size="8.5" fill="#8B8B85" text-anchor="end" font-family="Geist Mono">8 Å RMSD to medoid</text><text x="12" y="75" font-size="8.5" fill="#8B8B85" font-family="Geist Mono" transform="rotate(-90 12 75)">ipTM</text>
+              </svg>
+              <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11.5px;color:#55554F;line-height:1.9">median {{ rp.pwMedian }} Å<br>IQR {{ rp.pwIqr }}<br>95% CI {{ rp.pwCi }}<br>n = {{ rp.seeds }}<br>Kendall τ {{ rp.tau }}</div>
+            </div>
+            <div style="font-size:11px;color:#8B8B85;margin-top:10px">Fig. 3 · Seed spread, RMSD to the medoid against ipTM; shaded band is the bootstrap 95% CI of the median.</div>
+          </sc-if>
+          <sc-if value="{{ vizAgree }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:90px repeat({{ rp.agreeN }},minmax(0,110px));gap:4px;font-size:11.5px;font-family:'Geist Mono',ui-monospace,monospace">
+              <div></div><sc-for list="{{ rp.agreeHead }}" as="h" hint-placeholder-count="3"><div style="text-align:center;color:#8B8B85;padding-bottom:2px">{{ h.name }}</div></sc-for>
+              <sc-for list="{{ rp.agreeRows }}" as="row" hint-placeholder-count="3"><div style="color:#55554F;display:flex;align-items:center">{{ row.method }}</div><sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="3"><div style="background:{{ cell.bg }};border-radius:4px;padding:10px 6px;text-align:center;color:{{ cell.color }}"><div style="font-size:13px;font-weight:500">{{ cell.value }}</div><div style="font-size:10px;opacity:.8;margin-top:1px">{{ cell.weight }}</div></div></sc-for></sc-for>
+            </div>
+            <div style="font-size:11px;color:#8B8B85;margin-top:10px">Fig. 4 · Agreement between methods, {{ rp.agreeUnit }}; cell label is the evidential weight.</div>
+          </sc-if>
+          <sc-if value="{{ vizCalib }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px">
+              <svg viewBox="0 0 320 170" style="width:100%;height:auto;display:block">
+                <line x1="40" y1="130" x2="310" y2="130" stroke="#E6E6E1"></line><line x1="40" y1="10" x2="40" y2="130" stroke="#E6E6E1"></line>
+                <polyline points="{{ rp.calibFlagged }}" fill="none" stroke="#C4513B" stroke-width="2"></polyline><polyline points="{{ rp.calibPassed }}" fill="none" stroke="#3B8A58" stroke-width="2"></polyline>
+                <text x="44" y="18" font-size="8.5" fill="#C4513B" font-family="Geist Mono">flagged</text><text x="44" y="30" font-size="8.5" fill="#3B8A58" font-family="Geist Mono">passed</text>
+                <text x="40" y="148" font-size="8.5" fill="#8B8B85" font-family="Geist Mono">0.5</text><text x="310" y="148" font-size="8.5" fill="#8B8B85" text-anchor="end" font-family="Geist Mono">1.0 confidence</text><text x="12" y="75" font-size="8.5" fill="#8B8B85" font-family="Geist Mono" transform="rotate(-90 12 75)">failure rate</text>
+              </svg>
+              <sc-if value="{{ rp.hasRoc }}" hint-placeholder-val="{{ false }}">
+                <svg viewBox="0 0 320 170" style="width:100%;height:auto;display:block">
+                  <line x1="40" y1="130" x2="310" y2="130" stroke="#E6E6E1"></line><line x1="40" y1="10" x2="40" y2="130" stroke="#E6E6E1"></line><line x1="40" y1="130" x2="310" y2="10" stroke="#E6E6E1" stroke-dasharray="3 3"></line>
+                  <polyline points="{{ rp.rocPts }}" fill="none" stroke="#B07E2C" stroke-width="2"></polyline>
+                  <text x="44" y="18" font-size="8.5" fill="#B07E2C" font-family="Geist Mono">AUC {{ rp.auc }} · {{ rp.enrichment }}</text><text x="40" y="148" font-size="8.5" fill="#8B8B85" font-family="Geist Mono">FPR</text><text x="12" y="75" font-size="8.5" fill="#8B8B85" font-family="Geist Mono" transform="rotate(-90 12 75)">TPR</text>
+                </svg>
+              </sc-if>
+            </div>
+            <div style="font-size:11px;color:#8B8B85;margin-top:10px">Fig. 5 · Benchmark calibration: failure rate against crystal structures by confidence band, split by harness verdict{{ rp.rocCaption }}.</div>
+          </sc-if>
+        </div>
+
+        <!-- Metrics + perturbation + thresholds -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:40px">
+          <div>
+            <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:8px">Confidence · interface metrics</div>
+            <div style="border-top:1px solid #E6E6E1"><sc-for list="{{ rp.metrics }}" as="m" hint-placeholder-count="10"><div style="display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:12px;padding:6px 0;border-bottom:1px solid {{ m.border }};font-size:12.5px;align-items:baseline"><span>{{ m.name }} <span style="color:#8B8B85;font-size:11px">{{ m.tool }}</span></span><span style="font-family:'Geist Mono',ui-monospace,monospace;text-align:right;color:{{ m.valueColor }}">{{ m.value }}</span></div></sc-for></div>
+            <div style="font-size:11px;color:#8B8B85;margin-top:8px">Values below the rule are ranking scores, read on their own line.</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:32px">
+            <sc-if value="{{ rp.hasPerturbation }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:8px">Perturbation</div>
+              <div style="border-top:1px solid #E6E6E1"><sc-for list="{{ rp.perturbation }}" as="p" hint-placeholder-count="5"><div style="display:grid;grid-template-columns:10px minmax(0,1fr) minmax(0,1fr);gap:10px;padding:6px 0;border-bottom:1px solid #EFEFEB;font-size:12.5px;align-items:baseline"><span style="width:7px;height:7px;border-radius:50%;background:{{ p.dot }};position:relative;top:1px"></span><span>{{ p.name }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11.5px;color:{{ p.color }};text-align:right">{{ p.observed }}</span></div></sc-for></div>
+            </div>
+            </sc-if>
+            <div>
+              <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:8px">Thresholds · origin</div>
+              <div style="border-top:1px solid #E6E6E1"><sc-for list="{{ rp.thresholds }}" as="t" hint-placeholder-count="5"><div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:6px 0;border-bottom:1px solid #EFEFEB;font-size:12.5px;align-items:baseline"><span>{{ t.name }}<div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:#8B8B85">{{ t.value }} · {{ t.origin }}</div></span><span style="font-size:11px;color:{{ t.color }};font-family:'Geist Mono',ui-monospace,monospace">{{ t.level }}</span></div></sc-for></div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8B8B85;margin-bottom:8px">Controls</div>
+              <div style="border-top:1px solid #E6E6E1"><sc-for list="{{ rp.controls }}" as="c" hint-placeholder-count="2"><div style="display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:10px;padding:6px 0;border-bottom:1px solid #EFEFEB;font-size:12.5px;align-items:baseline"><span style="width:7px;height:7px;border-radius:50%;background:{{ c.dot }};position:relative;top:1px"></span><span>{{ c.name }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:#8B8B85">{{ c.note }}</span></div></sc-for></div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px"><sc-for list="{{ rp.outputs }}" as="o" hint-placeholder-count="5"><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;border:1px solid #E6E6E1;border-radius:4px;padding:2px 7px;color:#55554F">{{ o.name }}</span></sc-for></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <!-- ============ ENSEMBLE ============ -->
+  <sc-if value="{{ isEnsemble }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1280px;width:100%;margin:0 auto;padding:44px 24px 80px;display:flex;flex-direction:column;gap:28px;animation:fadeUp .3s ease-out">
+    <sc-if value="{{ noReport }}" hint-placeholder-val="{{ false }}"><div style="color:#8B8B85">No completed run yet.</div></sc-if>
+    <sc-if value="{{ hasReport }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+      <div>
+        <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap"><sc-for list="{{ reportPicker }}" as="r" hint-placeholder-count="1"><button onClick="{{ r.pick }}" style="background:transparent;color:{{ r.color }};border:0;border-bottom:1.5px solid {{ r.underline }};border-radius:0;padding:2px 0 5px;margin-right:14px;font-size:12.5px;font-weight:500;cursor:pointer" style-hover="color:#1A1A18">{{ r.name }}</button></sc-for></div>
+        <h1 style="margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em">Ensemble <span style="color:#8B8B85;font-weight:400;font-size:13px;margin-left:8px;font-family:'Geist Mono',ui-monospace,monospace">{{ en.count }} structures · {{ rp.tools }} · {{ rp.reference }}</span></h1>
+      </div>
+      <button onClick="{{ goReport }}" style="background:transparent;border:1px solid #E6E6E1;border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:500;cursor:pointer;color:#1A1A18" style-hover="border-color:#1A1A18">Report</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">
+      <sc-for list="{{ en.cells }}" as="c" hint-placeholder-count="6">
+        <div style="background:#fff;border:1px solid {{ c.border }};border-radius:8px;overflow:hidden;animation:fadeUp .3s ease-out both">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #EFEFEB;font-family:'Geist Mono',ui-monospace,monospace;font-size:11.5px"><span style="display:flex;align-items:center;gap:7px"><span style="width:6px;height:6px;border-radius:50%;background:{{ c.dot }}"></span>{{ c.label }}</span><span style="color:#8B8B85">{{ c.source }}</span></div>
+          <div style="position:relative;height:210px;background:#fff">
+            <sc-if value="{{ c.live }}" hint-placeholder-val="{{ true }}"><div ref="{{ c.ref }}" style="position:absolute;inset:0"></div></sc-if>
+            <sc-if value="{{ c.static }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:grid;place-items:center;color:#B9B9B3;font-size:11px;font-family:'Geist Mono',ui-monospace,monospace">viewer slots full · raise gridViewers</div></sc-if>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 12px;border-top:1px solid #EFEFEB;font-family:'Geist Mono',ui-monospace,monospace;font-size:11px">
+            <sc-for list="{{ c.stats }}" as="s" hint-placeholder-count="4"><div><div style="color:#8B8B85;font-size:10px">{{ s.k }}</div><div style="color:{{ s.color }}">{{ s.v }}</div></div></sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="font-size:11px;color:#8B8B85">Fig. 6 · All sampled structures: experimental reference, Boltz-2 seeds (medoid first) and docking poses, each with its RMSD to the medoid.</div>
+
+    <div>
+      <div style="font-weight:600;font-size:14px;margin-bottom:8px">Summary statistics</div>
+      <div style="border-top:1px solid #E6E6E1;font-family:'Geist Mono',ui-monospace,monospace;font-size:11.5px">
+        <div style="display:grid;grid-template-columns:minmax(120px,1.2fr) minmax(140px,2fr) repeat(5,minmax(0,1fr));gap:10px;padding:7px 0;border-bottom:1px solid #EFEFEB;color:#8B8B85;font-size:10.5px"><span>metric</span><span>distribution</span><span style="text-align:right">median</span><span style="text-align:right">mean</span><span style="text-align:right">sd</span><span style="text-align:right">min</span><span style="text-align:right">max</span></div>
+        <sc-for list="{{ en.summary }}" as="m" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:minmax(120px,1.2fr) minmax(140px,2fr) repeat(5,minmax(0,1fr));gap:10px;padding:8px 0;border-bottom:1px solid #F3F3EF;align-items:center">
+            <span style="color:#1A1A18">{{ m.name }}<span style="color:#8B8B85"> {{ m.unit }}</span></span>
+            <svg viewBox="0 0 200 16" style="width:100%;height:16px;display:block"><line x1="4" y1="8" x2="196" y2="8" stroke="#E6E6E1"></line><sc-for list="{{ m.pts }}" as="p" hint-placeholder-count="5"><circle cx="{{ p.x }}" cy="8" r="4" fill="{{ p.fill }}" fill-opacity="0.85"></circle></sc-for><line x1="{{ m.medX }}" y1="1" x2="{{ m.medX }}" y2="15" stroke="#1A1A18" stroke-width="1.5"></line></svg>
+            <span style="text-align:right;font-weight:500">{{ m.median }}</span><span style="text-align:right">{{ m.mean }}</span><span style="text-align:right">{{ m.sd }}</span><span style="text-align:right;color:#8B8B85">{{ m.min }}</span><span style="text-align:right;color:#8B8B85">{{ m.max }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:11px;color:#8B8B85;margin-top:10px">Fig. 7 · Distribution across seeds and poses; vertical mark is the median. Medoid is the representative, never a mean structure.</div>
+    </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <!-- ============ AGENT ============ -->
+  <sc-if value="{{ isAgent }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1200px;width:100%;margin:0 auto;padding:44px 24px 80px;display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:40px;align-items:start;animation:fadeUp .3s ease-out">
+    <div style="display:flex;flex-direction:column;gap:10px;position:sticky;top:68px">
+      <h1 style="margin:0 0 6px;font-size:18px;font-weight:600;letter-spacing:-.01em">Agent <span style="color:#8B8B85;font-weight:400;font-size:13px;margin-left:8px">{{ ag.summary }}</span></h1>
+      <sc-for list="{{ ag.tasks }}" as="t" hint-placeholder-count="3">
+        <button onClick="{{ t.select }}" style="text-align:left;background:{{ t.bg }};border:1px solid {{ t.border }};border-radius:8px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:8px;transition:all .15s" style-hover="border-color:#1A1A18">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><span style="font-size:13px;font-weight:500;text-wrap:pretty">{{ t.goal }}</span><span style="display:flex;align-items:center;gap:6px;flex:none;font-size:11px;color:{{ t.statusColor }};font-family:'Geist Mono',ui-monospace,monospace"><span style="width:6px;height:6px;border-radius:50%;background:{{ t.dot }};animation:{{ t.dotAnim }}"></span>{{ t.statusLabel }}</span></div>
+          <div style="height:3px;background:#ECECE8;border-radius:2px;overflow:hidden;width:100%"><div style="height:100%;width:{{ t.pct }}%;background:{{ t.barColor }};transition:width .3s"></div></div>
+          <div style="display:flex;justify-content:space-between;font-family:'Geist Mono',ui-monospace,monospace;font-size:10.5px;color:#8B8B85"><span>{{ t.stepLabel }}</span><span>{{ t.elapsed }}</span></div>
+        </button>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:24px;min-width:0">
+      <div>
+        <div style="font-size:16px;font-weight:600;letter-spacing:-.01em;text-wrap:pretty">{{ ag.sel.goal }}</div>
+        <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;font-size:11.5px;color:#8B8B85;font-family:'Geist Mono',ui-monospace,monospace"><span>{{ ag.sel.id }}</span><span>{{ ag.sel.stepsDone }}/{{ ag.sel.stepsTotal }} steps</span><span>{{ ag.sel.toolCalls }} tool calls</span><span>{{ ag.sel.reports }} reports read</span><span>{{ ag.sel.elapsed }}</span></div>
+      </div>
+      <sc-if value="{{ ag.sel.done }}" hint-placeholder-val="{{ false }}">
+        <div style="border-top:1px solid #1A1A18;padding-top:12px;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap"><span style="font-size:14px;font-weight:600;color:#3B8A58">{{ ag.sel.outcomeLabel }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:12px;color:#55554F">{{ ag.sel.outcomeDetail }}</span></div>
+      </sc-if>
+      <div style="display:flex;flex-direction:column;border-left:1px solid #E6E6E1;margin-left:6px">
+        <sc-for list="{{ ag.sel.steps }}" as="s" hint-placeholder-count="0">
+          <div style="display:grid;grid-template-columns:24px 60px minmax(0,1fr);gap:0 12px;padding:9px 0 9px 0;margin-left:-6px;animation:fadeUp .3s ease-out both;align-items:baseline">
+            <span style="position:relative;top:2px;width:11px;height:11px;border-radius:{{ s.radius }};background:{{ s.fill }};border:1.5px solid {{ s.stroke }};border-top-color:{{ s.strokeTop }};animation:{{ s.anim }};justify-self:start"></span>
+            <span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:10.5px;color:#8B8B85">{{ s.t }}</span>
+            <div style="min-width:0"><div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:{{ s.kindColor }};margin-bottom:2px">{{ s.kind }}</div><div style="font-size:{{ s.size }};color:{{ s.color }};font-family:{{ s.font }};line-height:1.55;text-wrap:pretty;overflow-wrap:anywhere;font-weight:{{ s.weight }}">{{ s.text }}</div></div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ ag.sel.thinking }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:24px 60px minmax(0,1fr);gap:0 12px;padding:9px 0;margin-left:-6px;align-items:baseline"><span style="position:relative;top:2px;width:11px;height:11px;border-radius:50%;border:1.5px solid #E6E6E1;border-top-color:#B07E2C;animation:spin .8s linear infinite;justify-self:start"></span><span></span><span style="font-size:12px;color:#B9B9B3">{{ ag.sel.nextKind }}</span></div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ DOCUMENTS ============ -->
+  <sc-if value="{{ isDocs }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1200px;width:100%;margin:0 auto;padding:44px 24px 80px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;align-items:start;animation:fadeUp .3s ease-out">
+    <div data-print="hide" style="display:flex;flex-direction:column;gap:14px;position:sticky;top:68px">
+      <h1 style="margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em">Documents</h1>
+      <sc-for list="{{ docList }}" as="d" hint-placeholder-count="1"><button onClick="{{ d.pick }}" style="text-align:left;background:transparent;border:0;border-left:2px solid {{ d.bar }};padding:6px 0 6px 12px;cursor:pointer;display:flex;flex-direction:column;gap:2px" style-hover="border-color:#B9B9B3"><span style="font-weight:{{ d.weight }};font-size:13px">{{ d.name }}</span><span style="font-size:11px;color:{{ d.verdictColor }};font-family:'Geist Mono',ui-monospace,monospace">{{ d.verdictLabel }} · {{ d.date }}</span></button></sc-for>
+      <sc-if value="{{ hasReport }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+        <button onClick="{{ printDoc }}" style="background:#1A1A18;color:#fff;border:0;border-radius:6px;padding:8px 14px;font-size:12.5px;font-weight:500;cursor:pointer">PDF</button>
+        <button onClick="{{ downloadRecord }}" style="background:transparent;border:1px solid #E6E6E1;border-radius:6px;padding:7px 14px;font-size:12.5px;font-weight:500;cursor:pointer;color:#1A1A18" style-hover="border-color:#1A1A18">Run record · JSON</button>
+        <button onClick="{{ downloadNotebook }}" style="background:transparent;border:1px solid #E6E6E1;border-radius:6px;padding:7px 14px;font-size:12.5px;font-weight:500;cursor:pointer;color:#1A1A18" style-hover="border-color:#1A1A18">Notebook · ipynb</button>
+      </div>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ hasReport }}" hint-placeholder-val="{{ false }}">
+    <div style="overflow-x:auto;min-width:0">
+    <div data-print="page" style="background:#fff;border:1px solid #E6E6E1;width:794px;min-height:1123px;padding:60px 64px;font-size:10.5pt;line-height:1.5;color:#1A1A18;justify-self:center;display:flex;flex-direction:column;gap:26px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #1A1A18;padding-bottom:12px">
+        <div><div style="font-size:8.5pt;letter-spacing:.08em;text-transform:uppercase;color:#8B8B85">Prediction assurance · run report</div><div style="font-size:17pt;font-weight:600;letter-spacing:-.01em;margin-top:2px">{{ rp.name }}</div></div>
+        <div style="text-align:right;font-family:'Geist Mono',ui-monospace,monospace;font-size:8.5pt;color:#55554F">{{ rp.id }}<br>{{ rp.date }}</div>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><span style="font-size:15pt;font-weight:600;color:{{ rp.verdictColor }}">{{ rp.verdictLabel }}</span><span style="font-size:11pt">“{{ rp.claim }}”</span><span style="margin-left:auto;font-family:'Geist Mono',ui-monospace,monospace;font-size:8.5pt;color:#8B8B85">{{ rp.tools }} · {{ rp.target }} · {{ rp.reference }} · {{ rp.seeds }} seeds</span></div>
+
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px">
+        <sc-for list="{{ rp.keyNumbers }}" as="k" hint-placeholder-count="6"><div style="border-top:1px solid #1A1A18;padding-top:6px"><div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:14pt;font-weight:500;color:{{ k.color }}">{{ k.value }}</div><div style="font-size:8pt;color:#8B8B85;margin-top:2px;line-height:1.3">{{ k.label }}</div></div></sc-for>
+      </div>
+
+      <div>
+        <div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px">
+          <div style="position:relative;height:300px;background:#F7F7F4;border:1px solid #E6E6E1;border-radius:4px;overflow:hidden">
+            <sc-if value="{{ useMolstar }}" hint-placeholder-val="{{ true }}"><div ref="{{ viewerRef }}" style="position:absolute;inset:0"></div></sc-if>
+            <div style="position:absolute;left:10px;bottom:8px;font-family:'Geist Mono',ui-monospace,monospace;font-size:8pt;color:#55554F;background:rgba(255,255,255,.85);padding:2px 6px;border-radius:3px">{{ rp.structCaption }}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px"><canvas ref="{{ paeRef }}" width="240" height="240" style="width:100%;max-width:240px;aspect-ratio:1;border-radius:3px"></canvas><div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:8pt;color:#55554F;line-height:1.6">{{ rp.paeBlock }}<br>{{ rp.paeIntra }}</div></div>
+        </div>
+        <div style="font-size:8pt;color:#8B8B85;margin-top:6px">Fig. 1 · Medoid structure, confidence coloured (left); predicted aligned error with the read block outlined (right).</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;font-size:9pt">
+        <sc-for list="{{ rp.statCards }}" as="card" hint-placeholder-count="3"><div style="border-top:1px solid #1A1A18;padding-top:6px"><div style="font-size:8pt;letter-spacing:.08em;text-transform:uppercase;color:#8B8B85;margin-bottom:4px">{{ card.title }}</div><sc-for list="{{ card.rows }}" as="r" hint-placeholder-count="6"><div style="display:flex;justify-content:space-between;gap:8px;padding:1px 0"><span style="color:#55554F">{{ r.k }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:8.5pt;text-align:right">{{ r.v }}</span></div></sc-for></div></sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div>
+          <svg viewBox="0 0 360 170" style="width:100%;height:auto;display:block">
+            <line x1="40" y1="130" x2="350" y2="130" stroke="#E6E6E1"></line><rect x="{{ rp.ciX1 }}" y="124" width="{{ rp.ciW }}" height="12" fill="#F6EEDC"></rect><line x1="{{ rp.seedCut }}" y1="14" x2="{{ rp.seedCut }}" y2="130" stroke="#C28A1A" stroke-dasharray="3 3"></line>
+            <sc-for list="{{ rp.seedPts }}" as="s" hint-placeholder-count="5"><circle cx="{{ s.cx }}" cy="{{ s.cy }}" r="5.5" fill="{{ s.fill }}" stroke="#fff" stroke-width="1.5"></circle><text x="{{ s.cx }}" y="{{ s.ty }}" font-size="8" fill="#8B8B85" text-anchor="middle" font-family="Geist Mono">{{ s.label }}</text></sc-for>
+            <text x="40" y="150" font-size="8.5" fill="#8B8B85" font-family="Geist Mono">0</text><text x="350" y="150" font-size="8.5" fill="#8B8B85" text-anchor="end" font-family="Geist Mono">8 Å</text>
+          </svg>
+          <div style="font-size:8pt;color:#8B8B85;margin-top:4px">Fig. 2 · Seed spread, RMSD to medoid vs ipTM · median {{ rp.pwMedian }} · IQR {{ rp.pwIqr }} · 95% CI {{ rp.pwCi }} · τ {{ rp.tau }}</div>
+        </div>
+        <div>
+          <svg viewBox="0 0 320 170" style="width:100%;height:auto;display:block">
+            <line x1="40" y1="130" x2="310" y2="130" stroke="#E6E6E1"></line><line x1="40" y1="10" x2="40" y2="130" stroke="#E6E6E1"></line>
+            <polyline points="{{ rp.calibFlagged }}" fill="none" stroke="#C4513B" stroke-width="2"></polyline><polyline points="{{ rp.calibPassed }}" fill="none" stroke="#3B8A58" stroke-width="2"></polyline>
+            <text x="44" y="18" font-size="8.5" fill="#C4513B" font-family="Geist Mono">flagged</text><text x="44" y="30" font-size="8.5" fill="#3B8A58" font-family="Geist Mono">passed</text><text x="40" y="150" font-size="8.5" fill="#8B8B85" font-family="Geist Mono">0.5</text><text x="310" y="150" font-size="8.5" fill="#8B8B85" text-anchor="end" font-family="Geist Mono">1.0</text>
+          </svg>
+          <div style="font-size:8pt;color:#8B8B85;margin-top:4px">Fig. 3 · Benchmark calibration: failure rate against crystal structures by confidence band.</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div>
+          <sc-for list="{{ rp.agreeRows }}" as="row" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:70px repeat({{ rp.agreeN }},1fr);gap:4px;padding:2px 0;align-items:center;font-size:9pt"><span style="color:#55554F">{{ row.method }}</span><sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="3"><span style="background:{{ cell.bg }};color:{{ cell.color }};border-radius:3px;text-align:center;font-family:'Geist Mono',ui-monospace,monospace;font-size:9pt;padding:4px 0">{{ cell.value }}</span></sc-for></div></sc-for>
+          <div style="font-size:8pt;color:#8B8B85;margin-top:4px">Fig. 4 · Agreement matrix, {{ rp.agreeUnit }}.</div>
+        </div>
+        <div>
+          <sc-for list="{{ rp.interList }}" as="i" hint-placeholder-count="8"><div style="display:grid;grid-template-columns:54px minmax(0,1fr) 40px 44px;gap:8px;font-family:'Geist Mono',ui-monospace,monospace;font-size:8.5pt;color:#55554F;padding:1px 0"><span style="color:#1A1A18">{{ i.residue }}</span><span style="color:{{ i.stroke }}">{{ i.type }}</span><span style="text-align:right">{{ i.distance }} Å</span><span style="text-align:right;color:#8B8B85">{{ i.knownLabel }}</span></div></sc-for>
+          <div style="font-size:8pt;color:#8B8B85;margin-top:4px">Table 1 · Interaction fingerprint of the medoid pose · {{ rp.interSummary }}.</div>
+        </div>
+      </div>
+
+      <sc-if value="{{ rp.hasPB }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div style="font-size:8.5pt;letter-spacing:.08em;text-transform:uppercase;color:#8B8B85;margin-bottom:6px">PoseBusters · {{ rp.pbSummary }}</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:2px 20px;border-top:1px solid #1A1A18;padding-top:6px">
+          <sc-for list="{{ rp.posebusters }}" as="p" hint-placeholder-count="20"><div style="display:flex;justify-content:space-between;gap:8px;font-family:'Geist Mono',ui-monospace,monospace;font-size:8pt;padding:1px 0"><span style="display:flex;align-items:center;gap:6px;color:#55554F"><span style="width:5px;height:5px;border-radius:50%;background:{{ p.dot }}"></span>{{ p.test }}</span><span style="color:#8B8B85">{{ p.value }}</span></div></sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <div>
+        <div style="font-size:8.5pt;letter-spacing:.08em;text-transform:uppercase;color:#8B8B85;margin-bottom:6px">Per-seed statistics</div>
+        <div style="border-top:1px solid #1A1A18;font-family:'Geist Mono',ui-monospace,monospace;font-size:8.5pt">
+          <div style="display:grid;grid-template-columns:60px repeat({{ rp.physCols }},1fr);gap:6px;padding:4px 0;border-bottom:1px solid #E6E6E1;color:#8B8B85"><span>seed</span><sc-for list="{{ rp.physHead }}" as="h" hint-placeholder-count="7"><span style="text-align:right">{{ h.name }}</span></sc-for></div>
+          <sc-for list="{{ rp.physRows }}" as="row" hint-placeholder-count="5"><div style="display:grid;grid-template-columns:60px repeat({{ rp.physCols }},1fr);gap:6px;padding:3px 0;border-bottom:1px solid #EFEFEB;color:{{ row.color }}"><span>{{ row.seed }}</span><sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="7"><span style="text-align:right">{{ c.v }}</span></sc-for></div></sc-for>
+          <div style="display:grid;grid-template-columns:60px repeat({{ rp.physCols }},1fr);gap:6px;padding:4px 0;font-weight:500"><span>median</span><sc-for list="{{ rp.physMedian }}" as="c" hint-placeholder-count="7"><span style="text-align:right">{{ c.v }}</span></sc-for></div>
+        </div>
+        <div style="font-size:8pt;color:#8B8B85;margin-top:4px">Table 2 · Physical checks per seed: minimisation drift, unlikely torsions, clashes, torsion-library strain, unsatisfied buried polars, PoseBusters passed.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div>
+          <div style="font-size:8.5pt;letter-spacing:.08em;text-transform:uppercase;color:#8B8B85;margin-bottom:6px">Confidence</div>
+          <div style="border-top:1px solid #1A1A18"><sc-for list="{{ rp.metrics }}" as="m" hint-placeholder-count="10"><div style="display:flex;justify-content:space-between;gap:8px;padding:2px 0;border-bottom:1px solid {{ m.border }};font-size:9pt"><span>{{ m.name }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:8.5pt;color:{{ m.valueColor }}">{{ m.value }}</span></div></sc-for></div>
+        </div>
+        <div>
+          <div style="font-size:8.5pt;letter-spacing:.08em;text-transform:uppercase;color:#8B8B85;margin-bottom:6px">Layers</div>
+          <div style="border-top:1px solid #1A1A18"><sc-for list="{{ rp.layerNav }}" as="l" hint-placeholder-count="6"><div style="display:grid;grid-template-columns:100px minmax(0,1fr) 70px;gap:8px;padding:4px 0;border-bottom:1px solid #E6E6E1;font-size:9pt;align-items:baseline"><span>{{ l.name }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:8pt;color:#55554F">{{ l.summary }}</span><span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:8pt;color:{{ l.dot }};text-align:right">{{ l.countsShort }}</span></div></sc-for></div>
+          <div style="font-size:8.5pt;letter-spacing:.08em;text-transform:uppercase;color:#8B8B85;margin:14px 0 6px">Warned or stopped</div>
+          <sc-for list="{{ rp.flagged }}" as="c" hint-placeholder-count="2"><div style="display:grid;grid-template-columns:38px minmax(0,1fr);gap:8px;padding:3px 0;border-bottom:1px solid #EFEFEB;font-size:9pt"><span style="font-weight:600;color:{{ c.color }};font-size:7.5pt;letter-spacing:.04em;text-transform:uppercase;padding-top:2px">{{ c.result }}</span><div><div>{{ c.name }}</div><div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:8pt;color:#55554F">{{ c.evidence }}</div></div></div></sc-for>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:8.5pt;letter-spacing:.08em;text-transform:uppercase;color:#8B8B85;margin-bottom:6px">Provenance · {{ rp.provSummary }}</div>
+        <div style="border-top:1px solid #1A1A18">
+          <div style="display:grid;grid-template-columns:100px minmax(0,1fr) 80px 70px 50px 110px;gap:8px;padding:3px 0;border-bottom:1px solid #E6E6E1;font-family:'Geist Mono',ui-monospace,monospace;font-size:7.5pt;color:#8B8B85"><span>source</span><span>accession</span><span>release</span><span>retrieved</span><span style="text-align:right">ms</span><span>sha256</span></div>
+          <sc-for list="{{ rp.sources }}" as="s" hint-placeholder-count="10"><div style="display:grid;grid-template-columns:100px minmax(0,1fr) 80px 70px 50px 110px;gap:8px;padding:3px 0;border-bottom:1px solid #EFEFEB;font-family:'Geist Mono',ui-monospace,monospace;font-size:8pt;color:#55554F;align-items:baseline"><span style="color:#1A1A18">{{ s.source }}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.accession }}</span><span>{{ s.release }}</span><span>{{ s.time }}</span><span style="text-align:right;color:{{ s.msColor }}">{{ s.ms }}</span><span style="color:#8B8B85">{{ s.sha }}</span></div></sc-for>
+        </div>
+        <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:8pt;color:#8B8B85;margin-top:8px">{{ rp.recordLine }}</div>
+      </div>
+    </div>
+    </div>
+    </sc-if>
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;simSpeed&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1,&quot;min&quot;:0.25,&quot;max&quot;:6,&quot;step&quot;:0.25,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Simulation&quot;,&quot;unit&quot;:&quot;×&quot;},&quot;maxConcurrent&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:3,&quot;min&quot;:1,&quot;max&quot;:8,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Simulation&quot;},&quot;gridViewers&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:6,&quot;min&quot;:1,&quot;max&quot;:12,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Ensemble&quot;},&quot;viewerMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;molstar&quot;,&quot;options&quot;:[&quot;molstar&quot;,&quot;placeholder&quot;],&quot;tsType&quot;:&quot;'molstar' | 'placeholder'&quot;,&quot;section&quot;:&quot;Report&quot;}}">
+class Component extends DCLogic {
+  state = {
+    view: 'new', data: null, jobs: [], runJobId: null, reportJobId: null, reportLayer: 4, vizTab: 'pae', structSel: 'medoid', logMode: 'plain',
+    nl: { text: '', mode: null, stream: [], done: false }, entities: [], files: [], dragging: false, detail: { target: null, ligand: null, loading: {} },
+    form: { task: 'ligand_pose', tools: ['boltz2', 'gnina'], target: 'P00519', ligand: 'Cc1ccc(NC(=O)c2ccc(CN3CCN(C)CC3)cc2)cc1Nc1nccc(-c2cccnc2)n1', partner: '', reference: '1IEP', ph: 7.4, seeds: 5, name: '' },
+    viewerBusy: false, viewerStatus: '', tick: 0, agent: { tasks: [], sel: null }, add: { target: '', ligand: '', tool: '' },
+  };
+  P = { pass: '#3B8A58', warn: '#C28A1A', stop: '#C4513B', reported: '#8B8B85', accent: '#B07E2C' };
+  T = { pass: '#E4F1E8', warn: '#FAF0D9', stop: '#F9E5E0', reported: '#EFEFEB' };
+  INTER = { 'H-bond': '#3B8A58', 'Salt bridge': '#B07E2C', 'Hydrophobic': '#8B8B85', 'π stacking': '#5B7FA6' };
+  KIND = { crystal: '#1A1A18', medoid: '#B07E2C', seed: '#C9A86A', docking: '#5B7FA6', model: '#8B6FB5' };
+  _grid = {};
+
+  async componentDidMount() {
+    const data = await import('./data/runs.js');
+    const now = Date.now();
+    const jobs = data.PRESET_JOBS.map((p, i) => this.makeJob(data, p.form, p.name, now - (3 - i) * 95000, p.status, p.layerIdx));
+    const agentTasks = data.AGENT_TASKS.map(t => { const total = t.steps.reduce((a, s) => a + s.ms, 0); const elapsed = t.status === 'done' ? total : t.status === 'running' ? Math.round(total * 0.45) : 0; return { ...t, total, elapsedMs: elapsed, startedAt: now - elapsed }; });
+    this.setState({ data, jobs, runJobId: jobs[1].id, reportJobId: jobs[0].id, agent: { tasks: agentTasks, sel: agentTasks[1].id } });
+    this._last = performance.now();
+    this._timer = setInterval(() => this.tick(), 110);
+  }
+  componentWillUnmount() { clearInterval(this._timer); try { this._viewer?.dispose?.(); } catch (e) {} Object.values(this._grid).forEach(g => { try { g.viewer?.dispose?.(); } catch (e) {} }); }
+  componentDidUpdate() { if (this._logEl) this._logEl.scrollTop = this._logEl.scrollHeight; this.ensureViewer(); if (this._paeEl) this.drawPae(this._paeEl); }
+
+  // ---------- jobs ----------
+  makeJob(data, form, name, createdAt, status = 'queued', layerIdx = 0) {
+    const record = data.makeRunRecord(form, createdAt);
+    const job = { id: record.id, name: name || this.suggestName(form, data), form, record, status, layerIdx: status === 'done' ? 6 : layerIdx, progress: 0, elapsedMs: 0, log: [], emitted: {}, createdAt };
+    if (status !== 'queued') { this.startLines(job); const n = status === 'done' ? 6 : layerIdx; for (let i = 0; i < n; i++) { job.elapsedMs += record.layers[i].durationMs; this.emitLayer(job, i, 1); } }
+    return job;
+  }
+  startLines(job) { job.log.push({ layer: 0, kind: 'exec', t: '0.0s', text: `slot acquired · ${job.record.tools.map(t => t.container).join(' ')}`, plain: `Started. ${job.record.tools.map(t => t.name).join(' and ')} outputs are precomputed; checks run live.` }); job.record.execution.forEach(e => job.log.push({ layer: 0, kind: 'exec', t: '0.0s', text: e.text, plain: e.plain })); }
+  suggestName(form, data = this.state.data) { if (!data) return ''; const t = data.TASKS.find(x => x.id === form.task); const p = data.CATALOG.proteins.find(p => p.accession === form.target); return `${p ? p.label : form.target} · ${t ? t.name.toLowerCase() : 'run'}`; }
+  linesFor(job, i) {
+    const rec = job.record; const chk = (c) => ({ layer: i, kind: 'check', result: c.result, text: `${c.id} [${c.tool}] → ${c.result} · ${c.evidence} · ${c.ms} ms`, plain: `${c.name}: ${c.evidence}` });
+    if (i === 0) return rec.sources.map(s => ({ layer: 0, kind: s.cached ? 'cache' : 'fetch', result: null, text: `${s.cached ? 'cache' : 'GET'} ${s.source} ${s.accession} · ${s.release} · sha256 ${s.sha256.slice(0, 10)}… · ${s.ms} ms`, plain: `${s.cached ? 'Used cached' : 'Fetched'} ${s.supplies.toLowerCase()} from ${s.source} (${s.accession}, ${s.release}) in ${s.ms} ms` })).concat(rec.layers[0].checks.map(chk));
+    return rec.layers[i].checks.map(chk);
+  }
+  emitLayer(job, i, frac) {
+    const lines = this.linesFor(job, i); const want = Math.min(lines.length, Math.floor(frac * lines.length + 1e-6)); const have = job.emitted[i] || 0;
+    for (let k = have; k < want; k++) job.log.push({ ...lines[k], t: (job.elapsedMs / 1000).toFixed(1) + 's' });
+    job.emitted[i] = Math.max(have, want);
+    if (frac >= 1 && !job.log.some(l => l.kind === 'layer' && l.layer === i)) {
+      const L = job.record.layers[i]; const chk = L.checks; const stops = chk.filter(c => c.result === 'stop').length; const warns = chk.filter(c => c.result === 'warn').length;
+      job.log.push({ layer: i, kind: 'layer', result: stops ? 'stop' : warns ? 'warn' : 'pass', t: (job.elapsedMs / 1000).toFixed(1) + 's', text: `── ${L.name.toLowerCase()} · ${chk.length} checks · ${stops ? stops + ' stop' : warns ? warns + ' warn' : 'clean'} · ${L.durationMs} ms`, plain: `${L.name} finished in ${(L.durationMs / 1000).toFixed(1)} s: ${chk.length} checks, ${stops ? stops + ' stopped the claim' : warns ? warns + ' warned' : 'all clean'}.` });
+    }
+  }
+  tick() {
+    const now = performance.now(); const dt = Math.min(400, now - this._last); this._last = now;
+    const speed = this.props.simSpeed ?? 1; const maxC = this.props.maxConcurrent ?? 3; let changed = false;
+    const jobs = this.state.jobs.map(j => ({ ...j })); let running = jobs.filter(j => j.status === 'running').length;
+    for (const j of jobs) {
+      if (j.status === 'queued' && running < maxC) { j.status = 'running'; j.log = [...j.log]; this.startLines(j); running++; changed = true; }
+      if (j.status !== 'running') continue;
+      changed = true; j.elapsedMs += dt * speed; j.progress += (dt * speed) / j.record.layers[j.layerIdx].durationMs; j.log = [...j.log]; j.emitted = { ...j.emitted };
+      if (j.progress >= 1) { this.emitLayer(j, j.layerIdx, 1); j.layerIdx += 1; j.progress = 0; if (j.layerIdx >= 6) { j.status = 'done'; const o = j.record.verdict.outcome; j.log.push({ layer: 5, kind: 'layer', result: o === 'refused' ? 'stop' : o === 'narrowed' ? 'warn' : 'pass', t: (j.elapsedMs / 1000).toFixed(1) + 's', text: `verdict · ${o} · ${(j.elapsedMs / 1000).toFixed(1)} s total · report generated`, plain: `Verdict: ${o} after ${(j.elapsedMs / 1000).toFixed(1)} s. The report is ready.` }); } }
+      else this.emitLayer(j, j.layerIdx, j.progress);
+    }
+    let agent = this.state.agent;
+    if (agent.tasks.length) {
+      const tasks = agent.tasks.map(t => ({ ...t })); let anyRunning = tasks.some(t => t.status === 'running'); let ch = false;
+      for (const t of tasks) {
+        if (t.status === 'queued' && !anyRunning) { t.status = 'running'; anyRunning = true; ch = true; }
+        if (t.status !== 'running') continue;
+        t.elapsedMs += dt * speed; ch = true;
+        if (t.elapsedMs >= t.total) { t.elapsedMs = t.total; t.status = 'done'; anyRunning = false; }
+      }
+      if (ch) { agent = { ...agent, tasks }; changed = true; }
+    }
+    if (changed) this.setState({ jobs, agent, tick: this.state.tick + 1 });
+  }
+
+  // ---------- entities ----------
+  scheduleLookup(text) {
+    clearTimeout(this._lookupT);
+    this._lookupT = setTimeout(() => {
+      const d = this.state.data; if (!d) return;
+      const found = d.lookupEntities(text); const have = new Set(this.state.entities.map(e => e.key));
+      const fresh = found.filter(e => !have.has(e.key)).map(e => ({ ...e, status: 'loading' })); const keep = this.state.entities.filter(e => found.some(f => f.key === e.key));
+      if (!fresh.length && keep.length === this.state.entities.length) return;
+      this.setState({ entities: [...keep, ...fresh] });
+      fresh.forEach(e => setTimeout(() => this.setState({ entities: this.state.entities.map(x => x.key === e.key ? { ...x, status: 'ok' } : x) }), e.ms + Math.random() * 300));
+    }, 350);
+  }
+  formText(f) { const d = this.state.data; const lig = d?.CATALOG.ligands.find(l => l.smiles === f.ligand); return `${f.target} ${f.partner} ${lig ? lig.names[0] : ''} ${this.state.nl.text}`; }
+  selectTarget(p) { const form = { ...this.state.form, target: p.accession, reference: p.pdb }; this.setState({ form, detail: { ...this.state.detail, target: p.accession, loading: { ...this.state.detail.loading, target: true } } }); setTimeout(() => this.setState({ detail: { ...this.state.detail, loading: { ...this.state.detail.loading, target: false } } }), 650); this.scheduleLookup(this.formText(form)); }
+  selectLigand(l) { const form = { ...this.state.form, ligand: l.smiles }; this.setState({ form, detail: { ...this.state.detail, ligand: l.ccd, loading: { ...this.state.detail.loading, ligand: true } } }); setTimeout(() => this.setState({ detail: { ...this.state.detail, loading: { ...this.state.detail.loading, ligand: false } } }), 550); this.scheduleLookup(this.formText(form)); }
+
+  // ---------- setup ----------
+  quickSetup = () => {
+    const { data, nl } = this.state; if (!data || !nl.text.trim()) return;
+    const res = data.interpretRun(nl.text);
+    const labels = { task: 'Task', tools: 'Executors', target: 'Target', partner: 'Partner', ligand: 'Ligand', seeds: 'Seeds', ph: 'pH', reference: 'Reference', claim: 'Claim' };
+    const fmt = (s) => s.field === 'tools' ? s.value.map(id => data.TOOLS.find(t => t.id === id)?.name).join(' · ') : s.field === 'task' ? data.TASKS.find(t => t.id === s.value)?.long : s.field === 'ligand' && s.value.length > 40 ? s.value.slice(0, 38) + '…' : String(s.value);
+    this.setState({ nl: { ...nl, mode: 'quick', stream: [{ label: 'Request', value: 'Reading', status: 'loading' }], done: false } }); this.scheduleLookup(nl.text);
+    const prot = data.CATALOG.proteins.find(p => p.accession === res.target); const lig = data.CATALOG.ligands.find(l => l.smiles === res.ligand);
+    let t = 420; setTimeout(() => this.patchStream(0, { value: `${nl.text.trim().split(/\s+/).length} tokens · ${res.steps.length} decisions`, status: 'ok' }), t);
+    res.steps.forEach((s, i) => { t += 380;
+      setTimeout(() => { const f = { ...this.state.form }; if (s.field !== 'claim') f[s.field] = s.value; this.setState({ form: f, detail: { ...this.state.detail, target: prot ? prot.accession : this.state.detail.target, ligand: lig ? lig.ccd : this.state.detail.ligand }, nl: { ...this.state.nl, stream: [...this.state.nl.stream, { label: labels[s.field] || s.field, value: fmt(s), status: 'loading' }] } }); }, t);
+      setTimeout(() => this.patchStream(i + 1, { status: 'ok', value: `${fmt(s)}  —  ${s.because}` }), t + 300); });
+    setTimeout(() => this.setState({ nl: { ...this.state.nl, done: true } }), t + 500);
+  };
+  patchStream(i, patch) { this.setState({ nl: { ...this.state.nl, stream: this.state.nl.stream.map((r, k) => k === i ? { ...r, ...patch } : r) } }); }
+  manualSetup = () => { this.setState({ nl: { ...this.state.nl, mode: 'manual' } }); this.scheduleLookup(this.formText(this.state.form)); };
+  submit = () => {
+    const { data, form } = this.state; if (!data) return;
+    const job = this.makeJob(data, { ...form, seeds: +form.seeds || 5, ph: +form.ph || 7.4 }, form.name || this.suggestName(form), Date.now(), 'queued');
+    this.setState({ jobs: [job, ...this.state.jobs], runJobId: job.id, view: 'run', form: { ...form, name: '' }, nl: { text: '', mode: null, stream: [], done: false }, entities: [], files: [], detail: { target: null, ligand: null, loading: {} } });
+  };
+  setForm(k) { return (e) => { const form = { ...this.state.form, [k]: e.target.value }; this.setState({ form }); if (k === 'target' || k === 'partner') this.scheduleLookup(this.formText(form)); }; }
+
+  // ---------- add your own ----------
+  setAdd(k) { return (e) => this.setState({ add: { ...this.state.add, [k]: e.target.value } }); }
+  addKey(k) { return (e) => { if (e.key !== 'Enter') return; const v = (this.state.add[k] || '').trim(); if (!v) return; const d = this.state.data; if (!d) return;
+    if (k === 'target') { const acc = /^[A-Z][0-9][A-Z0-9]{3}[0-9]$/i.test(v) ? v.toUpperCase() : null; const p = d.CATALOG.proteins.find(p => p.names.some(n => v.toLowerCase().includes(n))) || { names: [v.toLowerCase()], accession: acc || v, entry: 'pending', label: v, organism: '—', length: 0, pdb: this.state.form.reference, resolution: '—', holo: 0, afPlddt: 0, sites: 0, domains: '—', disorder: '—', cofactors: '—', custom: true }; if (!d.CATALOG.proteins.includes(p)) d.CATALOG.proteins.push(p); this.selectTarget(p); }
+    if (k === 'ligand') { const l = d.CATALOG.ligands.find(l => l.names.some(n => v.toLowerCase().includes(n)) || l.ccd === v.toUpperCase()) || { names: [v.length > 12 ? 'custom ligand' : v], smiles: v, ccd: v.length <= 3 ? v.toUpperCase() : 'NEW', cid: '—', chembl: '—', formula: 'pending', mw: '—', inchikey: 'computed on submit', activities: 0, stereo: 0, pka: 'enumerated at run', custom: true }; if (!d.CATALOG.ligands.includes(l)) d.CATALOG.ligands.push(l); this.selectLigand(l); }
+    if (k === 'tool') { const [name, version] = v.split(':'); const id = name.toLowerCase().replace(/[^a-z0-9]/g, ''); if (!d.TOOLS.find(t => t.id === id)) d.TOOLS.push({ id, name, family: /vina|gnina|dock|haddock/i.test(name) ? 'docking' : 'co-folding', role: 'Executor', version: version || 'latest', available: true, custom: true }); this.setState({ form: { ...this.state.form, tools: [...this.state.form.tools, id] } }); }
+    this.setState({ add: { ...this.state.add, [k]: '' } }); }; }
+
+  // ---------- files ----------
+  addFiles(list) {
+    const kinds = { pdb: 'receptor', cif: 'receptor', mmcif: 'receptor', fasta: 'sequence', fa: 'sequence', sdf: 'ligand', mol: 'ligand', mol2: 'ligand', smi: 'ligand', csv: 'series', json: 'manifest' };
+    const files = Array.from(list).map(f => { const ext = f.name.split('.').pop().toLowerCase(); return { name: f.name, size: f.size, kind: kinds[ext] || 'file', status: 'loading' }; });
+    this.setState({ files: [...this.state.files, ...files] });
+    files.forEach(f => setTimeout(() => this.setState({ files: this.state.files.map(x => x.name === f.name ? { ...x, status: 'ok', parsed: this.parsedLabel(x) } : x) }), 500 + Math.random() * 600));
+  }
+  parsedLabel(f) { return { receptor: 'receptor · chains A,B · 0 gaps', sequence: 'sequence · 1 chain', ligand: 'ligand · sanitised · InChIKey ok', series: 'series · 12 members', manifest: 'manifest' }[f.kind] || `${(f.size / 1024).toFixed(0)} kB`; }
+  onDrop = (e) => { e.preventDefault(); this.setState({ dragging: false }); if (e.dataTransfer?.files?.length) this.addFiles(e.dataTransfer.files); };
+  onDragOver = (e) => { e.preventDefault(); if (!this.state.dragging) this.setState({ dragging: true }); };
+  onDragLeave = () => this.setState({ dragging: false });
+  fileInputRef = (el) => { this._fileInput = el; };
+  browseFiles = (e) => { if (e.target.tagName === 'BUTTON') return; this._fileInput?.click(); };
+  onFiles = (e) => { if (e.target.files?.length) this.addFiles(e.target.files); e.target.value = ''; };
+
+  // ---------- viewers ----------
+  viewerOpts = { layoutIsExpanded: false, layoutShowControls: false, layoutShowSequence: false, layoutShowLog: false, layoutShowLeftPanel: false, viewportShowExpand: false, viewportShowSelectionMode: false, viewportShowAnimation: false, viewportShowSettings: false, viewportShowTrajectoryControls: false, pdbProvider: 'rcsb', emdbProvider: 'rcsb' };
+  async loadInto(v, rec, sel) { try { await v.plugin.clear(); if (sel === 'crystal' || String(sel).startsWith('gnina')) await v.loadPdb(rec.inputs.reference); else if (sel === 'overlay') { await v.loadPdb(rec.inputs.reference); await v.loadAlphaFoldDb(rec.inputs.target); } else await v.loadAlphaFoldDb(rec.inputs.target); } catch (e) {} }
+  viewerRef = (el) => { if (!el) { try { this._viewer?.dispose?.(); } catch (e) {} this._viewer = null; this._viewerKey = null; this._viewerEl = null; return; } this._viewerEl = el; this.ensureViewer(); };
+  ensureViewer() {
+    const rec = this.reportRecord(); if (!rec || !this._viewerEl || !window.molstar || this._creating) return;
+    const sel = this.state.structSel; const key = `${rec.id}|${sel}`; if (this._viewerKey === key) return; this._viewerKey = key;
+    const load = async (v) => { this.setState({ viewerBusy: true, viewerStatus: sel === 'crystal' ? `RCSB ${rec.inputs.reference}` : sel === 'overlay' ? 'overlay · crystal + predicted' : `AlphaFold DB ${rec.inputs.target} · pLDDT colouring` }); await this.loadInto(v, rec, sel); if (this._viewerKey === key) this.setState({ viewerBusy: false }); };
+    if (!this._viewer) { this._creating = true; window.molstar.Viewer.create(this._viewerEl, this.viewerOpts).then(v => { this._creating = false; this._viewer = v; try { v.plugin.canvas3d?.setProps({ renderer: { backgroundColor: 0xFFFFFF } }); } catch (e) {} load(v); }).catch(() => { this._creating = false; }); }
+    else load(this._viewer);
+  }
+  gridRef(id, sel) {
+    if (!this._grid[id]) this._grid[id] = {};
+    const g = this._grid[id];
+    if (!g.ref) g.ref = (el) => { if (!el) { try { g.viewer?.dispose?.(); } catch (e) {} g.viewer = null; g.key = null; g.creating = false; return; } g.el = el; this.ensureGrid(id); };
+    g.sel = sel; return g.ref;
+  }
+  ensureGrid(id) {
+    const g = this._grid[id]; const rec = this.reportRecord(); if (!g || !g.el || !rec || !window.molstar || g.creating) return;
+    const key = `${rec.id}|${g.sel}`; if (g.key === key) return; g.key = key;
+    if (!g.viewer) { g.creating = true; window.molstar.Viewer.create(g.el, this.viewerOpts).then(v => { g.creating = false; g.viewer = v; try { v.plugin.canvas3d?.setProps({ renderer: { backgroundColor: 0xFFFFFF } }); } catch (e) {} this.loadInto(v, rec, g.sel); }).catch(() => { g.creating = false; }); }
+    else this.loadInto(g.viewer, rec, g.sel);
+  }
+  paeRef = (el) => { this._paeEl = el; if (el) this.drawPae(el); };
+  drawPae(el) {
+    const rec = this.reportRecord(); if (!rec || el._pdb === rec.id) return; el._pdb = rec.id;
+    const ctx = el.getContext('2d'); const n = 48; const cell = el.width / n; const disc = rec.task === 'interaction_discovery'; const split = disc ? 28 : 38;
+    let s = 7; const r = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; const mix = (a, b, t) => a.map((x, k) => Math.round(x + (b[k] - x) * t));
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const same = (i < split) === (j < split); const d = Math.abs(i - j); let pae = same ? Math.min(30, 1 + d * 0.25 + r() * 2.5) : (disc ? 9 + r() * 12 : 2.5 + r() * 2); const t = Math.min(1, pae / 30); const c = t < 0.5 ? mix([47, 107, 79], [185, 215, 195], t * 2) : mix([185, 215, 195], [246, 246, 243], (t - 0.5) * 2); ctx.fillStyle = `rgb(${c.join(',')})`; ctx.fillRect(i * cell, j * cell, cell + 0.5, cell + 0.5); }
+    ctx.strokeStyle = '#B07E2C'; ctx.lineWidth = 1.5; ctx.strokeRect(split * cell + 0.75, 0.75, (n - split) * cell - 1.5, split * cell - 1.5);
+  }
+  logRef = (el) => { this._logEl = el; if (el) el.scrollTop = el.scrollHeight; };
+  reportRecord() { const j = this.state.jobs.find(x => x.id === this.state.reportJobId && x.status === 'done') || this.state.jobs.find(x => x.status === 'done'); return j ? j.record : null; }
+  go(view) { return () => this.setState({ view }); }
+  download(name, text, type = 'application/json') { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+  downloadRecord = () => { const r = this.reportRecord(); if (r) this.download(`${r.id}.json`, JSON.stringify(r, null, 2)); };
+  downloadNotebook = () => {
+    const r = this.reportRecord(); if (!r) return; const cell = (src) => ({ cell_type: 'code', metadata: {}, outputs: [], execution_count: null, source: src });
+    const nb = { nbformat: 4, nbformat_minor: 5, metadata: { kernelspec: { name: 'python3', display_name: 'Python 3' }, papermill: { parameters: { run_record: `${r.id}.json` } } }, cells: [{ cell_type: 'markdown', metadata: {}, source: `# ${r.id}\nReruns every query and check from the run record.` }, cell(`import json\nrecord = json.load(open('${r.id}.json'))`), cell(`for s in record['sources']:\n    assert fetch(s['source'], s['accession'], s['release']).sha256 == s['sha256'], s`), ...r.layers.slice(1).map(l => cell(`# ${l.name}\nfor c in record['layers'][${l.i}]['checks']:\n    assert run_check(c['id'], record['inputs']).result == c['result'], c['id']`))] };
+    this.download(r.record.notebook, JSON.stringify(nb, null, 2));
+  };
+  stats(arr) { const a = arr.filter(x => typeof x === 'number' && !isNaN(x)).sort((x, y) => x - y); if (!a.length) return null; const mean = a.reduce((s, x) => s + x, 0) / a.length; const med = a.length % 2 ? a[(a.length - 1) / 2] : (a[a.length / 2 - 1] + a[a.length / 2]) / 2; const sd = Math.sqrt(a.reduce((s, x) => s + (x - mean) ** 2, 0) / Math.max(1, a.length - 1)); return { median: med, mean, sd, min: a[0], max: a[a.length - 1] }; }
+
+  renderVals() {
+    const { view, data, jobs, form, nl, entities, files, detail } = this.state; const P = this.P, T = this.T;
+    const running = jobs.filter(j => j.status === 'running').length, queued = jobs.filter(j => j.status === 'queued').length, done = jobs.filter(j => j.status === 'done').length;
+    const tabs = [['new', 'New run'], ['jobs', 'Jobs', running + queued], ['report', 'Reports', done], ['ensemble', 'Ensemble'], ['agent', 'Agent', this.state.agent.tasks.filter(t => t.status === 'running').length], ['docs', 'Documents', done]].map(([id, label, badge]) => ({ label, go: this.go(id), underline: view === id || (id === 'jobs' && view === 'run') ? '#1A1A18' : 'transparent', color: view === id || (id === 'jobs' && view === 'run') ? '#1A1A18' : '#8B8B85', hasBadge: !!badge, badge }));
+    const spinner = (st) => st === 'loading' ? { ring: '#E6E6E1', ringTop: P.accent, anim: 'spin .8s linear infinite', fill: 'transparent' } : { ring: P.pass, ringTop: P.pass, anim: 'none', fill: P.pass };
+    const vals = {
+      tabs, isNew: view === 'new', isJobs: view === 'jobs', isRun: view === 'run', isReport: view === 'report', isEnsemble: view === 'ensemble', isAgent: view === 'agent', isDocs: view === 'docs', goNew: this.go('new'), goJobs: this.go('jobs'), goReport: this.go('report'), goEnsemble: this.go('ensemble'),
+      clusterStatus: running ? `${running} running · ${queued} queued` : queued ? `${queued} queued` : 'idle', clusterDotColor: running ? P.accent : '#B9B9B3', clusterDotAnim: running ? 'pulse 1.4s infinite' : 'none',
+      useMolstar: (this.props.viewerMode ?? 'molstar') === 'molstar', usePlaceholder: (this.props.viewerMode ?? 'molstar') !== 'molstar', viewerBusy: this.state.viewerBusy, viewerStatus: this.state.viewerStatus,
+    };
+    if (!data) return vals;
+    const task = data.TASKS.find(t => t.id === form.task) || data.TASKS[0]; const isDisc = task.kind === 'complex';
+    // ----- new run -----
+    const chip = (t) => { const on = form.tools.includes(t.id); return { ...t, disabled: !t.available, note: t.note || '', cursor: t.available ? 'pointer' : 'not-allowed', opacity: t.available ? 1 : 0.45, toggle: () => this.setState({ form: { ...form, tools: on ? form.tools.filter(x => x !== t.id) : [...form.tools, t.id] } }) }; };
+    const groups = []; entities.forEach(e => { let g = groups.find(x => x.title === e.title); if (!g) { g = { title: e.title, color: e.kind === 'protein' ? P.accent : '#5B7FA6', items: [] }; groups.push(g); } g.items.push({ ...e, ...spinner(e.status), loading: e.status === 'loading', ok: e.status === 'ok', rows: e.rows.map(([k, v]) => ({ k, v })) }); });
+    const tp = data.CATALOG.proteins.find(p => p.accession === (detail.target || form.target)); const tl = data.CATALOG.ligands.find(l => l.ccd === detail.ligand || l.smiles === form.ligand);
+    const selTarget = detail.target || form.target; const selLig = tl?.ccd;
+    Object.assign(vals, {
+      nlText: nl.text, onNlText: e => { this.setState({ nl: { ...nl, text: e.target.value } }); this.scheduleLookup(e.target.value); }, quickSetup: this.quickSetup, manualSetup: this.manualSetup, quickDisabled: !nl.text.trim(), quickOpacity: nl.text.trim() ? 1 : 0.4,
+      samplePrompts: data.SAMPLE_PROMPTS.map(p => ({ short: p.split(/[,.?]/)[0] + (p.includes('?') ? '?' : ''), use: () => { this.setState({ nl: { text: p, mode: null, stream: [], done: false } }); this.scheduleLookup(p); } })),
+      streamVisible: nl.mode === 'quick', streamDone: nl.done, stream: nl.stream.map(s => ({ ...s, ...spinner(s.status), color: s.status === 'loading' ? '#8B8B85' : '#1A1A18' })), manualVisible: nl.mode === 'manual',
+      targetChips: data.CATALOG.proteins.map(p => { const on = selTarget === p.accession; return { label: p.label, accession: p.accession, select: () => this.selectTarget(p), bg: on ? '#1A1A18' : 'transparent', color: on ? '#fff' : '#1A1A18', border: on ? '#1A1A18' : '#E6E6E1', sub: on ? '#B9B9B3' : '#8B8B85' }; }),
+      hasTargetDetail: !!(detail.target && tp), td: tp ? { label: tp.label, entry: tp.entry, accession: tp.accession, loading: !!detail.loading.target, ready: !detail.loading.target, rows: [['Length', `${tp.length.toLocaleString()} aa`], ['Organism', tp.organism], ['Domains', tp.domains], ['Cofactors', tp.cofactors], ['Holo entries', String(tp.holo)], ['Reference', `${tp.pdb} · ${tp.resolution}`], ['AF pLDDT', String(tp.afPlddt)], ['Disorder', tp.disorder], ['Binding sites', `${tp.sites} · PDBe-KB`], ['Release', 'UniProt 2026_04']].map(([k, v]) => ({ k, v })) } : {},
+      ligandChips: data.CATALOG.ligands.map(l => { const on = selLig === l.ccd; return { label: l.names[0], ccd: l.ccd, select: () => this.selectLigand(l), bg: on ? '#1A1A18' : 'transparent', color: on ? '#fff' : '#1A1A18', border: on ? '#1A1A18' : '#E6E6E1', sub: on ? '#B9B9B3' : '#8B8B85' }; }),
+      hasLigandDetail: !!(detail.ligand && tl), ld: tl ? { label: tl.names[0], formula: tl.formula, mw: tl.mw, loading: !!detail.loading.ligand, ready: !detail.loading.ligand, rows: [['CCD', tl.ccd], ['PubChem', `CID ${tl.cid}`], ['ChEMBL', `${tl.chembl} · ${tl.activities.toLocaleString()} activities`], ['InChIKey', tl.inchikey], ['Stereocentres', String(tl.stereo)], ['pKa', tl.pka], ['SMILES', tl.smiles]].map(([k, v]) => ({ k, v })) } : {},
+      taskOptionsCofold: data.TASKS.filter(t => t.group === 'co-folding').map(t => ({ name: t.name, select: () => this.setState({ form: { ...form, task: t.id, tools: t.defaultTools, partner: t.kind === 'complex' ? (form.partner || 'P04049') : form.partner } }), bg: form.task === t.id ? '#1A1A18' : 'transparent', color: form.task === t.id ? '#fff' : '#1A1A18', border: form.task === t.id ? '#1A1A18' : '#E6E6E1' })),
+      taskOptionsDock: data.TASKS.filter(t => t.group === 'docking').map(t => ({ name: t.name, select: () => this.setState({ form: { ...form, task: t.id, tools: t.defaultTools, partner: t.kind === 'complex' ? (form.partner || 'P04049') : form.partner } }), bg: form.task === t.id ? '#1A1A18' : 'transparent', color: form.task === t.id ? '#fff' : '#55554F', border: form.task === t.id ? '#1A1A18' : '#E6E6E1' })),
+      taskClaimHint: `permitted claim: ${task.claim}`,
+      cofoldChips: data.TOOLS.filter(t => t.family === 'co-folding').map(chip).map(c => ({ ...c, bg: form.tools.includes(c.id) ? '#F6EEDC' : 'transparent', border: form.tools.includes(c.id) ? P.accent : '#E6E6E1' })),
+      dockChips: data.TOOLS.filter(t => t.family === 'docking').map(chip).map(c => ({ ...c, bg: form.tools.includes(c.id) ? '#F1F1ED' : 'transparent', border: form.tools.includes(c.id) ? '#55554F' : '#E6E6E1' })),
+      form, showPartner: isDisc, showLigand: !isDisc,
+      onTarget: this.setForm('target'), onPartner: this.setForm('partner'), onReference: this.setForm('reference'), onSeeds: this.setForm('seeds'), onPh: this.setForm('ph'), onLigand: this.setForm('ligand'), onName: this.setForm('name'),
+      onDrop: this.onDrop, onDragOver: this.onDragOver, onDragLeave: this.onDragLeave, browseFiles: this.browseFiles, onFiles: this.onFiles, fileInputRef: this.fileInputRef, dropBorder: this.state.dragging ? P.accent : '#D7D7D2', dropBg: this.state.dragging ? '#FBF7EE' : 'transparent',
+      noFiles: files.length === 0, hasFiles: files.length > 0, files: files.map(f => ({ ...f, ...spinner(f.status), parsed: f.status === 'ok' ? f.parsed : 'parsing', remove: (e) => { e.stopPropagation(); this.setState({ files: this.state.files.filter(x => x.name !== f.name) }); } })),
+      entitiesBusy: entities.some(e => e.status === 'loading'), noEntities: entities.length === 0, entityGroups: groups,
+      addTarget: this.state.add.target, onAddTarget: this.setAdd('target'), onAddTargetKey: this.addKey('target'), addLigand: this.state.add.ligand, onAddLigand: this.setAdd('ligand'), onAddLigandKey: this.addKey('ligand'), addTool: this.state.add.tool, onAddTool: this.setAdd('tool'), onAddToolKey: this.addKey('tool'),
+      nameSuggestion: this.suggestName(form), planClaim: task.claim, planTools: form.tools.map(id => data.TOOLS.find(t => t.id === id)?.name).filter(Boolean).join(' · ') || 'none', planControls: task.controls.join(', '), submit: this.submit,
+    });
+    // ----- jobs + run -----
+    const worst = (checks) => checks.some(c => c.result === 'stop') ? 'stop' : checks.some(c => c.result === 'warn') ? 'warn' : 'pass';
+    const vmeta = (o) => o === 'refused' ? { label: 'Refused', color: P.stop } : o === 'narrowed' ? { label: 'Narrowed', color: '#8E6420' } : { label: 'Supported', color: P.pass };
+    const openReport = (j) => (e) => { e && e.stopPropagation && e.stopPropagation(); this.setState({ reportJobId: j.id, view: 'report', structSel: 'medoid', reportLayer: j.record.verdict.outcome === 'refused' ? j.record.layers.findIndex(l => l.checks.some(c => c.result === 'stop')) : 4 }); };
+    vals.jobsSummary = `${running} running · ${queued} queued · ${done} done`;
+    vals.jobCards = jobs.map((j, idx) => { const vm = vmeta(j.record.verdict.outcome); const L = j.record.layers[Math.min(j.layerIdx, 5)]; const allC = j.record.layers.flatMap(l => l.checks); const doneC = j.log.filter(l => l.kind === 'check').length;
+      return { ...j, num: String(jobs.length - idx).padStart(2, '0'), taskName: data.TASKS.find(t => t.id === j.form.task)?.name, taskLong: data.TASKS.find(t => t.id === j.form.task)?.long, tools: j.record.tools.map(t => t.name).join(' + '), toolsLong: j.record.tools.map(t => `${t.name} ${t.version}`).join(', '), inputs: `${j.form.target}${j.form.partner ? ' + ' + j.form.partner : ''} · ${j.form.reference} · ${j.form.seeds} seeds · pH ${j.form.ph}`, claim: j.record.claim, checksLine: j.status === 'done' ? `${allC.length} checks · ${allC.filter(c => c.result === 'warn').length} warn · ${allC.filter(c => c.result === 'stop').length} stop` : `${doneC} of ${allC.length} checks`, seeds: j.form.seeds, open: () => this.setState({ runJobId: j.id, view: 'run' }), done: j.status === 'done', notDone: j.status !== 'done', verdictLabel: vm.label, verdictColor: vm.color, elapsed: `${(j.elapsedMs / 1000).toFixed(1)} s`,
+        dot: j.status === 'running' ? P.accent : '#B9B9B3', dotAnim: j.status === 'running' ? 'pulse 1.2s infinite' : 'none', statusLabel: j.status === 'running' ? `${L.name.toLowerCase()} · ${(j.elapsedMs / 1000).toFixed(1)}s` : 'queued',
+        segs: j.record.layers.map((l, i) => { const dl = i < j.layerIdx; const cur = i === j.layerIdx && j.status === 'running'; const w = worst(l.checks); const wn = l.checks.filter(c => c.result === 'warn').length, st = l.checks.filter(c => c.result === 'stop').length; return { i, name: l.name, pct: dl ? 100 : cur ? Math.round(j.progress * 100) : 0, color: dl ? (w === 'pass' ? '#1A1A18' : w === 'warn' ? P.warn : P.stop) : P.accent, labelColor: dl || cur ? '#55554F' : '#C9C9C3', counts: dl ? (st ? `${st} stop` : wn ? `${wn} warn` : `${l.checks.length}`) : '' }; }) }; });
+    const sel = jobs.find(j => j.id === this.state.runJobId) || jobs[0];
+    const lines = sel ? sel.log : []; const term = this.state.logMode === 'terminal';
+    const LOGC = term ? { pass: '#6FBF8A', warn: '#E3B45A', stop: '#E8826E', fetch: '#C9C9C3', cache: '#8B8B85', exec: '#C9C9C3' } : { pass: P.pass, warn: P.warn, stop: P.stop, fetch: '#1A1A18', cache: '#55554F', exec: '#1A1A18' };
+    if (sel) { const vm = vmeta(sel.record.verdict.outcome); const curL = sel.record.layers[Math.min(sel.layerIdx, 5)]; const allC = sel.record.layers.flatMap(l => l.checks);
+      vals.rj = { name: sel.name, id: sel.id, taskName: data.TASKS.find(t => t.id === sel.form.task)?.long, tools: sel.record.tools.map(t => `${t.name} ${t.version}`).join(' · '), seeds: sel.form.seeds, elapsed: `${(sel.elapsedMs / 1000).toFixed(1)} s`, done: sel.status === 'done', openReport: openReport(sel),
+        statusLabel: sel.status === 'done' ? `complete · ${allC.length} checks` : sel.status === 'running' ? `${curL.name.toLowerCase()} · ${Math.round(sel.progress * 100)}%` : 'queued', statusColor: sel.status === 'done' ? P.pass : '#55554F', dot: sel.status === 'running' ? P.accent : sel.status === 'done' ? P.pass : '#B9B9B3', dotAnim: sel.status === 'running' ? 'pulse 1.2s infinite' : 'none',
+        currentStep: sel.status === 'running' ? (lines.length ? lines[lines.length - 1].text.slice(0, 60) : 'starting') : sel.status === 'done' ? `finished · ${(sel.elapsedMs / 1000).toFixed(1)} s` : 'queued',
+        layers: sel.record.layers.map((l, i) => { const dl = i < sel.layerIdx; const cur = i === sel.layerIdx && sel.status === 'running'; const p = l.checks.filter(c => c.result === 'pass').length, w = l.checks.filter(c => c.result === 'warn').length, s = l.checks.filter(c => c.result === 'stop').length; return { name: l.name, bar: dl ? P[worst(l.checks)] : cur ? P.accent : '#E6E6E1', color: dl || cur ? '#1A1A18' : '#B9B9B3', value: dl ? `${(l.durationMs / 1000).toFixed(1)} s` : cur ? `${Math.round(sel.progress * 100)}%` : '—', valueColor: dl ? '#1A1A18' : cur ? P.accent : '#B9B9B3', counts: dl ? `${p}${w ? ` · ${w}w` : ''}${s ? ` · ${s}s` : ''}` : cur ? l.summary[0] : '' }; }),
+        execution: sel.record.execution.map(e => ({ ...e, ...spinner(sel.status === 'queued' ? 'loading' : 'ok') })), inputsLine1: `${sel.form.target}${sel.form.partner ? ' + ' + sel.form.partner : ''} · ${sel.form.reference} · pH ${sel.form.ph}`, inputsLine2: `${sel.form.seeds} seeds × 5 samples · ${sel.record.inputs.assembly}`,
+        verdictLabel: vm.label, verdictColor: vm.color, claim: sel.record.claim, verdictCounts: `${allC.filter(c => c.result === 'pass').length} pass · ${allC.filter(c => c.result === 'warn').length} warn · ${allC.filter(c => c.result === 'stop').length} stop` };
+    } else vals.rj = {};
+    Object.assign(vals, {
+      logEmpty: lines.length === 0, logRef: this.logRef,
+      logBg: term ? '#1A1A18' : '#fff', logFg: term ? '#E8E8E3' : '#1A1A18', logBorder: term ? '#1A1A18' : '#E6E6E1', logLine: term ? 'rgba(255,255,255,.08)' : '#EFEFEB', logMuted: term ? '#6B6B66' : '#B9B9B3', logToggleBg: term ? 'rgba(255,255,255,.08)' : '#F1F1ED', logFont: term ? "'Geist Mono',ui-monospace,monospace" : 'Geist,system-ui,sans-serif', logSize: term ? '11px' : '12.5px', logPad: term ? '1px' : '4px',
+      termBg: term ? '#fff' : 'transparent', termFg: term ? '#1A1A18' : '#8B8B85', plainBg: term ? 'transparent' : '#fff', plainFg: term ? '#8B8B85' : '#1A1A18', setTerminal: () => this.setState({ logMode: 'terminal' }), setPlain: () => this.setState({ logMode: 'plain' }),
+      logLines: lines.map(l => ({ t: l.t, text: term ? l.text : l.plain, weight: l.kind === 'layer' ? 500 : 400, dotColor: l.result ? LOGC[l.result] : l.kind === 'fetch' ? P.accent : l.kind === 'exec' ? '#5B7FA6' : term ? '#55554F' : '#D7D7D2', color: term ? (l.kind === 'layer' ? '#fff' : l.result ? LOGC[l.result] : LOGC[l.kind]) : (l.kind === 'layer' ? '#1A1A18' : l.result === 'stop' ? P.stop : l.result === 'warn' ? '#8E6420' : '#55554F') })),
+      evPass: lines.filter(l => l.kind === 'check' && l.result === 'pass').length, evWarn: lines.filter(l => l.kind === 'check' && l.result === 'warn').length, evStop: lines.filter(l => l.kind === 'check' && l.result === 'stop').length, evFetched: lines.filter(l => l.kind === 'fetch' || l.kind === 'cache').length, evChecks: lines.filter(l => l.kind === 'check').length,
+    });
+    // ----- agent -----
+    { const A = this.state.agent; const KC = { thought: '#8B8B85', tool: '#5B7FA6', result: '#55554F', report: P.accent, conclusion: '#1A1A18' };
+      const prog = (t) => { let acc = 0, n = 0; for (const s of t.steps) { acc += s.ms; if (t.elapsedMs >= acc) n++; else break; } return n; };
+      const selT = A.tasks.find(t => t.id === A.sel) || A.tasks[0];
+      vals.ag = { summary: `${A.tasks.filter(t => t.status === 'running').length} running · ${A.tasks.filter(t => t.status === 'done').length} completed`,
+        tasks: A.tasks.map(t => { const n = prog(t); const on = selT && selT.id === t.id; return { goal: t.goal, select: () => this.setState({ agent: { ...A, sel: t.id } }), bg: on ? '#fff' : 'transparent', border: on ? '#1A1A18' : '#E6E6E1', statusLabel: t.status === 'done' ? t.outcome.label.toLowerCase() : t.status, statusColor: t.status === 'done' ? P.pass : '#55554F', dot: t.status === 'running' ? P.accent : t.status === 'done' ? P.pass : '#B9B9B3', dotAnim: t.status === 'running' ? 'pulse 1.2s infinite' : 'none', pct: Math.round(Math.min(1, t.elapsedMs / t.total) * 100), barColor: t.status === 'done' ? P.pass : P.accent, stepLabel: `${n}/${t.steps.length} steps · ${t.outcome.runs} runs`, elapsed: `${(t.elapsedMs / 1000).toFixed(0)} s` }; }),
+        sel: selT ? (() => { const n = prog(selT); let acc = 0; const steps = selT.steps.slice(0, n).map((s, i) => { const t0 = acc; acc += s.ms; return { kind: s.kind, text: s.text, t: `${(t0 / 1000).toFixed(1)}s`, kindColor: KC[s.kind], color: s.kind === 'thought' ? '#55554F' : '#1A1A18', size: s.kind === 'thought' ? '13px' : s.kind === 'conclusion' ? '14px' : '12px', font: s.kind === 'tool' || s.kind === 'result' || s.kind === 'report' ? "'Geist Mono',ui-monospace,monospace" : 'Geist,system-ui,sans-serif', weight: s.kind === 'conclusion' ? 500 : 400, radius: s.kind === 'tool' || s.kind === 'result' ? '2px' : '50%', fill: s.kind === 'thought' ? 'transparent' : KC[s.kind], stroke: KC[s.kind], strokeTop: KC[s.kind], anim: 'none' }; });
+          const next = selT.steps[n]; const allC = selT.steps.slice(0, n);
+          return { goal: selT.goal, id: selT.id, stepsDone: n, stepsTotal: selT.steps.length, toolCalls: allC.filter(s => s.kind === 'tool').length, reports: allC.filter(s => s.kind === 'report').length, elapsed: `${(selT.elapsedMs / 1000).toFixed(1)} s`, done: selT.status === 'done', outcomeLabel: selT.outcome.label, outcomeDetail: selT.outcome.detail, steps, thinking: selT.status === 'running' && !!next, nextKind: next ? ({ thought: 'thinking', tool: 'calling ' + next.text.split(' ')[0], result: 'waiting for result', report: 'reading report', conclusion: 'writing conclusion' }[next.kind]) : '' }; })() : {} };
+    }
+    // ----- report / ensemble / docs -----
+    const doneJobs = jobs.filter(j => j.status === 'done'); const rj = doneJobs.find(j => j.id === this.state.reportJobId) || doneJobs[0];
+    const pick = (j) => () => this.setState({ reportJobId: j.id, structSel: 'medoid' });
+    vals.reportPicker = doneJobs.map(j => ({ name: j.name, pick: pick(j), underline: rj && rj.id === j.id ? '#1A1A18' : 'transparent', color: rj && rj.id === j.id ? '#1A1A18' : '#8B8B85' }));
+    vals.docList = doneJobs.map(j => { const vm = vmeta(j.record.verdict.outcome); const on = rj && rj.id === j.id; return { name: j.name, pick: pick(j), bar: on ? '#1A1A18' : '#E6E6E1', weight: on ? 600 : 500, verdictLabel: vm.label, verdictColor: vm.color, date: new Date(j.record.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) }; });
+    vals.noReport = !rj; vals.hasReport = !!rj; vals.openDoc = () => this.setState({ view: 'docs' }); vals.downloadRecord = this.downloadRecord; vals.downloadNotebook = this.downloadNotebook; vals.printDoc = () => window.print(); vals.viewerRef = this.viewerRef; vals.paeRef = this.paeRef;
+    if (!rj) { vals.rp = {}; vals.en = {}; return vals; }
+    if (rj.id !== this.state.reportJobId) setTimeout(() => this.setState({ reportJobId: rj.id }), 0);
+    const r = rj.record; const vm = vmeta(r.verdict.outcome); const li = Math.min(5, Math.max(0, this.state.reportLayer)); const L = r.layers[li]; const lig = r.task !== 'interaction_discovery'; const S = r.stats;
+    const resColor = (res) => res === 'reported' ? P.reported : P[res];
+    const ss = this.state.structSel; const selEnt = S.ensemble.find(e => e.id === ss || (ss === 'medoid' && e.kind === 'medoid'));
+    const seedPts = S.seeds.map(s => ({ cx: 40 + Math.min(8, s.rmsdToMedoid) / 8 * 310, cy: 128 - (s.confidence - 0.5) / 0.5 * 108, ty: 128 - (s.confidence - 0.5) / 0.5 * 108 + 15, fill: s.rmsdToMedoid < 2 ? P.pass : P.warn, label: `s${s.seed}` }));
+    const calib = (key) => S.calibration.map(p => `${40 + (p.x - 0.5) / 0.5 * 270},${130 - p[key] * 115}`).join(' ');
+    const flagged = r.layers.flatMap(l => l.checks.filter(c => c.result === 'warn' || c.result === 'stop')).map(c => ({ ...c, color: P[c.result] }));
+    const allChecks = r.layers.flatMap(l => l.checks);
+    const inter = S.interactions.map((it, i, arr) => { const a = -Math.PI / 2 + i * 2 * Math.PI / arr.length; const R = 112; return { ...it, x: +(180 + R * Math.cos(a)).toFixed(1), y: +(150 + R * Math.sin(a)).toFixed(1), lx: +(180 + (R + 30) * Math.cos(a)).toFixed(1), ly: +(150 + (R + 30) * Math.sin(a) + 3).toFixed(1), stroke: this.INTER[it.type] || '#8B8B85', dash: it.type === 'Hydrophobic' ? '3 3' : it.type === 'H-bond' ? '5 3' : '0', knownLabel: it.known ? 'known' : 'new' }; });
+    vals.vizTabs = [['pae', 'PAE'], ['inter', 'Interactions'], ['seeds', 'Seeds'], ['agree', 'Agreement'], ['calib', S.roc ? 'Calibration · ROC' : 'Calibration']].map(([id, label]) => ({ label, select: () => this.setState({ vizTab: id }), underline: this.state.vizTab === id ? '#1A1A18' : 'transparent', color: this.state.vizTab === id ? '#1A1A18' : '#8B8B85' }));
+    ['pae', 'inter', 'seeds', 'agree', 'calib'].forEach(id => vals['viz' + id[0].toUpperCase() + id.slice(1)] = this.state.vizTab === id);
+    const physHead = lig ? ['drift Å', 'torsions', 'clashes', 'strain', 'unsat.', 'PB', 'clashscore'] : ['drift Å', 'clashes', 'strain', 'unsat.', 'clashscore', 'rama'];
+    const physVal = (p) => lig ? [p.drift, p.torsions, p.clashes, p.strain, p.unsatisfied, p.pbPassed, p.clashscore] : [p.drift, p.clashes, p.strain, p.unsatisfied, p.clashscore, p.rama];
+    const physRows = S.physics.map(p => ({ seed: `s${p.seed}`, color: (lig ? p.pbPassed < 20 : p.drift > 2) ? '#8E6420' : '#55554F', cells: physVal(p).map(v => ({ v: typeof v === 'number' ? (Number.isInteger(v) ? String(v) : v.toFixed(v < 10 ? 2 : 1)) : String(v) })) }));
+    const physMedian = physHead.map((_, k) => { const st = this.stats(S.physics.map(p => physVal(p)[k])); return { v: st ? (Number.isInteger(st.median) ? String(st.median) : st.median.toFixed(2)) : '·' }; });
+    const totalMs = r.sources.reduce((a, s) => a + s.ms, 0); const cached = r.sources.filter(s => s.cached).length;
+    const fmtTime = (iso) => new Date(iso).toLocaleTimeString(undefined, { hour12: false });
+    vals.rp = {
+      name: rj.name, id: r.id, claim: r.claim, verdictLabel: vm.label, verdictColor: vm.color, taskName: r.taskName, tools: r.tools.map(t => t.name).join(' + '), toolsLong: r.tools.map(t => `${t.name} ${t.version}`).join(', '), target: r.inputs.target, reference: r.inputs.reference, seeds: r.inputs.seeds, date: new Date(r.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }),
+      layerNav: r.layers.map((l, i) => { const w = worst(l.checks); const p = l.checks.filter(c => c.result === 'pass').length, wn = l.checks.filter(c => c.result === 'warn').length, st = l.checks.filter(c => c.result === 'stop').length; return { name: l.name, summary: l.summary.join(' · '), select: () => this.setState({ reportLayer: i }), bar: li === i ? '#1A1A18' : '#E6E6E1', weight: li === i ? 600 : 500, color: li === i ? '#1A1A18' : '#55554F', dot: P[w], countsShort: `${p}/${wn}/${st}`, countsLong: `${p} pass${wn ? ` · ${wn} warn` : ''}${st ? ` · ${st} stop` : ''}` }; }),
+      traceChecks: allChecks.length, traceMs: `${(r.layers.reduce((a, l) => a + l.durationMs, 0) / 1000).toFixed(1)} s`, toolVersions: r.tools.map(t => ({ line: `${t.name} ${t.version}` })),
+      structChips: [{ id: 'crystal', label: r.inputs.reference }, { id: 'medoid', label: 'medoid' }, ...S.ensemble.filter(e => e.kind === 'seed').map(e => ({ id: e.id, label: e.label })), ...S.ensemble.filter(e => e.kind === 'docking' || e.kind === 'model').map(e => ({ id: e.id, label: e.label })), { id: 'overlay', label: 'overlay' }].map(c => ({ ...c, select: () => this.setState({ structSel: c.id }), bg: ss === c.id ? '#1A1A18' : 'transparent', color: ss === c.id ? '#fff' : '#55554F', border: ss === c.id ? '#1A1A18' : '#E6E6E1' })),
+      structCaption: ss === 'crystal' ? `RCSB ${r.inputs.reference} · experimental` : ss === 'overlay' ? `${r.inputs.reference} + predicted · ${S.ensemble.length} structures` : selEnt ? `${selEnt.source} ${selEnt.label} · RMSD to medoid ${selEnt.rmsdToMedoid.toFixed(1)} Å` : '',
+      col4: lig ? 'ipTM/CNN' : 'ipTM',
+      ensembleRows: S.ensemble.map(e => { const id = e.kind === 'medoid' ? 'medoid' : e.id; const on = ss === id; return { label: e.kind === 'medoid' ? `${e.label} · medoid` : e.label, select: () => this.setState({ structSel: id }), bg: on ? '#F7F7F4' : 'transparent', dot: this.KIND[e.kind], labelColor: on ? '#1A1A18' : '#55554F', rmsd: e.kind === 'medoid' ? '—' : e.rmsdToMedoid.toFixed(1), rmsdColor: e.rmsdToMedoid > 2 && e.kind !== 'medoid' ? P.warn : '#1A1A18', plddt: e.pocketPlddt ?? '·', col4: e.iptm ?? e.cnn ?? '·', pb: e.posebusters != null ? `${e.posebusters}/20` : '·' }; }),
+      clusterPop: lig ? `${r.inputs.seeds - 1}/${r.inputs.seeds} seeds` : `3/${r.inputs.seeds} seeds`, pairwise: `${S.pairwise.median.toFixed(1)} Å · IQR ${S.pairwise.iqr[0].toFixed(1)}–${S.pairwise.iqr[1].toFixed(1)}`, sitePlacement: S.sitePlacement, poseAccuracy: S.poseAccuracy,
+      statCards: [{ title: lig ? 'Binding site' : 'Interface', rows: S.site.map(([k, v]) => ({ k, v })) }, { title: lig ? 'Pose' : 'Complex', rows: S.pose.map(([k, v]) => ({ k, v })) }, ...(r.docking ? [{ title: `Docking · ${r.docking.tool}`, rows: r.docking.rows.map(([k, v]) => ({ k, v })) }] : [{ title: 'Sampling', rows: [['site placement', S.sitePlacement], ['pose accuracy', S.poseAccuracy], ['pairwise RMSD', `${S.pairwise.median.toFixed(1)} Å median`], ['Kendall τ', '0.90']].map(([k, v]) => ({ k, v })) }])],
+      layer: { name: L.name, duration: `${L.durationMs} ms`, checks: L.checks.map(c => ({ ...c, dot: c.result === 'reported' ? 'transparent' : resColor(c.result), dotBorder: resColor(c.result), color: resColor(c.result) })) },
+      sideFigures: L.figures.map(([k, v]) => ({ k, v })), sideChecks: L.checks.map(c => ({ name: c.name, result: c.result, color: resColor(c.result), dot: c.result === 'reported' ? 'transparent' : resColor(c.result) })),
+      hasPB: S.posebusters.length > 0, posebusters: S.posebusters.map(p => ({ ...p, dot: p.pass ? P.pass : P.stop })), pbSummary: `${S.posebusters.filter(p => p.pass).length}/${S.posebusters.length} tests · medoid pose`,
+      physCols: physHead.length, physHead: physHead.map(name => ({ name })), physRows, physMedian,
+      paeBlock: lig ? `pocket block ${S.metrics[1].value} mean` : `interface block ${S.metrics[1].value} mean`, paeIntra: 'intra-chain 1.4 Å · diagonal', paeTokens: lig ? '38 pocket residues × ligand tokens' : `${r.inputs.target} × ${r.inputs.partner}`,
+      interNodes: inter, interList: inter, ligandLabel: lig ? (r.sources.find(s => s.source === 'PDB CCD')?.accession || 'LIG') : r.inputs.partner, interSummary: `${inter.filter(i => i.known).length}/${inter.length} seen in known complexes`,
+      seedPts, seedCut: 40 + 2 / 8 * 310, ciX1: 40 + S.pairwise.ci95[0] / 8 * 310, ciW: Math.max(2, (S.pairwise.ci95[1] - S.pairwise.ci95[0]) / 8 * 310), pwMedian: S.pairwise.median.toFixed(2), pwIqr: `${S.pairwise.iqr[0].toFixed(2)}–${S.pairwise.iqr[1].toFixed(2)}`, pwCi: `${S.pairwise.ci95[0].toFixed(2)}–${S.pairwise.ci95[1].toFixed(2)}`, tau: r.task === 'affinity_ranking' ? '0.82' : '0.90',
+      agreeN: S.agreement.length, agreeHead: S.agreement.map(a => ({ name: a.method })), agreeUnit: lig ? 'ligand RMSD Å · spyrmsd' : 'interface RMSD Å · DockQ',
+      agreeRows: S.agreement.map(a => ({ method: a.method, cells: a.cells.map(c => { const t = Math.min(1, c.value / 8); return { value: c.value === 0 ? '—' : c.value.toFixed(1), weight: c.weight, bg: c.value === 0 ? '#F7F7F4' : t < 0.25 ? T.pass : t < 0.6 ? T.warn : T.stop, color: c.value === 0 ? '#B9B9B3' : t < 0.25 ? P.pass : t < 0.6 ? '#8E6420' : P.stop }; }) })),
+      calibFlagged: calib('flagged'), calibPassed: calib('passed'), hasRoc: !!S.roc, rocPts: S.roc ? S.roc.map(p => `${40 + p.fpr * 270},${130 - p.tpr * 120}`).join(' ') : '', auc: S.auc, enrichment: S.enrichment, rocCaption: S.roc ? '; right, ROC of Boltz-2 affinity ranking against ChEMBL inactives' : '',
+      metrics: S.metrics.map(m => ({ ...m, border: m.separate ? P.accent : '#EFEFEB', valueColor: m.separate ? '#8E6420' : '#1A1A18' })),
+      hasPerturbation: S.perturbation.length > 0, perturbation: S.perturbation.map(p => ({ ...p, dot: p.ok ? P.pass : P.warn, color: p.ok ? '#55554F' : '#8E6420' })),
+      thresholds: r.thresholds.map(t => ({ ...t, color: /borrowed|suspected/.test(t.level) ? '#8E6420' : P.pass })),
+      controls: r.controls.map(c => ({ ...c, dot: c.status === 'sound' ? P.pass : P.stop })), outputs: r.outputs.map(name => ({ name })),
+      keyNumbers: lig ? [{ value: S.metrics[8].value, label: 'PoseBusters', color: '#1A1A18' }, { value: S.metrics[0].value, label: 'pocket pLDDT', color: '#1A1A18' }, { value: S.metrics[2].value, label: 'ipTM', color: '#1A1A18' }, { value: `${r.inputs.seeds - 1}/${r.inputs.seeds}`, label: 'seeds in medoid cluster', color: '#1A1A18' }, { value: `${S.agreement[0].cells[1].value} Å`, label: `${S.agreement[0].method} vs ${S.agreement[1].method}`, color: '#1A1A18' }, { value: '71', label: 'pocket exposure', color: P.warn }]
+        : [{ value: S.metrics[2].value, label: 'ipTM', color: P.warn }, { value: S.metrics[1].value, label: 'interface PAE', color: '#1A1A18' }, { value: S.metrics[4].value, label: 'pDockQ', color: '#1A1A18' }, { value: `3/${r.inputs.seeds}`, label: 'seeds in medoid cluster', color: '#1A1A18' }, { value: '11', label: 'paired MSA depth', color: P.stop }, { value: '6/12', label: 'decoy partners', color: P.stop }],
+      provSummary: `${r.sources.length} objects · ${cached} cached · ${r.sources.length - cached} network · ${totalMs.toLocaleString()} ms`, sources: r.sources.map(s => ({ ...s, sha: s.sha256.slice(0, 12) + '…', time: fmtTime(s.retrievedAt), msColor: s.cached ? '#8B8B85' : '#1A1A18' })),
+      recordLine: `run record ${r.id}.json · ${r.record.notebook} · seeds ${r.record.seeds.join(' ')}`, flagged,
+    };
+    // ----- ensemble view -----
+    const maxV = this.props.gridViewers ?? 6;
+    const cellStats = (e) => [{ k: 'RMSD', v: e.kind === 'medoid' ? '—' : `${e.rmsdToMedoid.toFixed(1)} Å`, color: e.rmsdToMedoid > 2 && e.kind !== 'medoid' ? P.warn : '#1A1A18' }, { k: 'pLDDT', v: e.pocketPlddt ?? '·', color: '#1A1A18' }, { k: lig ? 'ipTM/CNN' : 'ipTM', v: e.iptm ?? e.cnn ?? '·', color: '#1A1A18' }, { k: 'PB', v: e.posebusters != null ? `${e.posebusters}/20` : '·', color: '#1A1A18' }];
+    const metricRow = (name, unit, vals2, fills) => { const st = this.stats(vals2); if (!st) return null; const span = (st.max - st.min) || 1; return { name, unit, pts: vals2.map((v, i) => ({ x: typeof v === 'number' ? 4 + (v - st.min) / span * 192 : -10, fill: fills[i] })), medX: 4 + (st.median - st.min) / span * 192, median: st.median.toFixed(2), mean: st.mean.toFixed(2), sd: st.sd.toFixed(2), min: st.min.toFixed(2), max: st.max.toFixed(2) }; };
+    const ensFills = S.ensemble.map(e => this.KIND[e.kind]); const seedFills = S.seeds.map(() => this.KIND.seed);
+    vals.en = view === 'ensemble' ? {
+      count: S.ensemble.length,
+      cells: S.ensemble.map((e, i) => { const id = e.kind === 'medoid' ? 'medoid' : e.id; return { label: e.kind === 'medoid' ? `${e.label} · medoid` : e.label, source: e.source, dot: this.KIND[e.kind], border: e.kind === 'medoid' ? P.accent : '#E6E6E1', live: i < maxV && vals.useMolstar, static: !(i < maxV && vals.useMolstar), ref: this.gridRef(e.id, id), stats: cellStats(e) }; }),
+      summary: [metricRow('RMSD to medoid', 'Å', S.ensemble.filter(e => e.kind !== 'medoid').map(e => e.rmsdToMedoid), S.ensemble.filter(e => e.kind !== 'medoid').map(e => this.KIND[e.kind])), metricRow(lig ? 'Pocket pLDDT' : 'Interface pLDDT', '', S.ensemble.map(e => e.pocketPlddt), ensFills), metricRow('ipTM', '', S.ensemble.map(e => e.iptm), ensFills), ...(lig ? [metricRow('PoseBusters passed', '/20', S.ensemble.map(e => e.posebusters), ensFills), metricRow('Gnina CNN score', '', S.ensemble.map(e => e.cnn), ensFills)] : []), metricRow('Minimisation drift', 'Å', S.physics.map(p => p.drift), seedFills), metricRow('Torsion strain', 'kcal/mol', S.physics.map(p => p.strain), seedFills), metricRow('Clashscore', '', S.physics.map(p => p.clashscore), seedFills)].filter(Boolean),
+    } : { cells: [], summary: [] };
+    return vals;
+  }
+}
+</script>
+</body>
+</html>

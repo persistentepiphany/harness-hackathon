@@ -1,0 +1,31 @@
+# Example: ligand pose task on PDB 3PTB (bovine trypsin with benzamidine).
+# Every identifier resolves to a public record; checks in layers 0 and 1 are expected to pass.
+task: ligand_pose
+claim: Pose within stated uncertainty
+ph: 7.4
+proteins:
+  - id: trypsin
+    uniprot: P00760
+    pdb_id: 3PTB
+    chain: A
+    sequence: >-
+      IVGGYTCGANTVPYQVSLNSGYHFCGGSLINSQWVVSAAHCYKSGIQVRLGEDNINVVEG
+      NEQFISASKSIVHPSYNSNTLNNDIMLIKLKSAASLNSRVASISLPTSCASAGTQCLISG
+      WGNTKSSGTSYPDVLKCLKAPILSDSSCKSAYPGQITSNMFCAGYLEGGKDSCQGDSGGP
+      VVCSGKLQGIVSWGSGCAQKNKPGVYTKVCNYVSWIKQTIASN
+    msa: chain_A.a3m
+ligands:
+  - id: benzamidine
+    smiles: NC(=N)c1ccccc1
+    ccd: BEN
+    pubchem_cid: 2332
+    file: ligand_BEN.sdf
+receptor:
+  pdb_id: 3PTB
+  chains: [A]
+model:
+  executor: boltz2
+  version: 2.2.1
+  checkpoint: boltz2_conf.ckpt
+  database_snapshot: colabfold_envdb_202108
+  seeds: [0, 1, 2, 3, 4]

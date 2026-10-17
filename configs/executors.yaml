@@ -1,0 +1,111 @@
+# Executors: tools that produce predictions. Not installed in the harness environment.
+# The harness builds their inputs, parses their outputs and records their provenance.
+# Probes here check that code and weights are reachable from the current host.
+# I/O contracts with source citations: docs/EXECUTORS.md.
+version: 1
+executors:
+  - id: boltz2
+    name: Boltz-2
+    family: cofolding
+    mvp: true
+    licence: MIT
+    repo: https://github.com/jwohlwend/boltz
+    probes:
+      - {id: boltz2.code, kind: git, url: "https://github.com/jwohlwend/boltz"}
+      - {id: boltz2.weights, kind: http, url: "https://huggingface.co/api/models/boltz-community/boltz-2"}
+      - {id: boltz2.checkpoint, kind: http, url: "https://huggingface.co/boltz-community/boltz-2/resolve/main/boltz2_conf.ckpt"}
+  - id: boltz1
+    name: Boltz-1
+    family: cofolding
+    mvp: false
+    licence: MIT
+    repo: https://github.com/jwohlwend/boltz
+    probes:
+      - {id: boltz1.weights, kind: http, url: "https://huggingface.co/api/models/boltz-community/boltz-1"}
+  - id: protenix
+    name: Protenix
+    family: cofolding
+    mvp: false
+    licence: Apache-2.0
+    repo: https://github.com/bytedance/Protenix
+    probes:
+      - {id: protenix.code, kind: git, url: "https://github.com/bytedance/Protenix"}
+      - {id: protenix.weights, kind: http, url: "https://protenix.tos-cn-beijing.volces.com/checkpoint/protenix_base_default_v1.0.0.pt"}
+      - {id: protenix.esm_weights, kind: http, url: "https://af3-dev.tos-cn-beijing.volces.com/release_model/esm2_t36_3B_UR50D_ism.pt"}
+  - id: alphafold3
+    name: AlphaFold3
+    family: cofolding
+    mvp: false
+    licence: Apache-2.0 (code); weights under separate terms, by request
+    repo: https://github.com/google-deepmind/alphafold3
+    probes:
+      - {id: alphafold3.code, kind: git, url: "https://github.com/google-deepmind/alphafold3"}
+      - {id: alphafold3.weights, kind: manual, detail: "Weights issued by request; set PAH_AF3_WEIGHTS to the local path"}
+  - id: chai1
+    name: Chai-1
+    family: cofolding
+    mvp: false
+    licence: Apache-2.0 (code and weights)
+    repo: https://github.com/chaidiscovery/chai-lab
+    probes:
+      - {id: chai1.code, kind: git, url: "https://github.com/chaidiscovery/chai-lab"}
+      - {id: chai1.weights, kind: http, url: "https://chaiassets.com/chai1-inference-depencencies/models_v2/trunk.pt"}
+  - id: colabfold
+    name: ColabFold (AlphaFold2 / AF2-multimer)
+    family: cofolding
+    mvp: false
+    licence: MIT (code); AlphaFold2 weights CC-BY-4.0
+    repo: https://github.com/sokrypton/ColabFold
+    probes:
+      - {id: colabfold.code, kind: git, url: "https://github.com/sokrypton/ColabFold"}
+      - {id: colabfold.msa_server, kind: http, url: "https://api.colabfold.com/queue"}
+  - id: vina
+    name: AutoDock Vina
+    family: docking
+    mvp: true
+    licence: Apache-2.0
+    repo: https://github.com/ccsb-scripps/AutoDock-Vina
+    probes:
+      - {id: vina.code, kind: git, url: "https://github.com/ccsb-scripps/AutoDock-Vina"}
+      - {id: vina.python, kind: python, module: vina, dist: vina}
+  - id: gnina
+    name: Gnina
+    family: docking
+    mvp: true
+    licence: GPL-2.0 / Apache-2.0
+    repo: https://github.com/gnina/gnina
+    probes:
+      - {id: gnina.code, kind: git, url: "https://github.com/gnina/gnina"}
+      - {id: gnina.release, kind: http, url: "https://github.com/gnina/gnina/releases/latest"}
+      - {id: gnina.container, kind: http, url: "https://registry-1.docker.io/v2/", accept: [200, 401]}
+  - id: diffdock
+    name: DiffDock-L
+    family: docking
+    mvp: false
+    licence: MIT
+    repo: https://github.com/gcorso/DiffDock
+    probes:
+      - {id: diffdock.code, kind: git, url: "https://github.com/gcorso/DiffDock"}
+      - {id: diffdock.esm_weights, kind: http, url: "https://dl.fbaipublicfiles.com/fair-esm/models/esm2_t33_650M_UR50D.pt"}
+  - id: haddock3
+    name: HADDOCK3
+    family: docking
+    mvp: false
+    licence: Apache-2.0
+    repo: https://github.com/haddocking/haddock3
+    probes:
+      - {id: haddock3.code, kind: git, url: "https://github.com/haddocking/haddock3"}
+  - id: pydock
+    name: pyDock
+    family: docking
+    mvp: false
+    licence: academic licence
+    repo: null
+    probes:
+      - {id: pydock.licence, kind: manual, detail: "Academic licence; set PAH_PYDOCK_HOME to the install path"}
+
+runtime:
+  - {id: pytorch_cuda_wheels, kind: http, url: "https://download.pytorch.org/whl/cu124/"}
+  - {id: ghcr, kind: http, url: "https://ghcr.io/v2/", accept: [200, 401]}
+  - {id: nvcr, kind: http, url: "https://nvcr.io/v2/", accept: [200, 401]}
+  - {id: huggingface_hub, kind: http, url: "https://huggingface.co/api/models?limit=1"}
