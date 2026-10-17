@@ -245,7 +245,8 @@ def figures(res: Path, table: list[dict[str, Any]], stats: dict[str, Any]) -> No
     ax.set_xticks(range(3), ["Boltz-2", "DiffDock-L", "pooled"])
     ax.set_ylim(0, 1.05)
     ax.set_ylabel("balanced accuracy")
-    ax.legend(frameon=False, fontsize=8, loc="upper left")
+    # Legend above the axes: an interval reaching 1.0 would cross it inside the plot.
+    ax.legend(frameon=False, fontsize=8, loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2)
     _save(fig, out / "balanced_accuracy", rows)
 
     # 2. decision grid: columns = predictions, rows = truth, arm A, arm B (landscape for slides)
