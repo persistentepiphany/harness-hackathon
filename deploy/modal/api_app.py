@@ -187,6 +187,8 @@ image = (
         f"python -m pip install --no-cache-dir --no-deps -e {REMOTE_REPO}",
         f"cd {REMOTE_REPO} && PAH_CONFIG_DIR={REMOTE_REPO}/configs PAH_CONDA_PREFIX={CONDA_PREFIX} "
         f"pah fetch --profile {PROFILE} --only molprobity_data --strict",
+        # the runs and cache Volumes mount here; Modal refuses a non-empty mount point
+        "rm -rf /runs /cache",
     )
     .workdir(REMOTE_REPO)
     .env(
