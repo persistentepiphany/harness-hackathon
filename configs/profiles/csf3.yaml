@@ -5,7 +5,7 @@ backend: slurm
 cache_dir: ${HOME}/scratch/pah/cache
 runs_dir: ${HOME}/scratch/pah/runs
 offline: true
-conda_prefix: ${HOME}/scratch/pah/conda-env
+conda_prefix: ${HOME}/scratch/pah/.tools/conda-env
 slurm:
   # Partition and module names are unverified here. Confirm with `sinfo -s` and `module avail` on CSF3.
   partition_cpu: multicore
@@ -16,7 +16,7 @@ slurm:
   cpus_per_task: 4
   gpus_per_task: 1
   array_max_parallel: 64
-  modules: [apps/binapps/anaconda3/2024.10, tools/apptainer]
+  modules: [tools/apptainer]
 apptainer:
   image_dir: ${HOME}/scratch/pah/images
   bind: ["${HOME}/scratch/pah:/pah"]
