@@ -42,6 +42,14 @@
                 "higherIsBetter": true
             },
             {
+                "key": "chains_ptm",
+                "label": "Chain pTM",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true,
+                "note": "per chain {chain index: value} (writer.py:190-212); parsed as chains_ptm.<index>"
+            },
+            {
                 "key": "complex_plddt",
                 "label": "Complex pLDDT",
                 "kind": "plddt",
@@ -185,6 +193,14 @@
                 "kind": "interface",
                 "scope": "interface",
                 "higherIsBetter": true
+            },
+            {
+                "key": "chains_ptm",
+                "label": "Chain pTM",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true,
+                "note": "per chain {chain index: value} (writer.py:190-212); parsed as chains_ptm.<index>"
             },
             {
                 "key": "complex_plddt",
@@ -569,6 +585,14 @@
                 "note": "when PAE exists"
             },
             {
+                "key": "actifptm",
+                "label": "actifpTM",
+                "kind": "interface",
+                "scope": "interface",
+                "higherIsBetter": true,
+                "note": "only with --calc-extra-ptm (extra_ptm.py:270,288)"
+            },
+            {
                 "key": "pae",
                 "label": "PAE matrix",
                 "kind": "pae",
@@ -631,7 +655,7 @@
         "role": "Executor",
         "outputs": [
             {
-                "key": "vina_energy",
+                "key": "vina_affinity",
                 "label": "Vina score",
                 "unit": "kcal/mol",
                 "kind": "score",
@@ -768,6 +792,14 @@
                 "scope": "pose",
                 "higherIsBetter": false,
                 "note": "only if computed"
+            },
+            {
+                "key": "CNNaffinity_variance",
+                "label": "CNN affinity variance",
+                "kind": "other",
+                "scope": "pose",
+                "rankingOnly": true,
+                "note": "CNN ensemble only (result_info.cpp:122-151)"
             }
         ],
         "family": "docking",
@@ -834,7 +866,7 @@
         "role": "Learned docking",
         "outputs": [
             {
-                "key": "confidence",
+                "key": "diffdock_confidence",
                 "label": "Confidence",
                 "kind": "confidence",
                 "scope": "pose",
@@ -907,22 +939,6 @@
                 "note": "against the caprieval reference"
             },
             {
-                "key": "lrmsd",
-                "label": "Ligand RMSD",
-                "kind": "rmsd",
-                "scope": "interface",
-                "higherIsBetter": false,
-                "note": "against the caprieval reference"
-            },
-            {
-                "key": "ilrmsd",
-                "label": "Interface-ligand RMSD",
-                "kind": "rmsd",
-                "scope": "interface",
-                "higherIsBetter": false,
-                "note": "against the caprieval reference"
-            },
-            {
                 "key": "fnat",
                 "label": "Fraction of native contacts",
                 "kind": "interface",
@@ -937,19 +953,6 @@
                 "scope": "interface",
                 "higherIsBetter": true,
                 "note": "against the caprieval reference"
-            },
-            {
-                "key": "cluster_id",
-                "label": "Cluster",
-                "kind": "other",
-                "scope": "pose"
-            },
-            {
-                "key": "cluster_ranking",
-                "label": "Cluster rank",
-                "kind": "other",
-                "scope": "pose",
-                "higherIsBetter": false
             }
         ],
         "family": "docking",

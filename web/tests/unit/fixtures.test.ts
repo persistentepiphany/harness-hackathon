@@ -30,7 +30,7 @@ function checkRecord(r: UiRunRecord) {
       expect(['Stop', 'Warn', 'Reported']).toContain(c.gate);
       // a row either shows a real pairing or nothing
       const mvt = measuredVsThreshold(c);
-      if (mvt !== null) expect(mvt).toMatch(/ (==|!=|<=|>=|<|>) /);
+      if (mvt !== null) expect(mvt).toMatch(/ (==|!=|<=|>=|<|>|in) /);
     }
     const counted = Object.values(l.counts).reduce((a, b) => a + (b ?? 0), 0);
     expect(counted).toBe(l.checks.length);

@@ -161,7 +161,9 @@ The adapter (`src/pah/webui/adapter.py`) reads `runs/<id>/record.json`, `events.
 | `layers[i].durationMs` | `stage_end.ts - stage_start.ts` from the event stream |
 | `layers[i].status` | `done` after `stage_end`, `running` after `stage_start`, `not_run` when the layer was not selected |
 | `sources` | `provenance.json`: `source_id`, `accession`, `release` (or `"n/a"`), `sha256`, `retrieved_at`, `extra.cache == "hit"` |
-| `stats` | Empty until layers 4 and 5 produce values. The UI shows "not computed" for a missing block |
+| `stats` | `src/pah/webui/stats.py`: blocks built from finding evidence only (seeds, pairwise, posebusters, physics, interactions, site, pose, metrics, agreement, clusters, reference, ensemble, pae), each traced in `stats.provenance` to its check and tool. A key is present only when its check ran and reported that field; the UI shows "not computed" for a missing block |
+| `docking` | Record-level `{tool, rows, params, source}` from the manifest's docking prediction settings |
+| `tools[].ran`, `ranBy` | `harness` when the run executed the tool, `external` when its outputs were supplied, `null` for checks-only runs |
 | `structures` | Every `.cif`/`.pdb`/`.sdf` under `artifacts/`, served through `/runs/{id}/files/...` |
 | `renders` | Render artifacts in `record.json` (`ArtifactKind` render entries from `pah.report.renders`: PNG views and `.pse` session per structure) |
 

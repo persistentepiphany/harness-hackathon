@@ -4,14 +4,13 @@ Sources, in order of preference: `record.json` (written when the checks end), `r
 (written after it, with renders, figures and the provenance graph), `events.jsonl` (written as
 the run goes), `provenance.json`, `findings/` and the files under the run directory. Nothing here
 computes a scientific value: every number comes from a finding, an event timestamp or a file.
+`stats` and the docking card are mapped in `pah.webui.stats`.
 
-Gate on failure (`UiCheck.gate`). The harness has no per-check declaration of what a failure does,
-so the adapter resolves it in this order:
+Gate on failure (`UiCheck.gate`), in this order:
 
-1. a `failure_gate` class attribute on the registered check ("Stop", "Warn" or "Reported");
-2. `Stop` when the task lists the check under `escalate` (its warn becomes a stop);
-3. `Warn` for checks whose implementation never returns stop (`WARN_ONLY`);
-4. otherwise `Stop`.
+1. `Stop` when the task lists the check under `escalate` (its warn becomes a stop);
+2. the registered check's `gate_kind` (`pah.core.check.GateKind`: Stop, Warn or Reported);
+3. `Stop` for a check id with no registered implementation.
 """
 
 from __future__ import annotations
@@ -34,6 +33,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 from pah import __version__
 from pah.config import config_dir, load_yaml, repo_root
 from pah.core.task import TaskSpec, load_task
+from pah.webui import stats as ui_stats
 from pah.webui.store import EVENTS, read_events, read_json
 
 log = logging.getLogger(__name__)
@@ -65,9 +65,6 @@ OUTCOMES = {
     "incomplete": "incomplete",
 }
 OUTCOME_RESULT = {"refused": "stop", "narrowed": "warn", "supported": "pass"}
-GATES = {"stop": "Stop", "warn": "Warn", "reported": "Reported"}
-# Checks whose implementation returns pass or warn only (src/pah/checks/layer1_integrity.py).
-WARN_ONLY = frozenset({"l1.ligand.stereo_defined", "l1.receptor.altlocs"})
 RESULTS = ("pass", "warn", "stop", "skip")
 _RANK = {"skip": 0, "pass": 1, "reported": 2, "warn": 3, "stop": 4}
 # Event status values of non-check stages (report) mapped to a LogLine result.
@@ -83,6 +80,7 @@ STRUCTURE_FORMATS = {
     ".sdf": "sdf",
 }
 STRUCTURE_KINDS = ("source_structure", "prediction_structure", "input_structure", "input_ligand")
+WORK_DIR = "artifacts/work/"  # scratch files the checks write (PLIP, PROPKA inputs)
 STALE_AFTER_S = 600.0
 MAX_FIGURES = 8
 MAX_OUTPUTS = 500
@@ -309,15 +307,13 @@ def tool_register(
 
 def failure_gate(check_id: str, task: TaskSpec | None) -> str:
     """What a failure of this check does to the claim: "Stop", "Warn" or "Reported"."""
-    cls = checks_registry().get(check_id)
-    declared = getattr(cls, "failure_gate", None) if cls is not None else None
-    if isinstance(declared, str) and declared.lower() in GATES:
-        return GATES[declared.lower()]
+    from pah.core.check import GateKind
+
     if task is not None and check_id in task.escalate:
-        return "Stop"
-    if check_id in WARN_ONLY:
-        return "Warn"
-    return "Stop"
+        return GateKind.STOP.value
+    cls = checks_registry().get(check_id)
+    kind = getattr(cls, "gate_kind", None) if cls is not None else None
+    return GateKind(kind).value if isinstance(kind, str) and kind in set(GateKind) else "Stop"
 
 
 # ---------------------------------------------------------------- small formatting helpers
@@ -866,19 +862,80 @@ def ui_sources(state: RunState) -> list[dict[str, Any]]:
     return rows
 
 
-def ui_tools(state: RunState) -> list[dict[str, Any]]:
-    """The executor the manifest declares, with the outputs it reports (self-describing record)."""
+def run_executors(state: RunState) -> list[str]:
+    """Executors the run names: the declared model, then every prediction and control set."""
+    m = _dict(state.manifest)
+    names = [str(_dict(m.get("model")).get("executor") or "")]
+    names += [str(e) for e, _ in ui_stats.spec_roles(m)]
+    return [n for n in dict.fromkeys(names) if n and n != "None"]
+
+
+def _harness_executed(state: RunState) -> set[str]:
+    """Executors an `exec` stage of this run's event stream names (run inside the harness)."""
+    out: set[str] = set()
+    for e in state.events:
+        data = _dict(e.get("data"))
+        if (e.get("stage") == "exec" or data.get("kind") == "exec") and data.get("executor"):
+            out.add(str(data["executor"]))
+    return out
+
+
+def ran_by(
+    state: RunState, executor: str, members: list[ui_stats.Member] | None = None
+) -> str | None:
+    """How the executor's outputs reached the run: "harness" when this run executed it,
+    "external" when its outputs were supplied (manifest predictions or parsed prediction
+    structures), None when nothing of it ran (runs started from settings check inputs only)."""
+    from pah.webui.manifest_builder import EXECUTORS_NOT_RUN
+
+    if executor in _harness_executed(state):
+        return "harness"
+    if state.job.get("executors") == EXECUTORS_NOT_RUN:
+        return None
+    supplied = {e for e, _ in ui_stats.spec_roles(_dict(state.manifest))}
+    supplied |= {m.executor for m in members or ()}
+    return "external" if executor in supplied else None
+
+
+def ui_tools(state: RunState, members: list[ui_stats.Member] | None = None) -> list[dict[str, Any]]:
+    """The executors the manifest declares, with the outputs they report (self-describing
+    record). `ran` is true when the executor's outputs are in the run; `ranBy` says whether
+    the harness executed it or the outputs were supplied (`ran_by`)."""
     model = _dict(_dict(state.manifest).get("model"))
-    executor = model.get("executor")
-    if not executor:
-        return []
-    row = record_tool(str(executor), executor_rows())
-    row["version"] = model.get("version") if model.get("version") else row.get("version")
-    row["declaredVersion"] = model.get("version")
-    if model.get("checkpoint"):
-        row["checkpoint"] = model["checkpoint"]
-    row["ran"] = False  # layers 0-3 check inputs; no executor runs in the harness yet
-    return [row]
+    rows = executor_rows()
+    preds = {str(p.get("executor")): p for p in _dicts(_dict(state.manifest).get("predictions"))}
+    out: list[dict[str, Any]] = []
+    for executor in run_executors(state):
+        row = record_tool(executor, rows)
+        declared = model.get("version") if model.get("executor") == executor else None
+        declared = declared or _dict(preds.get(executor)).get("version")
+        row["version"] = declared if declared else row.get("version")
+        row["declaredVersion"] = declared
+        if model.get("executor") == executor and model.get("checkpoint"):
+            row["checkpoint"] = model["checkpoint"]
+        by = ran_by(state, executor, members)
+        row["ran"] = by is not None
+        row["ranBy"] = by
+        out.append(row)
+    return out
+
+
+def stats_input(state: RunState) -> ui_stats.StatsInput:
+    """What the stats mapping reads: findings, manifest, artifacts and the register rows."""
+    rows = executor_rows()
+    names = {sid: str(m.get("name") or sid) for sid, m in sources_meta().items()}
+    names.update(
+        {alias: names[target] for alias, target in SOURCE_ALIASES.items() if target in names}
+    )
+    return ui_stats.StatsInput(
+        run_id=state.run_id,
+        run_dir=state.run_dir,
+        findings=state.findings,
+        manifest=_dict(state.manifest),
+        artifacts=state.artifacts(),
+        tools={e: record_tool(e, rows) for e in run_executors(state)},
+        source_names=names,
+    )
 
 
 def ui_inputs(state: RunState) -> dict[str, Any]:
@@ -886,7 +943,6 @@ def ui_inputs(state: RunState) -> dict[str, Any]:
     proteins = _dicts(m.get("proteins"))
     ligands = _dicts(m.get("ligands"))
     receptor = _dict(m.get("receptor"))
-    model = _dict(m.get("model"))
     out: dict[str, Any] = {
         "partner": (proteins[1].get("uniprot") or proteins[1].get("id"))
         if len(proteins) > 1
@@ -902,10 +958,21 @@ def ui_inputs(state: RunState) -> dict[str, Any]:
         out["reference"] = reference
     if isinstance(m.get("ph"), int | float):
         out["ph"] = m["ph"]
-    seeds = model.get("seeds") or ()
+    seeds = run_seeds(m)
     if seeds:
         out["seeds"] = len(seeds)
     return out
+
+
+def run_seeds(manifest: Mapping[str, Any]) -> list[int]:
+    """Seeds of the declared model, then any further seeds of the prediction entries."""
+    seeds: list[int] = []
+    sets = [_dict(manifest.get("model")), *_dicts(manifest.get("predictions"))]
+    for entry in sets:
+        for x in entry.get("seeds") or ():
+            if isinstance(x, int) and not isinstance(x, bool) and x not in seeds:
+                seeds.append(x)
+    return seeds
 
 
 def _structure_kind(artifact_kind: str, rel: str) -> str:
@@ -952,35 +1019,48 @@ def ui_artifacts(state: RunState) -> list[dict[str, Any]]:
     return out
 
 
-def ui_structures(state: RunState) -> list[dict[str, Any]]:
+def ui_structures(
+    state: RunState, members: list[ui_stats.Member] | None = None
+) -> list[dict[str, Any]]:
     """Structure files the browser can load: registered artifacts inside the run directory,
-    plus any `.cif`/`.pdb`/`.sdf` under `artifacts/` not yet registered (live runs)."""
+    plus any `.cif`/`.pdb`/`.sdf` under `artifacts/` not yet registered (live runs). Parsed
+    predictions take the label and kind of their ensemble member. Files the checks write for
+    themselves (`artifacts/work/`) are not structures of the run and are left out."""
     out: list[dict[str, Any]] = []
     seen: set[str] = set()
+    by_path = {m.structure: m for m in members or () if m.structure}
 
-    def add(rel: str, artifact_kind: str, label: str, sha256: str | None) -> None:
+    def add(rel: str, artifact_kind: str, label: str, a: Mapping[str, Any] | None) -> None:
         fmt = STRUCTURE_FORMATS.get(Path(rel).suffix.lower())
-        if fmt is None or rel in seen:
+        if fmt is None or rel in seen or rel.startswith(WORK_DIR):
             return
         seen.add(rel)
+        member = by_path.get(rel) if artifact_kind == "prediction_structure" else None
         row: dict[str, Any] = {
             "id": Path(rel).with_suffix("").as_posix(),
-            "label": label or Path(rel).name,
-            "kind": _structure_kind(artifact_kind, rel),
+            "label": member.label if member else (label or Path(rel).name),
+            "kind": member.kind if member else _structure_kind(artifact_kind, rel),
             "url": file_url(state.run_id, rel),
             "format": fmt,
             "artifactKind": artifact_kind,
             "path": rel,
         }
-        if sha256:
-            row["sha256"] = sha256
+        if a is not None and a.get("sha256"):
+            row["sha256"] = str(a["sha256"])
+        derived = [str(x) for x in (a or {}).get("derived_from") or ()]
+        if derived:
+            row["derivedFrom"] = derived
+        if member is not None:
+            row["pose"] = member.pose
+            row["role"] = member.role
+            row["toolId"] = member.executor
         out.append(row)
 
     for a in state.artifacts():
         kind = str(a.get("kind", ""))
         rel = _inside(state.run_dir, str(a.get("path", "")))
         if kind in STRUCTURE_KINDS and rel and (state.run_dir / rel).is_file():
-            add(rel, kind, str(a.get("label", "")), str(a.get("sha256") or "") or None)
+            add(rel, kind, str(a.get("label", "")), a)
     base = state.run_dir / "artifacts"
     if base.is_dir():
         for path in sorted(base.rglob("*")):
@@ -991,20 +1071,53 @@ def ui_structures(state: RunState) -> list[dict[str, Any]]:
     return out
 
 
+def _unique_stems(structures: list[dict[str, Any]]) -> dict[str, str]:
+    """File stem -> structure id, for stems that name one structure only."""
+    stems = Counter(Path(str(s["path"])).stem for s in structures)
+    return {
+        Path(str(s["path"])).stem: str(s["id"])
+        for s in structures
+        if stems[Path(str(s["path"])).stem] == 1
+    }
+
+
+def last_renders(figures: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], int]:
+    """Render figures whose PNG is still the one they describe, and how many were overwritten.
+
+    The report names each render file after the structure's file stem, so structures that share
+    a stem (every docking pose is `complex.pdb`) write the same PNG in turn; the file then shows
+    the last structure rendered to it."""
+    last: dict[str, dict[str, Any]] = {}
+    for f in figures:
+        last[str(f.get("path", ""))] = f
+    kept = list(last.values())
+    return kept, len(figures) - len(kept)
+
+
 def ui_renders(state: RunState, structures: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """PyMOL renders from report.json figures (kind `render`): one entry per PNG view, with the
-    structure it shows and its `.pse` session. Falls back to `renders/*.png` before the report."""
-    by_stem = {Path(str(s["path"])).stem: str(s["id"]) for s in structures}
+    structure it shows and its `.pse` session. The structure is the one whose sha256 the caption
+    names (`pah.report.renders.figure_entries`), else the one with the file's stem. Falls back to
+    `renders/*.png` before the report."""
+    by_stem = _unique_stems(structures)
+    by_sha = [(str(s["sha256"]), str(s["id"])) for s in structures if s.get("sha256")]
     out: list[dict[str, Any]] = []
     figures = [f for f in _dicts(_dict(state.report).get("figures")) if f.get("kind") == "render"]
-    for f in figures:
+    linked: set[tuple[str, str]] = set()
+    for f in last_renders(figures)[0]:
         m = _RENDER_ID.match(str(f.get("id", "")))
         stem = m.group("stem") if m else Path(str(f.get("path", ""))).stem
         view = m.group("view") if m else "default"
         session = f.get("session_path")
+        sha = ui_stats.caption_sha(str(f.get("caption", "")))
+        hits = [sid for full, sid in by_sha if sha and full.startswith(sha)]
+        # byte-identical files share a sha256 and render alike: the first one not yet linked
+        free = [sid for sid in hits if (sid, view) not in linked]
+        structure = (free or hits or [by_stem.get(stem, stem)])[0]
+        linked.add((structure, view))
         out.append(
             {
-                "structure": by_stem.get(stem, stem),
+                "structure": structure,
                 "png": file_url(state.run_id, str(f.get("path", ""))),
                 "pse": file_url(state.run_id, str(session)) if session else None,
                 "view": view,
@@ -1065,6 +1178,9 @@ def ui_report_files(state: RunState) -> dict[str, Any]:
         "graph": graph,
         "figures": figures,
         "renderErrors": [str(x) for x in rep.get("render_errors") or ()],
+        "rendersOverwritten": last_renders(
+            [f for f in _dicts(rep.get("figures")) if f.get("kind") == "render"]
+        )[1],
         "limitations": [str(x) for x in rep.get("limitations") or ()],
     }
     if state.report_error:
@@ -1221,7 +1337,6 @@ def ui_narrative(
 
 def ui_run_meta(state: RunState) -> dict[str, Any]:
     rec = _dict(state.record)
-    model = _dict(_dict(state.manifest).get("model"))
     out: dict[str, Any] = {
         "runId": state.harness_run_id,
         "pahVersion": rec.get("pah_version") or __version__,
@@ -1230,8 +1345,9 @@ def ui_run_meta(state: RunState) -> dict[str, Any]:
         "finishedAt": iso(state.ended_at),
         "layersSelected": list(state.selected),
     }
-    if model.get("seeds"):
-        out["seeds"] = list(model["seeds"])
+    seeds = run_seeds(_dict(state.manifest))
+    if seeds:
+        out["seeds"] = seeds
     if state.profile:
         out["profile"] = state.profile
     return out
@@ -1243,31 +1359,37 @@ def to_ui_record(run_dir: Path, *, state: RunState | None = None) -> dict[str, A
     sources = ui_sources(s)
     layers = ui_layers(s, sources)
     verdict = ui_verdict(s)
-    structures = ui_structures(s)
-    stats = _dict(_dict(s.record).get("stats"))
-    return {
+    inp = stats_input(s)
+    members = ui_stats.members(inp)
+    structures = ui_structures(s, members)
+    renders = ui_renders(s, structures)
+    computed = ui_stats.build(inp, members, structures, renders)
+    out: dict[str, Any] = {
         "id": s.run_id,
         "createdAt": iso(s.started_at),
         "status": s.status,
         "task": ui_task_id(s.task_id) if s.task_id else None,
         "taskName": s.task.title if s.task else s.task_id,
         "claim": s.claim or "",
-        "tools": ui_tools(s),
+        "tools": ui_tools(s, members),
         "inputs": ui_inputs(s),
         "sources": sources,
         "layers": layers,
         "verdict": verdict,
-        "stats": stats,
+        "stats": computed.stats,
         "narrative": ui_narrative(s, layers, verdict),
         "controls": ui_controls(s),
         "outputs": ui_outputs(s),
         "record": ui_run_meta(s),
         "structures": structures,
-        "renders": ui_renders(s, structures),
+        "renders": renders,
         "report": ui_report_files(s),
         "artifacts": ui_artifacts(s),
         "source": "pah",
     }
+    if computed.docking is not None:
+        out["docking"] = computed.docking
+    return out
 
 
 # ---------------------------------------------------------------- jobs

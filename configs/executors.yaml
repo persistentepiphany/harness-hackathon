@@ -18,6 +18,7 @@ executors:
       - {key: iptm, label: ipTM, kind: interface, scope: interface, higherIsBetter: true}
       - {key: ligand_iptm, label: Ligand ipTM, kind: interface, scope: ligand, higherIsBetter: true}
       - {key: protein_iptm, label: Protein ipTM, kind: interface, scope: interface, higherIsBetter: true}
+      - {key: chains_ptm, label: Chain pTM, kind: confidence, scope: global, higherIsBetter: true, note: "per chain {chain index: value} (writer.py:190-212); parsed as chains_ptm.<index>"}
       - {key: complex_plddt, label: Complex pLDDT, kind: plddt, scope: global, range: [0, 1], higherIsBetter: true, note: "0-1 scale; Protenix, AF3 and ColabFold report 0-100"}
       - {key: complex_iplddt, label: Interface pLDDT, kind: plddt, scope: interface, higherIsBetter: true}
       - {key: complex_pde, label: Complex PDE, unit: Å, kind: pae, scope: global, higherIsBetter: false, note: predicted distance error}
@@ -43,6 +44,7 @@ executors:
       - {key: iptm, label: ipTM, kind: interface, scope: interface, higherIsBetter: true}
       - {key: ligand_iptm, label: Ligand ipTM, kind: interface, scope: ligand, higherIsBetter: true}
       - {key: protein_iptm, label: Protein ipTM, kind: interface, scope: interface, higherIsBetter: true}
+      - {key: chains_ptm, label: Chain pTM, kind: confidence, scope: global, higherIsBetter: true, note: "per chain {chain index: value} (writer.py:190-212); parsed as chains_ptm.<index>"}
       - {key: complex_plddt, label: Complex pLDDT, kind: plddt, scope: global, range: [0, 1], higherIsBetter: true, note: "0-1 scale; Protenix, AF3 and ColabFold report 0-100"}
       - {key: complex_iplddt, label: Interface pLDDT, kind: plddt, scope: interface, higherIsBetter: true}
       - {key: complex_pde, label: Complex PDE, unit: Å, kind: pae, scope: global, higherIsBetter: false, note: predicted distance error}
@@ -119,6 +121,7 @@ executors:
       - {key: ptm, label: pTM, kind: confidence, scope: global, higherIsBetter: true, note: when PAE exists}
       - {key: iptm, label: ipTM, kind: interface, scope: interface, higherIsBetter: true, note: "complexes only; removed for monomers (batch.py:553)"}
       - {key: max_pae, label: Max PAE, kind: pae, scope: global, higherIsBetter: false, note: when PAE exists}
+      - {key: actifptm, label: actifpTM, kind: interface, scope: interface, higherIsBetter: true, note: "only with --calc-extra-ptm (extra_ptm.py:270,288)"}
       - {key: pae, label: PAE matrix, kind: pae, scope: residue, higherIsBetter: false, note: "[L, L], when PAE exists; unit not stated in the cited source"}
       - {key: ipsae, label: ipSAE, kind: interface, scope: interface, note: "per chain pair {\"A-B\": float}; complexes only"}
       - {key: pdockq, label: pDockQ, kind: interface, scope: interface, note: "per chain pair; complexes only"}
@@ -134,7 +137,7 @@ executors:
     repo: https://github.com/ccsb-scripps/AutoDock-Vina
     role: Executor
     outputs:
-      - {key: vina_energy, label: Vina score, unit: kcal/mol, kind: score, scope: pose, higherIsBetter: false, rankingOnly: true, note: "REMARK VINA RESULT, first value (vina.cpp:535-555); poses sorted best first"}
+      - {key: vina_affinity, label: Vina score, unit: kcal/mol, kind: score, scope: pose, higherIsBetter: false, rankingOnly: true, note: "REMARK VINA RESULT, first value (vina.cpp:535-555); poses sorted best first"}
       - {key: rmsd_lb, label: RMSD lower bound to best mode, kind: rmsd, scope: pose, higherIsBetter: false, note: "REMARK VINA RESULT, second value; relative to the best mode, not to a reference"}
       - {key: rmsd_ub, label: RMSD upper bound to best mode, kind: rmsd, scope: pose, higherIsBetter: false, note: "REMARK VINA RESULT, third value; relative to the best mode, not to a reference"}
     dockingParams:
@@ -161,6 +164,7 @@ executors:
       - {key: minimizedAffinity, label: Vina-style affinity, unit: kcal/mol, kind: affinity, scope: pose, higherIsBetter: false, rankingOnly: true, note: always present}
       - {key: CNN_VS, label: CNN VS score, kind: score, scope: pose, higherIsBetter: true, rankingOnly: true, note: "CNNscore x CNNaffinity (result_info.cpp:141-142)"}
       - {key: minimizedRMSD, label: RMSD after minimisation, kind: rmsd, scope: pose, higherIsBetter: false, note: only if computed}
+      - {key: CNNaffinity_variance, label: CNN affinity variance, kind: other, scope: pose, rankingOnly: true, note: "CNN ensemble only (result_info.cpp:122-151)"}
     dockingParams:
       - {key: autobox_ligand, label: Box from reference ligand}
       - {key: autobox_add, label: Box padding, unit: Å, default: "4"}
@@ -181,7 +185,7 @@ executors:
     repo: https://github.com/gcorso/DiffDock
     role: Learned docking
     outputs:
-      - {key: confidence, label: Confidence, kind: confidence, scope: pose, higherIsBetter: true, note: "raw confidence-model output, from the file name rank<k>_confidence<c>.sdf only; can be negative"}
+      - {key: diffdock_confidence, label: Confidence, kind: confidence, scope: pose, higherIsBetter: true, note: "raw confidence-model output, from the file name rank<k>_confidence<c>.sdf only; can be negative"}
       - {key: rank, label: Rank, kind: other, scope: pose, higherIsBetter: false, note: "1 is the highest confidence"}
     dockingParams:
       - {key: samples_per_complex, label: Samples per complex, default: "10"}
@@ -199,12 +203,8 @@ executors:
     outputs:
       - {key: score, label: HADDOCK score, kind: score, scope: pose, higherIsBetter: false, rankingOnly: true, note: "capri_ss.tsv; rows sorted ascending by score (caprieval/defaults.yaml:127-150)"}
       - {key: irmsd, label: Interface RMSD, kind: rmsd, scope: interface, higherIsBetter: false, note: against the caprieval reference}
-      - {key: lrmsd, label: Ligand RMSD, kind: rmsd, scope: interface, higherIsBetter: false, note: against the caprieval reference}
-      - {key: ilrmsd, label: Interface-ligand RMSD, kind: rmsd, scope: interface, higherIsBetter: false, note: against the caprieval reference}
       - {key: fnat, label: Fraction of native contacts, kind: interface, scope: interface, higherIsBetter: true, note: against the caprieval reference}
       - {key: dockq, label: DockQ, kind: interface, scope: interface, higherIsBetter: true, note: against the caprieval reference}
-      - {key: cluster_id, label: Cluster, kind: other, scope: pose}
-      - {key: cluster_ranking, label: Cluster rank, kind: other, scope: pose, higherIsBetter: false}
     probes:
       - {id: haddock3.code, kind: git, url: "https://github.com/haddocking/haddock3"}
   - id: pydock

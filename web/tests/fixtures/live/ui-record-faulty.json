@@ -1,6 +1,6 @@
 {
     "id": "ui-faulty",
-    "createdAt": "2026-10-17T15:31:03.438723Z",
+    "createdAt": "2026-10-17T17:00:19.811826Z",
     "status": "done",
     "task": "ligand_pose",
     "taskName": "Ligand pose in a known pocket",
@@ -47,6 +47,14 @@
                     "kind": "interface",
                     "scope": "interface",
                     "higherIsBetter": true
+                },
+                {
+                    "key": "chains_ptm",
+                    "label": "Chain pTM",
+                    "kind": "confidence",
+                    "scope": "global",
+                    "higherIsBetter": true,
+                    "note": "per chain {chain index: value} (writer.py:190-212); parsed as chains_ptm.<index>"
                 },
                 {
                     "key": "complex_plddt",
@@ -127,7 +135,8 @@
             ],
             "family": "co-folding",
             "declaredVersion": "2.2.1",
-            "ran": false
+            "ran": false,
+            "ranBy": null
         }
     ],
     "inputs": {
@@ -149,9 +158,7 @@
             "sizeBytes": 176072,
             "usedBy": [
                 "l0.cross.uniprot_seqres",
-                "l0.sources.resolved",
-                "l1.sequence.matches_record",
-                "l1.sequence.no_truncation_substitution"
+                "l0.sources.resolved"
             ],
             "supplies": "canonical sequences, isoforms, PTMs, active sites, cross-references",
             "cached": true
@@ -184,8 +191,7 @@
             "sizeBytes": 2241,
             "usedBy": [
                 "l0.cross.uniprot_seqres",
-                "l0.sources.resolved",
-                "l1.context.composition"
+                "l0.sources.resolved"
             ],
             "supplies": "entry summaries, bound ligands, release status",
             "cached": true
@@ -202,10 +208,7 @@
             "sizeBytes": 372,
             "usedBy": [
                 "l0.cross.uniprot_seqres",
-                "l0.sources.resolved",
-                "l1.context.composition",
-                "l1.sequence.matches_record",
-                "l1.sequence.no_truncation_substitution"
+                "l0.sources.resolved"
             ],
             "supplies": "residue-level PDB to UniProt mapping",
             "cached": true
@@ -222,8 +225,7 @@
             "sizeBytes": 8484,
             "usedBy": [
                 "l0.cross.ligand_inchikey",
-                "l0.sources.resolved",
-                "l1.ligand.identity"
+                "l0.sources.resolved"
             ],
             "supplies": "ligand definitions and ideal geometry",
             "cached": true
@@ -239,9 +241,7 @@
             "url": "https://files.rcsb.org/download/3PTB.cif",
             "sizeBytes": 230954,
             "usedBy": [
-                "l0.sources.resolved",
-                "l1.receptor.altlocs",
-                "l1.receptor.chains"
+                "l0.sources.resolved"
             ],
             "supplies": "mmCIF and PDB files, ligand SDF",
             "cached": true
@@ -289,7 +289,7 @@
                     "evidence": "7 identifiers resolved to 6 records \u00b7 identifiers=7, failed=0, records=6",
                     "message": "7 identifiers resolved to 6 records",
                     "tool": "pah",
-                    "ms": 10,
+                    "ms": 7,
                     "measurements": [
                         {
                             "name": "identifiers",
@@ -372,7 +372,7 @@
                     "evidence": "1 of 1 InChIKey comparisons differ \u00b7 comparisons=1, mismatches=1, metal_skeleton_only=0",
                     "message": "1 of 1 InChIKey comparisons differ",
                     "tool": "rdkit",
-                    "ms": 267,
+                    "ms": 242,
                     "threshold": {
                         "value": "== true",
                         "origin": "Specification, Layer 0 (cross-source checks)",
@@ -406,7 +406,7 @@
                     ]
                 }
             ],
-            "durationMs": 280
+            "durationMs": 260
         },
         {
             "i": 1,
@@ -415,543 +415,467 @@
             "question": "Did the run receive exactly what was declared?",
             "status": "done",
             "counts": {
-                "pass": 4,
+                "pass": 0,
                 "warn": 0,
-                "stop": 6,
-                "skip": 0
+                "stop": 0,
+                "skip": 10
             },
             "summary": [
-                "10 checks",
-                "6 stop"
+                "10 checks"
             ],
-            "figures": [
-                [
-                    "proteins",
-                    "1"
-                ],
-                [
-                    "substitutions",
-                    "3"
-                ],
-                [
-                    "msas",
-                    "1"
-                ],
-                [
-                    "ligands",
-                    "1"
-                ],
-                [
-                    "stereo elements",
-                    "0"
-                ],
-                [
-                    "comparisons",
-                    "1"
-                ],
-                [
-                    "chains declared",
-                    "2"
-                ],
-                [
-                    "altloc residues",
-                    "0"
-                ]
-            ],
+            "figures": [],
             "checks": [
                 {
                     "id": "l1.sequence.matches_record",
                     "name": "Sequence given to the run matches the declared source record",
                     "gate": "Stop",
-                    "result": "stop",
-                    "evidence": "sequence differs from record for trypsin \u00b7 proteins=1, differing=1",
-                    "message": "sequence differs from record for trypsin",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
                     "tool": "pah",
-                    "ms": 0,
-                    "threshold": {
-                        "value": "== true",
-                        "origin": "Specification, Layer 1 (input integrity)",
-                        "evidenceLevel": "reproduced"
-                    },
-                    "thresholds": [
-                        {
-                            "name": "identical",
-                            "value": true,
-                            "comparator": "==",
-                            "origin": "Specification, Layer 1 (input integrity)",
-                            "evidenceLevel": "reproduced"
-                        }
-                    ],
-                    "measurements": [
-                        {
-                            "name": "proteins",
-                            "value": 1,
-                            "unit": null
-                        },
-                        {
-                            "name": "differing",
-                            "value": 1,
-                            "unit": null
-                        }
-                    ]
+                    "skipReason": "upstream_stop"
                 },
                 {
                     "id": "l1.sequence.no_truncation_substitution",
                     "name": "No silent truncation, substitution or non-standard residue",
                     "gate": "Stop",
-                    "result": "stop",
-                    "evidence": "sequence changed relative to reference: substitutions=3, n_truncation=5 \u00b7 substitutions=3, n_truncation=5, c_truncation=0",
-                    "message": "sequence changed relative to reference: substitutions=3, n_truncation=5",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
                     "tool": "pah",
-                    "ms": 1,
-                    "threshold": {
-                        "value": "== 0",
-                        "origin": "Specification, Layer 1 (input integrity)",
-                        "evidenceLevel": "reproduced"
-                    },
-                    "thresholds": [
-                        {
-                            "name": "changes",
-                            "value": 0,
-                            "comparator": "==",
-                            "origin": "Specification, Layer 1 (input integrity)",
-                            "evidenceLevel": "reproduced"
-                        }
-                    ],
-                    "measurements": [
-                        {
-                            "name": "substitutions",
-                            "value": 3,
-                            "unit": null
-                        },
-                        {
-                            "name": "n_truncation",
-                            "value": 5,
-                            "unit": null
-                        },
-                        {
-                            "name": "c_truncation",
-                            "value": 0,
-                            "unit": null
-                        },
-                        {
-                            "name": "internal_deletions",
-                            "value": 0,
-                            "unit": null
-                        },
-                        {
-                            "name": "insertions",
-                            "value": 0,
-                            "unit": null
-                        },
-                        {
-                            "name": "non_standard",
-                            "value": 0,
-                            "unit": null
-                        }
-                    ]
+                    "skipReason": "upstream_stop"
                 },
                 {
                     "id": "l1.msa.integrity",
                     "name": "MSA belongs to its chain, is not query-only and is not shared across chains",
                     "gate": "Stop",
-                    "result": "stop",
-                    "evidence": "MSA integrity failed: query_only=1, query_mismatch=1 \u00b7 msas=1, query_only=1, query_mismatch=1",
-                    "message": "MSA integrity failed: query_only=1, query_mismatch=1",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
                     "tool": "pah",
-                    "ms": 0,
-                    "threshold": {
-                        "value": "> 1",
-                        "origin": "Specification, Layer 1 (input integrity); query-only alignment",
-                        "evidenceLevel": "reproduced"
-                    },
-                    "thresholds": [
-                        {
-                            "name": "sequences",
-                            "value": 1,
-                            "comparator": ">",
-                            "origin": "Specification, Layer 1 (input integrity); query-only alignment",
-                            "evidenceLevel": "reproduced"
-                        },
-                        {
-                            "name": "query_matches_chain",
-                            "value": true,
-                            "comparator": "==",
-                            "origin": "Specification, Layer 1 (input integrity)",
-                            "evidenceLevel": "reproduced"
-                        }
-                    ],
-                    "measurements": [
-                        {
-                            "name": "msas",
-                            "value": 1,
-                            "unit": null
-                        },
-                        {
-                            "name": "query_only",
-                            "value": 1,
-                            "unit": null
-                        },
-                        {
-                            "name": "query_mismatch",
-                            "value": 1,
-                            "unit": null
-                        },
-                        {
-                            "name": "shared_across_chains",
-                            "value": 0,
-                            "unit": null
-                        }
-                    ]
+                    "skipReason": "upstream_stop"
                 },
                 {
                     "id": "l1.ligand.sanitization",
                     "name": "Ligand parses, valences are correct and charges are within range",
                     "gate": "Stop",
-                    "result": "pass",
-                    "evidence": "1 ligands sanitised \u00b7 ligands=1, failed=0, metal_disconnected=0",
-                    "message": "1 ligands sanitised",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
                     "tool": "rdkit",
-                    "ms": 0,
-                    "threshold": {
-                        "value": "== 0",
-                        "origin": "Specification, Layer 1 (input integrity)",
-                        "evidenceLevel": "published"
-                    },
-                    "thresholds": [
-                        {
-                            "name": "chemistry_problems",
-                            "value": 0,
-                            "comparator": "==",
-                            "origin": "Specification, Layer 1 (input integrity)",
-                            "evidenceLevel": "published"
-                        },
-                        {
-                            "name": "radicals",
-                            "value": 0,
-                            "comparator": "==",
-                            "origin": "Specification, Layer 1 (input integrity)",
-                            "evidenceLevel": "published"
-                        },
-                        {
-                            "name": "abs_net_charge",
-                            "value": 2,
-                            "comparator": "<=",
-                            "origin": "Harness default; not yet calibrated on the harness benchmark",
-                            "evidenceLevel": "uncalibrated"
-                        }
-                    ],
-                    "measurements": [
-                        {
-                            "name": "ligands",
-                            "value": 1,
-                            "unit": null
-                        },
-                        {
-                            "name": "failed",
-                            "value": 0,
-                            "unit": null
-                        },
-                        {
-                            "name": "metal_disconnected",
-                            "value": 0,
-                            "unit": null
-                        },
-                        {
-                            "name": "max_abs_charge",
-                            "value": 0,
-                            "unit": null
-                        }
-                    ]
+                    "skipReason": "upstream_stop"
                 },
                 {
                     "id": "l1.ligand.stereo_defined",
                     "name": "Stereocentres and double-bond geometry explicitly defined",
                     "gate": "Warn",
-                    "result": "pass",
-                    "evidence": "all stereo elements defined \u00b7 stereo_elements=0, undefined=0, unparsed=0",
-                    "message": "all stereo elements defined",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
                     "tool": "rdkit",
-                    "ms": 1,
-                    "threshold": {
-                        "value": "== 0",
-                        "origin": "Specification, Layer 1 (input integrity)",
-                        "evidenceLevel": "published"
-                    },
-                    "thresholds": [
-                        {
-                            "name": "undefined_stereo",
-                            "value": 0,
-                            "comparator": "==",
-                            "origin": "Specification, Layer 1 (input integrity)",
-                            "evidenceLevel": "published"
-                        }
-                    ],
-                    "measurements": [
-                        {
-                            "name": "stereo_elements",
-                            "value": 0,
-                            "unit": null
-                        },
-                        {
-                            "name": "undefined",
-                            "value": 0,
-                            "unit": null
-                        },
-                        {
-                            "name": "unparsed",
-                            "value": 0,
-                            "unit": null
-                        }
-                    ]
+                    "skipReason": "upstream_stop"
                 },
                 {
                     "id": "l1.ligand.identity",
                     "name": "Ligand given to the run matches its database record by InChIKey",
                     "gate": "Stop",
-                    "result": "stop",
-                    "evidence": "1 of 1 ligand identities differ \u00b7 comparisons=1, mismatches=1, metal_skeleton_only=0",
-                    "message": "1 of 1 ligand identities differ",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
                     "tool": "rdkit",
-                    "ms": 3,
-                    "threshold": {
-                        "value": "== true",
-                        "origin": "Specification, Layer 1 (input integrity)",
-                        "evidenceLevel": "published"
-                    },
-                    "thresholds": [
-                        {
-                            "name": "inchikey_equal",
-                            "value": true,
-                            "comparator": "==",
-                            "origin": "Specification, Layer 1 (input integrity)",
-                            "evidenceLevel": "published"
-                        }
-                    ],
-                    "measurements": [
-                        {
-                            "name": "comparisons",
-                            "value": 1,
-                            "unit": null
-                        },
-                        {
-                            "name": "mismatches",
-                            "value": 1,
-                            "unit": null
-                        },
-                        {
-                            "name": "metal_skeleton_only",
-                            "value": 0,
-                            "unit": null
-                        }
-                    ]
+                    "skipReason": "upstream_stop"
                 },
                 {
                     "id": "l1.receptor.chains",
                     "name": "Receptor complete, chains and residue numbering as declared",
                     "gate": "Stop",
-                    "result": "stop",
-                    "evidence": "missing chains ['B'] \u00b7 chains_declared=2, chains_missing=1, residues_checked=223",
-                    "message": "missing chains ['B']",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
                     "tool": "gemmi",
-                    "ms": 40,
-                    "threshold": {
-                        "value": "== 0",
-                        "origin": "Specification, Layer 1 (input integrity)",
-                        "evidenceLevel": "published"
-                    },
-                    "thresholds": [
-                        {
-                            "name": "numbering_mismatches",
-                            "value": 0,
-                            "comparator": "==",
-                            "origin": "Specification, Layer 1 (input integrity)",
-                            "evidenceLevel": "published"
-                        }
-                    ],
-                    "measurements": [
-                        {
-                            "name": "chains_declared",
-                            "value": 2,
-                            "unit": null
-                        },
-                        {
-                            "name": "chains_missing",
-                            "value": 1,
-                            "unit": null
-                        },
-                        {
-                            "name": "residues_checked",
-                            "value": 223,
-                            "unit": null
-                        },
-                        {
-                            "name": "numbering_mismatches",
-                            "value": 0,
-                            "unit": null
-                        }
-                    ]
+                    "skipReason": "upstream_stop"
                 },
                 {
                     "id": "l1.receptor.altlocs",
                     "name": "Alternate locations resolved deliberately",
                     "gate": "Warn",
-                    "result": "pass",
-                    "evidence": "no alternate locations \u00b7 altloc_residues=0, altloc_atoms=0",
-                    "message": "no alternate locations",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
                     "tool": "gemmi",
-                    "ms": 1,
-                    "measurements": [
-                        {
-                            "name": "altloc_residues",
-                            "value": 0,
-                            "unit": null
-                        },
-                        {
-                            "name": "altloc_atoms",
-                            "value": 0,
-                            "unit": null
-                        }
-                    ]
+                    "skipReason": "upstream_stop"
                 },
                 {
                     "id": "l1.context.composition",
                     "name": "Chain composition and stoichiometry match the declared assembly",
                     "gate": "Stop",
-                    "result": "pass",
-                    "evidence": "1 proteins match reference stoichiometry \u00b7 proteins=1, mismatched=0",
-                    "message": "1 proteins match reference stoichiometry",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
                     "tool": "pah",
-                    "ms": 0,
-                    "threshold": {
-                        "value": "== true",
-                        "origin": "Specification, Layer 1 (input integrity)",
-                        "evidenceLevel": "published"
-                    },
-                    "thresholds": [
-                        {
-                            "name": "copies_equal",
-                            "value": true,
-                            "comparator": "==",
-                            "origin": "Specification, Layer 1 (input integrity)",
-                            "evidenceLevel": "published"
-                        }
-                    ],
-                    "measurements": [
-                        {
-                            "name": "proteins",
-                            "value": 1,
-                            "unit": null
-                        },
-                        {
-                            "name": "mismatched",
-                            "value": 0,
-                            "unit": null
-                        }
-                    ]
+                    "skipReason": "upstream_stop"
                 },
                 {
                     "id": "l1.provenance.model_config",
                     "name": "Model version, checkpoint and database snapshot recorded and consistent",
                     "gate": "Stop",
-                    "result": "stop",
-                    "evidence": "model provenance missing: checkpoint, database_snapshot \u00b7 required=4, missing=2, seeds=0",
-                    "message": "model provenance missing: checkpoint, database_snapshot",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
                     "tool": "pah",
-                    "ms": 0,
-                    "threshold": {
-                        "value": "== 0",
-                        "origin": "Specification, Layer 1 (input integrity)",
-                        "evidenceLevel": "published"
-                    },
-                    "thresholds": [
-                        {
-                            "name": "missing_fields",
-                            "value": 0,
-                            "comparator": "==",
-                            "origin": "Specification, Layer 1 (input integrity)",
-                            "evidenceLevel": "published"
-                        }
-                    ],
-                    "measurements": [
-                        {
-                            "name": "required",
-                            "value": 4,
-                            "unit": null
-                        },
-                        {
-                            "name": "missing",
-                            "value": 2,
-                            "unit": null
-                        },
-                        {
-                            "name": "seeds",
-                            "value": 0,
-                            "unit": null
-                        }
-                    ]
+                    "skipReason": "upstream_stop"
                 }
             ],
-            "durationMs": 54
+            "durationMs": 11
         },
         {
             "i": 2,
             "key": "adequacy",
             "name": "Input adequacy",
             "question": "Does the input carry enough information?",
-            "status": "not_run",
-            "counts": {},
-            "summary": [],
+            "status": "done",
+            "counts": {
+                "pass": 0,
+                "warn": 0,
+                "stop": 0,
+                "skip": 8
+            },
+            "summary": [
+                "8 checks"
+            ],
             "figures": [],
-            "checks": []
+            "checks": [
+                {
+                    "id": "l2.msa.depth",
+                    "name": "Alignment depth, distinct sequences, Neff and gap fraction",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "numpy",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l2.context.cofactors",
+                    "name": "Required cofactors, ions and partners present",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "gemmi \u00b7 numpy",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l2.pocket.resolved",
+                    "name": "Pocket residues resolved, no missing loops lining the pocket",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "gemmi \u00b7 numpy",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l2.receptor.state",
+                    "name": "Receptor state apo or holo",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "gemmi \u00b7 numpy",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l2.receptor.protonation",
+                    "name": "Receptor protonation at the stated pH",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "propka \u00b7 gemmi",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l2.ligand.protonation",
+                    "name": "Ligand protonation and tautomers enumerated at the stated pH",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "rdkit \u00b7 dimorphite_dl",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l2.ligand.conformers",
+                    "name": "Ligand conformers generated and minimised",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "rdkit",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l2.docking.box",
+                    "name": "Docking box encloses the pocket with margin",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "gemmi \u00b7 numpy",
+                    "skipReason": "upstream_stop"
+                }
+            ],
+            "durationMs": 8
         },
         {
             "i": 3,
             "key": "applicability",
             "name": "Applicability",
             "question": "Is the tool inside its validated regime?",
-            "status": "not_run",
-            "counts": {},
-            "summary": [],
+            "status": "done",
+            "counts": {
+                "pass": 0,
+                "warn": 0,
+                "stop": 0,
+                "skip": 6
+            },
+            "summary": [
+                "6 checks"
+            ],
             "figures": [],
-            "checks": []
+            "checks": [
+                {
+                    "id": "l3.model.training_cutoff",
+                    "name": "Model training cutoff recorded",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "pah",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l3.exposure.pocket",
+                    "name": "Pocket similarity to pre-cutoff complexes (SuCOS times pocket coverage)",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "rdkit \u00b7 gemmi \u00b7 numpy",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l3.exposure.ligand_prevalence",
+                    "name": "Ligand analogues in pre-cutoff training systems",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "rdkit",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l3.exposure.sequence",
+                    "name": "Chain sequence identity to pre-cutoff entries (secondary measure)",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "pah",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l3.regime.modality",
+                    "name": "Modality inside the validated set; token count against the training crop",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "pah",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l3.metric.endpoint",
+                    "name": "Endpoint fits the tool",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "pah",
+                    "skipReason": "upstream_stop"
+                }
+            ],
+            "durationMs": 14
         },
         {
             "i": 4,
             "key": "validity",
             "name": "Output validity",
             "question": "Is the result physically and chemically sensible?",
-            "status": "not_run",
-            "counts": {},
-            "summary": [],
+            "status": "done",
+            "counts": {
+                "pass": 0,
+                "warn": 0,
+                "stop": 0,
+                "skip": 7
+            },
+            "summary": [
+                "7 checks"
+            ],
             "figures": [],
-            "checks": []
+            "checks": [
+                {
+                    "id": "l4.posebusters",
+                    "name": "PoseBusters geometry, stereochemistry, clashes and protein contact",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "posebusters \u00b7 rdkit",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l4.torsion_strain",
+                    "name": "Torsional strain of the ligand pose",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "rdkit",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l4.interactions.fingerprint",
+                    "name": "Interaction fingerprint (PLIP)",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "plip \u00b7 openbabel",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l4.interactions.unsatisfied_polars",
+                    "name": "Buried ligand polar atoms without a hydrogen-bond partner",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "freesasa \u00b7 gemmi \u00b7 rdkit",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l4.interactions.hydrophobic",
+                    "name": "Hydrophobic complementarity of buried ligand surface",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "freesasa \u00b7 gemmi \u00b7 rdkit",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l4.interactions.known_binders",
+                    "name": "Interactions of the crystal ligand reproduced by the pose",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "plip \u00b7 openbabel \u00b7 gemmi",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l4.minimisation_drift",
+                    "name": "Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF)",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "rdkit",
+                    "skipReason": "upstream_stop"
+                }
+            ],
+            "durationMs": 5
         },
         {
             "i": 5,
             "key": "support",
             "name": "Output support",
             "question": "Is a valid result corroborated?",
-            "status": "not_run",
-            "counts": {},
-            "summary": [],
+            "status": "done",
+            "counts": {
+                "pass": 0,
+                "warn": 0,
+                "stop": 0,
+                "skip": 5
+            },
+            "summary": [
+                "5 checks"
+            ],
             "figures": [],
-            "checks": []
+            "checks": [
+                {
+                    "id": "l5.confidence.local",
+                    "name": "Confidence restricted to the pocket; per-model thresholds",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "gemmi \u00b7 numpy",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l5.sampling.seeds",
+                    "name": "Independent seeds counted separately from samples; duplicates flagged",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "numpy",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l5.sampling.clusters",
+                    "name": "Medoid of the largest cluster, populations, pairwise spread, site and pose accuracy",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "spyrmsd \u00b7 scipy \u00b7 numpy \u00b7 rdkit",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l5.agreement.cross_family",
+                    "name": "Agreement between methods, weighted by independence",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "spyrmsd \u00b7 numpy \u00b7 rdkit",
+                    "skipReason": "upstream_stop"
+                },
+                {
+                    "id": "l5.controls.redocking",
+                    "name": "Redocking control reproduces the crystal pose",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "halted by l0.cross.ligand_inchikey",
+                    "message": "halted by l0.cross.ligand_inchikey",
+                    "tool": "spyrmsd \u00b7 numpy \u00b7 rdkit \u00b7 gemmi",
+                    "skipReason": "upstream_stop"
+                }
+            ],
+            "durationMs": 1
         }
     ],
     "verdict": {
         "claim": "Pose within stated uncertainty",
         "outcome": "refused",
-        "statement": "7 checks stopped in layers 0,1: l0.cross.ligand_inchikey, l1.sequence.matches_record, l1.sequence.no_truncation_substitution, l1.msa.integrity and 3 more. The claim \u201cPose within stated uncertainty\u201d is not supported.",
-        "scope": "layers 0,1",
+        "statement": "1 check stopped in layers 0,1,2,3,4,5: l0.cross.ligand_inchikey. The claim \u201cPose within stated uncertainty\u201d is not supported.",
+        "scope": "layers 0,1,2,3,4,5",
         "stops": [
-            "l0.cross.ligand_inchikey",
-            "l1.sequence.matches_record",
-            "l1.sequence.no_truncation_substitution",
-            "l1.msa.integrity",
-            "l1.ligand.identity",
-            "l1.receptor.chains",
-            "l1.provenance.model_config"
+            "l0.cross.ligand_inchikey"
         ],
         "warnings": [],
         "incomplete": [],
@@ -960,14 +884,18 @@
     "stats": {},
     "narrative": [
         "Layer 0, provenance: 3 checks; 2 pass, 0 warn, 1 stop, 0 skip. Stopped: l0.cross.ligand_inchikey.",
-        "Layer 1, input integrity: 10 checks; 4 pass, 0 warn, 6 stop, 0 skip. Stopped: l1.sequence.matches_record, l1.sequence.no_truncation_substitution, l1.msa.integrity, l1.ligand.identity and 2 more.",
-        "Verdict: refused. 7 checks stopped in layers 0,1: l0.cross.ligand_inchikey, l1.sequence.matches_record, l1.sequence.no_truncation_substitution, l1.msa.integrity and 3 more. The claim \u201cPose within stated uncertainty\u201d is not supported."
+        "Layer 1, input integrity: 10 checks; 0 pass, 0 warn, 0 stop, 10 skip.",
+        "Layer 2, input adequacy: 8 checks; 0 pass, 0 warn, 0 stop, 8 skip.",
+        "Layer 3, applicability: 6 checks; 0 pass, 0 warn, 0 stop, 6 skip.",
+        "Layer 4, output validity: 7 checks; 0 pass, 0 warn, 0 stop, 7 skip.",
+        "Layer 5, output support: 5 checks; 0 pass, 0 warn, 0 stop, 5 skip.",
+        "Verdict: refused. 1 check stopped in layers 0,1,2,3,4,5: l0.cross.ligand_inchikey. The claim \u201cPose within stated uncertainty\u201d is not supported."
     ],
     "controls": [
         {
             "name": "redocking",
             "status": "missing",
-            "note": "l5.controls.redocking: layer 5 not run",
+            "note": "halted by l0.cross.ligand_inchikey",
             "check": "l5.controls.redocking"
         }
     ],
@@ -985,21 +913,36 @@
         "renders/3PTB.pse",
         "renders/3PTB_overview.png",
         "renders/3PTB_pocket.png",
+        "report.html",
         "report.json",
-        "report.md"
+        "report.md",
+        "ui_record.json"
     ],
     "record": {
-        "runId": "ligand_pose-ccdd088be87b",
+        "runId": "ligand_pose-bc32cc1efac1",
         "pahVersion": "0.1.0",
         "toolVersions": {
-            "rdkit": "2026.09.1",
-            "gemmi": "0.7.5"
+            "rdkit": "2026.9.1",
+            "gemmi": "0.7.5",
+            "numpy": "1.26.4",
+            "propka": "3.5.1",
+            "dimorphite_dl": "2.1.0",
+            "posebusters": "0.6.5",
+            "plip": "3.0.1",
+            "openbabel": "3.2.1",
+            "freesasa": "2.2.1",
+            "spyrmsd": "0.9.0",
+            "scipy": "1.17.1"
         },
-        "startedAt": "2026-10-17T15:31:03.438723Z",
-        "finishedAt": "2026-10-17T15:31:03.775027Z",
+        "startedAt": "2026-10-17T17:00:19.811826Z",
+        "finishedAt": "2026-10-17T17:00:20.141539Z",
         "layersSelected": [
             0,
-            1
+            1,
+            2,
+            3,
+            4,
+            5
         ],
         "profile": "local"
     },
@@ -1012,7 +955,10 @@
             "format": "mmcif",
             "artifactKind": "source_structure",
             "path": "artifacts/sources/3PTB.cif",
-            "sha256": "d2744dbacfb97ec9b4ff7f5cf4b204418bccf92e46b63130bfebb3916260232f"
+            "sha256": "d2744dbacfb97ec9b4ff7f5cf4b204418bccf92e46b63130bfebb3916260232f",
+            "derivedFrom": [
+                "rcsb_files:3PTB:d2744dbacfb9"
+            ]
         }
     ],
     "renders": [
@@ -1048,14 +994,15 @@
             {
                 "id": "gates_by_layer",
                 "url": "/runs/ui-faulty/files/figures/gates_by_layer.svg",
-                "caption": "Check outcomes per layer for run ligand_pose-ccdd088be87b. Totals: pass 6, warn 0, stop 7, skip 0.",
+                "caption": "Check outcomes per layer for run ligand_pose-bc32cc1efac1. Totals: pass 2, warn 0, stop 1, skip 36.",
                 "alt": "Horizontal stacked bars per layer, split into pass, warn, stop and skip counts.",
                 "data": "/runs/ui-faulty/files/figures/gates_by_layer.csv"
             }
         ],
         "renderErrors": [],
+        "rendersOverwritten": 0,
         "limitations": [
-            "This report covers layers 0, 1. Layers 2, 3, 4, 5 were not run.",
+            "This report covers layers 0, 1, 2, 3, 4, 5.",
             "The harness establishes when a result should not be trusted. Passing checks are not evidence that a prediction is correct.",
             "Thresholds marked uncalibrated come from the specification or harness defaults and have not been recalibrated on the harness benchmark."
         ]
@@ -1112,8 +1059,8 @@
             "path": "figures/gates_by_layer.svg",
             "kind": "figure",
             "label": "gates_by_layer",
-            "sha256": "d13cd02885567750e99e219f137e6e906c2b773c095d46388ff39a6b4f238d7b",
-            "sizeBytes": 82176,
+            "sha256": "821c63887890eaa1141c14a78d57721107c270ad52271cae9b4ab88147788c70",
+            "sizeBytes": 89598,
             "url": "/runs/ui-faulty/files/figures/gates_by_layer.svg",
             "derivedFrom": []
         },
@@ -1121,8 +1068,8 @@
             "path": "figures/gates_by_layer.csv",
             "kind": "data",
             "label": "gates_by_layer",
-            "sha256": "d9fd4f8f41e13a34199080625331ec9e4e20e0745191d71863624b3a60dd7444",
-            "sizeBytes": 78,
+            "sha256": "33cafbc10a685e9c24a3d34d6472d0c6db6978fd75ec2cb482ab504fbc4a8a03",
+            "sizeBytes": 187,
             "url": "/runs/ui-faulty/files/figures/gates_by_layer.csv",
             "derivedFrom": []
         },
@@ -1130,8 +1077,8 @@
             "path": "graph.json",
             "kind": "graph",
             "label": "provenance graph",
-            "sha256": "6b56b844baa696898f0d241101897236a808491926a6ad97dc26ef0e07d88dd3",
-            "sizeBytes": 9571,
+            "sha256": "e8b71701f9566985f2cd2969517b82f4309265675d02071aa6ae8f490acf1551",
+            "sizeBytes": 14774,
             "url": "/runs/ui-faulty/files/graph.json",
             "derivedFrom": []
         },
@@ -1139,8 +1086,8 @@
             "path": "graph.mmd",
             "kind": "graph",
             "label": "provenance graph",
-            "sha256": "5a7ac6d1df0a78777205fae870a1b5fb9b1496f06629d8481111c463fdde169b",
-            "sizeBytes": 2771,
+            "sha256": "64ba4a4d94f29eec259e37d0342e36d0b322f5c520fcd086bfb35e0b63c8b3c7",
+            "sizeBytes": 4642,
             "url": "/runs/ui-faulty/files/graph.mmd",
             "derivedFrom": []
         },
@@ -1148,8 +1095,8 @@
             "path": "graph.svg",
             "kind": "graph",
             "label": "provenance graph",
-            "sha256": "6dc2bfe0ae57c7ce1d75f540e0b142a202593a152575d5dbf4eb0c0823eb672a",
-            "sizeBytes": 30462,
+            "sha256": "424e5edc1873ac40024ff620ef8c5dba61d5086788fe886da1bfd172221b1934",
+            "sizeBytes": 53793,
             "url": "/runs/ui-faulty/files/graph.svg",
             "derivedFrom": []
         }
