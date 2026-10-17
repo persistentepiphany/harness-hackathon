@@ -55,7 +55,7 @@ export function DimensionStrip({ record, variant, className, onSelect }: ReportB
   const print = variant === 'print';
   if (!dims.length) return null;
   return (
-    <div className={clsx('flex flex-wrap overflow-hidden rounded-card border border-line bg-surface', className)} data-testid="dimension-strip">
+    <div className={clsx('flex flex-none flex-wrap overflow-hidden rounded-card border border-line bg-surface', className)} data-testid="dimension-strip">
       {dims.map((d) => {
         const muted = d.result === 'na' || d.result === 'pending';
         const Tag = onSelect ? 'button' : 'div';

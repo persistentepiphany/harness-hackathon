@@ -195,7 +195,7 @@ function Report({ record }: { record: UiRunRecord }) {
           />
           <div
             ref={right}
-            className="flex min-w-0 flex-col gap-8 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-2"
+            className="flex min-w-0 flex-col gap-8 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-2 [&>*]:shrink-0"
             data-testid="report-stage-column"
           >
             <DimensionStrip
