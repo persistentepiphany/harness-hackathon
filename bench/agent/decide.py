@@ -187,7 +187,14 @@ def main() -> None:
     ap.add_argument("--model", default=None)
     ap.add_argument("--repeats", type=int, default=None)
     ap.add_argument("--order-seed", type=int, default=20261017)
-    ap.add_argument("--workers", type=int, default=4, help="concurrent calls")
+    ap.add_argument(
+        "--workers", type=int, default=2, help="concurrent calls (Z.AI rate-limits above 2)"
+    )
+    ap.add_argument(
+        "--retry-errors",
+        action="store_true",
+        help="re-issue only the calls logged with an error; successful calls are kept",
+    )
     args = ap.parse_args()
     cfg = run_config(REPO / "bench" / "runs" / args.run_id)["agent"]
     model = args.model or cfg["model"]
@@ -204,6 +211,20 @@ def main() -> None:
     rows: list[dict[str, Any]] = []
     lock = threading.Lock()
     done = [0]
+    calls_path = run / "agent" / "calls.jsonl"
+    todo = list(enumerate(jobs))
+    retried = 0
+    if args.retry_errors:
+        # The failed entries stay in the log; each retry is appended with the same index `i`, and
+        # readers take the last entry for a (name, arm, repeat).
+        last: dict[tuple[str, str, int], dict[str, Any]] = {}
+        for line in calls_path.read_text().splitlines():
+            e = json.loads(line)
+            last[(e["name"], e["arm"], e["repeat"])] = e
+        failed = {k for k, e in last.items() if e["parsed"].get("error")}
+        rows = [e["parsed"] for k, e in last.items() if k not in failed]
+        todo = [(i, job) for i, job in todo if job in failed]
+        retried = len(todo)
 
     def one(client: httpx.Client, log: Any, i: int, name: str, arm: str, rep: int) -> None:
         f = facts[name]
@@ -238,7 +259,7 @@ def main() -> None:
             rows.append(row)
             done[0] += 1
             print(
-                f"{done[0]}/{len(jobs)} {name} arm {arm} r{rep}: {row['verdict'] or row['error']}",
+                f"{done[0]}/{len(todo)} {name} arm {arm} r{rep}: {row['verdict'] or row['error']}",
                 flush=True,
             )
 
@@ -246,30 +267,31 @@ def main() -> None:
     # and each log entry keeps its submission index `i`.
     with (
         httpx.Client(timeout=300) as client,
-        (run / "agent" / "calls.jsonl").open("w") as log,
+        calls_path.open("a" if args.retry_errors else "w") as log,
         ThreadPoolExecutor(max_workers=args.workers) as pool,
     ):
-        for fut in [pool.submit(one, client, log, i, *job) for i, job in enumerate(jobs)]:
+        for fut in [pool.submit(one, client, log, i, *job) for i, job in todo]:
             fut.result()
     with (run / "results" / "decisions.csv").open("w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=list(rows[0]))
         w.writeheader()
         w.writerows(sorted(rows, key=lambda r: (r["system"], r["executor"], r["arm"], r["repeat"])))
-    (run / "agent" / "settings.json").write_text(
-        json.dumps(
-            {
-                "model": model,
-                "base_url": cfg["base_url"],
-                "temperature": 0,
-                "repeats": repeats,
-                "order_seed": args.order_seed,
-                "workers": args.workers,
-                "calls": len(jobs),
-                "system_prompt": SYSTEM_PROMPT,
-            },
-            indent=2,
-        )
-    )
+    settings_path = run / "agent" / "settings.json"
+    if args.retry_errors:
+        settings = json.loads(settings_path.read_text())
+        settings.setdefault("retries", []).append({"calls": retried, "workers": args.workers})
+    else:
+        settings = {
+            "model": model,
+            "base_url": cfg["base_url"],
+            "temperature": 0,
+            "repeats": repeats,
+            "order_seed": args.order_seed,
+            "workers": args.workers,
+            "calls": len(jobs),
+            "system_prompt": SYSTEM_PROMPT,
+        }
+    settings_path.write_text(json.dumps(settings, indent=2))
 
 
 if __name__ == "__main__":
