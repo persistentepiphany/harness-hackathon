@@ -3,7 +3,7 @@
 // Prototype "New run" request box: textarea, sample prompts, Manual setup / Quick setup.
 
 import { Button } from '@/components/ui';
-import { shortPrompt } from '@/lib/selectors/run';
+import { parseToken, shortPrompt, TOKEN_MIME, type PromptToken } from '@/lib/selectors/run';
 
 /** Sample requests shown under the box (prototype SAMPLE_PROMPTS, UI copy). */
 export const SAMPLE_PROMPTS: string[] = [
@@ -22,9 +22,11 @@ export interface PromptBoxProps {
   onManual: () => void;
   quickBusy?: boolean;
   prompts?: string[];
+  /** A tool, target or ligand chip dropped into the box, with the caret position. */
+  onDropToken?: (token: PromptToken, caret: number | null) => void;
 }
 
-export function PromptBox({ text, onText, onUsePrompt, onQuick, onManual, quickBusy, prompts = SAMPLE_PROMPTS }: PromptBoxProps) {
+export function PromptBox({ text, onText, onUsePrompt, onQuick, onManual, quickBusy, prompts = SAMPLE_PROMPTS, onDropToken }: PromptBoxProps) {
   const empty = !text.trim();
   return (
     <div data-testid="prompt-box">
@@ -33,6 +35,15 @@ export function PromptBox({ text, onText, onUsePrompt, onQuick, onManual, quickB
         onChange={(e) => onText(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !empty) onQuick();
+        }}
+        onDragOver={(e) => {
+          if (onDropToken && e.dataTransfer.types.includes(TOKEN_MIME)) e.preventDefault();
+        }}
+        onDrop={(e) => {
+          const token = parseToken(e.dataTransfer.getData(TOKEN_MIME));
+          if (!token || !onDropToken) return;
+          e.preventDefault();
+          onDropToken(token, e.currentTarget.selectionStart ?? null);
         }}
         placeholder="Dock imatinib into the ABL1 pocket with Boltz-2, 5 seeds, compare against 1IEP"
         aria-label="Describe the run"

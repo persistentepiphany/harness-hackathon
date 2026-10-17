@@ -1,12 +1,14 @@
-'use client';
+"use client";
 
 // Targets: catalog chips, "+ accession or name" input, detail card of the picked target.
 
-import { Chip } from '@/components/ui';
-import { DASH } from '@/lib/format';
-import { targetRows, type TargetOption } from '@/lib/selectors/run';
-import { DetailCard } from './DetailCard';
-import { AddInput, SectionHead } from './parts';
+import { Chip } from "@/components/ui";
+import { DASH } from "@/lib/format";
+import { targetRows, type TargetOption } from "@/lib/selectors/run";
+import { DetailCard } from "./DetailCard";
+import { AddInput, SectionHead } from "./parts";
+import { targetToken } from "@/lib/selectors/run";
+import { dragToken } from "./ToolPalette";
 
 export interface TargetPickerProps {
   options: TargetOption[];
@@ -20,10 +22,22 @@ export interface TargetPickerProps {
   onAdd: (v: string) => void;
 }
 
-export function TargetPicker({ options, selected, detail, release, onSelect, addValue, onAddValue, onAdd }: TargetPickerProps) {
+export function TargetPicker({
+  options,
+  selected,
+  detail,
+  release,
+  onSelect,
+  addValue,
+  onAddValue,
+  onAdd,
+}: TargetPickerProps) {
   return (
     <div data-testid="target-picker">
-      <SectionHead label="Targets" hint="examples · any UniProt accession or name works" />
+      <SectionHead
+        label="Targets"
+        hint="examples · any UniProt accession or name works"
+      />
       <div className="flex flex-wrap items-center gap-1.5">
         {options.map((p) => (
           <Chip
@@ -31,14 +45,23 @@ export function TargetPicker({ options, selected, detail, release, onSelect, add
             selected={selected === p.accession}
             sub={p.accession}
             onClick={() => onSelect(p)}
+            draggable
+            onDragStart={(e) => dragToken(e, targetToken(p))}
             data-testid="target-chip"
             data-accession={p.accession}
-            data-state={selected === p.accession ? 'selected' : 'idle'}
+            data-state={selected === p.accession ? "selected" : "idle"}
           >
             {p.label}
           </Chip>
         ))}
-        <AddInput value={addValue} onChange={onAddValue} onSubmit={onAdd} placeholder="+ accession or name" width={170} data-testid="add-target" />
+        <AddInput
+          value={addValue}
+          onChange={onAddValue}
+          onSubmit={onAdd}
+          placeholder="+ accession or name"
+          width={170}
+          data-testid="add-target"
+        />
       </div>
       {detail && (
         <DetailCard

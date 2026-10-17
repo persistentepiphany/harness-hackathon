@@ -29,6 +29,8 @@ import {
   taskGroups,
   taskHint,
   toggleTool,
+  insertToken,
+  removeToken,
   type LigandOption,
   type RunForm,
   type TargetOption,
@@ -36,6 +38,7 @@ import {
 import { groupEntities, uniprotRelease } from '@/lib/selectors/run';
 import type { InterpretResult, StartRunResult, Step, Tool } from '@/lib/types';
 import { DecisionStream, type DecisionRow } from './DecisionStream';
+import { ToolPalette } from './ToolPalette';
 import { DropZone, type FileChipModel } from './DropZone';
 import { ExecutorChips } from './ExecutorChips';
 import { InputsForm, type InputKey } from './InputsForm';
@@ -291,7 +294,36 @@ export function NewRunScreen() {
           onQuick={quickSetup}
           onManual={manualSetup}
           quickBusy={interpret.loading}
+          onDropToken={(token, caret) => {
+            setNl((n) => {
+              const next = insertToken(n.text, token.text, caret).text;
+              setLookup(next);
+              return { ...n, text: next };
+            });
+            if (token.kind === 'tool') update((f) => (f.tools.includes(token.id) ? f : { ...f, tools: [...f.tools, token.id] }));
+            if (token.kind === 'target') {
+              const p = targetOptions.find((o) => o.accession === token.id);
+              if (p) selectTarget(p);
+            }
+            if (token.kind === 'ligand') {
+              const l = ligandOptions.find((o) => o.smiles === token.id);
+              if (l) selectLigand(l);
+            }
+          }}
         />
+
+        {register.data && (
+          <ToolPalette
+            register={register.data}
+            selected={form.tools}
+            task={tasks.data?.find((t) => t.id === form.task)}
+            onPick={(tool) => {
+              const on = form.tools.includes(tool.id);
+              update((f) => ({ ...f, tools: toggleTool(f.tools, tool.id) }));
+              setNl((n) => ({ ...n, text: on ? removeToken(n.text, tool.name) : insertToken(n.text, tool.name).text }));
+            }}
+          />
+        )}
 
         {nl.mode === 'quick' && (
           <DecisionStream
