@@ -46,6 +46,7 @@ class ExternalAsset(BaseModel):
     requires: tuple[str, ...] = ()
     env_var: str | None = None
     instructions: str | None = None
+    fallback_for: str | None = None
 
 
 class FetchStatus(StrEnum):

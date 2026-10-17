@@ -169,7 +169,8 @@ def fetch(
                 bus.emit(EventKind.LOG, a.id, f"{a.kind.value} -> {where}{size}")
             bus.emit(EventKind.RUN_END, "fetch", f"dry run: {len(chosen)} assets")
             return
-        ctx = InstallContext(client=client, tools_dir=tools_dir, force=force)
+        extra = (resolve_path(prof.conda_prefix) / "bin",) if prof.conda_prefix else ()
+        ctx = InstallContext(client=client, tools_dir=tools_dir, force=force, extra_path=extra)
         results = Fetcher(bus, ctx).run(chosen)
         out_dir.mkdir(parents=True, exist_ok=True)
         report = out_dir / "fetch_report.json"

@@ -19,6 +19,18 @@ assets:
     size_hint: ~400 MB
     source: README.md of rdk/p2rank; releases page
 
+  - id: p2rank_source
+    kind: command
+    description: P2Rank built from source; runs only when the release download fails
+    required_for: [layer2.pocket_detection]
+    fallback_for: p2rank
+    requires: [git, java]
+    command: [bash, "-c", "rm -rf src && git clone --depth 1 https://github.com/rdk/p2rank src && cd src && ./gradlew --no-daemon -q assemble"]
+    dest: opt/p2rank-src
+    links: {prank: "src/distro/prank"}
+    size_hint: ~250 MB (clone and build, needs Java 17+, Gradle and Maven Central)
+    source: rdk/p2rank make.sh (./gradlew assemble)
+
   - id: mmseqs
     kind: http
     description: MMseqs2 static binary (sequence exposure, MSA depth)

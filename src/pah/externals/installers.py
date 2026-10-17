@@ -26,14 +26,16 @@ from pah.externals.download import (
 )
 from pah.externals.models import AssetKind, ExternalAsset, Extract, FetchResult, FetchStatus
 
-Runner = Callable[[Sequence[str], Path, float], subprocess.CompletedProcess[str]]
+Runner = Callable[[Sequence[str], Path, float, dict[str, str]], subprocess.CompletedProcess[str]]
 
 COMPLETE_MARKER = ".pah-complete"
 
 
-def run_in(argv: Sequence[str], cwd: Path, timeout: float) -> subprocess.CompletedProcess[str]:
+def run_in(
+    argv: Sequence[str], cwd: Path, timeout: float, env: dict[str, str]
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        list(argv), cwd=cwd, capture_output=True, text=True, timeout=timeout, check=False
+        list(argv), cwd=cwd, env=env, capture_output=True, text=True, timeout=timeout, check=False
     )
 
 
@@ -44,8 +46,23 @@ class InstallContext:
     force: bool = False
     progress: ProgressCallback | None = None
     runner: Runner = run_in
-    which: Callable[[str], str | None] = field(default=shutil.which)
+    which: Callable[[str, str | None], str | None] = field(
+        default=lambda name, path: shutil.which(name, path=path)
+    )
     command_timeout_s: float = 6 * 3600
+    extra_path: tuple[Path, ...] = ()
+
+    @property
+    def path(self) -> str:
+        """PATH with tools_dir/bin and extra directories (conda prefix) in front."""
+        dirs = [str(self.bin_dir), *(str(d) for d in self.extra_path)]
+        return os.pathsep.join([*dirs, os.environ.get("PATH", "")])
+
+    def find(self, name: str) -> str | None:
+        return self.which(name, self.path)
+
+    def env(self) -> dict[str, str]:
+        return {**os.environ, "PATH": self.path}
 
     @property
     def bin_dir(self) -> Path:
@@ -73,7 +90,11 @@ def _link_targets(asset: ExternalAsset, ctx: InstallContext) -> dict[str, Path]:
 
 
 def _create_links(asset: ExternalAsset, ctx: InstallContext, dest: Path) -> list[str]:
-    """Symlinks bin/<name> to the file matching each pattern under dest. Returns problems."""
+    """Writes bin/<name> wrappers that exec the file matching each pattern under dest.
+
+    Wrappers rather than symlinks, because launchers such as P2Rank's `prank` locate their
+    jars relative to their own path. Returns the problems found.
+    """
     problems: list[str] = []
     ctx.bin_dir.mkdir(parents=True, exist_ok=True)
     for name, pattern in asset.links.items():
@@ -82,10 +103,11 @@ def _create_links(asset: ExternalAsset, ctx: InstallContext, dest: Path) -> list
             problems.append(f"no file matches {pattern!r} under {dest}")
             continue
         _make_executable(match)
-        link = ctx.bin_dir / name
-        if link.is_symlink() or link.exists():
-            link.unlink()
-        link.symlink_to(match.resolve())
+        wrapper = ctx.bin_dir / name
+        if wrapper.is_symlink() or wrapper.exists():
+            wrapper.unlink()
+        wrapper.write_text(f'#!/usr/bin/env bash\nexec "{match.resolve()}" "$@"\n')
+        _make_executable(wrapper)
     return problems
 
 
@@ -198,7 +220,7 @@ class GithubReleaseInstaller:
 
 class CommandInstaller:
     def install(self, asset: ExternalAsset, ctx: InstallContext) -> FetchResult:
-        missing = [r for r in asset.requires if ctx.which(r) is None]
+        missing = [r for r in asset.requires if ctx.find(r) is None]
         hint = f" {asset.instructions}" if asset.instructions else ""
         if missing:
             return _result(asset, FetchStatus.SKIPPED, f"missing {', '.join(missing)}.{hint}")
@@ -209,7 +231,7 @@ class CommandInstaller:
         dest.mkdir(parents=True, exist_ok=True)
         marker.unlink(missing_ok=True)
         try:
-            proc = ctx.runner(asset.command, dest, ctx.command_timeout_s)
+            proc = ctx.runner(asset.command, dest, ctx.command_timeout_s, ctx.env())
         except subprocess.TimeoutExpired:
             return _result(asset, FetchStatus.FAILED, "command timed out", path=str(dest))
         except OSError as exc:
@@ -219,6 +241,9 @@ class CommandInstaller:
             return _result(
                 asset, FetchStatus.FAILED, f"exit {proc.returncode}: {tail}.{hint}", path=str(dest)
             )
+        problems = _create_links(asset, ctx, dest)
+        if problems:
+            return _result(asset, FetchStatus.FAILED, "; ".join(problems), path=str(dest))
         marker.write_text(" ".join(asset.command) + "\n")
         return _result(asset, FetchStatus.INSTALLED, "command completed", path=str(dest))
 

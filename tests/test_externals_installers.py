@@ -53,7 +53,8 @@ def test_http_archive_install_links_and_is_idempotent(tmp_path: Path) -> None:
     first = HttpInstaller().install(TOOL, ctx)
     assert first.status is FetchStatus.INSTALLED, first.detail
     link = tmp_path / "bin" / "tool"
-    assert link.is_symlink() and link.resolve().stat().st_mode & 0o111
+    assert link.stat().st_mode & 0o111
+    assert str((tmp_path / "opt/tool/tool/bin/tool").resolve()) in link.read_text()
     assert not (tmp_path / "downloads" / "tool-linux.tar.gz").exists()
     assert HttpInstaller().install(TOOL, ctx).status is FetchStatus.PRESENT
 
@@ -135,7 +136,7 @@ CMD = ExternalAsset(
 
 
 def test_command_missing_prerequisite_skips(tmp_path: Path) -> None:
-    ctx = _ctx(tmp_path, lambda r: httpx.Response(200), which=lambda n: None)
+    ctx = _ctx(tmp_path, lambda r: httpx.Response(200), which=lambda n, p: None)
     result = CommandInstaller().install(CMD, ctx)
     assert result.status is FetchStatus.SKIPPED and "gcloud" in result.detail
 
@@ -144,8 +145,8 @@ def test_command_success_marks_complete_and_failure_does_not(tmp_path: Path) -> 
     fail_ctx = _ctx(
         tmp_path,
         lambda r: httpx.Response(200),
-        which=lambda n: "/x",
-        runner=lambda a, c, t: completed(1, err="401 denied"),
+        which=lambda n, p: "/x",
+        runner=lambda a, c, t, e: completed(1, err="401 denied"),
     )
     failed = CommandInstaller().install(CMD, fail_ctx)
     assert failed.status is FetchStatus.FAILED and "401" in failed.detail
@@ -154,8 +155,8 @@ def test_command_success_marks_complete_and_failure_does_not(tmp_path: Path) -> 
     ok_ctx = _ctx(
         tmp_path,
         lambda r: httpx.Response(200),
-        which=lambda n: "/x",
-        runner=lambda a, c, t: completed(0),
+        which=lambda n, p: "/x",
+        runner=lambda a, c, t, e: completed(0),
     )
     assert CommandInstaller().install(CMD, ok_ctx).status is FetchStatus.INSTALLED
     assert CommandInstaller().install(CMD, ok_ctx).status is FetchStatus.PRESENT
@@ -229,3 +230,53 @@ def test_lock_merges_and_survives_corruption(tmp_path: Path) -> None:
     write_lock(tmp_path, [FetchResult(id="b", status=FetchStatus.FAILED)])
     lock = json.loads((tmp_path / "externals.lock.json").read_text())
     assert list(lock) == ["a"] and lock["a"]["sha256"] == "s"
+
+
+def test_command_links_after_success(tmp_path: Path) -> None:
+    def build(argv, cwd, timeout, env):  # type: ignore[no-untyped-def]
+        assert str(tmp_path / "bin") in env["PATH"]
+        (cwd / "out").mkdir()
+        (cwd / "out" / "prank").write_text("#!/bin/sh\n")
+        return completed(0)
+
+    asset = ExternalAsset(
+        id="s",
+        kind=AssetKind.COMMAND,
+        description="d",
+        command=("make",),
+        dest="opt/s",
+        links={"prank": "out/prank"},
+    )
+    ctx = _ctx(tmp_path, lambda r: httpx.Response(200), which=lambda n, p: "/x", runner=build)
+    assert CommandInstaller().install(asset, ctx).status is FetchStatus.INSTALLED
+    assert "out/prank" in (tmp_path / "bin" / "prank").read_text()
+
+
+def test_fallback_runs_only_when_primary_fails(tmp_path: Path) -> None:
+    class Fixed:
+        def __init__(self, status: FetchStatus) -> None:
+            self.status = status
+            self.calls = 0
+
+        def install(self, asset, ctx):  # type: ignore[no-untyped-def]
+            self.calls += 1
+            from pah.externals.models import FetchResult
+
+            return FetchResult(id=asset.id, status=self.status)
+
+    assets = [
+        ExternalAsset(id="p", kind=AssetKind.HTTP, description="d", url="u"),
+        ExternalAsset(id="f", kind=AssetKind.COMMAND, description="d", fallback_for="p"),
+    ]
+    for primary, expected_calls in ((FetchStatus.INSTALLED, 0), (FetchStatus.BLOCKED, 1)):
+        fb = Fixed(FetchStatus.INSTALLED)
+        fetcher = Fetcher(
+            EventBus("f", []),
+            _ctx(tmp_path, lambda r: httpx.Response(200)),
+            installers={AssetKind.HTTP: Fixed(primary), AssetKind.COMMAND: fb},
+        )
+        results = fetcher.run(assets)
+        assert fb.calls == expected_calls
+        assert results[1].status is (
+            FetchStatus.SKIPPED if expected_calls == 0 else FetchStatus.INSTALLED
+        )

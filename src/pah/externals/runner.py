@@ -78,7 +78,9 @@ class Fetcher:
             f"{len(assets)} assets into {self._ctx.tools_dir}",
             assets=[a.id for a in assets],
         )
-        results = [self._one(a) for a in assets]
+        results: list[FetchResult] = []
+        for asset in assets:
+            results.append(self._fallback_skip(asset, results) or self._one(asset))
         counts = dict(Counter(r.status.value for r in results))
         self._bus.emit(
             EventKind.RUN_END,
@@ -88,6 +90,19 @@ class Fetcher:
         )
         write_lock(self._ctx.tools_dir, results)
         return results
+
+    def _fallback_skip(self, asset: ExternalAsset, done: list[FetchResult]) -> FetchResult | None:
+        """A fallback asset is skipped when the asset it backs up is already usable."""
+        if asset.fallback_for is None:
+            return None
+        primary = next((r for r in done if r.id == asset.fallback_for), None)
+        if primary is None or not primary.usable:
+            return None
+        result = FetchResult(
+            id=asset.id, status=FetchStatus.SKIPPED, detail=f"{asset.fallback_for} is usable"
+        )
+        self._bus.emit(EventKind.RESULT, asset.id, result.detail, status=result.status.value)
+        return result
 
     def _one(self, asset: ExternalAsset) -> FetchResult:
         size = f" ({asset.size_hint})" if asset.size_hint else ""
