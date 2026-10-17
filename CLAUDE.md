@@ -112,3 +112,15 @@ micromamba (see README). The harness finds them through `PAH_CONDA_PREFIX`.
 - Specification: `docs/SPECIFICATION.md`
 - Architecture: `docs/ARCHITECTURE.md`
 - Executor I/O contracts: `docs/EXECUTORS.md`
+
+## Web UI
+
+`web/` is the Next.js + Tailwind port of `web/design/prototype/Harness v2.dc.html`. The contract
+between the UI and the harness is `docs/UI.md`. `pah serve` is the HTTP API it talks to.
+
+## Demo, video and presentation skills
+
+Vendored in `.claude/skills/` (sources in `.claude/skills/VENDORED.md`): `playwright-cli` (browser
+demos), `product-film` (Remotion films), `presentation-skill` (`.pptx`), `sound-effects` (needs
+`EACHLABS_API_KEY`), `human-pace` (load with anything that records or times), `humanizer`.
+`npm run setup` at the root installs their dependencies. Rendered media goes to `out/` (ignored).
