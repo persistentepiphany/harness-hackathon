@@ -53,3 +53,10 @@ def test_finding_roundtrip() -> None:
 
 def test_run_id_prefix() -> None:
     assert new_run_id("doctor").startswith("doctor-")
+
+
+def test_console_sink_does_not_eat_brackets() -> None:
+    buf = io.StringIO()
+    sink = ConsoleSink(Console(file=buf, width=200, color_system=None))
+    EventBus("r4", [sink]).emit(EventKind.FINDING, "L1", "msg [n=3, x=1]", gate="pass")
+    assert "[n=3, x=1]" in buf.getvalue()

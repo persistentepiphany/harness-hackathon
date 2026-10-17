@@ -12,6 +12,7 @@ from types import TracebackType
 from typing import IO, Any, Protocol
 
 from rich.console import Console
+from rich.markup import escape
 
 from pah.core.models import Event, EventKind
 
@@ -101,7 +102,7 @@ class ConsoleSink:
         clock = event.ts.strftime("%H:%M:%S")
         self._console.print(
             f"[dim]{clock} #{event.seq:<4}[/dim] {event.kind.value:<11} {tag} "
-            f"[bold]{event.stage}[/bold]  {event.message}",
+            f"[bold]{escape(event.stage)}[/bold]  {escape(event.message)}",
             soft_wrap=True,
         )
 

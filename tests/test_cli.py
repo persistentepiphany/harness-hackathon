@@ -42,3 +42,78 @@ def test_fetch_dry_run_lists_assets() -> None:
     events = [json.loads(line) for line in result.stdout.splitlines()]
     messages = " ".join(e["message"] for e in events)
     assert "unknown asset id: ghost" in messages and "mmseqs" in messages
+
+
+def _offline_profile(tmp_path):  # type: ignore[no-untyped-def]
+    import pytest
+
+    pytest.importorskip("rdkit")
+    pytest.importorskip("gemmi")
+    from pah.sources import CachedHttp, ContentCache, Sources
+    from tests.fakeweb import FakeWeb
+
+    cache = tmp_path / "cache"
+    s = Sources(CachedHttp(FakeWeb().client(), ContentCache(cache)))
+    s.uniprot.entry("P00760")
+    s.rcsb.entry("3PTB")
+    s.rcsb.mmcif("3PTB")
+    s.rcsb.chemcomp("BEN")
+    s.pdbe.molecules("3ptb")
+    s.pdbe.sifts("3ptb")
+    s.pubchem.compound(2332)
+    profile = tmp_path / "offline.yaml"
+    runs = tmp_path / "runs"
+    profile.write_text(
+        f"name: offline\nbackend: local\ncache_dir: {cache}\nruns_dir: {runs}\noffline: true\n"
+    )
+    return profile
+
+
+def test_run_example_offline_jsonl(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    profile = _offline_profile(tmp_path)
+    out = tmp_path / "run"
+    result = runner.invoke(
+        app,
+        [
+            "run",
+            "examples/3ptb_ligand_pose/manifest.yaml",
+            "--profile",
+            str(profile),
+            "--out",
+            str(out),
+            "--format",
+            "jsonl",
+            "--strict",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    events = [json.loads(line) for line in result.stdout.splitlines()]
+    findings = [e for e in events if e["kind"] == "finding"]
+    assert len(findings) == 13
+    assert events[-4]["kind"] == "run_end"
+    assert events[-4]["data"]["verdict"]["outcome"] == "pass_with_warnings"
+    assert (out / "record.json").is_file() and len(list((out / "findings").iterdir())) == 13
+
+
+def test_run_faulty_example_strict_exits_1(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    profile = _offline_profile(tmp_path)
+    result = runner.invoke(
+        app,
+        ["run", "examples/3ptb_faulty_inputs/manifest.yaml", "--profile", str(profile), "--strict"],
+    )
+    assert result.exit_code == 1
+
+
+def test_run_bad_manifest_exits_2(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    bad = tmp_path / "m.yaml"
+    bad.write_text("task: ligand_pose\nligands:\n  - id: x\n")
+    result = runner.invoke(app, ["run", str(bad)])
+    assert result.exit_code == 2 and "Traceback" not in result.output
+
+
+def test_tasks_and_checks_listing() -> None:
+    tasks = runner.invoke(app, ["tasks", "--format", "jsonl"])
+    rows = [json.loads(line) for line in tasks.stdout.splitlines()]
+    assert any(r["id"] == "ligand_pose" and r["implemented"] >= 13 for r in rows)
+    checks = runner.invoke(app, ["checks"])
+    assert "l0.sources.resolved" in checks.stdout and "l1.msa.integrity" in checks.stdout

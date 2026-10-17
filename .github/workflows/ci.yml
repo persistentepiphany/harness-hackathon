@@ -15,5 +15,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - run: uv venv --python ${{ matrix.python }} .venv
-      - run: uv pip install --python .venv/bin/python -e ".[dev]"
+      - run: uv pip install --python .venv/bin/python -e ".[dev,checks]"
       - run: make lint type test

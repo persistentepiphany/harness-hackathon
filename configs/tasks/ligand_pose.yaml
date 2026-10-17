@@ -1,0 +1,26 @@
+# Specification: "Ligand pose" (co-folding) and "Pose prediction in a known pocket" (docking).
+id: ligand_pose
+title: Ligand pose in a known pocket
+families: [cofolding, docking]
+claim: Pose within stated uncertainty
+required_inputs: [proteins, ligands]
+status: implemented
+layers:
+  0: [l0.sources.resolved, l0.cross.uniprot_seqres, l0.cross.ligand_inchikey]
+  1:
+    - l1.sequence.matches_record
+    - l1.sequence.no_truncation_substitution
+    - l1.msa.integrity
+    - l1.ligand.sanitization
+    - l1.ligand.stereo_defined
+    - l1.ligand.identity
+    - l1.receptor.chains
+    - l1.receptor.altlocs
+    - l1.context.composition
+    - l1.provenance.model_config
+  2: [l2.msa.depth, l2.context.cofactors, l2.pocket.resolved, l2.receptor.state, l2.receptor.protonation, l2.ligand.protonation, l2.ligand.conformers, l2.docking.box]
+  3: [l3.model.training_cutoff, l3.exposure.pocket, l3.exposure.ligand_prevalence, l3.exposure.sequence, l3.regime.modality, l3.metric.endpoint]
+  4: [l4.posebusters, l4.torsion_strain, l4.interactions.fingerprint, l4.interactions.unsatisfied_polars, l4.interactions.known_binders, l4.minimisation_drift]
+  5: [l5.confidence.local, l5.sampling.seeds, l5.sampling.clusters, l5.agreement.cross_family, l5.controls.redocking]
+escalate: [l2.context.cofactors, l2.pocket.resolved]
+controls: [redocking]
