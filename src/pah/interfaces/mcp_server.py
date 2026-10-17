@@ -17,7 +17,7 @@ from typing import Any
 
 from mcp.server.mcpserver import Context, MCPServer
 
-from pah.config import Profile
+from pah.config import Profile, resolve_path
 from pah.core.events import CallbackSink, Sink
 from pah.core.models import Event, EventKind
 from pah.service import (
@@ -178,6 +178,9 @@ def build_server(profile: Profile) -> MCPServer:
             raise ValueError(f"unknown schema {name!r}; one of {sorted(MODELS)}")
         return json.dumps(build(name), indent=2)
 
+    from pah.webui.agent_log import register_mcp_tools  # agent_start, agent_step, agent_finish
+
+    register_mcp_tools(server, resolve_path(profile.runs_dir))
     return server
 
 
