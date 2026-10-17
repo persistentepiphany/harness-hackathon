@@ -73,11 +73,18 @@ def _resolve(run_dir: Path, artifact: Artifact) -> Path:
 
 
 def render_stem(a: Artifact) -> str:
-    """File stem for an artifact's renders: the pose id for predictions (several executors write
-    every pose as `complex.pdb`), otherwise the file stem."""
-    if a.kind is ArtifactKind.PREDICTION_STRUCTURE and a.label:
-        return re.sub(r"[^A-Za-z0-9_.-]+", "_", a.label).strip("_")
-    return Path(a.path).stem
+    """File stem for an artifact's renders. Predictions take their prediction set and pose id
+    (several executors write every pose as `complex.pdb`, and a redocking control repeats the
+    primary set's pose ids); other structures keep their file stem."""
+    if a.kind is not ArtifactKind.PREDICTION_STRUCTURE:
+        return Path(a.path).stem
+    parts = Path(a.path).with_suffix("").parts
+    if a.label:
+        in_set = len(parts) > 2 and parts[0] == "predictions"
+        name = f"{parts[1]}_{a.label}" if in_set else a.label
+    else:
+        name = "_".join(parts)
+    return re.sub(r"[^A-Za-z0-9_.-]+", "_", name).strip("_")
 
 
 def render_structures(

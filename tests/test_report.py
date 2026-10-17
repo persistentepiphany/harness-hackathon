@@ -126,3 +126,24 @@ def test_style_lint_rules() -> None:
 def test_readme_passes_style_lint() -> None:
     readme = (Path(__file__).resolve().parents[1] / "README.md").read_text()
     assert lint(readme) == []
+
+
+def test_render_stems_unique_across_prediction_sets() -> None:
+    from pah.core.models import Artifact, ArtifactKind
+    from pah.report.renders import render_stem
+
+    def pose(path: str, label: str) -> Artifact:
+        kind = ArtifactKind.PREDICTION_STRUCTURE
+        return Artifact(path=path, kind=kind, sha256="0" * 64, size_bytes=1, label=label)
+
+    primary = pose("predictions/00_vina/vina/seed0/mode0/complex.pdb", "vina/seed0/mode0")
+    control = pose("predictions/01_vina/vina/seed0/mode0/complex.pdb", "vina/seed0/mode0")
+    assert render_stem(primary) == "00_vina_vina_seed0_mode0"
+    assert render_stem(control) == "01_vina_vina_seed0_mode0"
+    crystal = Artifact(
+        path="artifacts/sources/3PTB.cif",
+        kind=ArtifactKind.SOURCE_STRUCTURE,
+        sha256="0" * 64,
+        size_bytes=1,
+    )
+    assert render_stem(crystal) == "3PTB"
