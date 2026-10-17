@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
@@ -85,8 +85,8 @@ class Check(ABC):
         gate: Gate,
         message: str,
         *,
-        measurements: dict[str, float | int | str | bool | None] | None = None,
-        units: dict[str, str] | None = None,
+        measurements: Mapping[str, float | int | str | bool | None] | None = None,
+        units: Mapping[str, str] | None = None,
         thresholds: tuple[Threshold, ...] = (),
         evidence: dict[str, Any] | None = None,
         tool: ToolRef | None = None,

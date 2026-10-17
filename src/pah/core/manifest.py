@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class _Input(BaseModel):
@@ -20,6 +20,12 @@ class ProteinInput(_Input):
     sequence: str | None = Field(None, description="Sequence exactly as given to the executor")
     copies: int = 1
     msa: Path | None = Field(None, description="A3M alignment paired with this chain")
+
+    @field_validator("sequence")
+    @classmethod
+    def _no_whitespace(cls, v: str | None) -> str | None:
+        """YAML block scalars may wrap long sequences; whitespace is not sequence content."""
+        return "".join(v.split()) if v is not None else None
 
 
 class LigandInput(_Input):
