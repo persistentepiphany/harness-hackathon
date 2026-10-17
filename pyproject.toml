@@ -79,7 +79,7 @@ plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
 # Checks wrap untyped scientific libraries (RDKit, gemmi); calls into them are not typed.
-module = ["pah.checks.*"]
+module = ["pah.checks.*", "pah.executors.*"]
 disallow_untyped_calls = false
 warn_return_any = false
 
