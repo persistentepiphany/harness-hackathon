@@ -1,14 +1,72 @@
 {
   "check_id": "l5.agreement.cross_family",
   "layer": 5,
-  "gate": "skip",
-  "message": "OutputUnavailableError: cannot read ligand of diffdock/seed1/mode0: /home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/mek1_wt_diffdock/run/predictions/00_diffdock/diffdock/seed1/mode0/ligand.sdf",
-  "measurements": [],
-  "thresholds": [],
+  "gate": "pass",
+  "message": "diffdock vs boltz2 1.452 Å (high); diffdock vs crystal 7XLP 1.51 Å (decisive); boltz2 vs crystal 7XLP 0.613 Å (decisive)",
+  "measurements": [
+    {
+      "name": "methods",
+      "value": 2,
+      "unit": null
+    },
+    {
+      "name": "comparisons",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "disagreeing",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "rmsd_to_crystal_A",
+      "value": 1.51,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "rmsd",
+      "value": 2.0,
+      "comparator": "<=",
+      "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 Å",
+      "evidence_level": "published"
+    }
+  ],
   "evidence": {
-    "skip_reason": "error"
+    "comparisons": [
+      {
+        "method": "diffdock",
+        "vs": "boltz2",
+        "value": 1.452,
+        "unit": "Å",
+        "weight": "high"
+      },
+      {
+        "method": "diffdock",
+        "vs": "crystal 7XLP",
+        "value": 1.51,
+        "unit": "Å",
+        "weight": "decisive"
+      },
+      {
+        "method": "boltz2",
+        "vs": "crystal 7XLP",
+        "value": 0.613,
+        "unit": "Å",
+        "weight": "decisive"
+      }
+    ],
+    "medoids": {
+      "diffdock": "diffdock/seed1/mode0",
+      "boltz2": "boltz2/seed2/sample0"
+    }
   },
   "artifacts": [],
-  "tool": null,
-  "duration_s": 0.001
+  "tool": {
+    "name": "spyrmsd",
+    "version": null
+  },
+  "duration_s": 0.35
 }

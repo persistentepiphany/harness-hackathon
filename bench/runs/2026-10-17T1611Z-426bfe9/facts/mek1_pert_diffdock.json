@@ -1,24 +1,24 @@
 {
   "executor": "diffdock",
-  "representative_pose": "diffdock/seed1/mode0",
+  "representative_pose": "diffdock/seed3/mode0",
   "confidence": {
-    "diffdock_confidence": -0.26
+    "diffdock_confidence": -0.15
   },
   "posebusters": {
-    "passed": 18,
+    "passed": 19,
     "total": 20,
     "failed": [
-      "sanitization",
-      "inchi_convertible"
+      "minimum_distance_to_protein"
     ]
   },
   "interactions": [
     "halogen GLY95A",
     "hbond GLY144A",
     "hbond GLY146A",
-    "hbond GLY208A",
+    "hbond SER150A",
+    "hydrophobic LEU115A",
     "hydrophobic LEU118A",
-    "hydrophobic LEU74A",
+    "hydrophobic VAL211A",
     "hydrophobic VAL82A"
   ],
   "interactions_reference": [
@@ -35,28 +35,28 @@
   ],
   "key_interactions_recovered": 0,
   "key_interactions_reference": 3,
-  "torsion_strain_kcal": null,
-  "unlikely_torsions": null,
-  "buried_unsatisfied_polars": null,
-  "buried_charged_unsatisfied": null,
-  "hydrophobic_complementarity": null,
+  "torsion_strain_kcal": 1.86,
+  "unlikely_torsions": 0,
+  "buried_unsatisfied_polars": 1,
+  "buried_charged_unsatisfied": 0,
+  "hydrophobic_complementarity": 0.678,
   "n_seeds": 3,
-  "ensemble_poses": null,
-  "ensemble_spread_A": null,
-  "medoid_cluster_fraction": null,
-  "cross_tool_rmsd_A": null,
+  "ensemble_poses": 3,
+  "ensemble_spread_A": 1.346,
+  "medoid_cluster_fraction": 1.0,
+  "cross_tool_rmsd_A": 2.974,
   "harness_gates": {
     "l4.posebusters": "stop",
-    "l4.torsion_strain": "skip",
+    "l4.torsion_strain": "pass",
     "l4.interactions.fingerprint": "pass",
-    "l4.interactions.unsatisfied_polars": "skip",
-    "l4.interactions.hydrophobic": "skip",
+    "l4.interactions.unsatisfied_polars": "warn",
+    "l4.interactions.hydrophobic": "pass",
     "l4.interactions.known_binders": "warn",
-    "l4.minimisation_drift": "skip",
+    "l4.minimisation_drift": "pass",
     "l5.confidence.local": "pass",
     "l5.sampling.seeds": "pass",
-    "l5.sampling.clusters": "skip",
-    "l5.agreement.cross_family": "skip",
+    "l5.sampling.clusters": "pass",
+    "l5.agreement.cross_family": "warn",
     "l5.controls.redocking": "stop"
   },
   "system": "mek1_pert"

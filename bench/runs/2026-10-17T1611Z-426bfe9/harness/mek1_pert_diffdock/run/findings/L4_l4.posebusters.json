@@ -2,7 +2,7 @@
   "check_id": "l4.posebusters",
   "layer": 4,
   "gate": "stop",
-  "message": "representative pose diffdock/seed1/mode0 fails sanitization, inchi_convertible",
+  "message": "representative pose diffdock/seed3/mode0 fails minimum_distance_to_protein",
   "measurements": [
     {
       "name": "poses",
@@ -11,7 +11,7 @@
     },
     {
       "name": "passed",
-      "value": 18,
+      "value": 19,
       "unit": null
     },
     {
@@ -21,7 +21,7 @@
     },
     {
       "name": "poses_all_pass",
-      "value": 0,
+      "value": 1,
       "unit": null
     }
   ],
@@ -35,17 +35,17 @@
     }
   ],
   "evidence": {
-    "representative": "diffdock/seed1/mode0",
+    "representative": "diffdock/seed3/mode0",
     "tests": [
       {
         "test": "sanitization",
-        "pass": false,
-        "value": "fail"
+        "pass": true,
+        "value": "pass"
       },
       {
         "test": "inchi_convertible",
-        "pass": false,
-        "value": "fail"
+        "pass": true,
+        "value": "pass"
       },
       {
         "test": "all_atoms_connected",
@@ -90,17 +90,17 @@
       {
         "test": "internal_energy",
         "pass": true,
-        "value": "4.9 times the ensemble mean"
+        "value": "1.4 times the ensemble mean"
       },
       {
         "test": "protein-ligand_maximum_distance",
         "pass": true,
-        "value": "2.54 Å"
+        "value": "2.10 Å"
       },
       {
         "test": "minimum_distance_to_protein",
-        "pass": true,
-        "value": "2.54 Å"
+        "pass": false,
+        "value": "2.10 Å"
       },
       {
         "test": "minimum_distance_to_organic_cofactors",
@@ -120,7 +120,7 @@
       {
         "test": "volume_overlap_with_protein",
         "pass": true,
-        "value": "0.011"
+        "value": "0.021"
       },
       {
         "test": "volume_overlap_with_organic_cofactors",
@@ -141,30 +141,23 @@
     "poses": [
       {
         "pose": "diffdock/seed1/mode0",
-        "passed": 18,
+        "passed": 20,
         "total": 20,
-        "failed": [
-          "sanitization",
-          "inchi_convertible"
-        ]
+        "failed": []
       },
       {
         "pose": "diffdock/seed2/mode0",
-        "passed": 17,
+        "passed": 19,
         "total": 20,
         "failed": [
-          "sanitization",
-          "inchi_convertible",
           "minimum_distance_to_protein"
         ]
       },
       {
         "pose": "diffdock/seed3/mode0",
-        "passed": 17,
+        "passed": 19,
         "total": 20,
         "failed": [
-          "sanitization",
-          "inchi_convertible",
           "minimum_distance_to_protein"
         ]
       }
@@ -176,5 +169,5 @@
     "name": "posebusters",
     "version": "0.6.5"
   },
-  "duration_s": 5.934
+  "duration_s": 5.499
 }

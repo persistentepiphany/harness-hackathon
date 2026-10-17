@@ -342,19 +342,31 @@ INTERACTION_TYPES = {
 
 def plip_interactions(complex_pdb: Path) -> list[dict[str, Any]]:
     """PLIP interactions of the ligand residues in a complex, one row per interaction."""
-    from plip.structure.preparation import PDBComplex
+    import shutil
+    import tempfile
 
-    if complex_pdb.suffix.lower() != ".pdb":
-        # PLIP reads PDB only; co-folding tools write mmCIF.
-        pdb = complex_pdb.with_name(complex_pdb.stem + "_plip.pdb")
-        if not pdb.is_file():
+    # PLIP writes protonated copies next to its input; work in a temporary directory so source
+    # and output folders stay untouched. PLIP reads PDB only; co-folding tools write mmCIF.
+    tmp = Path(tempfile.mkdtemp(prefix="pah-plip-"))
+    try:
+        pdb = tmp / "complex.pdb"
+        if complex_pdb.suffix.lower() == ".pdb":
+            shutil.copyfile(complex_pdb, pdb)
+        else:
             st = outputs.read_structure(complex_pdb)
             st.shorten_chain_names()
             st.write_pdb(str(pdb))
-        complex_pdb = pdb
+        return _plip_rows(pdb, tmp)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _plip_rows(pdb: Path, out_dir: Path) -> list[dict[str, Any]]:
+    from plip.structure.preparation import PDBComplex
+
     cplx = PDBComplex()
-    cplx.output_path = str(complex_pdb.parent)
-    cplx.load_pdb(str(complex_pdb))
+    cplx.output_path = str(out_dir)
+    cplx.load_pdb(str(pdb))
     cplx.analyze()
     rows = []
     for site in cplx.interaction_sets.values():
