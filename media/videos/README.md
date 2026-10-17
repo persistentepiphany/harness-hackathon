@@ -144,3 +144,53 @@ REMOTION_BROWSER_EXECUTABLE=/opt/pw-browsers/chromium_headless_shell-1194/chrome
   bun scripts/render.ts DemoB demo-b --duration 120 --poster 114 --subframes 1 --jpeg
 bun scripts/srt.ts
 ```
+
+## Video A2: walkthrough with a passing introduction
+
+`demo-a2.mp4` is a 106.2 s recording of the same walkthrough as video A (H.264 + AAC, 1440x900,
+30 fps, +faststart). `demo-a2.srt` holds its 17 captions, which are also burned in. It was made with
+the video A pipeline; the differences are below.
+
+- The UI was built from a clean export of commit e5aa4dc, so the nav reads "Dock Harness". The
+  title card, the end card and the agent caption use the same name.
+- The first frame already shows the first character of "Does this prediction support the claim?",
+  which types itself at 40 ms per character under the Dock Harness mark and then stays up for its
+  1.8 s reading hold. Video A opened on a static title card held for 2.8 s.
+- The prompt is typed with one `pressSequentially` call at 39 ms per character (video A: 90 ms),
+  and the cursor reaches the prompt 1 s after the title card instead of 2 s.
+- Nothing fails in the introduction. The KRAS · RAF1 preset job, which ends refused, is taken out
+  of the simulator before the take, so the Jobs page lists the new run, the narrowed ABL1 imatinib
+  pose run and the ABL1 series ranking run. The followed run ends narrowed (36 pass, 4 warn,
+  0 stop). The run leaves the queue while its page is open, so that page does not sit on "Waiting
+  for a slot".
+- The app is loaded with `?latency=0`, the fade-in of pages, job cards and replayed log lines is
+  turned off, and the one-frame loading placeholders ("loading job", log "connecting") are cut from
+  the picture.
+- The sound has no background bed and no check-result or agent-step ticks. It has a click on each
+  pointer press (13), one key sound per typed character (101: 39 in the title, 62 in the prompt,
+  six synthesized variants), a whoosh on each page or scene change (9, at most one per 0.6 s) and a
+  chime when the verdict arrives. There is no stop tone. The mix measures -28.9 LUFS integrated,
+  -24.9 LUFS momentary maximum and -7.9 dBFS true peak.
+- The rewound agent task notifies the page, so the Agent page opens on the running task and not on
+  its earlier completed state.
+
+The report, ensemble, agent and documents scenes are otherwise as in video A; the agent's own steps
+still report refused poses. Every value on screen is mock data from the simulator with seed 7.
+
+The changed scripts are in `video-a2/` (`timeline.py` is the one in `video-a/`). Final take: `v5`.
+
+```bash
+mkdir -p out/videos/a2/src out/videos/a2/work/assets
+git archive e5aa4dc web | tar -x -C out/videos/a2/src
+cp -al web/node_modules out/videos/a2/src/web/node_modules
+cd out/videos/a2/src/web
+NEXT_PUBLIC_HARNESS_MODE=mock NEXT_PUBLIC_MOCK_SEED=7 NEXT_DIST_DIR=.next-video2 npx next build
+NEXT_PUBLIC_HARNESS_MODE=mock NEXT_PUBLIC_MOCK_SEED=7 NEXT_DIST_DIR=.next-video2 npx next start -p 3302 &
+cd /home/user/harness-hackathon
+cp media/videos/video-a2/* media/videos/video-a/timeline.py out/videos/a2/work/
+curl -sS -o out/videos/a2/work/assets/1IEP.cif https://files.rcsb.org/download/1IEP.cif
+.venv/bin/python out/videos/a2/work/make_sfx.py out/videos/a2   # sfx/*.wav, keys included
+out/videos/a2/work/record.sh v6 warm press   # third argument: press or page (in-page typing loop)
+.venv/bin/python out/videos/a2/work/build.py v6   # add --webm for a WebM copy
+out/videos/a2/work/publish.sh v6
+```
