@@ -60,6 +60,7 @@ micromamba (see README). The harness finds them through `PAH_CONDA_PREFIX`.
 | `src/pah/interfaces/` | CLI (typer), MCP server, HTTP API (FastAPI + SSE) |
 | `configs/` | Sources, tools, executors, profiles, task specs (data, not code) |
 | `deploy/` | CSF3 sbatch and Apptainer files, Modal app |
+| `bench/` | Perturbation benchmark: prep, Modal app, checks, agent, scoring, report, deck |
 | `third_party/skills/` | Pinned skill submodules (see `third_party/skills/SOURCES.md`) |
 
 ## Engineering rules

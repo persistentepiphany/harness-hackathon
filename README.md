@@ -364,7 +364,8 @@ by construction. Setup, stages and files: [bench/README.md](bench/README.md). Ea
 its scores in `bench/scores.csv`.
 
 At this size the per-system cases carry the result, so each report opens with them and keeps the
-pooled accuracy in a later section. What the perturbation does to a pose, taking the third run:
+pooled accuracy in a later section. What the perturbation does to a pose, from run
+2026-10-17T1859Z-849c856:
 cutting 7 FtsE contacts to glycine moves the ATP medoid 16 Å (Boltz-2) and 18 Å (DiffDock-L) from
 the deposited position, and contact recovery falls from 9 and 10 of 16 to 1 and 1. CDK2 is the
 quieter case: the perturbed medoid still sits 2.2 Å from the deposited ATP, but recovers 1 of 9
@@ -377,16 +378,15 @@ each run's report.
 | [2026-10-17T1752Z-2f5a1c7](bench/runs/2026-10-17T1752Z-2f5a1c7/report.md) | 4, 5, 6 | 16 (6 valid, 10 invalid) | 0.50 (0.24 to 0.77) | 0.58 (0.50 to 0.75) | 0.45 |
 | [2026-10-17T1859Z-849c856](bench/runs/2026-10-17T1859Z-849c856/report.md) | 7, 8, 9 | 16 (6 valid, 10 invalid) | 0.50 (0.24 to 0.77) | 0.75 (0.50 to 1.0) | 0.13 |
 
-The score-only arm called every Boltz-2 prediction valid in all three runs, including the perturbed
-ones. The fact-file arm rejected every perturbed Boltz-2 pose in all three; it also rejected valid
-poses, five of six in the first run, three of six in the second and third. Its false negatives are
-mostly DiffDock-L poses with sub-Å geometry and high estimated torsion strain, which is a limit of
-the strain method rather than a property of the pose. In every run the intervals overlap 0.5 and no
-McNemar test reaches significance; eight systems per executor are a demonstration, not a
-statistical result. The agent's stated reason for each misclassification is in the per-run report.
-Each run also writes a slide deck ([deck.pptx](bench/runs/2026-10-17T1859Z-849c856/results/deck.pptx),
-reviewed against its rendered slides with a hash-bound receipt) and a
-[walkthrough video](bench/runs/2026-10-17T1859Z-849c856/results/walkthrough.mp4).
+In every run so far the score-only arm called each Boltz-2 prediction valid, the perturbed ones
+included, and the fact-file arm rejected every perturbed Boltz-2 pose. The fact-file arm also
+rejected valid poses, between three and five of the six per run. Those false negatives are mostly
+DiffDock-L poses with sub-Å geometry and high estimated torsion strain, a limit of the strain
+method rather than a property of the pose. Every interval above overlaps 0.5 and no McNemar test
+reaches significance; eight systems per executor are a demonstration, not a statistical result.
+The agent's stated reason for each misclassification is in that run's report. Alongside the report
+each run writes `results/deck.pptx`, reviewed against its own rendered slides and bound to them by
+a hash receipt, and `results/walkthrough.mp4`.
 
 ## Executors
 
@@ -439,6 +439,7 @@ verified without a GPU are in [docs/RUNTIMES.md](docs/RUNTIMES.md).
 | `src/pah/webui/` | `/ui` routes for the web UI: run record adapter, job list and log stream, run settings to manifest, uploads, agent tasks |
 | `web/` | Web UI (Next.js), see [web/README.md](web/README.md); contract in [docs/UI.md](docs/UI.md) |
 | `configs/` | Sources, tools, executors, externals, task specifications and deployment profiles as YAML |
+| `bench/` | Perturbation benchmark: design, Modal app, scoring and per-run results ([README](bench/README.md)) |
 | `examples/` | Run manifests |
 | `deploy/csf3/`, `deploy/modal/` | Slurm and Modal entry points |
 | `environment/conda.yml` | Conda-only tools |
