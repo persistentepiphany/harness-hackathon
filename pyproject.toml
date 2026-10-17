@@ -79,12 +79,12 @@ plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
 # Checks wrap untyped scientific libraries (RDKit, gemmi); calls into them are not typed.
-module = ["pah.checks.*"]
+module = ["pah.checks.*", "pah.executors.*"]
 disallow_untyped_calls = false
 warn_return_any = false
 
 [[tool.mypy.overrides]]
-module = ["rdkit.*", "gemmi.*", "posebusters.*", "pymol.*", "plip.*", "freesasa.*", "spyrmsd.*", "modal.*", "submitit.*"]
+module = ["rdkit.*", "gemmi.*", "posebusters.*", "pymol.*", "plip.*", "freesasa.*", "spyrmsd.*", "modal.*", "submitit.*", "meeko.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
