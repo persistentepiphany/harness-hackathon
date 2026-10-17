@@ -372,9 +372,22 @@ def heavy(mol: Any) -> Any:
     return out
 
 
-def receptor_of(pose: Any) -> Path:
-    """Protein-only PDB of a pose's complex (written once next to the complex)."""
-    out = pose.structure.with_name(pose.structure.stem + "_protein.pdb")
+def derived_path(ctx: CheckContext, pose: Any, suffix: str) -> Path:
+    """Path under <run>/derived/ for a file computed from one pose, so checks never write into an
+    executor's output directory."""
+
+    import hashlib
+
+    slug = str(pose.id).replace("/", "_").replace(":", "_")
+    key = hashlib.sha256(str(Path(pose.structure).resolve()).encode()).hexdigest()[:8]
+    out = ctx.run_dir / "derived" / f"{slug}_{key}{suffix}"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    return out
+
+
+def receptor_of(ctx: CheckContext, pose: Any) -> Path:
+    """Protein-only PDB of a pose's complex (written once under <run>/derived/)."""
+    out = derived_path(ctx, pose, "_protein.pdb")
     if out.is_file():
         return Path(out)
     st = read_structure(pose.structure)

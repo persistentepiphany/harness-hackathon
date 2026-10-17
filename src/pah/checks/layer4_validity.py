@@ -71,7 +71,7 @@ class PoseBustersCheck(Check):
         for pose in poses:
             df = PoseBusters(config="dock").bust(
                 mol_pred=[str(pose.ligand)],
-                mol_cond=str(outputs.receptor_of(pose)),
+                mol_cond=str(outputs.receptor_of(ctx, pose)),
                 full_report=True,
             )
             row = df.iloc[0].to_dict()
@@ -600,7 +600,7 @@ class UnsatisfiedPolars(Check):
             outputs.configured(self.id, "relative_sasa"),
             outputs.configured(self.id, "hbond_distance"),
         )
-        rows = [self._pose(p, float(th[0].value), float(th[1].value)) for p in _poses(ctx)]
+        rows = [self._pose(ctx, p, float(th[0].value), float(th[1].value)) for p in _poses(ctx)]
         rep = _rep_id(ctx)
         rr = next((r for r in rows if r["pose"] == rep), rows[0])
         m = {
@@ -640,14 +640,14 @@ class UnsatisfiedPolars(Check):
             tool=tool,
         )
 
-    def _pose(self, pose: Any, sasa_cut: float, hb_cut: float) -> dict[str, Any]:
+    def _pose(self, ctx: CheckContext, pose: Any, sasa_cut: float, hb_cut: float) -> dict[str, Any]:
         import freesasa
         import gemmi
         import numpy as np
 
         mol = outputs.heavy(outputs.pose_mol(pose))
         lig = np.array(mol.GetConformer().GetPositions())
-        st = outputs.read_structure(outputs.receptor_of(pose))
+        st = outputs.read_structure(outputs.receptor_of(ctx, pose))
         prot = [
             (a.pos.tolist(), a.element.name, a.element.vdw_r) for ch in st[0] for r in ch for a in r
         ]
@@ -706,7 +706,7 @@ class HydrophobicComplementarity(Check):
             outputs.configured(self.id, "fraction"),
             outputs.configured("l4.interactions.unsatisfied_polars", "relative_sasa"),
         )
-        rows = [self._pose(p, float(th[1].value)) for p in _poses(ctx)]
+        rows = [self._pose(ctx, p, float(th[1].value)) for p in _poses(ctx)]
         rep = _rep_id(ctx)
         rr = next((r for r in rows if r["pose"] == rep), rows[0])
         m = {
@@ -740,14 +740,14 @@ class HydrophobicComplementarity(Check):
             tool=ToolRef(name="freesasa"),
         )
 
-    def _pose(self, pose: Any, sasa_cut: float) -> dict[str, Any]:
+    def _pose(self, ctx: CheckContext, pose: Any, sasa_cut: float) -> dict[str, Any]:
         import freesasa
         import gemmi
         import numpy as np
 
         mol = outputs.heavy(outputs.pose_mol(pose))
         lig = np.array(mol.GetConformer().GetPositions())
-        st = outputs.read_structure(outputs.receptor_of(pose))
+        st = outputs.read_structure(outputs.receptor_of(ctx, pose))
         prot = [
             (a.pos.tolist(), a.element.name, a.element.vdw_r) for ch in st[0] for r in ch for a in r
         ]
@@ -804,9 +804,9 @@ class MinimisationDrift(Check):
         limit = float(th[0].value)
         rows = []
         for pose in _poses(ctx)[:10]:
-            out = pose.structure.with_name(pose.structure.stem + "_minimised.json")
+            out = outputs.derived_path(ctx, pose, "_minimised.json")
             args = {
-                "receptor": str(outputs.receptor_of(pose)),
+                "receptor": str(outputs.receptor_of(ctx, pose)),
                 "ligand": str(pose.ligand),
                 "ph": ctx.manifest.ph or 7.4,
                 "out": str(out),
