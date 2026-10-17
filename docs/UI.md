@@ -40,7 +40,8 @@ started with `pah serve`. Its native routes stay as they are (`POST /runs` with 
 under the `/ui` prefix with `app.include_router(pah.webui.ui_router(profile, jobs))`, so they share
 the upstream `JobStore` and run pipeline (`pah.service.run_manifest`: checks, reports, PyMOL renders,
 provenance graph). The UI reads from disk (`runs/<id>/`), so runs started by the CLI, the MCP
-server, a batch or an agent appear and stream the same way as runs started from the UI.
+server or an agent appear and stream the same way as runs started from the UI. Batch targets are
+written to `runs/batch-<id>/<target>/` and are not listed in `/ui/jobs`.
 
 All responses are JSON unless marked SSE. UI route errors are `{"error": {"code", "message"}}`.
 The web client calls `/api/harness/ui/...`; files go through the native
@@ -73,8 +74,8 @@ finished, and a `: ping` comment every 15 s. Each frame carries `id: <seq>` so `
 
 An agent under test reports what it is doing either through `POST /ui/agent/tasks/...` or by running
 `pah agent-log start|step|finish`, which appends to the same files. A run the agent starts with
-`pah run`, `pah batch` or the MCP server appears in `/ui/jobs` and streams live, because the UI
-routes tail `events.jsonl`.
+`pah run` or the MCP server appears in `/ui/jobs` and streams live, because the UI routes tail
+`events.jsonl`. Every way to drive the harness is listed in `docs/INTERFACES.md`.
 
 ## Shapes
 
