@@ -344,6 +344,14 @@ def plip_interactions(complex_pdb: Path) -> list[dict[str, Any]]:
     """PLIP interactions of the ligand residues in a complex, one row per interaction."""
     from plip.structure.preparation import PDBComplex
 
+    if complex_pdb.suffix.lower() != ".pdb":
+        # PLIP reads PDB only; co-folding tools write mmCIF.
+        pdb = complex_pdb.with_name(complex_pdb.stem + "_plip.pdb")
+        if not pdb.is_file():
+            st = outputs.read_structure(complex_pdb)
+            st.shorten_chain_names()
+            st.write_pdb(str(pdb))
+        complex_pdb = pdb
     cplx = PDBComplex()
     cplx.output_path = str(complex_pdb.parent)
     cplx.load_pdb(str(complex_pdb))
@@ -368,6 +376,50 @@ def plip_interactions(complex_pdb: Path) -> list[dict[str, Any]]:
                     }
                 )
     return rows
+
+
+def reference_numbering(ctx: CheckContext, pose: Any) -> dict[tuple[str, int], str]:
+    """Maps (chain, residue number) in a pose's complex to the reference entry's residue label
+    (number, insertion code, chain), so interactions compare across numbering schemes. Empty when
+    no reference entry is declared."""
+    pdb_id, _ = outputs.reference_ids(ctx)
+    if not pdb_id:
+        return {}
+
+    def build() -> dict[tuple[str, int], str]:
+        ref = outputs.read_structure(resolve.mmcif_path(ctx, pdb_id))
+        mob = outputs.read_structure(pose.structure)
+        sup = outputs.superposition(mob, ref)
+        return {
+            (c, n): f"{num}{ic.strip()}{rc}" for (c, n, _), (rc, num, ic) in sup.residue_map.items()
+        }
+
+    return ctx.memo(f"refnum:{pose.structure}", build)
+
+
+def _renumber(
+    rows: list[dict[str, Any]], mapping: dict[tuple[str, int], str]
+) -> list[dict[str, Any]]:
+    import re
+
+    out = []
+    for r in rows:
+        m = re.fullmatch(r"([A-Z0-9]{1,3}?)(-?\d+)([A-Za-z0-9]*)", r["residue"])
+        if mapping and m:
+            key = (m.group(3), int(m.group(2)))
+            if key in mapping:
+                r = {**r, "residue": m.group(1) + mapping[key], "pose_residue": r["residue"]}
+        out.append(r)
+    return out
+
+
+def pose_interactions(ctx: CheckContext, pose: Any) -> list[dict[str, Any]]:
+    """PLIP interactions of a pose with residues in the reference entry's numbering."""
+    try:
+        mapping = reference_numbering(ctx, pose)
+    except (outputs.OutputUnavailableError, ValueError):
+        mapping = {}
+    return _renumber(plip_interactions(pose.structure), mapping)
 
 
 def _crystal_complex(ctx: CheckContext) -> Path | None:
@@ -405,7 +457,7 @@ class InteractionFingerprint(Check):
 
     def run(self, ctx: CheckContext) -> Finding:
         poses = _poses(ctx)
-        per_pose = {p.id: plip_interactions(p.structure) for p in poses}
+        per_pose = {p.id: pose_interactions(ctx, p) for p in poses}
         ctx.state["plip"] = per_pose
         counts: dict[tuple[str, str], dict[str, Any]] = {}
         for pid, rows in per_pose.items():
@@ -473,9 +525,7 @@ class KnownBinders(Check):
         key_set = {(r["type"], r["residue"]) for r in ref_rows if r["type"] != "hydrophobic"}
         if not key_set:
             key_set = {(r["type"], r["residue"]) for r in ref_rows}
-        per_pose = ctx.state.get("plip") or {
-            p.id: plip_interactions(p.structure) for p in _poses(ctx)
-        }
+        per_pose = ctx.state.get("plip") or {p.id: pose_interactions(ctx, p) for p in _poses(ctx)}
         rep = _rep_id(ctx)
         rows = []
         for pid, inter in per_pose.items():
@@ -655,8 +705,8 @@ class HydrophobicComplementarity(Check):
         ev = {
             "representative": rep,
             "poses": rows,
-            "method": "buried ligand C, S and halogen atoms (relative SASA below 0.1) whose "
-            "nearest protein heavy atom within 4.5 Å is C or S",
+            "method": "mean, over buried ligand C, S and halogen atoms (relative SASA below "
+            "0.1), of the fraction of protein heavy atoms within 4.5 Å that are C or S",
         }
         frac = rr["complementarity"]
         if frac is None:
@@ -670,8 +720,8 @@ class HydrophobicComplementarity(Check):
         gate = Gate.WARN if frac < float(th[0].value) else Gate.PASS
         return self.finding(
             gate,
-            f"{rr['matched']} of {rr['buried_nonpolar']} buried nonpolar "
-            f"ligand atoms face nonpolar protein atoms in {rep} ({frac})",
+            f"nonpolar fraction of protein contacts around {rr['buried_nonpolar']} buried "
+            f"nonpolar ligand atoms in {rep}: {frac}",
             measurements=m,
             thresholds=th,
             evidence=ev,
@@ -695,23 +745,20 @@ class HydrophobicComplementarity(Check):
         free = freesasa.calcCoord([x for c in lig.tolist() for x in c], radii)
         pxyz = np.array([c for c, _, _ in prot])
         pel = [e for _, e, _ in prot]
-        buried = matched = 0
+        fractions = []
         for i, atom in enumerate(mol.GetAtoms()):
             if atom.GetSymbol() not in NONPOLAR:
                 continue
             a_free = free.atomArea(i)
             if a_free <= 0 or bound.atomArea(len(prot) + i) / a_free >= sasa_cut:
                 continue
-            buried += 1
-            d = np.linalg.norm(pxyz - lig[i], axis=1)
-            j = int(np.argmin(d))
-            if d[j] <= 4.5 and pel[j] in {"C", "S"}:
-                matched += 1
+            near = np.flatnonzero(np.linalg.norm(pxyz - lig[i], axis=1) <= 4.5)
+            if len(near):
+                fractions.append(sum(pel[j] in {"C", "S"} for j in near) / len(near))
         return {
             "pose": pose.id,
-            "buried_nonpolar": buried,
-            "matched": matched,
-            "complementarity": round(matched / buried, 3) if buried else None,
+            "buried_nonpolar": len(fractions),
+            "complementarity": round(float(np.mean(fractions)), 3) if fractions else None,
         }
 
 

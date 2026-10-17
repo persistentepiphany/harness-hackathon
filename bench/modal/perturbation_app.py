@@ -59,6 +59,8 @@ DD_DIR = BENCH_ENV.get("BENCH_DD_DIR", "/home/appuser/DiffDock")
 MICROMAMBA = "/home/appuser/bin/micromamba"
 boltz_image = (
     modal.Image.from_registry(_base, add_python="3.11")
+    # cuEquivariance kernels compile at first use (triton), which needs a C toolchain.
+    .apt_install("build-essential")
     .run_commands(*_steps)
     .env({"PATH": "/opt/executor/bin:" + SYSTEM_PATH, "BOLTZ_CACHE": "/weights/boltz", **BENCH_ENV})
 )
@@ -67,6 +69,8 @@ diffdock_image = modal.Image.from_registry(DD_REF, add_python="3.11").env(
 )
 
 weights = modal.Volume.from_name("pah-weights", create_if_missing=True)
+results = modal.Volume.from_name("pah-bench-results", create_if_missing=True)
+CHUNK = 1 << 20  # results come back in pieces small enough to travel inline over the API
 app = modal.App("pah-perturbation-bench")
 
 
@@ -84,13 +88,18 @@ def _run(argv: list[str], cwd: str | None = None) -> dict[str, Any]:
     }
 
 
-def _tar(root: Path) -> bytes:
+def _tar(root: Path, name: str) -> dict[str, Any]:
+    """Packs a work directory into the results volume; returns its volume path and size."""
     buf = io.BytesIO()
     with tarfile.open(fileobj=buf, mode="w:gz") as tf:
         for p in sorted(root.rglob("*")):
             if p.is_file() and "processed" not in p.parts:
                 tf.add(p, arcname=str(p.relative_to(root)))
-    return buf.getvalue()
+    data = buf.getvalue()
+    dest = Path("/results") / f"{name}.tar.gz"
+    dest.write_bytes(data)
+    results.commit()
+    return {"path": str(dest), "bytes": len(data)}
 
 
 def _env() -> dict[str, str]:
@@ -108,7 +117,9 @@ def _gpu() -> str:
     return proc.stdout.strip()
 
 
-@app.function(image=boltz_image, gpu=GPU, timeout=3600, volumes={"/weights": weights})
+@app.function(
+    image=boltz_image, gpu=GPU, timeout=3600, volumes={"/weights": weights, "/results": results}
+)
 def boltz_predict(system: str, yaml_text: str, seeds: list[int]) -> dict[str, Any]:
     import yaml
 
@@ -159,11 +170,13 @@ def boltz_predict(system: str, yaml_text: str, seeds: list[int]) -> dict[str, An
         "runs": runs,
         "gpu": _gpu(),
         "env": _env(),
-        "tar": _tar(work),
+        "tar": _tar(work, f"{system}_boltz2"),
     }
 
 
-@app.function(image=diffdock_image, gpu=GPU, timeout=3600, volumes={"/weights": weights})
+@app.function(
+    image=diffdock_image, gpu=GPU, timeout=3600, volumes={"/weights": weights, "/results": results}
+)
 def diffdock_predict(
     system: str, receptor_pdb: bytes, smiles: str, replicates: list[int], samples: int
 ) -> dict[str, Any]:
@@ -207,7 +220,7 @@ def diffdock_predict(
         "runs": runs,
         "gpu": _gpu(),
         "env": _env(),
-        "tar": _tar(work),
+        "tar": _tar(work, f"{system}_diffdock"),
     }
 
 
@@ -234,6 +247,22 @@ def probe_boltz() -> dict[str, Any]:
     return {"boltz": _run(["boltz", "--help"]), "gpu": _gpu()}
 
 
+@app.function(timeout=600, volumes={"/results": results})
+def read_chunk(path: str, start: int) -> bytes:
+    results.reload()
+    with Path(path).open("rb") as fh:
+        fh.seek(start)
+        return fh.read(CHUNK)
+
+
+def _download(info: dict[str, Any]) -> bytes:
+    parts = [read_chunk.remote(info["path"], start) for start in range(0, info["bytes"], CHUNK)]
+    data = b"".join(parts)
+    if len(data) != info["bytes"]:
+        raise RuntimeError(f"{info['path']}: got {len(data)} of {info['bytes']} bytes")
+    return data
+
+
 @app.local_entrypoint()
 def probe() -> None:
     for fn in (probe_boltz, probe_diffdock):
@@ -242,7 +271,7 @@ def probe() -> None:
 
 
 @app.local_entrypoint()
-def predict_all(run_id: str, only: str = "") -> None:
+def predict_all(run_id: str, only: str = "", executors: str = "boltz2,diffdock") -> None:
     import yaml
 
     run = REPO / "bench" / "runs" / run_id
@@ -255,16 +284,18 @@ def predict_all(run_id: str, only: str = "") -> None:
     handles = []
     for s in systems:
         d = prep / s
-        handles.append(boltz_predict.spawn(s, (d / "boltz.yaml").read_text(), seeds))
-        handles.append(
-            diffdock_predict.spawn(
-                s,
-                (d / "rec.pdb").read_bytes(),
-                (d / "ligand.smi").read_text().strip(),
-                seeds,
-                int(cfg["diffdock_samples"]),
+        if "boltz2" in executors:
+            handles.append(boltz_predict.spawn(s, (d / "boltz.yaml").read_text(), seeds))
+        if "diffdock" in executors:
+            handles.append(
+                diffdock_predict.spawn(
+                    s,
+                    (d / "rec.pdb").read_bytes(),
+                    (d / "ligand.smi").read_text().strip(),
+                    seeds,
+                    int(cfg["diffdock_samples"]),
+                )
             )
-        )
     record: list[dict[str, Any]] = []
     for h in handles:
         try:
@@ -275,7 +306,9 @@ def predict_all(run_id: str, only: str = "") -> None:
             continue
         dest = run / "predictions" / res["system"] / res["executor"]
         dest.mkdir(parents=True, exist_ok=True)
-        with tarfile.open(fileobj=io.BytesIO(res.pop("tar")), mode="r:gz") as tf:
+        tar_info = res.pop("tar")
+        res["volume_file"] = tar_info
+        with tarfile.open(fileobj=io.BytesIO(_download(tar_info)), mode="r:gz") as tf:
             tf.extractall(dest, filter="data")
         (dest / "modal.json").write_text(json.dumps(res, indent=2))
         record.append(
@@ -284,7 +317,7 @@ def predict_all(run_id: str, only: str = "") -> None:
         )
         print("done", res["system"], res["executor"], [r["rc"] for r in res["runs"]], flush=True)
     (run / "predictions").mkdir(parents=True, exist_ok=True)
-    (run / "predictions" / "modal.json").write_text(
+    (run / "predictions" / f"modal_{executors.replace(',', '_')}.json").write_text(
         json.dumps(
             {
                 "gpu": GPU,
