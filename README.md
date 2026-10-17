@@ -47,6 +47,22 @@ Each layer ends with a count line. A stop in a pre-run layer skips the later lay
 | `record.json` | Run record: manifest, findings, provenance, tool versions, verdict |
 | `provenance.json` | Every source record used: source, accession, release, URL, sha256, size |
 | `artifacts/sources/` | Fetched files, for example the receptor mmCIF |
+| `report.html` | Report page in the web UI style; prints to an A4 document |
+| `report.md`, `report.json` | The same report as Markdown and as the report model |
+| `ui_record.json` | The run as the web UI record (`UiRunRecord` in [docs/UI.md](docs/UI.md)) |
+| `figures/` | SVG, PNG and CSV per figure; layer 4 and 5 figures appear when their values exist |
+| `renders/` | PyMOL PNG renders and `.pse` sessions per structure |
+| `graph.json`, `graph.mmd`, `graph.svg` | Provenance graph |
+
+`report.html` has no scripts and reads only the run record. It shows the verdict, the inputs,
+key numbers, one section per layer with key figures, the stats tables computed by layers 4
+and 5 (PoseBusters tests, per-pose physical checks, interactions, per-seed RMSD, ensemble,
+agreement matrix, confidence metrics), the checks with `measured cmp threshold`, the figures,
+the renders, provenance with sha256 prefixes, thresholds with origin, and the file list. Page
+elements carry `data-testid` and `data-state` attributes for browser tests. `pah serve` adds
+`GET /jobs`, `GET /jobs/{id}`, `GET /jobs/{id}/log` (SSE or `?format=json`) and
+`GET /runs/{id}/record` for the web UI; the MCP server exposes
+`pah://runs/{run_id}/ui_record.json` and `pah_get_report(format="html")`.
 
 | Verdict | Condition |
 | --- | --- |
