@@ -188,6 +188,17 @@ one warning: the amidine C=N bond in the SDF has no assigned geometry.
 - a missing checkpoint and database snapshot
 The MSA in the clean example is synthetic test data.
 
+### Interfaces
+
+A run can be started from the CLI (`pah run`), over HTTP (`pah serve`: `POST /runs`,
+`POST /ui/runs`) or over MCP (`pah mcp`: `pah_run`). An agent reports its own steps with
+`pah agent-log`, the MCP tools `agent_start`, `agent_step` and `agent_finish`, or
+`POST /ui/agent/tasks`. Runs go to `runs/<id>/` and agent tasks to `runs/agent-<id>/`. The web UI
+reads both through the `/ui` routes, so its Jobs and Agent views show them whichever interface
+wrote them. Batch targets sit under `runs/batch-<id>/` and are not listed in Jobs. Routes, tools
+and UI pages are in [docs/INTERFACES.md](docs/INTERFACES.md). `scripts/e2e_interfaces.sh` checks
+each interface against a live `pah serve` (port 8120) or a deployed API (`--base-url`).
+
 ## Install
 
 Python 3.11 or later and [uv](https://docs.astral.sh/uv/) are required.
@@ -292,6 +303,14 @@ modal run deploy/modal/doctor_app.py
 The image installs the same extras as `pyproject.toml` and the same conda packages as
 `environment/conda.yml`, then runs `pah fetch --profile modal`. Remote output streams to your terminal and the report is copied to
 `runs/<run-id>/`.
+
+## Deploy
+
+Modal is the default deployment. `scripts/deploy_modal.sh` deploys the HTTP API (`pah-api`, one
+CPU container with the `pah-runs` and `pah-cache` volumes), builds the web UI against it, deploys
+it as `pah-web` and writes both URLs to `deploy/modal/urls.json`. `modal deploy
+deploy/modal/api_app.py` deploys the API alone. Executors run as separate GPU apps. Commands,
+volumes, cold start and Vercel settings are in `deploy/modal/README.md`.
 
 ## Results from the development sandbox
 
