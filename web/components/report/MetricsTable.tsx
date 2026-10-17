@@ -40,7 +40,7 @@ export function MetricsTable({ record, tools, variant, className }: ReportBlockP
   return (
     <div className={className} data-testid="metrics-table" data-state={computed ? 'computed' : 'not-computed'}>
       <BlockLabel print={print}>{print ? 'Confidence' : 'Confidence · interface metrics'}</BlockLabel>
-      {!computed && <NotComputed what="metrics" print={print} className="!pt-0" />}
+      {!computed && <NotComputed what="metrics" print={print} record={record} className="!pt-0" />}
       <div className={clsx('border-t', print ? 'border-ink' : 'border-line')}>
         {rows.map((m) => (
           <Row key={m.id} m={m} print={print} ranking={false} />

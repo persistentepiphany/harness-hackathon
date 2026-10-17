@@ -2,9 +2,12 @@
 // functions of the UI record and the tool register. Components render these; they never name an
 // executor or a metric. Missing stats blocks stay missing (null), so the UI can show "not computed".
 
-import { DASH, fmtNum, isMissing } from '../format';
+import { DASH, fmtNum, fmtQuantityParts, isMissing, quantityOf, type Quantity } from '../format';
 import { familyOf, labelFor, outputFor, recordTools, toolById, type ResolvedTool } from '../tools';
 import type {
+  Assessment,
+  Certainty,
+  DimensionId,
   EnsembleEntry,
   Outcome,
   PhysicsRow,
@@ -19,7 +22,11 @@ import type {
   ToolOutput,
   UiCheck,
   UiMetric,
+  UiDimension,
+  UiExecution,
+  UiGlossary,
   UiRunRecord,
+  UiToolVersion,
 } from '../types';
 
 type Register = Tool[] | null | undefined;
@@ -83,6 +90,8 @@ export function verdictMeta(outcome: Outcome | null | undefined): VerdictMeta {
       return { label: 'Supported', color: 'var(--color-pass)', state: 'supported' };
     case 'incomplete':
       return { label: 'Incomplete', color: 'var(--color-ink2)', state: 'incomplete' };
+    case 'not_assessed':
+      return { label: 'Not assessed', color: 'var(--color-ink2)', state: 'not_assessed' };
     default:
       return { label: 'In progress', color: 'var(--color-muted)', state: 'pending' };
   }
@@ -988,6 +997,10 @@ export function summaryRows(record: UiRunRecord, register?: Register): SummaryRo
 export interface PhysicsColumn {
   key: keyof PhysicsRow;
   label: string;
+  /** Number rule of the column (lib/format.ts QUANTITY_RULES). */
+  quantity: Quantity;
+  /** Unit shown muted in the header. */
+  unit?: string;
 }
 
 /** Per-seed columns of the prototype, keeping those at least one row carries. */
@@ -998,29 +1011,20 @@ export function physicsColumns(record: UiRunRecord): PhysicsColumn[] {
 }
 
 function prototypePhysicsColumns(record: UiRunRecord): PhysicsColumn[] {
+  const drift: PhysicsColumn = { key: 'drift', label: 'drift', quantity: 'rmsd', unit: 'Å' };
+  const clashes: PhysicsColumn = { key: 'clashes', label: 'clashes', quantity: 'count' };
+  const strain: PhysicsColumn = { key: 'strain', label: 'strain', quantity: 'energy' };
+  const unsat: PhysicsColumn = { key: 'unsatisfied', label: 'unsat.', quantity: 'count' };
+  const clashscore: PhysicsColumn = { key: 'clashscore', label: 'clashscore', quantity: 'plddt' };
   return hasLigand(record)
-    ? [
-        { key: 'drift', label: 'drift Å' },
-        { key: 'torsions', label: 'torsions' },
-        { key: 'clashes', label: 'clashes' },
-        { key: 'strain', label: 'strain' },
-        { key: 'unsatisfied', label: 'unsat.' },
-        { key: 'pbPassed', label: 'PB' },
-        { key: 'clashscore', label: 'clashscore' },
-      ]
-    : [
-        { key: 'drift', label: 'drift Å' },
-        { key: 'clashes', label: 'clashes' },
-        { key: 'strain', label: 'strain' },
-        { key: 'unsatisfied', label: 'unsat.' },
-        { key: 'clashscore', label: 'clashscore' },
-        { key: 'rama', label: 'rama' },
-      ];
+    ? [drift, { key: 'torsions', label: 'torsions', quantity: 'count' }, clashes, strain, unsat, { key: 'pbPassed', label: 'PB', quantity: 'count' }, clashscore]
+    : [drift, clashes, strain, unsat, clashscore, { key: 'rama', label: 'rama', quantity: 'count' }];
 }
 
-/** Prototype cell format: integers as is, otherwise 2 decimals below 10 and 1 decimal above. */
-export function fmtPhysics(v: number | null | undefined): string {
+/** Value of a per-seed cell with its column's decimals (no unit: the header carries it). */
+export function fmtPhysics(v: number | null | undefined, quantity?: Quantity): string {
   if (isMissing(v)) return DASH;
+  if (quantity) return fmtQuantityParts(v, quantity).value;
   return Number.isInteger(v) ? fmtNum(v) : fmtNum(v, undefined, Math.abs(v) < 10 ? 2 : 1);
 }
 
@@ -1047,12 +1051,13 @@ export function physicsTable(record: UiRunRecord): PhysicsTable | null {
         key: p.pose ?? `row-${i}`,
         seed: poseLabel(p),
         flagged: lig ? typeof p.pbPassed === 'number' && typeof total === 'number' && p.pbPassed < total : typeof p.drift === 'number' && p.drift > DRIFT_FLAG_A,
-        cells: columns.map((c) => fmtPhysics(num(p, c.key))),
+        cells: columns.map((c) => fmtPhysics(num(p, c.key), c.quantity)),
       };
     }),
     median: columns.map((c) => {
       const st = describe(phys.map((p) => num(p, c.key)));
-      return st ? (Number.isInteger(st.median) ? fmtNum(st.median) : fmtNum(st.median, undefined, 2)) : DASH;
+      // a median of counts can fall between two integers: keep one decimal then
+      return st ? (c.quantity === 'count' && !Number.isInteger(st.median) ? fmtNum(st.median, undefined, 1) : fmtPhysics(st.median, c.quantity)) : DASH;
     }),
   };
 }
@@ -1415,4 +1420,524 @@ export function sourceLabel(src: BlockSource | null | undefined): string | undef
   const tool = src.tool ? `${src.tool}${src.version ? ` ${src.version}` : ''}` : null;
   const parts = [checks.join(', '), tool].filter(Boolean);
   return parts.length ? `source: ${parts.join(' · ')}` : undefined;
+}
+
+// ---------------------------------------------------------------- assessment (what the run evaluated)
+
+/** A structure an executor produced (not a source or reference file). */
+function isPrediction(s: Pick<RecordStructure, 'kind' | 'artifactKind'>): boolean {
+  if (s.artifactKind) return s.artifactKind !== 'source_structure' && s.kind !== 'crystal';
+  return s.kind !== 'crystal';
+}
+
+/** The record holds executor outputs: a predicted structure, a predicted ensemble member or a tool that ran. */
+export function hasPredictions(record: Pick<UiRunRecord, 'structures' | 'stats' | 'tools'>): boolean {
+  if ((record.structures ?? []).some(isPrediction)) return true;
+  if ((record.stats.ensemble ?? []).some((e) => e.kind !== 'crystal')) return true;
+  return record.tools.some((t) => t.ran === true);
+}
+
+/**
+ * `pre-run` when nothing was predicted. The record's own `assessment` wins; a live record without
+ * it is pre-run when it holds no executor outputs. Mock records without it are full runs.
+ */
+export function assessmentOf(record: Pick<UiRunRecord, 'assessment' | 'source' | 'structures' | 'stats' | 'tools' | 'status'>): Assessment {
+  if (record.assessment) return record.assessment;
+  return record.source === 'pah' && (!record.status || record.status === 'done') && !hasPredictions(record) ? 'pre-run' : 'full';
+}
+
+/** Only reference (source) structures and no predictions: the viewer shows an input, not a result. */
+export function referenceOnly(record: UiRunRecord): boolean {
+  const s = record.structures ?? [];
+  return s.length > 0 && !s.some(isPrediction) && !hasPredictions(record);
+}
+
+/**
+ * Output check waiting for predictions: skipReason `pending_input`; in a pre-run record without
+ * that reason, any skipped output check (layers 4-5), since those checks need predictions.
+ */
+export function isPendingInput(c: Pick<UiCheck, 'result' | 'skipReason'>, layer?: number, preRun?: boolean): boolean {
+  if (c.result !== 'skip') return false;
+  if (c.skipReason === 'pending_input') return true;
+  return !!preRun && layer !== undefined && layer >= 4 && c.skipReason !== 'unknown_check' && c.skipReason !== 'not_implemented';
+}
+
+export function isNotApplicable(c: Pick<UiCheck, 'result' | 'skipReason'>): boolean {
+  return c.result === 'skip' && c.skipReason === 'not_applicable';
+}
+
+/** Layer numbers as ranges: `0–3`, `0, 2, 4–5`. */
+export function fmtLayerSet(layers: number[]): string {
+  const xs = [...new Set(layers)].sort((a, b) => a - b);
+  const out: string[] = [];
+  for (let i = 0; i < xs.length; ) {
+    let j = i;
+    while (j + 1 < xs.length && xs[j + 1] === xs[j] + 1) j++;
+    out.push(j > i ? `${xs[i]}–${xs[j]}` : String(xs[i]));
+    i = j + 1;
+  }
+  return out.join(', ');
+}
+
+/** Layers with at least one non-skip result (the record's evaluatedLayers when present). */
+export function evaluatedLayers(record: Pick<UiRunRecord, 'layers' | 'evaluatedLayers'>): number[] {
+  if (record.evaluatedLayers) return record.evaluatedLayers;
+  return record.layers.filter((l) => l.checks.some((c) => c.result !== 'skip' && c.result !== 'pending')).map((l) => l.i);
+}
+
+export interface VerdictView extends VerdictMeta {
+  preRun: boolean;
+  /** `Inputs fit to run` for a pre-run check; null for a full run. */
+  assessed: string | null;
+  /** `layers 0–3 evaluated · 4–5 pending`. */
+  scope: string | null;
+  /** Output checks waiting for predictions. */
+  pending: number;
+}
+
+/**
+ * Verdict as shown: a pre-run record is never shown supported or narrowed (nothing was
+ * predicted); it reads "Not assessed" unless its inputs stopped (refused).
+ */
+export function verdictView(record: UiRunRecord): VerdictView {
+  const preRun = assessmentOf(record) === 'pre-run';
+  const o = record.verdict.outcome;
+  const shown = preRun && o !== 'refused' && o !== null ? 'not_assessed' : o;
+  const pending = record.verdict.pending?.length ?? record.layers.reduce((n, l) => n + l.checks.filter((c) => isPendingInput(c, l.i, preRun)).length, 0);
+  const evald = evaluatedLayers(record);
+  const pendLayers = record.layers.filter((l) => l.checks.some((c) => isPendingInput(c, l.i, preRun))).map((l) => l.i);
+  const scope = evald.length
+    ? [`layers ${fmtLayerSet(evald)} evaluated`, pendLayers.length ? `${fmtLayerSet(pendLayers)} pending` : null].filter(Boolean).join(' · ')
+    : (record.verdict.scope ?? null);
+  const assessed = record.verdict.assessedClaim ?? (preRun ? 'Inputs fit to run' : null);
+  return { ...verdictMeta(shown), preRun, assessed, scope, pending };
+}
+
+// ---------------------------------------------------------------- stages (Inputs · Applicability · Outputs)
+
+export type StageId = 'inputs' | 'applicability' | 'outputs';
+
+export const STAGES: { id: StageId; label: string; range: string; layers: number[] }[] = [
+  { id: 'inputs', label: 'Inputs', range: 'L0–L2', layers: [0, 1, 2] },
+  { id: 'applicability', label: 'Applicability', range: 'L3', layers: [3] },
+  { id: 'outputs', label: 'Outputs', range: 'L4–L5', layers: [4, 5] },
+];
+
+export interface CheckBreakdown {
+  total: number;
+  pass: number;
+  warn: number;
+  stop: number;
+  reported: number;
+  /** Waiting for predictions (skipReason pending_input) or still running. */
+  pending: number;
+  /** Skipped as not applicable. */
+  na: number;
+  /** Other skips (tool missing, error, not implemented). */
+  skipped: number;
+}
+
+export function checkBreakdown(checks: { c: UiCheck; layer: number }[], preRun: boolean): CheckBreakdown {
+  const b: CheckBreakdown = { total: checks.length, pass: 0, warn: 0, stop: 0, reported: 0, pending: 0, na: 0, skipped: 0 };
+  for (const { c, layer } of checks) {
+    if (c.result === 'pass' || c.result === 'warn' || c.result === 'stop' || c.result === 'reported') b[c.result]++;
+    else if (c.result === 'pending' || isPendingInput(c, layer, preRun)) b.pending++;
+    else if (isNotApplicable(c)) b.na++;
+    else b.skipped++;
+  }
+  return b;
+}
+
+/** `3 pass · 1 warn · 2 pending · 4 not applicable` (zero counts left out; `no checks` when empty). */
+export function breakdownText(b: CheckBreakdown, opts: { short?: boolean } = {}): string {
+  const na = opts.short ? 'n/a' : 'not applicable';
+  const parts: [number, string][] = [
+    [b.pass, 'pass'],
+    [b.warn, 'warn'],
+    [b.stop, 'stop'],
+    [b.reported, 'reported'],
+    [b.pending, 'pending'],
+    [b.na, na],
+    [b.skipped, 'skipped'],
+  ];
+  const s = parts.filter(([n]) => n > 0).map(([n, w]) => `${n} ${w}`);
+  return s.length ? s.join(' · ') : 'no checks';
+}
+
+/** Dot of a set of checks: worst evaluated result; `pending` when only pending checks remain; null when none apply. */
+export function breakdownDot(b: CheckBreakdown): Result | null {
+  if (b.stop) return 'stop';
+  if (b.warn) return 'warn';
+  if (b.pass) return 'pass';
+  if (b.reported) return 'reported';
+  if (b.pending) return 'pending';
+  return b.skipped ? 'skip' : null;
+}
+
+export interface StageItem {
+  id: StageId;
+  label: string;
+  range: string;
+  /** Indices into record.layers. */
+  layerIdx: number[];
+  counts: CheckBreakdown;
+  dot: Result | null;
+  running: boolean;
+}
+
+export function stageItems(record: UiRunRecord): StageItem[] {
+  const preRun = assessmentOf(record) === 'pre-run';
+  return STAGES.map((s) => {
+    const layerIdx = record.layers.map((l, idx) => ({ l, idx })).filter(({ l }) => s.layers.includes(l.i)).map(({ idx }) => idx);
+    const checks = layerIdx.flatMap((idx) => record.layers[idx].checks.map((c) => ({ c, layer: record.layers[idx].i })));
+    const counts = checkBreakdown(checks, preRun);
+    return { id: s.id, label: s.label, range: s.range, layerIdx, counts, dot: breakdownDot(counts), running: layerIdx.some((idx) => record.layers[idx].status === 'running') };
+  });
+}
+
+/** Stage holding a layer number. */
+export function stageOfLayer(i: number): StageId {
+  return STAGES.find((s) => s.layers.includes(i))?.id ?? 'outputs';
+}
+
+/** Per-layer counts with pending and not applicable kept apart. */
+export function layerBreakdown(record: UiRunRecord, idx: number): CheckBreakdown {
+  const l = record.layers[idx];
+  const preRun = assessmentOf(record) === 'pre-run';
+  return checkBreakdown((l?.checks ?? []).map((c) => ({ c, layer: l.i })), preRun);
+}
+
+// ---------------------------------------------------------------- dimensions
+
+const DIM_LABEL: Record<DimensionId, string> = {
+  inputs: 'Inputs',
+  applicability: 'Applicability',
+  geometry: 'Geometry',
+  physics: 'Physics',
+  interactions: 'Interactions',
+  confidence: 'Confidence',
+  support: 'Support',
+};
+export const DIMENSION_ORDER: DimensionId[] = ['inputs', 'applicability', 'geometry', 'physics', 'interactions', 'confidence', 'support'];
+
+/** Fallback grouping by check id when the record carries no dimensions (configs/catalog.yaml is the source). */
+function dimensionOfCheck(id: string, layer: number): DimensionId {
+  if (layer <= 2) return 'inputs';
+  if (layer === 3) return 'applicability';
+  if (/^l4\.interactions\./.test(id)) return 'interactions';
+  if (/^l4\.(minimisation|physics|energy|strain|clash)/.test(id)) return 'physics';
+  if (layer === 4) return 'geometry';
+  if (/^l5\.confidence\./.test(id)) return 'confidence';
+  return 'support';
+}
+
+const CERTAINTY_RANK: Record<Certainty, number> = { none: 3, calibrated: 2, published: 1, uncalibrated: 0 };
+
+/** Evidence level of a threshold as a certainty class. */
+export function certaintyOf(level: string | null | undefined): Certainty {
+  const l = (level ?? '').toLowerCase();
+  if (!l) return 'none';
+  if (l === 'calibrated') return 'calibrated';
+  if (l === 'published' || l === 'reproduced' || l === 'literature') return 'published';
+  return 'uncalibrated';
+}
+
+/** Weakest certainty of a list (uncalibrated < published < calibrated; `none` only when nothing has a level). */
+export function weakestCertainty(levels: Certainty[]): Certainty {
+  const real = levels.filter((l) => l !== 'none');
+  if (!real.length) return 'none';
+  return real.reduce((a, b) => (CERTAINTY_RANK[b] < CERTAINTY_RANK[a] ? b : a));
+}
+
+function deriveDimensions(record: UiRunRecord): UiDimension[] {
+  const preRun = assessmentOf(record) === 'pre-run';
+  const groups = new Map<DimensionId, { c: UiCheck; layer: number }[]>();
+  for (const l of record.layers) for (const c of l.checks) {
+    const d = dimensionOfCheck(c.id, l.i);
+    groups.set(d, [...(groups.get(d) ?? []), { c, layer: l.i }]);
+  }
+  return DIMENSION_ORDER.filter((id) => groups.has(id)).map((id) => {
+    const list = groups.get(id)!;
+    const b = checkBreakdown(list, preRun);
+    const levels = list
+      .filter(({ c }) => c.result !== 'skip' && c.result !== 'pending')
+      .flatMap(({ c }) => (c.thresholds?.length ? c.thresholds.map((t) => certaintyOf(t.evidenceLevel)) : c.threshold ? [certaintyOf(c.threshold.evidenceLevel)] : []));
+    const result: UiDimension['result'] = b.stop ? 'stop' : b.warn ? 'warn' : b.pass || b.reported ? 'pass' : b.pending ? 'pending' : 'na';
+    return { id, label: DIM_LABEL[id], result, checks: b.total, passed: b.pass, warned: b.warn, stopped: b.stop, pending: b.pending, certainty: weakestCertainty(levels), checkIds: list.map(({ c }) => c.id) };
+  });
+}
+
+/** The record's dimensions in the fixed order, or the same grouping derived from its checks. */
+export function dimensionsOf(record: UiRunRecord): UiDimension[] {
+  const ds = record.dimensions?.length ? record.dimensions : deriveDimensions(record);
+  return [...ds].sort((a, b) => DIMENSION_ORDER.indexOf(a.id) - DIMENSION_ORDER.indexOf(b.id));
+}
+
+export const CERTAINTY_TEXT: Record<Certainty, string> = {
+  calibrated: 'calibrated',
+  published: 'published',
+  uncalibrated: 'uncalibrated',
+  none: 'no threshold',
+};
+
+// ---------------------------------------------------------------- tools: exercised vs declared
+
+export interface ToolRow {
+  name: string;
+  version: string | null;
+  exercised: boolean;
+  /** `executor` for record.tools, `check` for the libraries the checks use. */
+  role: 'executor' | 'check';
+  /** `outputs supplied`, `declared, not run`, or the number of checks that ran with it. */
+  note: string;
+  checks: string[];
+}
+
+const toolKey = (s: string) => s.trim().split(/\s+/)[0].toLowerCase();
+
+/** Executors (ran or declared) and check libraries (exercised by a non-skip finding, or only declared). */
+export function toolRows(record: UiRunRecord, register?: Register): ToolRow[] {
+  const exec: ToolRow[] = recordTools(record, register).map((t) => {
+    const exercised = t.ran === true || t.ranBy === 'harness' || t.ranBy === 'external';
+    return {
+      name: t.name,
+      version: t.version,
+      exercised,
+      role: 'executor',
+      note: t.ranBy === 'external' ? 'outputs supplied' : exercised ? 'ran' : 'declared, not run',
+      checks: [],
+    };
+  });
+  let libs: UiToolVersion[] = record.toolVersions ?? [];
+  if (!record.toolVersions) {
+    const all = record.layers.flatMap((l) => l.checks);
+    libs = Object.entries(record.record.toolVersions ?? {}).map(([name, version]) => {
+      const used = all.filter((c) => (c.tool ?? '').split('·').some((x) => x.trim() && toolKey(x) === name.toLowerCase()));
+      return { name, version, exercised: used.some((c) => c.result !== 'skip' && c.result !== 'pending'), checks: used.map((c) => c.id) };
+    });
+  }
+  const check: ToolRow[] = libs.map((t) => ({
+    name: t.name,
+    version: t.version,
+    exercised: t.exercised,
+    role: 'check',
+    note: t.exercised ? `${t.checks.length} check${t.checks.length === 1 ? '' : 's'}` : 'declared, not run',
+    checks: t.checks,
+  }));
+  return [...exec, ...check];
+}
+
+// ---------------------------------------------------------------- block availability (computed, not applicable, pending)
+
+export type BlockState = 'computed' | 'not_applicable' | 'pending' | 'not_computed';
+
+/** Checks whose evidence fills a stats block. */
+const BLOCK_CHECKS: Record<string, string[]> = {
+  pae: ['l5.confidence.local'],
+  agreement: ['l5.agreement.cross_family'],
+  interactions: ['l4.interactions.fingerprint'],
+  seeds: ['l5.sampling.seeds', 'l5.sampling.clusters'],
+  posebusters: ['l4.posebusters'],
+  physics: ['l4.minimisation_drift', 'l4.torsion_strain', 'l4.posebusters'],
+  calibration: [],
+  metrics: ['l5.confidence.local'],
+};
+
+export interface BlockAvailability {
+  state: BlockState;
+  /** Why the block is empty: the skip evidence of its check, or what is missing. */
+  reason: string | null;
+  check?: string;
+}
+
+/**
+ * Why a stats block is empty. `not_applicable` when its checks were skipped as not applicable
+ * (or, for PAE, when no tool of the run declares a PAE output); `pending` when its checks wait for
+ * predictions; `not_computed` when the block should exist and does not.
+ */
+export function blockAvailability(record: UiRunRecord, block: string, computed: boolean, register?: Register): BlockAvailability {
+  if (computed) return { state: 'computed', reason: null };
+  const preRun = assessmentOf(record) === 'pre-run';
+  const ids = BLOCK_CHECKS[block] ?? [];
+  const found = record.layers.flatMap((l) => l.checks.filter((c) => ids.includes(c.id)).map((c) => ({ c, layer: l.i })));
+  const pend = found.find(({ c, layer }) => isPendingInput(c, layer, preRun));
+  if (pend || (preRun && block !== 'calibration')) {
+    return { state: 'pending', reason: 'waits for predictions', check: pend?.c.id };
+  }
+  if (block === 'pae') {
+    const tools = recordTools(record, register);
+    if (tools.length && !tools.some((t) => t.outputs.some((o) => o.kind === 'pae'))) {
+      return { state: 'not_applicable', reason: `${tools.map((t) => t.name).join(', ')} report${tools.length === 1 ? 's' : ''} no predicted aligned error` };
+    }
+  }
+  const na = found.find(({ c }) => isNotApplicable(c));
+  if (na && found.every(({ c }) => c.result === 'skip')) return { state: 'not_applicable', reason: na.c.evidence ?? na.c.message ?? null, check: na.c.id };
+  return { state: 'not_computed', reason: null };
+}
+
+// ---------------------------------------------------------------- scores and their glossary
+
+export interface ScoreEntry {
+  key: string;
+  label: string;
+  unit: string | null;
+  quantity: Quantity;
+  producedBy: string[];
+  what: string;
+  inputs: string[];
+  higherIsBetter: boolean | null;
+  rankingOnly: boolean;
+}
+
+/** Keys of the scores this record shows (metrics, ensemble values, per-seed columns, PoseBusters). */
+export function presentScoreKeys(record: UiRunRecord): string[] {
+  const S = record.stats;
+  const keys: string[] = [];
+  const add = (k: string | undefined | null) => {
+    if (k && !keys.includes(k)) keys.push(k);
+  };
+  for (const m of S.metrics ?? []) add(m.key ?? m.name);
+  for (const e of S.ensemble ?? []) for (const k of Object.keys(e.values ?? {})) add(k);
+  for (const s of S.seeds ?? []) {
+    add(s.confidenceKey);
+    add(s.scoreKey);
+  }
+  if ((S.ensemble ?? []).some((e) => typeof e.rmsdToMedoid === 'number' && e.kind !== 'crystal')) add('rmsdToMedoid');
+  if ((S.ensemble ?? []).some((e) => typeof e.siteDistance === 'number')) add('siteDistance');
+  if ((S.ensemble ?? []).some((e) => typeof e.rmsdToReference === 'number')) add('rmsdToReference');
+  for (const c of physicsColumns(record)) if ((S.physics ?? []).some((p) => typeof p[c.key] === 'number')) add(c.key);
+  if (S.posebusters?.length) add('posebusters');
+  return keys;
+}
+
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+/** Looks a score up by key, then by label, in the glossary, then in the record's tool outputs. */
+export function scoreLookup(record: UiRunRecord, register?: Register, glossary?: UiGlossary | null): (key: string, label?: string) => ScoreEntry | null {
+  const tools = recordTools(record, register);
+  const gl = glossary?.scores ?? [];
+  return (key, label) => {
+    const g = gl.find((x) => x.key === key) ?? (label ? gl.find((x) => norm(x.label) === norm(label)) : undefined) ?? gl.find((x) => norm(x.key) === norm(key));
+    const t = tools.find((x) => outputFor(x, key));
+    const o = t ? outputFor(t, key) : undefined;
+    if (g) {
+      return {
+        key: g.key,
+        label: g.label,
+        unit: g.unit ?? o?.unit ?? null,
+        quantity: quantityOf({ kind: g.kind, unit: g.unit ?? o?.unit, key: g.key, range: o?.range }),
+        producedBy: g.producedBy,
+        what: g.what,
+        inputs: g.inputs,
+        higherIsBetter: g.higherIsBetter ?? o?.higherIsBetter ?? null,
+        rankingOnly: !!o?.rankingOnly,
+      };
+    }
+    if (o && t) {
+      return {
+        key,
+        label: o.label,
+        unit: o.unit ?? null,
+        quantity: quantityOf(o),
+        producedBy: [t.name],
+        what: o.note ?? `${o.label} reported by ${t.name}`,
+        inputs: [],
+        higherIsBetter: o.higherIsBetter ?? null,
+        rankingOnly: !!o.rankingOnly,
+      };
+    }
+    return null;
+  };
+}
+
+/** Scores present in the record, with producer and inputs (glossary, else the tool output description). */
+export function scoreEntries(record: UiRunRecord, register?: Register, glossary?: UiGlossary | null): ScoreEntry[] {
+  const look = scoreLookup(record, register, glossary);
+  const labels = new Map((record.stats.metrics ?? []).map((m) => [m.key ?? m.name, m.name]));
+  const out: ScoreEntry[] = [];
+  for (const k of presentScoreKeys(record)) {
+    const e = look(k, labels.get(k));
+    if (e && !out.some((x) => x.key === e.key)) out.push(e);
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------- execution
+
+/** Execution entries of the record (UiExecution only; prototype executor lines are left out). */
+export function executionRows(record: Pick<UiRunRecord, 'execution'>): UiExecution[] {
+  return (record.execution ?? []).filter((e) => !!e && typeof e === 'object' && 'executor' in e && 'phase' in e);
+}
+
+// ---------------------------------------------------------------- run summary (compare view)
+
+export interface SummaryScore {
+  /** Grouping key across runs: `confidence:<label>`, `ranking:<label>`, `rmsd`, `pb`. */
+  id: string;
+  label: string;
+  unit: string | null;
+  quantity: Quantity;
+  /** Median over the run's predicted members; for `pb`, the pass rate 0..1. */
+  value: number;
+  n: number;
+  rankingOnly: boolean;
+}
+
+export interface RunSummary {
+  runId: string;
+  target: string;
+  tools: string[];
+  family: ToolFamily | null;
+  verdict: VerdictView;
+  scores: SummaryScore[];
+}
+
+/** Medians of the run's predicted members: each confidence and ranking output, RMSD to medoid, PoseBusters pass rate. Only scores the run has. */
+export function runSummary(record: UiRunRecord, members: EnsembleMember[], register?: Register): RunSummary {
+  const pred = members.filter((m) => m.kind !== 'crystal');
+  const scores: SummaryScore[] = [];
+  const byKey = new Map<string, { o: MemberValue; values: number[] }>();
+  for (const m of pred) {
+    for (const o of m.outputs) {
+      if (o.kind === 'rmsd') continue;
+      const g = byKey.get(o.key) ?? { o, values: [] };
+      g.values.push(o.value);
+      byKey.set(o.key, g);
+    }
+  }
+  for (const [key, { o, values }] of byKey) {
+    const st = describe(values);
+    if (!st) continue;
+    scores.push({ id: `${o.rankingOnly ? 'ranking' : 'confidence'}:${o.label}`, label: `median ${o.label}`, unit: o.unit ?? null, quantity: quantityOf({ kind: o.kind, unit: o.unit, key }), value: st.median, n: st.n, rankingOnly: o.rankingOnly });
+  }
+  scores.sort((a, b) => Number(a.rankingOnly) - Number(b.rankingOnly));
+  const rm = describe(pred.filter((m) => m.kind !== 'medoid').map((m) => m.rmsd));
+  if (rm) scores.push({ id: 'rmsd', label: 'median RMSD to medoid', unit: 'Å', quantity: 'rmsd', value: rm.median, n: rm.n, rankingOnly: false });
+  const pb = pred.filter((m) => m.pb && m.pb.total);
+  if (pb.length) {
+    const passed = pb.filter((m) => m.pb!.passed === m.pb!.total).length;
+    scores.push({ id: 'pb', label: 'PoseBusters all passed', unit: '%', quantity: 'percent', value: (100 * passed) / pb.length, n: pb.length, rankingOnly: false });
+  }
+  const tools = recordTools(record, register);
+  return {
+    runId: record.id,
+    target: [record.inputs.target, record.inputs.ligand ?? record.inputs.partner].filter((x) => !isMissing(x)).join(' · ') || record.inputs.reference || record.taskName,
+    tools: tools.map((t) => t.name),
+    family: tools.map((t) => familyOf(t)).find((f) => f) ?? null,
+    verdict: verdictView(record),
+    scores,
+  };
+}
+
+/** Median of each score across runs (only runs that have it), in first-seen order. */
+export function overallMedians(summaries: RunSummary[]): (SummaryScore & { runs: number })[] {
+  const groups = new Map<string, { s: SummaryScore; values: number[] }>();
+  for (const r of summaries) {
+    for (const s of r.scores) {
+      const g = groups.get(s.id) ?? { s, values: [] };
+      g.values.push(s.value);
+      groups.set(s.id, g);
+    }
+  }
+  return [...groups.values()].map(({ s, values }) => ({ ...s, value: describe(values)!.median, n: values.length, runs: values.length }));
 }

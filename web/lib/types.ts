@@ -2,7 +2,10 @@
 // (camelCase on the wire). Fields marked "UI addition" are optional extensions the prototype views
 // read; the live API may omit them, and the UI then shows "not computed".
 
-export type Outcome = 'supported' | 'narrowed' | 'refused' | 'incomplete';
+/** `not_assessed`: the claim needs output evidence (layers 4-5) and none ran, e.g. a pre-run check. */
+export type Outcome = 'supported' | 'narrowed' | 'refused' | 'incomplete' | 'not_assessed';
+/** `pre-run`: no executor outputs in the run (nothing predicted); `full`: predictions were checked. */
+export type Assessment = 'pre-run' | 'full';
 export type Result = 'pass' | 'warn' | 'stop' | 'skip' | 'reported' | 'pending';
 export type Gate = 'Stop' | 'Warn' | 'Reported';
 export type JobStatus = 'queued' | 'running' | 'done' | 'failed';
@@ -32,6 +35,8 @@ export interface JobLayer {
   done: boolean;
   /** Live API: checks of the layer whose skip leaves the verdict incomplete (tool missing, error). */
   incomplete?: string[];
+  /** Live API: output checks of the layer waiting for predictions (result 'pending' when all are). */
+  pending?: string[];
 }
 
 export interface Job {
@@ -59,6 +64,35 @@ export interface Job {
   checksTotal?: number;
   /** Live API: report generation status (e.g. "done"). */
   reportStatus?: string;
+  /** Live API: pre-run when the run holds no executor outputs. */
+  assessment?: Assessment;
+  /** Live API: one entry per executor the run dispatched (execution events). */
+  execution?: UiExecution[];
+}
+
+// ---------------------------------------------------------------- execution (executor progress)
+
+export type ExecutionPhase = 'queued' | 'building' | 'running' | 'done' | 'failed' | 'skipped';
+export type ExecutionRoute = 'kit' | 'stock' | 'local';
+
+export interface UiExecutionSeed {
+  seed: number;
+  phase: ExecutionPhase | string;
+  ms?: number | null;
+}
+
+/** Aggregated execution events of one executor (events.jsonl data.stage == "execute"). */
+export interface UiExecution {
+  executor: string;
+  name: string;
+  phase: ExecutionPhase;
+  gpu?: string | null;
+  route?: ExecutionRoute | null;
+  routeNote?: string | null;
+  startedAt?: string | null;
+  elapsedMs?: number | null;
+  seeds: UiExecutionSeed[];
+  message?: string | null;
 }
 
 export type LogKind = 'fetch' | 'cache' | 'check' | 'layer' | 'exec' | 'run' | 'artifact' | 'log';
@@ -133,6 +167,11 @@ export interface Tool {
   dockingParams?: DockingParam[];
   /** UI addition: entry added by the user through the "+ executor" input. */
   custom?: boolean;
+  /** Live API: endpoints the tool can report (configs/models.yaml models[*].endpoints). */
+  endpoints?: string[];
+  /** Live API: whether the harness can dispatch the executor (RunSettings.execute). */
+  dispatchable?: boolean;
+  gpu?: string | null;
 }
 
 /** `POST /ui/tools` body: an executor entered as `name:version` (the whole input as `image`). */
@@ -142,7 +181,7 @@ export interface AddToolSpec {
   image?: string;
 }
 
-export type TaskGroup = 'co-folding' | 'docking';
+export type TaskGroup = 'co-folding' | 'docking' | 'protein-protein';
 export type TaskKind = 'monomer' | 'complex' | 'ligand';
 
 export interface Task {
@@ -159,6 +198,12 @@ export interface Task {
   implemented?: number;
   /** Live API: number of checks the task spec lists. Absent in mock mode. */
   checks?: number;
+  /** Live API: endpoint the claim needs (configs/models.yaml task_endpoints). */
+  endpoint?: string | null;
+  /** Live API: executor ids (Tool.id) whose endpoints include `endpoint`. */
+  compatibleTools?: string[];
+  /** Live API: offered in Quick setup and by the interpreter (configs/catalog.yaml). */
+  quickSetup?: boolean;
 }
 
 // ---------------------------------------------------------------- run settings and interpreter
@@ -177,6 +222,8 @@ export interface RunSettings {
   checkpoint?: string;
   /** Optional database snapshot (e.g. MSA database release) recorded in the manifest. */
   databaseSnapshot?: string;
+  /** true: run the selected executors (GPU ones on Modal); false or absent: pre-run checks only. */
+  execute?: boolean;
 }
 
 export type StepField =
@@ -199,6 +246,8 @@ export interface Step {
 export interface InterpretResult {
   settings: RunSettings;
   steps: Step[];
+  /** Live API: problems with the request kept as the user wrote it (e.g. a tool that lacks the endpoint). */
+  warnings?: string[];
 }
 
 /** `GET /ui/examples`: example manifests with task and claim. Extra keys pass through. */
@@ -267,6 +316,8 @@ export interface CatalogLigand {
 export interface Catalog {
   proteins: CatalogProtein[];
   ligands: CatalogLigand[];
+  /** Live API: sample requests that map onto Quick setup tasks (configs/catalog.yaml `prompts`). */
+  prompts?: string[];
 }
 
 // ---------------------------------------------------------------- uploads
@@ -358,6 +409,58 @@ export interface UiCheck {
   thresholds?: ThresholdDef[];
 }
 
+/**
+ * Why a check was skipped. `pending_input`: an output check (layers 4-5) waiting for predictions;
+ * `not_applicable`: the check does not apply to the run (no MSA for a docking tool, and so on).
+ */
+export type SkipReason = 'pending_input' | 'not_applicable' | 'not_implemented' | 'tool_missing' | 'error' | string;
+
+export type DimensionId = 'inputs' | 'applicability' | 'geometry' | 'physics' | 'interactions' | 'confidence' | 'support';
+export type Certainty = 'calibrated' | 'published' | 'uncalibrated' | 'none';
+
+/** Checks grouped by what they test (configs/catalog.yaml `dimensions`). */
+export interface UiDimension {
+  id: DimensionId;
+  label: string;
+  result: 'pass' | 'warn' | 'stop' | 'pending' | 'na';
+  checks: number;
+  passed: number;
+  warned: number;
+  stopped: number;
+  pending: number;
+  /** Weakest evidence level among the thresholds of the non-skip checks. */
+  certainty: Certainty;
+  checkIds: string[];
+}
+
+export interface UiToolVersion {
+  name: string;
+  version: string | null;
+  /** true when some non-skip finding ran with the tool (an executor: its outputs ran); false when only declared. */
+  exercised: boolean;
+  checks: string[];
+  /** `library` (check dependency) or `executor`. */
+  kind?: 'library' | 'executor';
+  /** Executor id, for kind `executor`. */
+  id?: string;
+}
+
+/** `GET /ui/glossary`: score keys from configs/executors.yaml and check measurements the UI shows. */
+export interface UiGlossaryScore {
+  key: string;
+  label: string;
+  unit?: string | null;
+  kind: string;
+  producedBy: string[];
+  what: string;
+  inputs: string[];
+  higherIsBetter?: boolean | null;
+}
+
+export interface UiGlossary {
+  scores: UiGlossaryScore[];
+}
+
 /** Tool entry in a record: Tool-compatible, carries `outputs` when the register knows the tool. */
 export type RecordTool = Omit<Partial<Tool>, 'id' | 'name' | 'version'> & {
   id: string;
@@ -423,9 +526,15 @@ export interface Verdict {
   stops: string[];
   warnings: string[];
   incomplete?: string[];
-  /** Live API: layers the verdict covers, e.g. "layers 0,1". */
+  /** Live API: layers the verdict covers, e.g. "layers 0-3" (evaluated layers only). */
   scope?: string;
   notApplicable?: string[];
+  /** Live API: output checks (layers 4-5) waiting for predictions. */
+  pending?: string[];
+  /** Live API: what was evaluated, e.g. "Inputs fit to run" for a pre-run check; null for a full run. */
+  assessedClaim?: string | null;
+  /** Live API: the engine's own outcome before scoping (e.g. 'supported' for a pre-run). */
+  engineOutcome?: Outcome | null;
 }
 
 // ----- stats blocks (all optional: absent means not computed)
@@ -589,7 +698,16 @@ export interface StatsSource {
   [key: string]: unknown;
 }
 
+/** Why a stats block is absent: `na` = cannot exist for these tools, `pending` = not computed yet. */
+export interface StatsStatus {
+  status: 'na' | 'pending';
+  reason: string;
+}
+
 export interface UiPae {
+  /** Live API: present instead of the matrix when the block is not applicable or not computed. */
+  status?: 'na' | 'pending' | 'ok';
+  reason?: string;
   path?: string;
   url?: string;
   format?: string;
@@ -629,6 +747,10 @@ export interface UiStats {
   pae?: UiPae;
   /** Live API: source of each block, keyed by block name (or `block.field`). */
   provenance?: Record<string, StatsSource>;
+  /** Live API: why `agreement` is absent (e.g. na with one executor). */
+  agreementStatus?: StatsStatus;
+  /** Live API: status of absent blocks keyed by block name (pae, agreement, seeds, ...). */
+  status?: Record<string, StatsStatus>;
   [key: string]: unknown;
 }
 
@@ -639,11 +761,13 @@ export interface RecordThreshold {
   level: string;
 }
 
+/** Prototype (mock) executor line. Live records carry UiExecution entries instead. */
 export interface ExecutionLine {
   tool: string;
   text: string;
   plain: string;
 }
+
 
 export interface DockingCard {
   tool: string;
@@ -666,6 +790,23 @@ export interface RecordStructure {
   sha256?: string;
 }
 
+/** One output check result on one pose (from the check's `evidence.poses[]` rows). */
+export interface UiPoseCheck {
+  id: string;
+  name: string;
+  /** `reported`: the check gave values for the pose but no per-pose pass/fail. */
+  result: Result;
+  /** Failed sub-tests (e.g. PoseBusters test names). */
+  failed?: string[];
+}
+
+export interface UiPoseScore {
+  key: string;
+  label: string;
+  value: number;
+  unit?: string | null;
+}
+
 /** `png` and `pse` are native API paths: pass them through HarnessApi.assetUrl(). */
 export interface RecordRender {
   structure: string;
@@ -674,6 +815,25 @@ export interface RecordRender {
   view: string;
   caption?: string;
   alt?: string;
+  /** Live API, renders of predicted poses: producing executor, seed, rank (docking mode or sample). */
+  executor?: string;
+  seed?: number | null;
+  rank?: number | null;
+  pose?: string | null;
+  /** First output of the executor (configs/executors.yaml order) that the pose reports. */
+  score?: UiPoseScore | null;
+  /** Output checks already reported for the pose; empty while they are pending. */
+  checks?: UiPoseCheck[];
+}
+
+/** Live API: l0.sources.resolved counts and the receptor chains present (l1.receptor.chains). */
+export interface UiSourceSummary {
+  check: string;
+  identifiers?: number;
+  records?: number;
+  failed?: number;
+  cacheHits?: number;
+  chains?: string[];
 }
 
 export interface RecordFigure {
@@ -757,8 +917,19 @@ export interface UiRunRecord {
   renders?: RecordRender[];
   /** UI addition (prototype): threshold table. */
   thresholds?: RecordThreshold[];
-  /** UI addition (prototype): executor lines for the job view. */
-  execution?: ExecutionLine[];
+  /** UI addition (prototype): executor lines for the job view (mock records). */
+  executionLines?: ExecutionLine[];
+  /** Live API: per-executor execution progress, from execution events. */
+  execution?: UiExecution[];
+  /** Live API: pre-run when the run holds no executor outputs (no predictions to check). */
+  assessment?: Assessment;
+  /** Live API: layers with at least one non-skip result. */
+  evaluatedLayers?: number[];
+  dimensions?: UiDimension[];
+  toolVersions?: UiToolVersion[];
+  /** Live API: output checks per pose (also on each render as `checks`). */
+  poseChecks?: { pose: string; checks: UiPoseCheck[] }[];
+  sourceSummary?: UiSourceSummary;
   /** UI addition (prototype): docking stat card. */
   docking?: DockingCard | null;
   /** Live API: report, graph and figure files. */

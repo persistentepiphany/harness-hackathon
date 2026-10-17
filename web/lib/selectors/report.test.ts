@@ -197,7 +197,7 @@ describe('ensemble', () => {
 describe('tables and cards', () => {
   it('flags the seed with fewer PoseBusters passes and adds a median row', () => {
     const t = physicsTable(mock)!;
-    expect(t.columns.map((c) => c.label)).toEqual(['drift Å', 'torsions', 'clashes', 'strain', 'unsat.', 'PB', 'clashscore']);
+    expect(t.columns.map((c) => c.label)).toEqual(['drift', 'torsions', 'clashes', 'strain', 'unsat.', 'PB', 'clashscore']);
     expect(t.rows).toHaveLength(5);
     expect(t.rows.filter((r) => r.flagged)).toHaveLength(1);
     expect(t.median).toHaveLength(7);

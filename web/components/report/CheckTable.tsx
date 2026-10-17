@@ -5,7 +5,7 @@
 
 import clsx from 'clsx';
 import { fmtMs, measuredVsThreshold, pairMeasurement, thresholdText } from '@/lib/format';
-import { defaultLayerIndex, isNotImplemented, RESULT_COLOR } from '@/lib/selectors/report';
+import { assessmentOf, defaultLayerIndex, isNotApplicable, isNotImplemented, isPendingInput, RESULT_COLOR } from '@/lib/selectors/report';
 import type { UiCheck } from '@/lib/types';
 import { ResultDot, SectionTitle } from './parts';
 import type { ReportBlockProps } from './types';
@@ -26,8 +26,17 @@ function thresholdTitle(c: UiCheck): string | undefined {
   return undefined;
 }
 
-export function CheckRow({ c, print }: { c: UiCheck; print?: boolean }) {
+/** Result word of a row: skips read `pending` (waiting for predictions) or `n/a` (not applicable). */
+export function checkResultText(c: UiCheck, layer?: number, preRun?: boolean): string {
+  if (isPendingInput(c, layer, preRun)) return 'pending';
+  if (isNotApplicable(c)) return 'n/a';
+  return c.result;
+}
+
+export function CheckRow({ c, print, layer, preRun }: { c: UiCheck; print?: boolean; layer?: number; preRun?: boolean }) {
   const ni = isNotImplemented(c);
+  const pendingInput = isPendingInput(c, layer, preRun);
+  const resultText = checkResultText(c, layer, preRun);
   const cmp = measuredVsThreshold(c);
   const thr = cmp ? null : thresholdText(c);
   const color = ni ? 'var(--color-faint)' : RESULT_COLOR[c.result];
@@ -37,6 +46,7 @@ export function CheckRow({ c, print }: { c: UiCheck; print?: boolean }) {
       data-testid="check-row"
       data-check={c.id}
       data-state={c.result}
+      data-skip={c.result === 'skip' ? (pendingInput ? 'pending_input' : (c.skipReason ?? 'skip')) : undefined}
       data-implemented={ni ? 'false' : 'true'}
       className={clsx(
         'grid animate-fade-up items-baseline border-b border-line2',
@@ -44,9 +54,9 @@ export function CheckRow({ c, print }: { c: UiCheck; print?: boolean }) {
       )}
     >
       <ResultDot result={c.result} size={8} hollow={ni || c.result === 'reported' || c.result === 'pending'} />
-      <span className={clsx(print ? '' : 'text-[13px]', ni && 'text-faint')}>{c.name}</span>
+      <span className={clsx(print ? '' : 'text-[13px]', (ni || c.result === 'skip') && 'text-muted', ni && 'text-faint')}>{c.name}</span>
       <span className={clsx('font-mono text-pretty', print ? 'text-[8pt]' : 'text-[11.5px]', ni ? 'text-faint' : 'text-ink2')}>
-        {ni ? 'not implemented' : (c.evidence ?? c.message ?? (c.result === 'pending' ? 'running' : '–'))}
+        {ni ? 'not implemented' : pendingInput ? 'waits for predictions' : (c.evidence ?? c.message ?? (c.result === 'pending' ? 'running' : '–'))}
         {cmp && (
           <span className="block text-muted" title={thresholdTitle(c)} data-testid="check-cmp">
             {cmp}
@@ -68,8 +78,8 @@ export function CheckRow({ c, print }: { c: UiCheck; print?: boolean }) {
           </span>
         </span>
       )}
-      <span className={clsx('text-right font-semibold tracking-[.04em] uppercase', print ? 'text-[7.5pt]' : 'text-[11px]')} style={{ color }}>
-        {c.result}
+      <span className={clsx('text-right font-semibold tracking-[.04em] uppercase', print ? 'text-[7.5pt]' : 'text-[11px]')} style={{ color }} data-testid="check-result">
+        {resultText}
       </span>
     </div>
   );
@@ -90,7 +100,7 @@ export function CheckTable({ record, layer, checks, title, variant, className }:
       )}
       <div className={clsx('border-t', print ? 'border-ink' : 'border-line')}>
         {list.map((c) => (
-          <CheckRow key={c.id} c={c} print={print} />
+          <CheckRow key={c.id} c={c} print={print} layer={checks ? undefined : L?.i} preRun={assessmentOf(record) === 'pre-run'} />
         ))}
         {list.length === 0 && (
           <div className="py-3 text-[12px] text-muted" data-testid="empty-state">

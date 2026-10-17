@@ -126,7 +126,12 @@ def _in_ui(client: TestClient, profile: Profile, run_id: str) -> dict[str, Any]:
     """The run as the web UI reads it: job card, log lines and record, with the harness verdict
     mapped to the UI outcome."""
     raw = json.loads((Path(profile.runs_dir) / run_id / "record.json").read_text())
-    outcome = OUTCOMES[raw["verdict"]["outcome"]]
+    # A run without predictions (pre-run) has its passing engine verdict scoped to not_assessed
+    # (docs/UI.md, Assessment scope); a stop stays refused.
+    engine = OUTCOMES[raw["verdict"]["outcome"]]
+    pre_run = client.get(f"/ui/runs/{run_id}/record").json().get("assessment") == "pre-run"
+    passing = ("supported", "narrowed", "incomplete")
+    outcome = "not_assessed" if pre_run and engine in passing else engine
     jobs = {j["id"]: j for j in client.get("/ui/jobs").json()}
     assert run_id in jobs, sorted(jobs)
     job = jobs[run_id]
@@ -168,7 +173,7 @@ def test_cli_run_appears_in_ui(
     assert [line["seq"] for line in log] == [e["seq"] for e in events]
     checks = [line for line in log if line["kind"] == "check"]
     assert len(checks) == 13 and {line["result"] for line in checks} == {"pass", "warn"}
-    assert record["verdict"]["outcome"] == "narrowed"
+    assert record["verdict"]["outcome"] == "not_assessed"
     assert record["verdict"]["warnings"] == ["l1.ligand.stereo_defined"]
     assert [layer["status"] for layer in record["layers"]] == ["done"] * 2 + ["not_run"] * 4
     assert record["renders"] and record["report"]["status"] == "done"
@@ -226,7 +231,7 @@ def test_http_runs_appear_in_ui_and_stream(offline_profile: Profile, ui: TestCli
         assert all(f[1] == str(f[2]["seq"]) for f in lines)  # id: <seq>, for Last-Event-ID
         assert frames[-1][2] == {"reason": "run_end", "lastSeq": lines[-1][2]["seq"]}
     assert names[ids[2]] == "e2e settings"
-    assert _in_ui(ui, offline_profile, ids[0])["record"]["verdict"]["outcome"] == "narrowed"
+    assert _in_ui(ui, offline_profile, ids[0])["record"]["verdict"]["outcome"] == "not_assessed"
 
 
 # ---------------------------------------------------------------- 3. MCP
@@ -262,7 +267,7 @@ def test_mcp_run_and_agent_tools_appear_in_ui(offline_profile: Profile, ui: Test
     assert len(progress) == 13 and done["status"] == "done"
 
     seen = _in_ui(ui, offline_profile, run["run_id"])
-    assert seen["record"]["verdict"]["outcome"] == "narrowed"
+    assert seen["record"]["verdict"]["outcome"] == "not_assessed"
     tasks = {t["id"]: t for t in ui.get("/ui/agent/tasks").json()}
     shown = tasks[task["id"]]
     assert shown["goal"] == "MCP pose check" and shown["status"] == "done"
@@ -314,7 +319,7 @@ def test_agent_log_cli_appears_in_ui(
     steps = ui.get(f"/ui/agent/tasks/{task_id}/steps", params={"format": "json"}).json()
     assert [s["kind"] for s in steps] == ["thought", "tool"]
     assert steps[1]["data"] == {"runId": "cli-2", "progress": 0.6} and steps[1]["ms"] == 1500
-    assert ui.get("/ui/jobs/cli-2").json()["verdict"] == "narrowed"
+    assert ui.get("/ui/jobs/cli-2").json()["verdict"] == "not_assessed"
     late = runner.invoke(
         cli, ["agent-log", "step", task_id, "--kind", "tool", "--text", "x"], env=env
     )
@@ -365,7 +370,7 @@ def test_one_agent_task_across_interfaces_links_runs(
     jobs = {j["id"] for j in ui.get("/ui/jobs").json()}
     for run_id in linked:  # the Agent view links data.runId to /jobs/<id> and /reports/<id>
         assert run_id in jobs
-        assert ui.get(f"/ui/jobs/{run_id}").json()["verdict"] == "narrowed"
+        assert ui.get(f"/ui/jobs/{run_id}").json()["verdict"] == "not_assessed"
         assert ui.get(f"/ui/runs/{run_id}/record").json()["id"] == run_id
     task = ui.get(f"/ui/agent/tasks/{task_id}").json()
     assert task["status"] == "done" and task["steps"] == 3 and task["outcome"]["runs"] == 2

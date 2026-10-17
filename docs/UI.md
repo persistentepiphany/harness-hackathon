@@ -62,6 +62,7 @@ The web client calls `/api/harness/ui/...`; files go through the native
 | `GET /ui/tools` | `Tool[]` | Executors from `configs/executors.yaml` with outputs and availability |
 | `GET /ui/tasks` | `Task[]` | Task specs with `implemented/checks` counts, mapped to UI task ids |
 | `GET /ui/examples` | example manifests | `examples/**/manifest.yaml` with task and claim |
+| `GET /ui/glossary` | `{scores: UiGlossaryScore[]}` | Score keys from `configs/executors.yaml` outputs and the check measurements the UI shows, with the executors or checks that produce them |
 | `POST /ui/uploads` | `{files: [{name, size, sha256, kind, status, detail}]}` | Multipart; stored under `runs/uploads/` (not a run: record, job and files routes answer 404 for it). Run settings carry no file references yet, so the New-run page says uploads are stored, not used by the run |
 | `GET /ui/agent/tasks` | `AgentTask[]` | From `runs/agent-*/task.json` + `steps.jsonl` |
 | `POST /ui/agent/tasks` | `AgentTask` (201) | Body `{goal}` |
@@ -89,7 +90,7 @@ An agent under test reports what it is doing either through `POST /ui/agent/task
 TypeScript is the reference; Python returns the same keys (camelCase on the wire).
 
 ```ts
-type Outcome = 'supported' | 'narrowed' | 'refused' | 'incomplete';
+type Outcome = 'supported' | 'narrowed' | 'refused' | 'incomplete' | 'not_assessed';
 type Result = 'pass' | 'warn' | 'stop' | 'skip' | 'reported' | 'pending';
 
 interface Job {
@@ -179,6 +180,34 @@ The adapter (`src/pah/webui/adapter.py`) reads `runs/<id>/record.json`, `events.
 | `tools[].ran`, `ranBy` | `harness` when the run executed the tool, `external` when its outputs were supplied, `null` for checks-only runs |
 | `structures` | Every `.cif`/`.pdb`/`.sdf` under `artifacts/`, served through `/runs/{id}/files/...` |
 | `renders` | Render artifacts in `record.json` (`ArtifactKind` render entries from `pah.report.renders`: PNG views and `.pse` session per structure) |
+
+## Assessment scope
+
+A run that holds no executor outputs (no predictions in the manifest, no executor ran) is a
+pre-run check. The adapter derives the scope of every verdict from the record, so old records read
+the same way:
+
+| UI field | Rule |
+| --- | --- |
+| `assessment` | `pre-run` when the run has no executor outputs, else `full` |
+| `evaluatedLayers` | Layers with at least one check whose result is not `skip` |
+| `verdict.scope` | `layers <evaluatedLayers>`, e.g. `layers 0-3` |
+| `verdict.outcome` | `not_assessed` when the task lists layer 4-5 checks and none gave a non-skip result, unless a stop happened in the evaluated layers (then `refused`). Never `supported` or `narrowed` without predictions. `Job.verdict` uses the same rule |
+| `verdict.pending` | Layer 4-5 check ids waiting for predictions |
+| `verdict.assessedClaim` | `Inputs fit to run` for a pre-run check, `null` for a full run |
+| `verdict.statement` | Names the evaluated and pending layers and the stops and warnings, e.g. `Pre-run check: layers 0-3 evaluated; layers 4-5 pending predictions. 1 check warned in layer 1: l1.ligand.protonation.` |
+| `checks[].skipReason` | `pending_input` for a layer 4-5 skip whose evidence says there are no predictions; `not_applicable` stays for checks that do not apply to the tools (no MSA for Vina) |
+| `dimensions` | Checks grouped as `inputs` (L0-L2), `applicability` (L3), `geometry`, `physics`, `interactions`, `confidence`, `support` (L4-L5 by check id prefix, table `dimensions` in `configs/catalog.yaml`). `certainty` is the weakest evidence level among the thresholds of the non-skip checks |
+| `toolVersions` | One row per tool in the record or in a finding: `exercised` is true when a non-skip finding names the tool, false when the tool is only declared |
+| `execution` | Execution events (`data.stage == "execute"`) aggregated per executor: last `phase`, `gpu`, `route`, `routeNote`, `startedAt`, `elapsedMs`, per-seed `{seed, phase, ms}`. `Job.execution` is the same list; each event is also a `LogLine` of kind `exec` |
+| `stats.pae` | `{status: 'na', reason}` when no selected tool declares a PAE output in `configs/executors.yaml`; absent while not computed |
+| `stats.status.agreement` | `{status: 'na', reason}` with one executor; method agreement needs two |
+
+`GET /ui/tools` rows carry `endpoints` (`configs/models.yaml` `models[*].endpoints`); `GET /ui/tasks`
+rows carry `endpoint` (`task_endpoints`) and `compatibleTools` (tools whose endpoints include it).
+`POST /ui/interpret` never swaps a tool the user named: when the tool lacks the task endpoint, or a
+required input (a ligand series for screening or ranking, a partner for protein-protein docking)
+is missing, the result keeps the choice and lists the problem in `warnings` and in a `steps` entry.
 
 Checks that are listed in the task but not registered appear with `result: skip` and
 `skipReason: unknown_check`. The UI shows them in the check list as `not implemented` and counts

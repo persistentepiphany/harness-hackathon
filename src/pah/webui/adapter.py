@@ -33,6 +33,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 from pah import __version__
 from pah.config import config_dir, load_yaml, repo_root
 from pah.core.task import TaskSpec, load_task
+from pah.webui import assessment as scope_of
 from pah.webui import stats as ui_stats
 from pah.webui.store import EVENTS, read_events, read_json
 
@@ -64,7 +65,12 @@ OUTCOMES = {
     "stop": "refused",
     "incomplete": "incomplete",
 }
-OUTCOME_RESULT = {"refused": "stop", "narrowed": "warn", "supported": "pass"}
+OUTCOME_RESULT = {
+    "refused": "stop",
+    "narrowed": "warn",
+    "supported": "pass",
+    "not_assessed": "skip",
+}
 RESULTS = ("pass", "warn", "stop", "skip")
 _RANK = {"skip": 0, "pass": 1, "reported": 2, "warn": 3, "stop": 4}
 # Event status values of non-check stages (report) mapped to a LogLine result.
@@ -204,6 +210,36 @@ def docking_params(row: Mapping[str, Any]) -> list[dict[str, Any]]:
 
 
 @lru_cache(maxsize=4)
+def _models_cached(base: str) -> dict[str, Any]:
+    try:
+        raw = load_yaml("models.yaml", Path(base))
+    except (OSError, ValueError, yaml.YAMLError) as exc:
+        log.info("models.yaml not readable: %s", exc)
+        return {}
+    return raw if isinstance(raw, dict) else {}
+
+
+def model_endpoints(executor_id: str) -> list[str]:
+    """`endpoints` of the executor in configs/models.yaml (what l3.metric.endpoint accepts)."""
+    models = _dict(_models_cached(str(config_dir())).get("models"))
+    return [str(e) for e in _dict(models.get(executor_id)).get("endpoints") or ()]
+
+
+def task_endpoint(pah_task_id: str) -> str | None:
+    """Endpoint the task's claim needs (configs/models.yaml `task_endpoints`)."""
+    value = _dict(_models_cached(str(config_dir())).get("task_endpoints")).get(pah_task_id)
+    return str(value) if value else None
+
+
+def compatible_tools(pah_task_id: str) -> list[str]:
+    """Executor ids whose endpoints include the task endpoint, in configs/executors.yaml order."""
+    endpoint = task_endpoint(pah_task_id)
+    if endpoint is None:
+        return []
+    return [str(r["id"]) for r in executor_rows() if endpoint in model_endpoints(str(r["id"]))]
+
+
+@lru_cache(maxsize=4)
 def _runtimes_cached(base: str) -> Any:
     from pah.runtimes.registry import load_runtimes
 
@@ -300,6 +336,7 @@ def tool_register(
         rt = runtime_info(eid)
         if rt is not None:
             tool["runtime"] = rt
+        tool["endpoints"] = model_endpoints(eid)
         if aliases and aliases.get(eid):
             tool["aliases"] = list(aliases[eid])
         out.append(tool)
@@ -719,8 +756,9 @@ def ui_check(f: Mapping[str, Any], task: TaskSpec | None) -> dict[str, Any]:
             {"name": m.get("name"), "value": m.get("value"), "unit": m.get("unit")}
             for m in measurements
         ]
-    if out["result"] == "skip" and evidence.get("skip_reason"):
-        out["skipReason"] = str(evidence["skip_reason"])
+    reason = scope_of.skip_reason(f)
+    if reason:
+        out["skipReason"] = reason
     if evidence.get("escalated_by_task"):
         out["escalated"] = True
     artifacts = [str(a) for a in f.get("artifacts") or ()]
@@ -797,6 +835,9 @@ def _summary(
     missing = _not_implemented(checks)
     if missing:
         out.append(f"{missing} not implemented")
+    waiting = sum(1 for c in checks if c.get("skipReason") == scope_of.PENDING_INPUT)
+    if waiting:
+        out.append(f"{waiting} pending predictions")
     return out
 
 
@@ -900,6 +941,10 @@ def _harness_executed(state: RunState) -> set[str]:
         data = _dict(e.get("data"))
         if (e.get("stage") == "exec" or data.get("kind") == "exec") and data.get("executor"):
             out.add(str(data["executor"]))
+    for ev in scope_of.execution_events(state.events):
+        exec_data = _dict(ev.get("data"))
+        if exec_data.get("phase") == "done" and exec_data.get("seed") is None:
+            out.add(str(exec_data["executor"]))
     return out
 
 
@@ -1259,6 +1304,29 @@ def _scope(state: RunState) -> str:
     return f"layers {','.join(map(str, state.selected))}" if state.selected else "no layers"
 
 
+def run_has_outputs(state: RunState) -> bool:
+    """Whether the run holds executor outputs (predictions, parsed structures, executions)."""
+    return scope_of.has_outputs(
+        _dict(state.manifest), state.artifacts(), state.events, _harness_executed(state)
+    )
+
+
+def run_scope(state: RunState) -> scope_of.Scope:
+    """Scope of the verdict: evaluated layers, pending output checks, pre-run or full."""
+    layers = {int(k): list(v) for k, v in state.task.layers.items()} if state.task else None
+    return scope_of.scope(state.findings, layers, run_has_outputs(state))
+
+
+def ui_outcome(state: RunState, sc: scope_of.Scope | None = None) -> str | None:
+    """UI outcome of the run: the engine's verdict, `not_assessed` when the claim's output
+    layers gave no result (a stop in the evaluated layers stays `refused`)."""
+    if not state.verdict:
+        return None
+    base = OUTCOMES.get(str(state.verdict.get("outcome")))
+    stops = [str(x) for x in state.verdict.get("stops") or ()]
+    return (sc or run_scope(state)).outcome(base, stops)
+
+
 def statement(
     outcome: str | None,
     claim: str,
@@ -1294,22 +1362,29 @@ def statement(
     )
 
 
-def ui_verdict(state: RunState) -> dict[str, Any]:
+def ui_verdict(state: RunState, sc: scope_of.Scope | None = None) -> dict[str, Any]:
+    """The verdict scoped to the evaluated layers (docs/UI.md, Assessment scope)."""
+    sc = sc or run_scope(state)
     claim = state.claim or ""
-    scope = _scope(state)
+    scope = f"{scope_of.layers_phrase(sc.evaluated)}" if sc.evaluated else _scope(state)
     v = state.verdict
     if v is not None:
-        outcome = OUTCOMES.get(str(v.get("outcome")))
         stops = [str(x) for x in v.get("stops") or ()]
         warnings = [str(x) for x in v.get("warnings") or ()]
         incomplete = [str(x) for x in v.get("incomplete") or ()]
         na = [str(x) for x in v.get("not_applicable") or ()]
+        outcome = sc.outcome(OUTCOMES.get(str(v.get("outcome"))), stops)
     else:
         outcome = None
         stops = [str(f.get("check_id")) for f in state.findings if f.get("gate") == "stop"]
         warnings = [str(f.get("check_id")) for f in state.findings if f.get("gate") == "warn"]
         incomplete, na = [], []
-    text = statement(outcome, claim, scope, stops, warnings, incomplete, len(state.findings))
+    pending = set(sc.pending)
+    na = [c for c in na if c not in pending]
+    if outcome is not None and sc.needs_outputs:
+        text = scope_of.scoped_statement(sc, outcome, claim, stops, warnings, incomplete)
+    else:
+        text = statement(outcome, claim, scope, stops, warnings, incomplete, len(state.findings))
     if v is None and state.status == "failed":
         text = f"Run ended without a verdict in {scope}." + (
             f" {state.error}" if state.error else ""
@@ -1323,6 +1398,9 @@ def ui_verdict(state: RunState) -> dict[str, Any]:
         "warnings": warnings,
         "incomplete": incomplete,
         "notApplicable": na,
+        "pending": list(sc.pending),
+        "assessedClaim": sc.assessed_claim(outcome),
+        "engineOutcome": OUTCOMES.get(str(v.get("outcome"))) if v else None,
     }
 
 
@@ -1376,17 +1454,114 @@ def ui_run_meta(state: RunState) -> dict[str, Any]:
     return out
 
 
+def _catalog_tables() -> tuple[list[scope_of.DimensionDef], dict[str, list[str]]]:
+    """Dimension table and certainty levels from configs/catalog.yaml (empty when unreadable)."""
+    try:
+        from pah.webui.catalog import load_catalog
+
+        cat = load_catalog()
+    except Exception as exc:  # fail soft: the record renders without dimensions
+        log.info("catalog not loadable for dimensions: %s", exc)
+        return [], {}
+    table = {str(k): [str(x) for x in v] for k, v in cat.certainty.items()}
+    return scope_of.dimension_defs(list(cat.dimensions)), table
+
+
+def ui_dimensions(state: RunState, layers: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Checks grouped by what they test. Task checks of an unselected layer count as pending."""
+    defs, table = _catalog_tables()
+    if not defs:
+        return []
+    pairs: list[tuple[int, Mapping[str, Any]]] = [
+        (int(layer["i"]), c) for layer in layers for c in layer["checks"]
+    ]
+    seen = {str(c.get("id")) for _, c in pairs}
+    if state.task is not None and state.status == "done":
+        for i, ids in state.task.layers.items():
+            for cid in ids:
+                if cid not in seen:
+                    pairs.append((int(i), {"id": cid, "result": "pending"}))
+    return scope_of.dimensions(pairs, defs, table)
+
+
+def ui_execution(state: RunState) -> list[dict[str, Any]]:
+    """Execution events aggregated per executor (UiExecution)."""
+    names = {str(r["id"]): str(r.get("name") or r["id"]) for r in executor_rows()}
+    return scope_of.execution(state.events, names)
+
+
+def ui_source_summary(state: RunState) -> dict[str, Any] | None:
+    """Counts of l0.sources.resolved (identifiers, records) and receptor chains present."""
+    by_id = {str(f.get("check_id")): f for f in state.findings}
+    resolved = by_id.get("l0.sources.resolved")
+    if resolved is None:
+        return None
+    names = {"identifiers": "identifiers", "records": "records", "failed": "failed",
+             "cache_hits": "cacheHits"}  # fmt: skip
+    out: dict[str, Any] = {"check": "l0.sources.resolved"}
+    for m in _dicts(resolved.get("measurements")):
+        key = names.get(str(m.get("name")))
+        if key and isinstance(m.get("value"), int):
+            out[key] = m["value"]
+    chains = _dict(_dict(by_id.get("l1.receptor.chains")).get("evidence")).get("present")
+    if isinstance(chains, list):
+        out["chains"] = [str(c) for c in chains]
+    return out
+
+
+def _main_score(tool: Mapping[str, Any] | None, values: Mapping[str, Any]) -> dict[str, Any] | None:
+    """First output of the tool (configs/executors.yaml order) that the member reports."""
+    for o in _dicts(_dict(tool).get("outputs")):
+        v = values.get(str(o.get("key")))
+        if isinstance(v, int | float) and not isinstance(v, bool):
+            return {"key": o["key"], "label": o.get("label"), "value": v, "unit": o.get("unit")}
+    return None
+
+
+def render_meta(
+    renders: list[dict[str, Any]],
+    stats: Mapping[str, Any],
+    tools: list[dict[str, Any]],
+    pose_checks: Mapping[str, list[dict[str, Any]]],
+) -> None:
+    """Adds pose metadata to each render of a predicted structure: executor, seed, rank,
+    pose, main score and the output checks already reported for that pose."""
+    by_structure = {
+        str(e.get("structureId")): e for e in _dicts(stats.get("ensemble")) if e.get("structureId")
+    }
+    by_tool = {str(t.get("id")): t for t in tools}
+    for r in renders:
+        e = by_structure.get(str(r.get("structure")))
+        if e is None or not e.get("toolId"):
+            continue
+        rank = e.get("mode") if isinstance(e.get("mode"), int) else e.get("sample")
+        pose = e.get("pose")
+        r.update(
+            executor=e["toolId"],
+            seed=e.get("seed"),
+            rank=rank if isinstance(rank, int) else None,
+            pose=pose,
+            score=_main_score(by_tool.get(str(e["toolId"])), _dict(e.get("values"))),
+            checks=list(pose_checks.get(str(pose), [])) if pose else [],
+        )
+
+
 def to_ui_record(run_dir: Path, *, state: RunState | None = None) -> dict[str, Any]:
     """The UiRunRecord for a run directory (finished or still running)."""
     s = state or load_state(run_dir)
+    sc = run_scope(s)
     sources = ui_sources(s)
     layers = ui_layers(s, sources)
-    verdict = ui_verdict(s)
+    verdict = ui_verdict(s, sc)
     inp = stats_input(s)
     members = ui_stats.members(inp)
     structures = ui_structures(s, members)
     renders = ui_renders(s, structures)
     computed = ui_stats.build(inp, members, structures, renders)
+    tools = ui_tools(s, members)
+    ui_stats.add_status(computed.stats, inp, pre_run=sc.pre_run)
+    pose_checks = ui_stats.pose_checks(s.findings, _title)
+    render_meta(renders, computed.stats, tools, pose_checks)
     out: dict[str, Any] = {
         "id": s.run_id,
         "createdAt": iso(s.started_at),
@@ -1394,7 +1569,7 @@ def to_ui_record(run_dir: Path, *, state: RunState | None = None) -> dict[str, A
         "task": ui_task_id(s.task_id) if s.task_id else None,
         "taskName": s.task.title if s.task else s.task_id,
         "claim": s.claim or "",
-        "tools": ui_tools(s, members),
+        "tools": tools,
         "inputs": ui_inputs(s),
         "sources": sources,
         "layers": layers,
@@ -1409,7 +1584,18 @@ def to_ui_record(run_dir: Path, *, state: RunState | None = None) -> dict[str, A
         "report": ui_report_files(s),
         "artifacts": ui_artifacts(s),
         "source": "pah",
+        "assessment": sc.assessment,
+        "evaluatedLayers": list(sc.evaluated),
+        "dimensions": ui_dimensions(s, layers),
+        "toolVersions": scope_of.tool_versions(
+            s.findings, _dict(_dict(s.record).get("tool_versions")), tools
+        ),
+        "execution": ui_execution(s),
+        "poseChecks": [{"pose": k, "checks": v} for k, v in pose_checks.items()],
     }
+    summary = ui_source_summary(s)
+    if summary is not None:
+        out["sourceSummary"] = summary
     if computed.docking is not None:
         out["docking"] = computed.docking
     return out
@@ -1453,6 +1639,11 @@ def to_job(
         ]
         if missing:
             entry["incomplete"] = missing
+        waiting = [str(f.get("check_id")) for f in found if scope_of.is_pending_input(f)]
+        if waiting:
+            entry["pending"] = waiting
+            if entry["result"] == "skip" and len(waiting) == len(found):
+                entry["result"] = "pending"
         layers.append(entry)
     running = [i for i in s.stage_start if i not in s.stage_end]
     progress = 0.0
@@ -1479,7 +1670,8 @@ def to_job(
         end = s.last_ts
     elapsed = _ms(s.started_at, end)
     planned = sum(len(s.task.layers.get(i, ())) for i in s.selected) if s.task else None
-    verdict = OUTCOMES.get(str(s.verdict.get("outcome"))) if s.verdict else None
+    sc = run_scope(s)
+    verdict = ui_outcome(s, sc)
     model = _dict(_dict(s.manifest).get("model"))
     executor = model.get("executor")
     tools = (
@@ -1504,6 +1696,8 @@ def to_job(
         "checksDone": len(s.findings),
         "checksTotal": planned if planned is not None else len(s.findings),
         "reportStatus": s.report_status,
+        "assessment": sc.assessment,
+        "execution": ui_execution(s),
     }
     if s.error:
         out["error"] = s.error
@@ -1582,8 +1776,10 @@ def event_to_logline(
     *,
     stage_started_at: datetime | None = None,
     run_dir: Path | None = None,
+    findings: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """One harness event as a LogLine. `stage_started_at` gives a stage's duration on stage_end."""
+    """One harness event as a LogLine. `stage_started_at` gives a stage's duration on stage_end;
+    `findings` seen before a run_end scope its verdict (no output result: not assessed)."""
     kind = str(event.get("kind", "log"))
     stage = str(event.get("stage", ""))
     message = str(event.get("message", ""))
@@ -1599,6 +1795,10 @@ def event_to_logline(
     }
     if kind == "finding":
         return _finding_line(line, event)
+    exec_line = scope_of.execution_line(event)
+    if exec_line is not None:
+        line.update(exec_line)
+        return line
     if kind in {"stage_start", "stage_end"} and layer is not None:
         name = _layer_name(layer).lower()
         if kind == "stage_start":
@@ -1638,6 +1838,9 @@ def event_to_logline(
             return line
         v = _dict(data.get("verdict"))
         outcome = OUTCOMES.get(str(v.get("outcome")), str(v.get("outcome") or "unknown"))
+        if findings:
+            sc = scope_of.scope(findings, None, outputs=False)
+            outcome = sc.outcome(outcome, [str(x) for x in v.get("stops") or ()]) or outcome
         n_stop, n_warn = len(v.get("stops") or ()), len(v.get("warnings") or ())
         n_inc = len(v.get("incomplete") or ())
         line.update(
@@ -1688,6 +1891,7 @@ class LogLineConverter:
         self.started_at: datetime | None = None
         self.first_ts: datetime | None = None
         self.stage_start: dict[str, datetime] = {}
+        self.findings: list[dict[str, Any]] = []
         for e in events:
             self.observe(e)
 
@@ -1700,6 +1904,9 @@ class LogLineConverter:
             self.started_at = ts
         if kind == "stage_start" and ts:
             self.stage_start[str(event.get("stage", ""))] = ts
+        finding = _dict(event.get("data")).get("finding")
+        if kind == "finding" and isinstance(finding, dict):
+            self.findings.append(finding)
 
     def __call__(self, event: Mapping[str, Any]) -> dict[str, Any]:
         self.observe(event)
@@ -1708,6 +1915,7 @@ class LogLineConverter:
             self.started_at or self.first_ts,
             stage_started_at=self.stage_start.get(str(event.get("stage", ""))),
             run_dir=self.run_dir,
+            findings=self.findings,
         )
 
 

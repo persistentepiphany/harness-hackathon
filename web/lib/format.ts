@@ -182,3 +182,73 @@ export function duplicateLabels<T>(items: readonly T[], label: (item: T) => stri
   for (const it of items) counts.set(label(it), (counts.get(label(it)) ?? 0) + 1);
   return new Set([...counts].filter(([, n]) => n > 1).map(([k]) => k));
 }
+
+// ---------------------------------------------------------------- quantities (number alignment standard)
+//
+// One rule per quantity: fixed decimals and the unit printed after the value in muted text.
+// Tables render these with the `num` utility (tabular figures, right aligned) and the `num-unit`
+// utility for the unit (globals.css). Durations keep fmtMs (ms below 1 s, else s to one decimal).
+
+export type Quantity = 'rmsd' | 'distance' | 'energy' | 'probability' | 'plddt' | 'pae' | 'count' | 'percent' | 'other';
+
+export interface QuantityRule {
+  /** Decimals; null keeps the value as recorded (float noise removed). */
+  digits: number | null;
+  /** Unit printed when the value carries none. */
+  unit: string | null;
+}
+
+export const QUANTITY_RULES: Record<Quantity, QuantityRule> = {
+  rmsd: { digits: 2, unit: 'Å' },
+  distance: { digits: 2, unit: 'Å' },
+  energy: { digits: 1, unit: 'kcal/mol' },
+  probability: { digits: 2, unit: null },
+  plddt: { digits: 1, unit: null },
+  pae: { digits: 1, unit: 'Å' },
+  count: { digits: 0, unit: null },
+  percent: { digits: 0, unit: '%' },
+  other: { digits: null, unit: null },
+};
+
+/** What a value measures, from its ToolOutput-like description (kind, unit, key, range). */
+export function quantityOf(o: { kind?: string | null; unit?: string | null; key?: string | null; range?: [number, number] | null }): Quantity {
+  const kind = (o.kind ?? '').toLowerCase();
+  const unit = (o.unit ?? '').trim();
+  const key = (o.key ?? '').toLowerCase();
+  if (kind === 'rmsd' || /rmsd/.test(key)) return 'rmsd';
+  if (kind === 'pae' || /(^|_)pae($|_)/.test(key)) return 'pae';
+  if (unit === 'kcal/mol' || kind === 'affinity' || kind === 'energy') return 'energy';
+  if (unit === '%') return 'percent';
+  if (unit === 'Å') return 'distance';
+  if (kind === 'count' || /(^|_)(n|count|clashes|contacts|passed|failed|outliers|torsions|unsatisfied)(_|$)|pbpassed|pbtotal/.test(key)) return 'count';
+  if (kind === 'plddt' || /plddt/.test(key)) return o.range && o.range[1] <= 1 ? 'probability' : 'plddt';
+  if ((kind === 'confidence' || kind === 'interface' || kind === 'probability') && (!o.range || o.range[1] <= 1)) return 'probability';
+  return 'other';
+}
+
+/** Value and unit as separate strings (render the unit muted after the value). */
+export function fmtQuantityParts(value: Maybe<number | string>, q: Quantity, unit?: string | null): { value: string; unit: string | null } {
+  const rule = QUANTITY_RULES[q];
+  const u = unit === undefined || unit === null || unit === '' ? rule.unit : unit;
+  if (isMissing(value)) return { value: DASH, unit: null };
+  if (typeof value !== 'number') return { value, unit: u };
+  // a count that is not an integer is not a count: keep the recorded value
+  const digits = q === 'count' && !Number.isInteger(value) ? null : rule.digits;
+  return { value: fmtNum(value, null, digits ?? undefined), unit: u };
+}
+
+/** `2.13 Å`, `−6.1 kcal/mol`, `0.87`, `12`: the value with the quantity's decimals and unit. */
+export function fmtQuantity(value: Maybe<number | string>, q: Quantity, unit?: string | null): string {
+  const p = fmtQuantityParts(value, q, unit);
+  return p.unit && p.value !== DASH ? `${p.value}${THIN}${p.unit}` : p.value;
+}
+
+/**
+ * Splits a formatted `value unit` string (`−6.131 kcal/mol`, `2.1 Å`, `20/20`) into its value and
+ * trailing unit. Strings without a numeric head come back whole as the value.
+ */
+export function splitUnit(text: Maybe<string>): { value: string; unit: string | null } {
+  if (isMissing(text)) return { value: DASH, unit: null };
+  const m = text.match(/^([−\-+]?[\d.,/]+(?:[eE][−\-+]?\d+)?)[\s  ]+([^\d\s][^\s]*)$/);
+  return m ? { value: m[1], unit: m[2] } : { value: text, unit: null };
+}

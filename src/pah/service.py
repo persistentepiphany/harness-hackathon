@@ -112,6 +112,7 @@ def run_manifest(
     run_id: str | None = None,
     run_dir: Path | None = None,
     base_dir: Path | None = None,
+    seq_start: int = 0,
 ) -> RunResult:
     import pah.checks  # noqa: F401 - registers the check library
     from pah.core.check import CheckContext
@@ -134,7 +135,7 @@ def run_manifest(
     style: list[str] = []
     with (
         httpx.Client(follow_redirects=True, timeout=options.timeout) as client,
-        EventBus(run_id, [*sinks, JsonlSink(run_dir / "events.jsonl")]) as bus,
+        EventBus(run_id, [*sinks, JsonlSink(run_dir / "events.jsonl")], seq_start) as bus,
     ):
         sources = Sources(CachedHttp(client, cache, offline=offline, refresh=options.refresh))
         ctx = CheckContext(manifest, task, sources, run_dir)

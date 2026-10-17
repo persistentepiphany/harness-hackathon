@@ -9,7 +9,7 @@ import { FigureCaption, SVG_TEXT, type FigureProps } from './common';
 export function CalibrationCurve({ record, caption = true, figNo = 5, variant, className }: FigureProps) {
   const print = variant === 'print';
   const lines = calibrationPolylines(record);
-  if (!lines) return <NotComputed what="calibration" print={print} className={className} />;
+  if (!lines) return <NotComputed what="calibration" print={print} record={record} className={className} />;
   return (
     <div className={className} data-testid="figure-calibration">
       <svg viewBox="0 0 320 170" className="block h-auto w-full" role="img" aria-label="Calibration curve">

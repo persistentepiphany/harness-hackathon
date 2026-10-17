@@ -7,6 +7,11 @@
 
 import type {
   AgreementRow,
+  Certainty,
+  DimensionId,
+  UiDimension,
+  UiExecution,
+  UiToolVersion,
   CatalogLigand,
   CatalogProtein,
   DockingCard,
@@ -45,7 +50,7 @@ const confidence = (key: string, label: string, scope: ToolOutput['scope'] = 'gl
   higherIsBetter: true,
 });
 
-export const TOOLS: Tool[] = [
+const BASE_TOOLS: Tool[] = [
   {
     id: 'boltz2', name: 'Boltz-2', family: 'co-folding', role: 'Executor and affinity', version: '2.1.1', available: true,
     licence: 'MIT', repo: 'https://github.com/jwohlwend/boltz',
@@ -158,14 +163,54 @@ export const TOOLS: Tool[] = [
   },
 ];
 
-export const TASKS: Task[] = [
+/**
+ * addition: endpoints (configs/models.yaml), whether the harness can dispatch the tool, its GPU and
+ * the mock execution route. AlphaFold DB is a lookup (fetched in layer 0), never dispatched.
+ */
+export const MOCK_RUNTIME: Record<string, { endpoints: string[]; dispatchable: boolean; gpu: string | null; route: 'kit' | 'stock' | 'local'; routeNote: string; seedMs: number }> = {
+  boltz2: { endpoints: ['pose', 'structure', 'interface', 'affinity_series'], dispatchable: true, gpu: 'A100', route: 'stock', routeNote: 'stock image boltz 2.1.1', seedMs: 1500 },
+  protenix: { endpoints: ['pose', 'structure', 'interface'], dispatchable: true, gpu: 'A100', route: 'kit', routeNote: 'accelerated kit (cuEquivariance kernels)', seedMs: 1300 },
+  af3: { endpoints: ['pose', 'structure', 'interface'], dispatchable: false, gpu: 'A100', route: 'stock', routeNote: 'weights by request', seedMs: 1600 },
+  chai1: { endpoints: ['pose', 'structure', 'interface'], dispatchable: true, gpu: 'A100', route: 'stock', routeNote: 'stock image chai-lab 0.6.1', seedMs: 1400 },
+  afdb: { endpoints: ['structure'], dispatchable: false, gpu: null, route: 'local', routeNote: 'lookup, fetched in layer 0', seedMs: 0 },
+  gnina: { endpoints: ['pose', 'score_within_run'], dispatchable: true, gpu: 'T4', route: 'stock', routeNote: 'stock image gnina 1.3', seedMs: 600 },
+  vina: { endpoints: ['pose', 'score_within_run'], dispatchable: true, gpu: null, route: 'local', routeNote: 'local CPU, vina 1.2.5', seedMs: 380 },
+  diffdock: { endpoints: ['pose'], dispatchable: true, gpu: 'A10G', route: 'stock', routeNote: 'stock image DiffDock-L 1.1', seedMs: 800 },
+  pydock: { endpoints: ['interface'], dispatchable: false, gpu: null, route: 'local', routeNote: 'academic licence', seedMs: 900 },
+  haddock: { endpoints: ['interface'], dispatchable: false, gpu: null, route: 'local', routeNote: 'academic licence', seedMs: 900 },
+};
+
+export const TOOLS: Tool[] = BASE_TOOLS.map((t) => {
+  const r = MOCK_RUNTIME[t.id];
+  return r ? { ...t, endpoints: [...r.endpoints], dispatchable: r.dispatchable, gpu: r.gpu } : t;
+});
+
+/** addition: endpoint each task's claim needs (configs/models.yaml task_endpoints, mock task ids). */
+export const TASK_ENDPOINTS: Record<string, string> = {
+  monomer: 'structure',
+  known_complex: 'structure',
+  interaction_discovery: 'interface',
+  ligand_pose: 'pose',
+  binding_site: 'pose',
+  affinity_ranking: 'affinity_series',
+  variant_effect: 'structure',
+  design_validation: 'structure',
+  redocking: 'pose',
+  pose_known_pocket: 'pose',
+  blind_docking: 'pose',
+  virtual_screening: 'score_within_run',
+  series_scoring: 'score_within_run',
+  protein_protein_docking: 'interface',
+};
+
+const BASE_TASKS: Task[] = [
   // Co-folding task classes
   { id: 'monomer', group: 'co-folding', kind: 'monomer', name: 'Monomer structure', long: 'Monomer structure', defaultTools: ['boltz2', 'afdb'], claim: 'Fold of confident regions', controls: [], inputs: ['target', 'seeds'] },
   { id: 'known_complex', group: 'co-folding', kind: 'complex', name: 'Known complex', long: 'Known complex assembly', defaultTools: ['boltz2', 'protenix'], claim: 'Interface geometry, scoped by exposure', controls: ['Exposure report'], inputs: ['target', 'partner', 'reference', 'seeds'] },
   { id: 'interaction_discovery', group: 'co-folding', kind: 'complex', name: 'Interaction discovery', long: 'Interaction discovery', defaultTools: ['boltz2', 'protenix'], claim: 'Plausible relative to controls, never that the proteins bind', controls: ['Decoy partners', 'Sticky control', 'Known positive'], inputs: ['target', 'partner', 'reference', 'seeds'] },
   { id: 'ligand_pose', group: 'co-folding', kind: 'ligand', name: 'Ligand pose', long: 'Ligand pose in a known pocket', defaultTools: ['boltz2', 'gnina'], claim: 'Pose within stated uncertainty', controls: ['Redocking of a known ligand'], inputs: ['target', 'ligand', 'reference', 'ph', 'seeds'] },
   { id: 'binding_site', group: 'co-folding', kind: 'ligand', name: 'Binding site', long: 'Binding site identification', defaultTools: ['boltz2', 'protenix'], claim: 'Candidate sites ranked', controls: ['Known sites from PDBe-KB'], inputs: ['target', 'ligand', 'seeds'] },
-  { id: 'affinity_ranking', group: 'co-folding', kind: 'ligand', name: 'Affinity ranking', long: 'Affinity ranking within a congeneric series', defaultTools: ['boltz2', 'gnina'], claim: 'Relative order within a congeneric series, never absolute affinity', controls: ['Known actives and inactives from ChEMBL', 'Target-specific recalibration'], inputs: ['target', 'series', 'reference', 'ph', 'seeds'] },
+  { id: 'affinity_ranking', group: 'co-folding', kind: 'ligand', name: 'Affinity ranking', long: 'Affinity ranking within a congeneric series', defaultTools: ['boltz2'], claim: 'Relative order within a congeneric series, never absolute affinity', controls: ['Known actives and inactives from ChEMBL', 'Target-specific recalibration'], inputs: ['target', 'series', 'reference', 'ph', 'seeds'] },
   { id: 'variant_effect', group: 'co-folding', kind: 'ligand', name: 'Variant effect', long: 'Variant effect', defaultTools: ['boltz2', 'chai1'], claim: 'Change detected, or not distinguishable from model noise', controls: ['Wild type against itself across seeds'], inputs: ['target', 'ligand', 'reference', 'seeds'] },
   { id: 'design_validation', group: 'co-folding', kind: 'complex', name: 'Design validation', long: 'Design validation', defaultTools: ['boltz2', 'protenix'], claim: 'Design is self-consistent, not that it binds', controls: ['Scrambled or non-cognate designs'], inputs: ['target', 'partner', 'seeds'] },
   // Docking task classes
@@ -176,6 +221,14 @@ export const TASKS: Task[] = [
   { id: 'series_scoring', group: 'docking', kind: 'ligand', name: 'Series scoring', long: 'Series scoring', defaultTools: ['gnina', 'vina'], claim: 'Weak ranking, explicitly flagged', controls: ['Known actives from ChEMBL'], inputs: ['target', 'series', 'reference', 'ph', 'seeds'] },
   { id: 'protein_protein_docking', group: 'docking', kind: 'complex', name: 'Protein–protein docking', long: 'Protein–protein docking', defaultTools: ['pydock', 'haddock'], claim: 'Candidate arrangements', controls: ['Non-cognate partner'], inputs: ['target', 'partner', 'reference', 'seeds'] },
 ];
+
+/** Tasks with their endpoint and the register tools that report it (Task.endpoint, Task.compatibleTools). */
+export const TASKS: Task[] = BASE_TASKS.map((t) => {
+  const endpoint = TASK_ENDPOINTS[t.id] ?? null;
+  const compatibleTools = endpoint ? TOOLS.filter((x) => x.endpoints?.includes(endpoint)).map((x) => x.id) : [];
+  return { ...t, endpoint, compatibleTools };
+});
+
 
 export interface MockLayerDef {
   i: number;
@@ -286,6 +339,8 @@ export interface InterpretRunResult {
   reference: string;
   claim: string;
   steps: Step[];
+  /** Named tools that cannot report the task's endpoint, or are not available. */
+  warnings: string[];
 }
 
 export function interpretRun(text: string): InterpretRunResult {
@@ -311,20 +366,30 @@ export function interpretRun(text: string): InterpretRunResult {
 
   const tools = TOOLS.filter((x) => t.includes(x.name.toLowerCase()) || t.includes(x.id)).map((x) => x.id);
   const taskDef = TASKS.find((x) => x.id === task) as Task;
-  const chosenTools = tools.length ? tools : taskDef.defaultTools;
-  steps.push({ field: 'tools', value: chosenTools, because: tools.length ? 'named in the request' : `task default: cross-family pair for ${taskDef.name.toLowerCase()}` });
+  // task defaults that report the task's endpoint; named tools are kept as written, with a warning
+  const fits = (id: string) => !taskDef.endpoint || (taskDef.compatibleTools ?? []).includes(id);
+  const defaults = taskDef.defaultTools.filter(fits);
+  const chosenTools = tools.length ? tools : defaults;
+  const warnings: string[] = [];
+  for (const id of chosenTools) {
+    const tool = TOOLS.find((x) => x.id === id);
+    if (!fits(id)) warnings.push(`${tool?.name ?? id} cannot produce ${(taskDef.endpoint ?? '').replace(/_/g, ' ')} for ${taskDef.name.toLowerCase()}`);
+    else if (tool && tool.available === false) warnings.push(`${tool.name} not available${tool.note ? `: ${tool.note}` : ''}`);
+  }
+  steps.push({ field: 'tools', value: chosenTools, because: tools.length ? 'named in the request' : `task default: tools that report ${(taskDef.endpoint ?? 'the endpoint').replace(/_/g, ' ')} for ${taskDef.name.toLowerCase()}` });
 
   const prots = ENTITIES.proteins.filter((p) => p.names.some((n) => t.includes(n)));
   const accMatch = text.match(/\b[OPQ][0-9][A-Z0-9]{3}[0-9]\b|\b[A-NR-Z][0-9][A-Z][A-Z0-9]{2}[0-9]\b/);
   const target = prots[0] ? prots[0].accession : accMatch ? accMatch[0] : 'P00519';
   steps.push({ field: 'target', value: target, because: prots[0] ? `“${prots[0].label}” → UniProt ${target}` : accMatch ? 'accession given explicitly' : 'no target recognised; example target used' });
-  if (task === 'interaction_discovery') {
+  const complex = taskDef.kind === 'complex';
+  if (complex) {
     const partner = prots[1] ? prots[1].accession : 'P04049';
     steps.push({ field: 'partner', value: partner, because: prots[1] ? `“${prots[1].label}” → UniProt ${partner}` : 'no partner recognised; example partner used' });
   }
   const lig = ENTITIES.ligands.find((l) => l.names.some((n) => t.includes(n)));
   const smilesMatch = text.match(/[A-Za-z0-9@+\-[\]()\\/%=#$.]{12,}/g)?.find((s) => /[=#()[\]]/.test(s) && !/\s/.test(s));
-  if (task !== 'interaction_discovery') {
+  if (taskDef.kind === 'ligand') {
     const ligand = lig ? lig.smiles : smilesMatch || ENTITIES.ligands[0].smiles;
     steps.push({ field: 'ligand', value: ligand, because: lig ? `“${lig.names[0]}” → CCD ${lig.ccd}, PubChem ${lig.cid}` : smilesMatch ? 'SMILES given explicitly, identity will be checked by InChIKey' : 'no ligand recognised; example ligand used' });
   }
@@ -351,6 +416,7 @@ export function interpretRun(text: string): InterpretRunResult {
     reference,
     claim: taskDef.claim,
     steps,
+    warnings,
   };
 }
 
@@ -376,6 +442,8 @@ export interface MockForm {
   ph: number;
   seeds: number;
   name?: string;
+  /** addition: run the executors (RunSettings.execute); false makes a pre-run record. Default true. */
+  execute?: boolean;
 }
 
 interface F extends MockForm {
@@ -774,7 +842,7 @@ export function makeRunRecord(form: MockForm, createdAt: number = Date.now()): U
           params: (dockTool?.dockingParams || []).filter((p) => p.key in dockParamValues).map((p) => ({ key: p.key, label: p.label, value: dockParamValues[p.key], unit: p.unit })),
         }
       : null;
-  return {
+  const full: UiRunRecord = {
     id,
     createdAt: new Date(createdAt).toISOString(),
     task: task.id,
@@ -796,11 +864,192 @@ export function makeRunRecord(form: MockForm, createdAt: number = Date.now()): U
       { name: 'Boltz-2 pose confidence', value: 'ipTM ≥ 0.80', origin: 'Runs N’ Poses benchmark', level: 'borrowed, not recalibrated' },
       { name: 'Paired MSA depth stop', value: '< 32 sequences', origin: 'PPI harness calibration', level: 'reproduced' },
     ],
-    execution,
+    executionLines: execution,
     docking,
     status: 'done',
-    record: { hardware: 'CSF3 · A100 40GB × 1 (predictions precomputed) · CPU checks live', scheduler: 'SLURM array 4471823', containers: toolList.map((t) => `${t.id}_${t.version}.sif`), acceleratedMode: 'stock', seeds: Array.from({ length: form.seeds }, (_, i) => 1000 + i * 17), notebook: `${id}.ipynb` },
+    record: { hardware: 'Modal · A100 40GB × 1 (executors) · CPU checks local', scheduler: 'Modal function calls', containers: toolList.map((t) => `${t.id}_${t.version}.sif`), acceleratedMode: 'stock', seeds: Array.from({ length: form.seeds }, (_, i) => 1000 + i * 17), notebook: `${id}.ipynb` },
     source: 'mock',
+  };
+  return form.execute === false ? toPreRun(full) : withAssessment(full, executionPlan(toolList, form.seeds, createdAt).map((e) => finishedExecution(e)));
+}
+
+// ---------------------------------------------------------------- addition: execution, assessment, dimensions
+
+/** Mock execution plan of one executor: queue, image build, one duration per seed (simulated ms). */
+export interface MockExecPlan {
+  executor: string;
+  name: string;
+  gpu: string | null;
+  route: 'kit' | 'stock' | 'local';
+  routeNote: string;
+  dispatchable: boolean;
+  note: string;
+  queueMs: number;
+  buildMs: number;
+  seeds: { seed: number; ms: number }[];
+}
+
+const BUILD_MS: Record<string, number> = { stock: 2200, kit: 1400, local: 300 };
+
+/** Deterministic plan per tool (same tools and seeds give the same timings). */
+export function executionPlan(tools: Pick<Tool, 'id' | 'name' | 'note'>[], seeds: number, salt = 0): MockExecPlan[] {
+  return tools.map((t, k) => {
+    const rt = MOCK_RUNTIME[t.id];
+    const base = rt?.seedMs ?? 800;
+    return {
+      executor: t.id,
+      name: t.name,
+      gpu: rt?.gpu ?? null,
+      route: rt?.route ?? 'local',
+      routeNote: rt?.routeNote ?? 'no runtime declared',
+      dispatchable: rt?.dispatchable ?? false,
+      note: t.note ?? rt?.routeNote ?? '',
+      queueMs: 400 + k * 350,
+      buildMs: BUILD_MS[rt?.route ?? 'local'] ?? 600,
+      seeds: Array.from({ length: Math.max(1, seeds) }, (_, i) => ({ seed: i, ms: Math.round(base * (0.82 + (((i + 1) * 37 + k * 11 + (salt % 7)) % 36) / 100)) })),
+    };
+  });
+}
+
+/** The finished state of a plan (done, or skipped when the tool cannot be dispatched). */
+export function finishedExecution(p: MockExecPlan, startedAt?: string): UiExecution {
+  if (!p.dispatchable) return { executor: p.executor, name: p.name, phase: 'skipped', gpu: p.gpu, route: null, routeNote: p.routeNote, startedAt: null, elapsedMs: null, seeds: [], message: `not dispatched: ${p.note || 'no runtime'}` };
+  const run = p.seeds.reduce((a, x) => a + x.ms, 0);
+  return {
+    executor: p.executor,
+    name: p.name,
+    phase: 'done',
+    gpu: p.gpu,
+    route: p.route,
+    routeNote: p.routeNote,
+    startedAt: startedAt ?? null,
+    elapsedMs: p.buildMs + run,
+    seeds: p.seeds.map((x) => ({ seed: x.seed, phase: 'done', ms: x.ms })),
+    message: `${p.seeds.length} seeds done`,
+  };
+}
+
+const DIMENSION_LABELS: Record<DimensionId, string> = {
+  inputs: 'Inputs',
+  applicability: 'Applicability',
+  geometry: 'Geometry',
+  physics: 'Physics',
+  interactions: 'Interactions',
+  confidence: 'Confidence',
+  support: 'Support',
+};
+const DIMENSION_CERTAINTY: Record<DimensionId, Certainty> = {
+  inputs: 'published',
+  applicability: 'published',
+  geometry: 'calibrated',
+  physics: 'uncalibrated',
+  interactions: 'uncalibrated',
+  confidence: 'published',
+  support: 'uncalibrated',
+};
+
+/** Which dimension a check tests (mock mapping by layer and id). */
+export function checkDimension(layer: number, id: string): DimensionId {
+  if (layer <= 2) return 'inputs';
+  if (layer === 3) return 'applicability';
+  if (layer === 4) {
+    if (/strain|minimi|drift|torsion|protonation|molprobity/.test(id)) return 'physics';
+    if (/chem\.|interface\.|interaction|plip|prolif/.test(id)) return 'interactions';
+    return 'geometry';
+  }
+  if (/metric\.|confidence|plddt|iptm|pae|length_confound|threshold/.test(id)) return 'confidence';
+  return 'support';
+}
+
+/** Checks grouped by dimension; pending checks (result pending, or skipped for pending input) count as pending. */
+export function dimensionsFor(layers: Pick<RecordLayer, 'i' | 'checks'>[]): UiDimension[] {
+  const ids = Object.keys(DIMENSION_LABELS) as DimensionId[];
+  return ids.map((id) => {
+    const checks = layers.flatMap((l) => l.checks.filter((c) => checkDimension(l.i, c.id) === id));
+    const pending = checks.filter((c) => c.result === 'pending' || (c.result === 'skip' && c.skipReason === 'pending_input')).length;
+    const passed = checks.filter((c) => c.result === 'pass').length;
+    const warned = checks.filter((c) => c.result === 'warn').length;
+    const stopped = checks.filter((c) => c.result === 'stop').length;
+    const ran = passed + warned + stopped;
+    const result: UiDimension['result'] = !checks.length ? 'na' : stopped ? 'stop' : warned ? 'warn' : ran ? (pending ? 'pending' : 'pass') : pending ? 'pending' : 'na';
+    return { id, label: DIMENSION_LABELS[id], result, checks: checks.length, passed, warned, stopped, pending, certainty: ran ? DIMENSION_CERTAINTY[id] : 'none', checkIds: checks.map((c) => c.id) };
+  });
+}
+
+const CHECK_TOOL_VERSIONS: Record<string, string> = { PoseBusters: '0.4.1', RDKit: '2025.03.2', PLIP: '2.3.0', ProLIF: '2.0.3', MolProbity: '4.5.2', OpenMM: '8.2', spyrmsd: '0.8.0', gemmi: '0.7.0', FreeSASA: '2.1.2', Harness: '0.1.0' };
+
+/** Tool versions with whether a non-skip finding ran with the tool (executors: when their outputs were checked). */
+export function toolVersionsFor(tools: Pick<RecordTool, 'name' | 'version'>[], layers: Pick<RecordLayer, 'checks'>[], executorsRan: boolean): UiToolVersion[] {
+  const out: UiToolVersion[] = tools.map((t) => {
+    const checks = layers.flatMap((l) => l.checks.filter((c) => c.tool === t.name).map((c) => c.id));
+    return { name: t.name, version: t.version ?? null, exercised: executorsRan, checks };
+  });
+  const names = new Set(layers.flatMap((l) => l.checks.map((c) => c.tool ?? '')).filter((n) => n && !tools.some((t) => t.name === n)));
+  for (const name of names) {
+    const all = layers.flatMap((l) => l.checks.filter((c) => c.tool === name));
+    out.push({ name, version: CHECK_TOOL_VERSIONS[name] ?? null, exercised: all.some((c) => c.result !== 'skip' && c.result !== 'pending'), checks: all.map((c) => c.id) });
+  }
+  return out;
+}
+
+function evaluated(layers: Pick<RecordLayer, 'i' | 'checks'>[]): number[] {
+  return layers.filter((l) => l.checks.some((c) => c.result !== 'skip' && c.result !== 'pending')).map((l) => l.i);
+}
+
+/** A full record: predictions checked, executors done. */
+export function withAssessment(r: UiRunRecord, execution: UiExecution[]): UiRunRecord {
+  return {
+    ...r,
+    assessment: 'full',
+    evaluatedLayers: evaluated(r.layers),
+    dimensions: dimensionsFor(r.layers),
+    toolVersions: toolVersionsFor(r.tools, r.layers, true),
+    execution,
+    tools: r.tools.map((t) => ({ ...t, ran: execution.some((e) => e.executor === t.id && e.phase === 'done'), ranBy: execution.some((e) => e.executor === t.id && e.phase === 'done') ? 'harness' : null })),
+  };
+}
+
+/** Assessed claim of a pre-run check. */
+export const PRE_RUN_CLAIM = 'Inputs fit to run';
+
+/**
+ * The pre-run form of a record (RunSettings.execute false): layers 0–3 as checked, the output checks
+ * of layers 4–5 skipped with skipReason pending_input, no predictions (only the crystal structure),
+ * verdict not_assessed (refused when an input check stopped).
+ */
+export function toPreRun(r: UiRunRecord): UiRunRecord {
+  const layers: RecordLayer[] = r.layers.map((l) => {
+    if (l.i < 4) return l;
+    const checks: UiCheck[] = l.checks.map((c) => ({ id: c.id, name: c.name, tool: c.tool, gate: c.gate, result: 'skip', skipReason: 'pending_input', evidence: 'waits for predictions: no executor outputs in this run' }));
+    return { ...l, status: 'not_run', checks, counts: countResults(checks), durationMs: 0, summary: [], figures: [] };
+  });
+  const ran = layers.filter((l) => l.i < 4).flatMap((l) => l.checks);
+  const stops = ran.filter((c) => c.result === 'stop').map((c) => c.id);
+  const warnings = ran.filter((c) => c.result === 'warn').map((c) => c.id);
+  const pending = layers.filter((l) => l.i >= 4).flatMap((l) => l.checks.map((c) => c.id));
+  const outcome = stops.length ? 'refused' : 'not_assessed';
+  const statement =
+    outcome === 'refused'
+      ? `Pre-run check: ${stops.length} input check${stops.length > 1 ? 's' : ''} stopped the run before any prediction. The claim “${r.claim}” was not assessed.`
+      : `Pre-run check: layers 0–3 evaluated, ${warnings.length} warning${warnings.length === 1 ? '' : 's'}. No executor ran, so the claim “${r.claim}” was not assessed; ${pending.length} output checks wait for predictions.`;
+  const crystal = (r.stats.ensemble ?? []).filter((e) => e.kind === 'crystal');
+  const na = { status: 'pending' as const, reason: 'no predictions: pre-run check' };
+  return {
+    ...r,
+    layers,
+    assessment: 'pre-run',
+    evaluatedLayers: evaluated(layers),
+    dimensions: dimensionsFor(layers),
+    toolVersions: toolVersionsFor(r.tools, layers, false),
+    execution: [],
+    tools: r.tools.map((t) => ({ ...t, ran: false, ranBy: null })),
+    verdict: { claim: r.claim, outcome, statement, stops, warnings, pending, assessedClaim: PRE_RUN_CLAIM, scope: 'layers 0-3', incomplete: [] },
+    stats: { site: r.stats.site, ensemble: crystal, status: { seeds: na, ensemble: na, posebusters: na, physics: na, metrics: na, interactions: na, pairwise: na, agreement: na, pae: na } },
+    narrative: [`Pre-run check of the inputs for ${r.taskName.toLowerCase()}. Layers 0–3 ran; the ${pending.length} output checks of layers 4–5 wait for predictions.`, statement],
+    controls: r.controls.map((c) => ({ ...c, status: 'pending', note: 'runs with the predictions' })),
+    outputs: [],
+    executionLines: [],
+    docking: null,
   };
 }
 
@@ -871,15 +1120,46 @@ export interface PresetJob {
   form: MockForm;
   status: 'queued' | 'running' | 'done';
   layerIdx?: number;
+  /** Age at session start in ms (default: (3 - index) × 95 s). */
+  ageMs?: number;
 }
 
+/**
+ * Session presets, newest first after the first: a finished full assessment (Boltz-2 on A100 and
+ * Gnina), a running GPU run that reaches the execute stage after layer 3 and a queued Boltz-2
+ * series ranking. A pre-run check (execute: false) comes from makeRunRecord with execute false.
+ */
 export const PRESET_JOBS: PresetJob[] = [
-  { name: 'ABL1 · imatinib pose', form: { task: 'ligand_pose', tools: ['boltz2', 'gnina'], target: 'P00519', ligand: ENTITIES.ligands[0].smiles, reference: '1IEP', ph: 7.4, seeds: 5 }, status: 'done' },
-  { name: 'KRAS · RAF1 discovery', form: { task: 'interaction_discovery', tools: ['boltz2', 'protenix'], target: 'P01116', partner: 'P04049', reference: '6VJJ', ph: 7.4, seeds: 5 }, status: 'running', layerIdx: 3 },
-  { name: 'ABL1 · series ranking', form: { task: 'affinity_ranking', tools: ['boltz2', 'gnina'], target: 'P00519', ligand: ENTITIES.ligands[0].smiles, reference: '1IEP', ph: 7.4, seeds: 8 }, status: 'queued' },
+  { name: 'ABL1 · imatinib pose', form: { task: 'ligand_pose', tools: ['boltz2', 'gnina'], target: 'P00519', ligand: ENTITIES.ligands[0].smiles, reference: '1IEP', ph: 7.4, seeds: 5, execute: true }, status: 'done' },
+  { name: 'KRAS · RAF1 discovery', form: { task: 'interaction_discovery', tools: ['boltz2', 'protenix'], target: 'P01116', partner: 'P04049', reference: '6VJJ', ph: 7.4, seeds: 5, execute: true }, status: 'running', layerIdx: 3 },
+  { name: 'ABL1 · series ranking', form: { task: 'affinity_ranking', tools: ['boltz2'], target: 'P00519', ligand: ENTITIES.ligands[0].smiles, reference: '1IEP', ph: 7.4, seeds: 8, execute: true }, status: 'queued' },
 ];
 
 /** Settings → prototype form (fills the defaults the prototype `submit()` applied). */
 export function formFromSettings(s: RunSettings): MockForm {
-  return { task: s.task, tools: s.tools, target: s.target, ligand: s.ligand || '', partner: s.partner || '', reference: s.reference, ph: +s.ph || 7.4, seeds: +s.seeds || 5, name: s.name };
+  return { task: s.task, tools: s.tools, target: s.target, ligand: s.ligand || '', partner: s.partner || '', reference: s.reference, ph: +s.ph || 7.4, seeds: +s.seeds || 5, name: s.name, execute: s.execute === true };
+}
+
+/**
+ * Mock mode has no PyMOL: a schematic thumbnail (backbone trace, ligand in accent) as an SVG data
+ * URI, one shape per executor and seed. Labelled "mock" in the image itself.
+ */
+export function mockRenderSvg(executor: string, seed: number): string {
+  const r = rng(executor.split('').reduce((a, c) => a * 31 + c.charCodeAt(0), seed + 7) >>> 0);
+  const pts: string[] = [];
+  let x = 18;
+  let y = 60 + r() * 20;
+  for (let i = 0; i < 14; i++) {
+    x += 10 + r() * 6;
+    y = Math.max(16, Math.min(104, y + (r() - 0.5) * 34));
+    pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+  }
+  const lx = 70 + r() * 40;
+  const ly = 44 + r() * 30;
+  const atoms = Array.from({ length: 7 }, (_, i) => {
+    const a = (i / 7) * Math.PI * 2 + r();
+    return `<circle cx="${(lx + Math.cos(a) * (6 + r() * 7)).toFixed(1)}" cy="${(ly + Math.sin(a) * (5 + r() * 6)).toFixed(1)}" r="3.2" fill="#b07e2c"/>`;
+  }).join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120"><rect width="200" height="120" fill="#f7f7f4"/><polyline points="${pts.join(' ')}" fill="none" stroke="#8b8b85" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/><polyline points="${pts.join(' ')}" fill="none" stroke="#55554f" stroke-width="1.4" stroke-linejoin="round"/>${atoms}<text x="194" y="114" text-anchor="end" font-family="monospace" font-size="8" fill="#b9b9b3">mock</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }

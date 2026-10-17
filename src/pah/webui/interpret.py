@@ -5,7 +5,17 @@ regular expressions, applied in the same order, return the same settings and the
 `{field, value, because}` steps. Entities come from `configs/catalog.yaml`, tool ids are the
 executor ids of `configs/executors.yaml`, and each task's claim is read from its specification.
 
-Differences from the prototype, all in the data or in explanations:
+Differences from the prototype:
+- Only Quick setup tasks (`quickSetup: true` in configs/catalog.yaml) are picked. A request that
+  matches a task offered only in manual setup gets a `warning` step and falls through to the next
+  rule; interaction words map to the complex-structure task, ranking words to series ranking.
+- "decoy partners" is not a screening library; "protein-protein dock" (without "-ing") is
+  protein-protein docking.
+- Every task that takes a partner gets one (the prototype set it for interaction discovery only).
+- A tool the user names is kept. When its configs/models.yaml endpoints lack the task endpoint,
+  or a required input is missing (a series of one ligand), the result lists the problem in
+  `warnings` and in a `warning` step. Defaults always have the endpoint.
+Data and explanation differences:
 - Tool ids are executor ids (`af3` becomes `alphafold3`, `haddock` becomes `haddock3`), and any
   executor in the register is recognised by id or name, not only the prototype's ten.
 - The `reference` step says "PDB entry named in the request" only when the value is that entry;
@@ -26,7 +36,7 @@ from pah.webui.catalog import Catalog, Executor, load_catalog, load_executors
 _A = re.ASCII  # JavaScript \b, \d and \w are ASCII-only without the u flag
 
 _TASK_RULES: tuple[tuple[str, re.Pattern[str], re.Pattern[str] | None], ...] = (
-    ("virtual_screening", re.compile(r"screen|library|enrich|decoy", _A), None),
+    ("virtual_screening", re.compile(r"screen|library|enrich|decoys?(?! partner)", _A), None),
     ("redocking", re.compile(r"redock", _A), None),
     ("blind_docking", re.compile(r"blind", _A), None),
     ("variant_effect", re.compile(r"variant|mutant|mutation|resistan", _A), None),
@@ -37,12 +47,22 @@ _TASK_RULES: tuple[tuple[str, re.Pattern[str], re.Pattern[str] | None], ...] = (
         re.compile(r"complex|partner|ligand|dock", _A),
     ),
     ("binding_site", re.compile(r"binding site|where does|which pocket|site identif", _A), None),
-    ("affinity_ranking", re.compile(r"rank|series|analog|congeneric|sar\b|affinit", _A), None),
-    ("protein_protein_docking", re.compile(r"pydock|haddock|protein.protein docking", _A), None),
-    ("known_complex", re.compile(r"known complex|assembl|stoichiometr", _A), None),
+    ("affinity_ranking", re.compile(r"affinit", _A), re.compile(r"dock|vina|gnina|score", _A)),
+    ("series_scoring", re.compile(r"rank|series|analog|congeneric|sar\b|affinit", _A), None),
+    ("protein_protein_docking", re.compile(r"pydock|haddock|protein.protein dock", _A), None),
+    (
+        "known_complex",
+        re.compile(r"known complex|complex structure|assembl|stoichiometr", _A),
+        None,
+    ),
     (
         "interaction_discovery",
         re.compile(r"interact|partner|bind(s|ing)? to|complex with|discover", _A),
+        re.compile(r"pocket|dock|pose|ligand", _A),
+    ),
+    (
+        "known_complex",
+        re.compile(r"interact|partner|bind(s|ing)? to|complex with|complex of", _A),
         re.compile(r"pocket|dock|pose|ligand", _A),
     ),
     (
@@ -67,6 +87,20 @@ _PH = re.compile(r"ph\s*([\d.]+)", _A)
 _PDB = re.compile(r"\b[1-9][A-Za-z0-9]{3}\b", _A)
 
 ClaimFn = Callable[[str], str | None]
+EndpointFn = Callable[[str], list[str]]
+TaskEndpointFn = Callable[[str], str | None]
+
+
+def _model_endpoints(executor: str) -> list[str]:
+    from pah.webui.adapter import model_endpoints
+
+    return model_endpoints(executor)
+
+
+def _task_endpoint(pah_task: str) -> str | None:
+    from pah.webui.adapter import task_endpoint
+
+    return task_endpoint(pah_task)
 
 
 def _spec_claim(pah_task: str) -> str | None:
@@ -110,16 +144,30 @@ def interpret_request(
     catalog: Catalog | None = None,
     executors: tuple[Executor, ...] | None = None,
     claim_for: ClaimFn = _spec_claim,
+    endpoints_of: EndpointFn = _model_endpoints,
+    endpoint_for: TaskEndpointFn = _task_endpoint,
 ) -> dict[str, Any]:
-    """Settings and the reasons for each decision, in the shape `interpretRun` returns."""
+    """Settings and the reasons for each decision, in the shape `interpretRun` returns, plus
+    `warnings` (problems with the request, kept as written)."""
     cat = catalog or load_catalog()
     register = executors if executors is not None else load_executors()
     t = text.lower()
     steps: list[dict[str, Any]] = []
+    warnings: list[str] = []
+    offered = {x.id for x in cat.tasks if x.quick_setup} or {x.id for x in cat.tasks}
 
     task = _DEFAULT_TASK
     for task_id, pattern, unless in _TASK_RULES:
         if pattern.search(t) and not (unless and unless.search(t)):
+            if task_id not in offered:
+                skipped = cat.task(task_id)
+                name = skipped.name.lower() if skipped else task_id
+                if not any(task_id in w for w in warnings):
+                    warnings.append(
+                        f"request matches {name} ({task_id}), which Quick setup does not "
+                        "offer; use manual setup for it"
+                    )
+                continue
             task = task_id
             break
     words = _unique(_TASK_WORDS.findall(t)[:3])
@@ -141,15 +189,25 @@ def interpret_request(
     ]
     tools = named or _unique(defaults)
     task_name = task_def.name.lower() if task_def else task
+    families = {e.family for e in register if e.id in tools}
+    pair = "cross-family pair" if len(families) > 1 else "default tools"
     steps.append(
         {
             "field": "tools",
             "value": tools,
-            "because": "named in the request"
-            if named
-            else f"task default: cross-family pair for {task_name}",
+            "because": "named in the request" if named else f"task default: {pair} for {task_name}",
         }
     )
+    endpoint = endpoint_for(task_def.pah) if task_def else None
+    executor_ids = {e.id for e in register}
+    for tool in tools:
+        if endpoint is None or tool not in executor_ids:
+            continue
+        if endpoint not in endpoints_of(tool):
+            warnings.append(
+                f"{tool} does not produce {endpoint}, the endpoint {task_name} needs "
+                "(configs/models.yaml); kept as named, layer 3 l3.metric.endpoint will stop it"
+            )
 
     prots = [p for p in cat.proteins if any(n in t for n in p.names)]
     acc = _ACCESSION.search(text)
@@ -162,7 +220,8 @@ def interpret_request(
     steps.append({"field": "target", "value": target, "because": because})
 
     partner = ""
-    if task == "interaction_discovery":
+    takes = set(task_def.inputs) if task_def else set()
+    if "partner" in takes or task == "interaction_discovery":
         if len(prots) > 1:
             partner = prots[1].accession
             because = f"“{prots[1].label}” → UniProt {partner}"
@@ -173,7 +232,14 @@ def interpret_request(
     lig = next((x for x in cat.ligands if any(n in t for n in x.names)), None)
     smiles = next((s for s in _SMILES_RUN.findall(text) if _SMILES_HINT.search(s)), None)
     ligand = ""
-    if task != "interaction_discovery":
+    if "series" in takes:
+        warnings.append(
+            f"{task_name} ranks a ligand series; the run settings carry one ligand, so the "
+            "ranking checks have one member until a series is supplied"
+        )
+    if takes and not ({"ligand", "series"} & takes):
+        pass
+    elif task != "interaction_discovery":
         if lig is not None:
             ligand, because = lig.smiles, f"“{lig.names[0]}” → CCD {lig.ccd}, PubChem {lig.cid}"
         elif smiles:
@@ -230,7 +296,9 @@ def interpret_request(
             else f"no task specification found for {task}",
         }
     )
+    steps += [{"field": "warning", "value": w, "because": w} for w in warnings]
     return {
+        "warnings": warnings,
         "task": task,
         "tools": tools,
         "target": target,

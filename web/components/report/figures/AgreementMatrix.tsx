@@ -10,7 +10,7 @@ import { FigureCaption, type FigureProps } from './common';
 export function AgreementMatrix({ record, tools, caption = true, figNo = 4, variant, className }: FigureProps) {
   const print = variant === 'print';
   const rows = record.stats.agreement;
-  if (!rows || !rows.length) return <NotComputed what="agreement" print={print} className={className} />;
+  if (!rows || !rows.length) return <NotComputed what="agreement" print={print} record={record} className={className} />;
   const unit = rows[0].cells[0]?.unit ?? '';
   const name = (m: string) => methodName(record, m, tools);
   const cols = print ? `70px repeat(${rows.length},1fr)` : `90px repeat(${rows.length},minmax(0,110px))`;

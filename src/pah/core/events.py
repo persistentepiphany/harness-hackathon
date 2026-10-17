@@ -30,10 +30,10 @@ def new_run_id(prefix: str = "run") -> str:
 class EventBus:
     """Fan-out of events to sinks. Thread safe; sequence numbers are strictly increasing."""
 
-    def __init__(self, run_id: str, sinks: list[Sink] | None = None) -> None:
+    def __init__(self, run_id: str, sinks: list[Sink] | None = None, seq_start: int = 0) -> None:
         self.run_id = run_id
         self._sinks: list[Sink] = list(sinks or [])
-        self._seq = 0
+        self._seq = seq_start
         self._lock = threading.Lock()
 
     def add_sink(self, sink: Sink) -> None:

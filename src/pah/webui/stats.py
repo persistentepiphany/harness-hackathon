@@ -1193,3 +1193,87 @@ def caption_sha(caption: str) -> str | None:
     """sha256 prefix that `pah.report.renders.figure_entries` writes into a render caption."""
     m = _CAPTION_SHA.search(caption)
     return m.group("sha") if m else None
+
+
+# ---------------------------------------------------------------- absent blocks and per-pose checks
+
+
+def add_status(stats: Json, inp: StatsInput, *, pre_run: bool) -> None:
+    """`stats.status` for blocks the UI shows as absent: `na` when the run's executors cannot
+    produce the block, `pending` when it is not computed yet. `stats.pae` carries the `na`
+    status itself when no executor of the run declares a PAE output (configs/executors.yaml)."""
+    status: Json = {}
+    if not inp.tools:
+        return
+    names = [str(inp.tool(e).get("name") or e) for e in inp.tools]
+    if "pae" not in stats:
+        declares = [e for e in inp.tools if any(o.get("kind") == "pae" for o in inp.outputs(e))]
+        if not inp.tools:
+            status["pae"] = {"status": "na", "reason": "no executor declared"}
+        elif not declares:
+            who = ", ".join(names)
+            status["pae"] = {
+                "status": "na",
+                "reason": f"{who} declares no PAE output (configs/executors.yaml)",
+            }
+        else:
+            why = "pending predictions" if pre_run else f"not computed by {CONFIDENCE}"
+            status["pae"] = {"status": "pending", "reason": why}
+    if "agreement" not in stats:
+        if len(inp.tools) <= 1:
+            who = names[0] if names else "no executor"
+            status["agreement"] = {
+                "status": "na",
+                "reason": f"one executor ({who}); method agreement needs two",
+            }
+        else:
+            why = "pending predictions" if pre_run else f"not computed by {AGREEMENT}"
+            status["agreement"] = {"status": "pending", "reason": why}
+    for block in ("seeds", "posebusters", "physics", "interactions", "ensemble"):
+        if block not in stats and pre_run:
+            status[block] = {"status": "pending", "reason": "pending predictions"}
+    if status:
+        stats["status"] = status
+        prov = stats.setdefault("provenance", {})
+        prov["status"] = {"check": None, "checks": [], "tool": None, "source": "configs"}
+
+
+def _pose_result(row: Mapping[str, Any], gate: str) -> str:
+    """Per-pose result from the row's own flags: a `failed` list, `pass`/`ok` booleans or a
+    `gate`. Without a flag the row is reported (values shown, no badge)."""
+    if str(row.get("gate")) in {"pass", "warn", "stop"}:
+        return str(row["gate"])
+    failed = row.get("failed")
+    flags = [row[k] for k in ("pass", "ok", "passed_all") if isinstance(row.get(k), bool)]
+    flag: bool | None = flags[0] if flags else None
+    if isinstance(failed, list):
+        flag = not failed if flag is None else flag
+    if flag is None:
+        return "reported"
+    if flag:
+        return "pass"
+    return gate if gate in {"warn", "stop"} else "warn"
+
+
+def pose_checks(
+    findings: Sequence[Mapping[str, Any]], title: Callable[[str], str]
+) -> dict[str, list[Json]]:
+    """Pose id -> output checks that reported a row for it (`evidence.poses[]`)."""
+    out: dict[str, list[Json]] = {}
+    for f in findings:
+        if f.get("layer") not in (4, 5) or f.get("gate") == "skip":
+            continue
+        cid = str(f.get("check_id"))
+        for row in _ds(_d(f.get("evidence")).get("poses")):
+            pose = row.get("pose")
+            if not pose:
+                continue
+            entry: Json = {
+                "id": cid,
+                "name": title(cid),
+                "result": _pose_result(row, str(f.get("gate"))),
+            }
+            if isinstance(row.get("failed"), list) and row["failed"]:
+                entry["failed"] = [str(x) for x in row["failed"]]
+            out.setdefault(str(pose), []).append(entry)
+    return out

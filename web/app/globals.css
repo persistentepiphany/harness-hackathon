@@ -106,6 +106,8 @@
     font-size: 13px;
     line-height: 1.45;
     min-height: 100vh;
+    /* number alignment standard: tabular figures wherever numbers appear */
+    font-variant-numeric: tabular-nums;
   }
   *,
   ::before,
@@ -182,4 +184,40 @@
 @utility mono-data {
   font-family: var(--font-mono);
   font-size: 11.5px;
+}
+
+/* Number alignment standard (lib/format.ts QUANTITY_RULES): a numeric cell is right aligned with
+   tabular figures; its unit follows in muted text. */
+@utility num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+@utility num-unit {
+  color: var(--color-muted);
+  font-weight: 400;
+  margin-left: 0.25em;
+}
+
+/* Label / value list: one label column width for every key-value list (override --kv-label). */
+@utility kv-grid {
+  display: grid;
+  grid-template-columns: var(--kv-label, 9.5rem) minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: baseline;
+}
+
+/* Score info popover: shown on hover and keyboard focus of the trigger. */
+.score-info:hover > .score-info-pop,
+.score-info:focus-within > .score-info-pop,
+.score-info[data-open='true'] > .score-info-pop {
+  display: block;
+}
+@media print {
+  .score-info {
+    display: none !important;
+  }
+  .doc-page-break {
+    break-before: page;
+  }
 }

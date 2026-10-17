@@ -37,7 +37,7 @@ export function PoseBustersGrid({ record, variant, className }: ReportBlockProps
         </div>
       ) : (
         <div className="border-t border-line">
-          <NotComputed what="posebusters" print={print} />
+          <NotComputed what="posebusters" print={print} record={record} />
         </div>
       )}
     </div>

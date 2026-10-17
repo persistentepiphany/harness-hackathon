@@ -182,18 +182,59 @@ tools:
 # UI task ids, as in runs.js TASKS, mapped to task specifications in configs/tasks/.
 # The claim of each task is read from its specification, not from here. `inputs` are the run
 # settings the task takes (runs.js TASKS); `series` takes the ligand field as one series member.
+# `quickSetup: true` marks the tasks Quick setup and the interpreter offer, grouped by `group`
+# (co-folding, docking, protein-protein). The others stay reachable through manual setup.
+# Every `defaultTools` entry has the task endpoint (configs/models.yaml task_endpoints) among
+# its configs/models.yaml endpoints; tests/test_webui_honesty.py checks this.
 tasks:
-  - {id: monomer, pah: monomer_structure, name: Monomer structure, long: Monomer structure, defaultTools: [boltz2, afdb], inputs: [target, seeds]}
-  - {id: known_complex, pah: known_complex_assembly, name: Known complex, long: Known complex assembly, defaultTools: [boltz2, protenix], inputs: [target, partner, reference, seeds]}
-  - {id: interaction_discovery, pah: interaction_discovery, name: Interaction discovery, long: Interaction discovery, defaultTools: [boltz2, protenix], inputs: [target, partner, reference, seeds]}
-  - {id: ligand_pose, pah: ligand_pose, name: Ligand pose, long: Ligand pose in a known pocket, defaultTools: [boltz2, gnina], inputs: [target, ligand, reference, ph, seeds]}
-  - {id: binding_site, pah: binding_site_identification, name: Binding site, long: Binding site identification, defaultTools: [boltz2, protenix], inputs: [target, ligand, seeds]}
-  - {id: affinity_ranking, pah: affinity_ranking, name: Affinity ranking, long: Affinity ranking within a congeneric series, defaultTools: [boltz2, gnina], inputs: [target, series, reference, ph, seeds]}
-  - {id: variant_effect, pah: variant_effect, name: Variant effect, long: Variant effect, defaultTools: [boltz2, chai1], inputs: [target, ligand, reference, seeds]}
-  - {id: design_validation, pah: design_validation, name: Design validation, long: Design validation, defaultTools: [boltz2, protenix], inputs: [target, partner, seeds]}
-  - {id: redocking, pah: redocking, name: Redocking, long: Redocking of the crystal ligand, defaultTools: [vina, gnina], inputs: [target, ligand, reference, ph, seeds]}
-  - {id: pose_known_pocket, pah: ligand_pose, name: Docked pose, long: Pose prediction in a known pocket, defaultTools: [gnina, diffdock], inputs: [target, ligand, reference, ph, seeds]}
-  - {id: blind_docking, pah: blind_docking, name: Blind docking, long: Blind docking, defaultTools: [diffdock, gnina], inputs: [target, ligand, seeds]}
-  - {id: virtual_screening, pah: virtual_screening, name: Virtual screening, long: Virtual screening, defaultTools: [vina, gnina], inputs: [target, series, reference, ph, seeds]}
-  - {id: series_scoring, pah: series_scoring, name: Series scoring, long: Series scoring, defaultTools: [gnina, vina], inputs: [target, series, reference, ph, seeds]}
-  - {id: protein_protein_docking, pah: protein_protein_docking, name: Protein–protein docking, long: Protein–protein docking, defaultTools: [pydock, haddock], inputs: [target, partner, reference, seeds]}
+  # co-folding (Boltz-2, Protenix, Chai-1, ColabFold)
+  - {id: known_complex, pah: known_complex_assembly, name: Complex structure, long: Complex structure (known complex assembly), group: co-folding, quickSetup: true, defaultTools: [boltz2, protenix], inputs: [target, partner, reference, seeds]}
+  - {id: ligand_pose, pah: ligand_pose, name: Ligand pose, long: Co-folded ligand pose, group: co-folding, quickSetup: true, defaultTools: [boltz2, protenix], inputs: [target, ligand, reference, ph, seeds]}
+  - {id: monomer, pah: monomer_structure, name: Monomer structure, long: Monomer structure, group: co-folding, quickSetup: true, defaultTools: [boltz2, protenix], inputs: [target, seeds]}
+  # docking (Vina, Gnina, DiffDock)
+  - {id: pose_known_pocket, pah: ligand_pose, name: Docked pose, long: Ligand pose in a known pocket, group: docking, quickSetup: true, defaultTools: [vina, gnina], inputs: [target, ligand, reference, ph, seeds]}
+  - {id: redocking, pah: redocking, name: Redocking, long: Redocking control of the crystal ligand, group: docking, quickSetup: true, defaultTools: [vina, gnina], inputs: [target, ligand, reference, ph, seeds]}
+  - {id: series_scoring, pah: series_scoring, name: Series ranking, long: Series ranking with docking scores, group: docking, quickSetup: true, defaultTools: [vina, gnina], inputs: [target, series, reference, ph, seeds]}
+  - {id: virtual_screening, pah: virtual_screening, name: Virtual screening, long: Virtual screening with docking scores, group: docking, quickSetup: true, defaultTools: [vina, gnina], inputs: [target, series, reference, ph, seeds]}
+  # protein-protein docking (pyDock, HADDOCK3)
+  - {id: protein_protein_docking, pah: protein_protein_docking, name: Protein–protein docking, long: Protein–protein docking, group: protein-protein, quickSetup: true, defaultTools: [pydock, haddock], inputs: [target, partner, reference, seeds]}
+  # manual setup only
+  - {id: interaction_discovery, pah: interaction_discovery, name: Interaction discovery, long: Interaction discovery, group: co-folding, quickSetup: false, defaultTools: [boltz2, protenix], inputs: [target, partner, reference, seeds]}
+  - {id: binding_site, pah: binding_site_identification, name: Binding site, long: Binding site identification, group: co-folding, quickSetup: false, defaultTools: [boltz2, protenix], inputs: [target, ligand, seeds]}
+  # Boltz-2 is the only model in configs/models.yaml whose endpoints include affinity_series;
+  # the prototype paired it with Gnina, which l3.metric.endpoint stops (pose, score_within_run).
+  - {id: affinity_ranking, pah: affinity_ranking, name: Affinity ranking, long: Affinity ranking within a congeneric series, group: co-folding, quickSetup: false, defaultTools: [boltz2], inputs: [target, series, reference, ph, seeds]}
+  - {id: variant_effect, pah: variant_effect, name: Variant effect, long: Variant effect, group: co-folding, quickSetup: false, defaultTools: [boltz2, chai1], inputs: [target, ligand, reference, seeds]}
+  - {id: design_validation, pah: design_validation, name: Design validation, long: Design validation, group: co-folding, quickSetup: false, defaultTools: [boltz2, protenix], inputs: [target, partner, seeds]}
+  - {id: blind_docking, pah: blind_docking, name: Blind docking, long: Blind docking, group: docking, quickSetup: false, defaultTools: [diffdock, gnina], inputs: [target, ligand, seeds]}
+
+# Sample requests for the New-run box. Each one is checked by tests/test_webui_honesty.py: the
+# interpreter must pick tools whose configs/models.yaml endpoints include the task endpoint.
+# They map onto the Quick setup tasks above. The prototype's prompts named DiffDock-L for
+# screening (no score_within_run endpoint), Gnina for affinity ranking (no affinity_series
+# endpoint) and "decoy partners", which the screening rule took for a decoy library.
+prompts:
+  - Co-fold imatinib with the ABL1 kinase using Boltz-2 and Protenix, 5 seeds at pH 7.4, compare against 2HYY
+  - Predict the KRAS and RAF1 complex structure with Boltz-2 and Protenix, compare against 6VJJ
+  - Dock benzamidine into the trypsin pocket with Vina and Gnina, 5 seeds, compare against 3PTB
+  - Redock the benzamidine crystal ligand of 3PTB with Vina and Gnina
+  - Rank the imatinib congeneric series against ABL1 with Vina and Gnina docking scores, 8 seeds
+  - Protein–protein dock KRAS with RAF1 using pyDock and HADDOCK, compare against 6VJJ
+
+# Check groups shown on the run page (UiDimension). A check goes to the dimension with the
+# longest matching id prefix, else to the first dimension that lists its layer.
+dimensions:
+  - {id: inputs, label: Inputs, layers: [0, 1, 2]}
+  - {id: applicability, label: Applicability, layers: [3]}
+  - {id: geometry, label: Geometry, layers: [4], prefixes: [l4.posebusters, l4.geometry, l4.molprobity, l4.structure.topology]}
+  - {id: physics, label: Physics, prefixes: [l4.minimisation_drift, l4.torsion_strain, l4.structure.clashes, l4.clash]}
+  - {id: interactions, label: Interactions, prefixes: [l4.interactions., l4.interface.]}
+  - {id: confidence, label: Confidence, prefixes: [l5.confidence., l4.score.]}
+  - {id: support, label: Support, layers: [5]}
+
+# Threshold evidence levels (pah.core.models.EvidenceLevel) as dimension certainty, strongest
+# first. A dimension shows the weakest level among the thresholds its non-skip checks used.
+certainty:
+  calibrated: [reproduced]
+  published: [published]
+  uncalibrated: [suspected, uncalibrated]

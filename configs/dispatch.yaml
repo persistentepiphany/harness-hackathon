@@ -1,0 +1,179 @@
+# How runs started from the web UI with `execute: true` run their executors.
+# Read by pah.webui.execute (the API side) and deploy/modal/gpu_app.py (the GPU apps).
+#
+# route:
+#   modal  a Modal function in the app `pah-gpu-<executor>` (deploy/modal/gpu_app.py), GPU per `gpu`
+#   local  in the API process (CPU tools such as Vina)
+#   none   not dispatchable; `reason` is recorded as a skipped execution
+# input: name of an input builder registered in pah.webui.execute; it turns the run manifest into the
+#   request the function takes, with `options`. params: values for the command placeholders of
+#   configs/runtimes.yaml (over its `defaults`). extra: arguments appended to the command per route
+#   mode (kit | off | stock; off is stock in the kit image). commands: a command replacing the
+#   runtimes.yaml one for a mode. kit_seeds: joined when the kit takes all seeds in one call.
+# collect: per mode, files to copy from the tool's output directory into the layout the harness
+#   parser reads ({seed} and every param are filled; `rename` names the copy).
+# prediction: the manifest `predictions` entry for the outputs, paths relative to
+#   runs/<id>/predictions/<executor>/; the request's own input files are kept under inputs/.
+# max_seeds caps the seeds per run (below guard.max_seeds).
+# Each GPU app tries the executor's optimisation kit first (configs/runtimes.yaml `accel`, policy and
+# mode from configs/accel.yaml) and records a stock fallback with its reason; executors without a
+# kit run stock.
+version: 1
+
+guard:
+  # A run with execute: true needs the header when the variable is set on the server. Profiles in
+  # require_token_profiles refuse execution when the variable is not set at all.
+  token_env: PAH_EXEC_TOKEN
+  header: X-Pah-Exec-Token
+  require_token_profiles: [modal]
+  max_concurrent_gpu_runs: 1
+  max_seeds: 5
+  # Seconds between polls of a running function (progress and completion).
+  poll_s: 5
+
+modal:
+  app_prefix: pah-gpu-
+  progress_dict: pah-gpu-progress
+  outputs_volume: pah-predictions
+  weights_volume: pah-weights
+  # Function names inside every GPU app.
+  predict_function: predict
+  list_function: list_outputs
+  read_function: read_batch
+  # Bytes per read call; below Modal's inline limit so no blob transfer is needed.
+  read_batch_bytes: 1500000
+
+executors:
+  boltz2:
+    route: modal
+    gpu: A100
+    timeout_s: 3600
+    input: boltz_yaml
+    options: {affinity: true}
+    params: {samples: 1}
+    extra: {kit: [--use_msa_server, --write_full_pae, --output_format, mmcif], "off": [--use_msa_server, --write_full_pae, --output_format, mmcif], stock: [--use_msa_server, --write_full_pae, --output_format, mmcif]}
+    kit_seeds: joined
+    commands:
+      # stock in the kit image takes one --seed per call (run.sh pred --mode off)
+      "off": [bash, "{kit_dir}/run.sh", pred, --config, "{card}", --mode, "off", --input, "{input}",
+            --out_dir, "{out_dir}", --seed, "{seed}", --diffusion_samples, "{samples}"]
+    collect:
+      kit: [{from: "by_seed/*/s{seed}/*", to: "seed_{seed}/predictions/{name}"}]
+      "off": [{from: "boltz_results_*/predictions/*/*", to: "seed_{seed}/predictions/{name}"}]
+      stock: [{from: "boltz_results_*/predictions/*/*", to: "seed_{seed}/predictions/{name}"}]
+    prediction: {path: "."}
+  boltz1:
+    route: modal
+    gpu: A100
+    timeout_s: 3600
+    input: boltz_yaml
+    options: {affinity: false}
+    params: {samples: 1}
+    extra: {stock: [--use_msa_server, --write_full_pae, --output_format, mmcif]}
+    collect:
+      stock: [{from: "boltz_results_*/predictions/*/*", to: "seed_{seed}/predictions/{name}"}]
+    prediction: {path: "."}
+  chai1:
+    route: modal
+    gpu: A100
+    timeout_s: 3600
+    input: chai_fasta
+    params: {samples: 5}
+    extra: {kit: [--use-msa-server], "off": [--use-msa-server], stock: [--use-msa-server]}
+    collect:
+      kit: [{from: "**/pred.model_idx_*.cif", to: "seed_{seed}"}, {from: "**/scores.model_idx_*.npz", to: "seed_{seed}"}]
+      "off": [{from: "**/pred.model_idx_*.cif", to: "seed_{seed}"}, {from: "**/scores.model_idx_*.npz", to: "seed_{seed}"}]
+      stock: [{from: "pred.model_idx_*.cif", to: "seed_{seed}"}, {from: "scores.model_idx_*.npz", to: "seed_{seed}"}]
+    prediction: {path: "."}
+  protenix:
+    route: modal
+    gpu: A100
+    timeout_s: 3600
+    input: protenix_json
+    params: {samples: 5}
+    collect:
+      kit: &protenix_collect [{from: "*/seed_*/predictions/*", to: "{name}/seed_{seed}/predictions"}]
+      "off": *protenix_collect
+      stock: *protenix_collect
+    prediction: {path: "."}
+  protenix_v2:
+    route: modal
+    gpu: A100
+    timeout_s: 3600
+    input: protenix_json
+    params: {samples: 5}
+    collect:
+      kit: *protenix_collect
+      "off": *protenix_collect
+      stock: *protenix_collect
+    prediction: {path: "."}
+  colabfold:
+    route: modal
+    gpu: A100
+    timeout_s: 3600
+    input: colabfold_fasta
+    params: {}
+    collect:
+      kit: &colabfold_collect [{from: "*_unrelaxed_rank_*.pdb", to: "."}, {from: "*_scores_rank_*.json", to: "."}]
+      "off": *colabfold_collect
+      stock: *colabfold_collect
+    prediction: {path: "."}
+  openfold3:
+    route: modal
+    gpu: A100
+    timeout_s: 3600
+    input: openfold3_json
+    params: {}
+    collect:
+      kit: &of3_collect [{from: "**/*_model.cif", to: "seed_{seed}"}, {from: "**/*_confidences_aggregated.json", to: "seed_{seed}"}]
+      "off": *of3_collect
+      stock: *of3_collect
+    prediction: {path: "."}
+  diffdock:
+    route: modal
+    gpu: A100
+    timeout_s: 3600
+    input: receptor_smiles
+    params: {samples: 10}
+    collect:
+      stock: [{from: "{name}/rank*_confidence*.sdf", to: "seed_{seed}/{name}"}]
+    prediction: {path: ".", receptor: inputs/receptor.pdb}
+  gnina:
+    route: modal
+    gpu: A100
+    timeout_s: 3600
+    input: receptor_ligand_box
+    params: {exhaustiveness: 8}
+    max_seeds: 1
+    collect:
+      stock: [{from: "docked.sdf", to: ".", rename: "docked_seed{seed}.sdf"}]
+    prediction: {path: "docked_seed{seed}.sdf", receptor: inputs/receptor.pdb}
+  alphafold3_of3:
+    route: none
+    reason: >-
+      The af3_jax kit image builds from configs/runtimes.yaml, but its OpenFold3 weights (ported p2,
+      `run.sh install --weights`) are not on pah-weights and no input builder writes AlphaFold3 JSON
+      with inline MSAs, which the kit requires (--norun_data_pipeline).
+  autodock_gpu:
+    route: none
+    reason: >-
+      AutoDock-GPU needs AutoGrid maps and PDBQT inputs that no input builder writes yet; the image
+      recipe is in configs/runtimes.yaml and no parser is registered for its .dlg output.
+  alphafold3:
+    route: none
+    reason: >-
+      AlphaFold3 weights are issued by request under separate terms and are not on the pah-weights
+      volume (configs/runtimes.yaml fetch_note).
+  vina:
+    route: local
+    input: vina_local
+    options: {exhaustiveness: 8}
+    prediction: {path: ".", receptor: receptor_H.pdb}
+  haddock3:
+    route: none
+    reason: >-
+      HADDOCK3 needs per-run restraints (ambig.tbl) and a CNS build; no runtime is declared in
+      configs/runtimes.yaml and no input builder writes restraints.
+  pydock:
+    route: none
+    reason: pyDock is distributed under an academic licence by request; no runtime is declared.

@@ -49,7 +49,7 @@ function ExecutorChip({ c, docking, onToggle }: { c: ExecutorChipModel; docking:
 
 export function ExecutorChips({ groups, onToggle, addValue, onAddValue, onAdd, addBusy, addMessage }: ExecutorChipsProps) {
   const primary = groups.filter((g) => g.family !== 'docking');
-  const docking = groups.find((g) => g.family === 'docking');
+  const docking = groups.filter((g) => g.family === 'docking');
   return (
     <div data-testid="executor-chips">
       <SectionHead label="Co-folding" hint="registered executors · add any tool with a container" />
@@ -63,7 +63,7 @@ export function ExecutorChips({ groups, onToggle, addValue, onAddValue, onAdd, a
         <div className="flex-1 border-t border-line2" />
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
-        {(docking?.chips ?? []).map((c) => (
+        {docking.flatMap((g) => g.chips).map((c) => (
           <ExecutorChip key={c.id} c={c} docking onToggle={onToggle} />
         ))}
         <AddInput value={addValue} onChange={onAddValue} onSubmit={onAdd} placeholder="+ executor · image:tag" width={180} small disabled={addBusy} data-testid="add-executor" />

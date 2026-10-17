@@ -62,11 +62,16 @@ def _checks(record: dict[str, Any]) -> dict[str, dict[str, Any]]:
 
 def test_record_outcomes_results_and_gates(runs: dict[str, Path]) -> None:
     clean = to_ui_record(runs["clean"])
-    assert clean["verdict"]["outcome"] == "narrowed"
+    # the claim's output layers gave no result: the engine's narrowed is scoped to not_assessed
+    assert clean["verdict"]["outcome"] == "not_assessed"
+    assert clean["verdict"]["engineOutcome"] == "narrowed"
     assert clean["verdict"]["warnings"] == ["l1.ligand.stereo_defined"]
-    assert clean["task"] == "ligand_pose" and clean["source"] == "pah" and clean["stats"] == {}
+    assert clean["task"] == "ligand_pose" and clean["source"] == "pah"
+    assert set(clean["stats"]) <= {"status", "provenance"}  # nothing computed, only why
     deep_raw = json.loads((runs["deep"] / "record.json").read_text())["verdict"]["outcome"]
-    assert to_ui_record(runs["deep"])["verdict"]["outcome"] == OUTCOMES[deep_raw]
+    deep = to_ui_record(runs["deep"])["verdict"]
+    assert deep["engineOutcome"] == OUTCOMES[deep_raw]
+    assert deep["outcome"] in {OUTCOMES[deep_raw], "not_assessed"}
     faulty = to_ui_record(runs["faulty"])
     assert faulty["verdict"]["outcome"] == "refused"
     assert "l1.ligand.identity" in faulty["verdict"]["stops"]
@@ -106,7 +111,8 @@ def test_layers_counts_durations_and_unknown_checks(
     # an escalated check keeps Stop as its failure gate even when not implemented
     assert cofactors["gate"] == "Stop"
     assert any("1 not implemented" in line for line in record["narrative"])
-    assert record["narrative"][-1].startswith("Verdict: incomplete.")
+    assert record["verdict"]["engineOutcome"] == "incomplete"
+    assert record["narrative"][-1].startswith(f"Verdict: {record['verdict']['outcome']}.")
     assert layers[0]["summary"][0] == "7 objects"
 
 

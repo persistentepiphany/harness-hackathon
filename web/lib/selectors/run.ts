@@ -3,7 +3,7 @@
 // task list, tool register, interpreter steps, job, record and log lines.
 
 import { DASH, fmtSha } from '../format';
-import { familyOf, groupByFamily, toolById } from '../tools';
+import { familyOf, toolById } from '../tools';
 import type {
   Catalog,
   CatalogLigand,
@@ -36,6 +36,8 @@ export interface RunForm {
   ph: string;
   seeds: string;
   name: string;
+  /** Run the selected executors; null or absent: follow the tools (on when one can be dispatched). */
+  execute?: boolean | null;
 }
 
 /** The prototype's starting task, the harness's default (`RunSettings.task`). */
@@ -73,8 +75,8 @@ export function findProtein(catalog: Pick<Catalog, 'proteins'> | null | undefine
   return catalog?.proteins.find((p) => p.accession === acc);
 }
 
-/** Starting form: catalog defaults (or its first entries) and the default task's tools. */
-export function defaultForm(catalog: Catalog | null | undefined, tasks: Task[] | null | undefined): RunForm {
+/** Starting form: catalog defaults (or its first entries) and the default task's tools that fit its endpoint. */
+export function defaultForm(catalog: Catalog | null | undefined, tasks: Task[] | null | undefined, register?: Tool[] | null): RunForm {
   const d = catalogDefaults(catalog);
   const target = d.target ?? catalog?.proteins[0]?.accession ?? '';
   const protein = findProtein(catalog, target);
@@ -82,7 +84,7 @@ export function defaultForm(catalog: Catalog | null | undefined, tasks: Task[] |
   const task = tasks?.find((t) => t.id === DEFAULT_TASK) ?? tasks?.[0];
   return {
     task: task?.id ?? DEFAULT_TASK,
-    tools: [...(task?.defaultTools ?? [])],
+    tools: taskDefaultTools(task, register),
     target,
     partner: '',
     ligand: ligand?.smiles ?? d.ligand ?? '',
@@ -160,7 +162,7 @@ function num(v: string | number | null | undefined): number | undefined {
 }
 
 /** Settings for `POST /ui/runs`: only the inputs the task shows, prototype defaults for seeds and pH. */
-export function settingsFromForm(form: RunForm, catalog: Catalog | null | undefined, tasks: Task[] | null | undefined): RunSettings {
+export function settingsFromForm(form: RunForm, catalog: Catalog | null | undefined, tasks: Task[] | null | undefined, register?: Tool[] | null): RunSettings {
   const task = tasks?.find((t) => t.id === form.task);
   const show = inputVisibility(task);
   const s: RunSettings = {
@@ -171,17 +173,18 @@ export function settingsFromForm(form: RunForm, catalog: Catalog | null | undefi
     ph: num(form.ph) || DEFAULT_PH,
     seeds: num(form.seeds) || DEFAULT_SEEDS,
     name: form.name.trim() || suggestName(form, catalog, tasks),
+    execute: effectiveExecute(form, register),
   };
   if (show.partner && form.partner.trim()) s.partner = form.partner.trim();
   if (show.ligand && form.ligand.trim()) s.ligand = form.ligand.trim();
   return s;
 }
 
-/** Form after picking a task (prototype `taskOptions[].select`). */
-export function selectTask(form: RunForm, task: Task, catalog: Catalog | null | undefined): RunForm {
+/** Form after picking a task (prototype `taskOptions[].select`): its default tools that fit its endpoint. */
+export function selectTask(form: RunForm, task: Task, catalog: Catalog | null | undefined, register?: Tool[] | null): RunForm {
   const complex = taskKind(task) === 'complex';
   const partner = complex ? form.partner || catalogDefaults(catalog).partner || FALLBACK_PARTNER : form.partner;
-  return { ...form, task: task.id, tools: [...task.defaultTools], partner };
+  return { ...form, task: task.id, tools: taskDefaultTools(task, register), partner };
 }
 
 // ---------------------------------------------------------------- quick setup (interpreter steps)
@@ -382,38 +385,59 @@ export interface ExecutorChipModel {
   version: string;
   versionTitle?: string;
   family: ToolFamily | null;
+  /** co-folding | docking | ppi (protein–protein docking). */
+  group: ToolGroup;
   selected: boolean;
   available: boolean;
   /** Unavailable tools cannot be added; a selected one (task default, interpreter) can be removed. */
   disabled: boolean;
   note: string;
+  /** Endpoints the tool reports (`pose · structure`), empty when the register does not say. */
+  endpoints: string[];
+  /** `A100 · Modal`, `CPU · local`, `checks only`; null when the register does not say. */
+  run: string | null;
+  dispatchable: boolean | null;
+  /** The task's endpoint is not among the tool's endpoints. */
+  fit: ToolFit;
 }
 
 export interface ExecutorGroupModel {
   family: ToolFamily | null;
+  group: ToolGroup;
+  label: string;
   chips: ExecutorChipModel[];
 }
 
-/** Register tools grouped by family, with selection and availability (prototype `cofoldChips`/`dockChips`). */
-export function executorGroups(register: Tool[] | null | undefined, selected: string[]): ExecutorGroupModel[] {
-  return groupByFamily(register ?? []).map((g) => ({
-    family: g.family,
-    chips: g.tools.map((t) => {
-      const on = selected.includes(t.id);
-      const long = !!t.version && /^[0-9a-f]{20,}$/i.test(t.version);
-      return {
-        id: t.id,
-        name: t.name,
-        version: t.version ? (long ? fmtSha(t.version) : t.version) : '',
-        versionTitle: long ? (t.version ?? undefined) : undefined,
-        family: familyOf(t),
-        selected: on,
-        available: t.available !== false,
-        disabled: t.available === false && !on,
-        note: t.note ?? '',
-      };
-    }),
-  }));
+/** Register tools grouped co-folding, docking, PPI docking, with selection, availability and endpoint fit. */
+export function executorGroups(register: Tool[] | null | undefined, selected: string[], task?: Task | null): ExecutorGroupModel[] {
+  const out: ExecutorGroupModel[] = [];
+  for (const t of register ?? []) {
+    const on = selected.includes(t.id);
+    const long = !!t.version && /^[0-9a-f]{20,}$/i.test(t.version);
+    const group = toolGroup(t);
+    let g = out.find((x) => x.group === group);
+    if (!g) {
+      g = { family: group === 'co-folding' ? 'co-folding' : group === 'docking' || group === 'ppi' ? 'docking' : null, group, label: TOOL_GROUP_LABELS[group], chips: [] };
+      out.push(g);
+    }
+    g.chips.push({
+      id: t.id,
+      name: t.name,
+      version: t.version ? (long ? fmtSha(t.version) : t.version) : '',
+      versionTitle: long ? (t.version ?? undefined) : undefined,
+      family: familyOf(t),
+      group,
+      selected: on,
+      available: t.available !== false,
+      disabled: t.available === false && !on,
+      note: t.note ?? '',
+      endpoints: (t.endpoints ?? []).map(endpointLabel),
+      run: toolRunLabel(t),
+      dispatchable: typeof t.dispatchable === 'boolean' ? t.dispatchable : null,
+      fit: toolFit(t, task),
+    });
+  }
+  return GROUP_ORDER.map((k) => out.find((g) => g.group === k)).filter((g): g is ExecutorGroupModel => !!g);
 }
 
 export function toggleTool(tools: string[], id: string): string[] {
@@ -631,8 +655,8 @@ export function executorRows(job: Job, record: UiRunRecord | null | undefined, r
     const t = toolById(record, id, register);
     return familyOf(t) === 'docking' && t.dockingParams?.length ? dockingParams(record, id, register) : undefined;
   };
-  if (record?.execution?.length) {
-    return record.execution.map((e, i) => {
+  if (record?.executionLines?.length) {
+    return record.executionLines.map((e, i) => {
       const t = tools.find((x) => x.name === e.tool || x.id === e.tool);
       return { key: `${e.tool}-${i}`, tool: e.tool, text: e.plain || e.text, state: queued ? 'loading' : 'ok', params: paramsFor(t?.id) };
     });
@@ -668,3 +692,259 @@ export function verdictCounts(t: CheckTotals): { text: string; skip?: string } {
   return { text: `${t.pass} pass · ${t.warn} warn · ${t.stop} stop`, skip: t.skip ? ` · ${t.skip} skip` : undefined };
 }
 
+
+// ---------------------------------------------------------------- endpoints, fit and execution (new run)
+
+/** Readable endpoint names (configs/models.yaml endpoints and task_endpoints). */
+const ENDPOINT_LABELS: Record<string, string> = {
+  pose: 'pose',
+  structure: 'structure',
+  interface: 'interface',
+  affinity_series: 'affinity series',
+  score_within_run: 'score within run',
+};
+
+export function endpointLabel(e: string): string {
+  return ENDPOINT_LABELS[e] ?? e.replace(/_/g, ' ');
+}
+
+export type ToolGroup = 'co-folding' | 'docking' | 'ppi';
+export const TOOL_GROUP_LABELS: Record<ToolGroup, string> = { 'co-folding': 'Co-folding', docking: 'Docking', ppi: 'PPI docking' };
+const GROUP_ORDER: ToolGroup[] = ['co-folding', 'docking', 'ppi'];
+
+/**
+ * co-folding | docking | ppi. A docking tool is PPI docking when its endpoints are protein–protein
+ * only (interface, no pose) or its role says so. Unknown families count as co-folding (prototype).
+ */
+export function toolGroup(t: Pick<Tool, 'family' | 'role'> & { endpoints?: string[] }): ToolGroup {
+  if (familyOf(t) !== 'docking') return 'co-folding';
+  const e = t.endpoints ?? [];
+  if ((e.includes('interface') && !e.includes('pose')) || /protein.protein/i.test(t.role ?? '')) return 'ppi';
+  return 'docking';
+}
+
+export interface ToolFit {
+  ok: boolean;
+  /** false when neither the task nor the tool says which endpoints apply (then ok). */
+  known: boolean;
+  endpoint: string | null;
+  /** `cannot produce pose for ligand pose`, null when the tool fits. */
+  reason: string | null;
+}
+
+/**
+ * Whether `tool` can report the endpoint the task's claim needs: from Task.compatibleTools when the
+ * API lists them, else from Tool.endpoints. Unknown on either side counts as a fit (no warning).
+ */
+export function toolFit(tool: { id: string; endpoints?: string[] } | null | undefined, task: Task | null | undefined): ToolFit {
+  const endpoint = task?.endpoint ?? null;
+  if (!task || !endpoint || !tool) return { ok: true, known: false, endpoint, reason: null };
+  let ok: boolean | null = null;
+  if (Array.isArray(task.compatibleTools) && task.compatibleTools.length) ok = task.compatibleTools.includes(tool.id);
+  else if (Array.isArray(tool.endpoints)) ok = tool.endpoints.includes(endpoint);
+  if (ok === null) return { ok: true, known: false, endpoint, reason: null };
+  return { ok, known: true, endpoint, reason: ok ? null : `cannot produce ${endpointLabel(endpoint)} for ${task.name.toLowerCase()}` };
+}
+
+/**
+ * The task's default tools that fit its endpoint. When none fits, the first available register
+ * tool that does (none: an empty list; the plan then asks for a tool).
+ */
+export function taskDefaultTools(task: Task | null | undefined, register?: Tool[] | null): string[] {
+  const defaults = task?.defaultTools ?? [];
+  const find = (id: string) => register?.find((t) => t.id === id) ?? { id };
+  const fit = defaults.filter((id) => toolFit(find(id), task).ok);
+  if (fit.length || !defaults.length) return [...fit];
+  const alt = (register ?? []).find((t) => t.available !== false && toolFit(t, task).ok && toolFit(t, task).known);
+  return alt ? [alt.id] : [];
+}
+
+/** `A100 · Modal`, `CPU · local`, `checks only`; null when the register says nothing. */
+export function toolRunLabel(t: Pick<Tool, 'dispatchable' | 'gpu' | 'available'>): string | null {
+  if (t.dispatchable === false) return 'checks only';
+  if (t.dispatchable !== true) return null;
+  return t.gpu ? `${t.gpu} · Modal` : 'CPU · local';
+}
+
+/** True when some selected tool can be dispatched (Tool.dispatchable). */
+export function canExecute(ids: string[], register: Tool[] | null | undefined): boolean {
+  return ids.some((id) => register?.find((t) => t.id === id)?.dispatchable === true);
+}
+
+/** RunSettings.execute: the user's choice, else on when a selected tool can be dispatched. */
+export function effectiveExecute(form: Pick<RunForm, 'tools' | 'execute'>, register: Tool[] | null | undefined): boolean {
+  return typeof form.execute === 'boolean' ? form.execute : canExecute(form.tools, register);
+}
+
+/** Inputs the task needs that the form lacks (`series` is met by a ligand or an uploaded series file). */
+export function missingInputs(form: Pick<RunForm, 'target' | 'partner' | 'ligand'>, task: Task | null | undefined, opts: { seriesFile?: boolean } = {}): string[] {
+  const inputs = taskInputs(task);
+  const kind = taskKind(task);
+  const need = inputs ?? (kind === 'complex' ? ['target', 'partner'] : kind === 'ligand' ? ['target', 'ligand'] : ['target']);
+  const out: string[] = [];
+  if (need.includes('target') && !form.target.trim()) out.push('target');
+  if (need.includes('partner') && !form.partner.trim()) out.push('partner');
+  if (need.includes('ligand') && !form.ligand.trim()) out.push('ligand');
+  if (need.includes('series') && !form.ligand.trim() && !opts.seriesFile) out.push('series');
+  return out;
+}
+
+export interface PlanToolRow {
+  id: string;
+  name: string;
+  available: boolean;
+  note: string;
+  /** `A100 · Modal`, `CPU · local`, `checks only`, or null when unknown. */
+  run: string | null;
+  dispatchable: boolean | null;
+  fit: ToolFit;
+}
+
+export type PlanWarningKind = 'endpoint' | 'input' | 'unavailable' | 'execute' | 'tools';
+
+export interface PlanWarning {
+  kind: PlanWarningKind;
+  text: string;
+}
+
+export interface RunPlanModel {
+  tools: PlanToolRow[];
+  warnings: PlanWarning[];
+  /** RunSettings.execute for this form. */
+  execute: boolean;
+  /** Some selected tool can be dispatched. */
+  canExecute: boolean;
+  /** `Start run` (executors run) or `Check inputs` (pre-run check). */
+  startLabel: string;
+  /** One line under the switch. */
+  mode: string;
+}
+
+/** The run plan: tools with route and fit, the warnings the run carries, the execute switch. */
+export function runPlanModel(form: RunForm, task: Task | null | undefined, register: Tool[] | null | undefined, opts: { seriesFile?: boolean; extraWarnings?: string[] } = {}): RunPlanModel {
+  const tools: PlanToolRow[] = form.tools.map((id) => {
+    const t = register?.find((x) => x.id === id);
+    return {
+      id,
+      name: t?.name ?? id,
+      available: t?.available !== false,
+      note: t?.note ?? '',
+      run: t ? toolRunLabel(t) : null,
+      dispatchable: typeof t?.dispatchable === 'boolean' ? t.dispatchable : null,
+      fit: toolFit(t ?? { id }, task),
+    };
+  });
+  const warnings: PlanWarning[] = [];
+  if (!tools.length) warnings.push({ kind: 'tools', text: 'no executor selected' });
+  for (const t of tools) if (!t.fit.ok && t.fit.reason) warnings.push({ kind: 'endpoint', text: `${t.name} ${t.fit.reason}` });
+  for (const t of tools) if (!t.available) warnings.push({ kind: 'unavailable', text: `${t.name} not available${t.note ? `: ${t.note}` : ''}` });
+  for (const m of missingInputs(form, task, opts)) warnings.push({ kind: 'input', text: `missing input: ${m}` });
+  for (const w of opts.extraWarnings ?? []) if (!warnings.some((x) => x.text === w)) warnings.push({ kind: 'endpoint', text: w });
+  const can = canExecute(form.tools, register);
+  const execute = effectiveExecute(form, register);
+  if (execute && !can && tools.length) warnings.push({ kind: 'execute', text: 'no selected executor can be dispatched: the run checks inputs only' });
+  const runs = execute && can;
+  return {
+    tools,
+    warnings,
+    execute,
+    canExecute: can,
+    startLabel: runs ? 'Start run' : 'Check inputs',
+    mode: runs ? 'Executors run, then layers 4–5 check their outputs.' : 'Pre-run check: layers 0–3 only. Output checks wait for predictions.',
+  };
+}
+
+// ---------------------------------------------------------------- prompt tokens (click or drag into the request)
+
+export type PromptTokenKind = 'tool' | 'target' | 'ligand';
+
+export interface PromptToken {
+  kind: PromptTokenKind;
+  /** Tool id, UniProt accession or ligand SMILES. */
+  id: string;
+  /** Text inserted into the request (`Boltz-2`, `ABL1 kinase P00519`, `imatinib`). */
+  text: string;
+}
+
+/** dataTransfer type of a dragged chip. */
+export const TOKEN_MIME = 'application/x-dock-harness-token';
+
+export function toolToken(t: Pick<Tool, 'id' | 'name'>): PromptToken {
+  return { kind: 'tool', id: t.id, text: t.name };
+}
+
+export function targetToken(p: TargetOption): PromptToken {
+  const label = (p.label ?? '').trim();
+  const text = !label || label.toUpperCase() === p.accession.toUpperCase() ? p.accession : `${label} ${p.accession}`;
+  return { kind: 'target', id: p.accession, text };
+}
+
+export function ligandToken(l: LigandOption): PromptToken {
+  const name = l.names?.[0] ?? '';
+  const text = l.custom ? (l.smiles.length <= 40 ? l.smiles : name || l.smiles.slice(0, 40)) : name || l.smiles;
+  return { kind: 'ligand', id: l.smiles, text };
+}
+
+export function serializeToken(t: PromptToken): string {
+  return JSON.stringify(t);
+}
+
+export function parseToken(raw: string | null | undefined): PromptToken | null {
+  if (!raw) return null;
+  try {
+    const v = JSON.parse(raw) as Partial<PromptToken>;
+    if ((v.kind === 'tool' || v.kind === 'target' || v.kind === 'ligand') && typeof v.id === 'string' && typeof v.text === 'string') return { kind: v.kind, id: v.id, text: v.text };
+  } catch {
+    /* not a token */
+  }
+  return null;
+}
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** Whether `token` appears in `text` as a whole phrase (case-insensitive). */
+export function hasToken(text: string, token: string): boolean {
+  if (!token.trim()) return false;
+  return new RegExp(`(^|[^\\w-])${escapeRe(token)}(?=$|[^\\w-])`, 'i').test(text);
+}
+
+/**
+ * Insert `token` at `at` (default: the end) with one space on each side; unchanged when the text
+ * already names it. Returns the text and the caret after the token.
+ */
+export function insertToken(text: string, token: string, at?: number | null): { text: string; caret: number } {
+  if (!token.trim() || hasToken(text, token)) return { text, caret: at ?? text.length };
+  const pos = at === null || at === undefined || at < 0 || at > text.length ? text.length : at;
+  const before = text.slice(0, pos);
+  const after = text.slice(pos);
+  const lead = before && !/\s$/.test(before) ? ' ' : '';
+  const trail = after && !/^[\s,.?!]/.test(after) ? ' ' : '';
+  const out = `${before}${lead}${token}${trail}${after}`;
+  return { text: out, caret: before.length + lead.length + token.length + trail.length };
+}
+
+/** Remove a whole-phrase `token` from `text`, tidying the spaces it leaves. */
+export function removeToken(text: string, token: string): string {
+  if (!token.trim()) return text;
+  const re = new RegExp(`(^|[^\\w-])${escapeRe(token)}(?=$|[^\\w-])`, 'i');
+  if (!re.test(text)) return text;
+  return text
+    .replace(re, '$1')
+    .replace(/\s+(,|\.)/g, '$1')
+    .replace(/ {2,}/g, ' ')
+    .replace(/\b(and|with|,)\s+(and|with)\b/gi, '$2')
+    .replace(/\s+(and|with)\s*$/i, '')
+    .trim();
+}
+
+/** Replace the token `prev` (when present) by `next`, else insert `next`. */
+export function replaceToken(text: string, prev: string | null | undefined, next: string, at?: number | null): { text: string; caret: number } {
+  if (prev && prev !== next && hasToken(text, prev) && !hasToken(text, next)) {
+    const re = new RegExp(`(^|[^\\w-])${escapeRe(prev)}(?=$|[^\\w-])`, 'i');
+    const m = re.exec(text);
+    const out = text.replace(re, `$1${next}`);
+    const caret = m ? m.index + m[1].length + next.length : out.length;
+    return { text: out, caret };
+  }
+  return insertToken(text, next, at);
+}

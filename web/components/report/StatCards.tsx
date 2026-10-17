@@ -4,13 +4,14 @@
 // slot with a muted "not computed".
 
 import clsx from 'clsx';
-import { blockSource, sourceLabel, statCards } from '@/lib/selectors/report';
-import { BlockLabel, KvRow, NotComputed } from './parts';
+import { blockSource, referenceOnly, sourceLabel, statCards } from '@/lib/selectors/report';
+import { BlockLabel, KvRow, NotComputed, NumText } from './parts';
 import type { ReportBlockProps } from './types';
 
 export function StatCards({ record, tools, variant, className }: ReportBlockProps) {
   const print = variant === 'print';
-  const cards = statCards(record, tools);
+  // inputs only (no predictions): the site card, no empty pose cards
+  const cards = statCards(record, tools).filter((c) => !referenceOnly(record) || c.id === 'site');
   return (
     <div
       className={clsx('grid', print ? 'grid-cols-3 gap-4' : 'gap-4', className)}
@@ -21,7 +22,7 @@ export function StatCards({ record, tools, variant, className }: ReportBlockProp
         <div key={card.id} className={clsx('border-t border-ink', print ? 'pt-1.5' : 'pt-2.5')} data-testid="stat-card" data-card={card.id} data-state={card.computed ? 'computed' : 'not-computed'}>
           <BlockLabel print={print}>{card.title}</BlockLabel>
           {card.rows.map(([k, v]) => (
-            <KvRow key={k} k={k} v={v} print={print} muted={!card.computed} title={sourceLabel(blockSource(record, `${card.id}.${k}`))} />
+            <KvRow key={k} k={k} v={<NumText text={v} />} print={print} muted={!card.computed} title={sourceLabel(blockSource(record, `${card.id}.${k}`))} />
           ))}
           {!card.computed && <NotComputed what={card.id} print={print} />}
         </div>

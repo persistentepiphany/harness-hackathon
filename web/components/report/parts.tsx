@@ -2,9 +2,9 @@
 
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
-import { EmptyState } from '@/components/ui';
-import { RESULT_COLOR } from '@/lib/selectors/report';
-import type { Result } from '@/lib/types';
+import { DASH, splitUnit } from '@/lib/format';
+import { blockAvailability, RESULT_COLOR } from '@/lib/selectors/report';
+import type { Result, Tool, UiRunRecord } from '@/lib/types';
 
 /** 14px semibold section title with an optional mono note on the right. */
 export function SectionTitle({ children, note, className }: { children: ReactNode; note?: ReactNode; className?: string }) {
@@ -39,21 +39,47 @@ export function ResultDot({ result, size = 6, hollow, className }: { result: Res
   );
 }
 
-/** Muted "not computed" line in a block's slot. */
-export function NotComputed({ what, className, print }: { what?: string; className?: string; print?: boolean }) {
+/**
+ * Muted line in a block's slot. With `record`, says why the block is empty: `not applicable` with
+ * the reason (its checks were skipped as not applicable), `pending` (waits for predictions), or
+ * `not computed` (the block should exist and does not).
+ */
+export function NotComputed({ what, className, print, record, tools }: { what?: string; className?: string; print?: boolean; record?: UiRunRecord; tools?: Tool[] | null }) {
+  const a = record && what ? blockAvailability(record, what, false, tools) : null;
+  const state = a?.state ?? 'not_computed';
+  const word = state === 'not_applicable' ? 'not applicable' : state === 'pending' ? 'pending' : 'not computed';
   return (
-    <EmptyState className={clsx(print ? 'py-1 text-[8.5pt]' : 'py-2', className)} data-testid="not-computed">
-      <span data-block={what}>not computed</span>
-    </EmptyState>
+    <div className={clsx('text-muted', print ? 'py-1 text-[8.5pt]' : 'py-2 text-[12px]', className)} data-testid="not-computed" data-state={state}>
+      <span data-block={what}>
+        {word}
+        {a?.reason ? <span className="text-faint"> · {a.reason}</span> : null}
+      </span>
+    </div>
   );
 }
 
 /** k / v row of a stat card. */
 export function KvRow({ k, v, print, muted, title }: { k: ReactNode; v: ReactNode; print?: boolean; muted?: boolean; title?: string }) {
   return (
-    <div className={clsx('flex justify-between gap-3', print ? 'gap-2 py-px text-[9pt]' : 'py-[3px] text-[12px]')} title={title}>
-      <span className="text-ink2">{k}</span>
-      <span className={clsx('text-right font-mono', print ? 'text-[8.5pt]' : 'text-[11.5px]', muted && 'text-faint')}>{v}</span>
+    <div className={clsx('kv-grid', print ? 'py-px text-[9pt] [--kv-label:minmax(0,1fr)]' : 'py-[3px] text-[12px] [--kv-label:minmax(0,1fr)]')} title={title}>
+      <span className="min-w-0 text-ink2">{k}</span>
+      <span className={clsx('num font-mono', print ? 'text-[8.5pt]' : 'text-[11.5px]', muted && 'text-faint')}>{v}</span>
     </div>
   );
+}
+
+/** Value with its unit in muted text after it (number alignment standard, lib/format.ts). */
+export function Num({ value, unit, className, title }: { value: string; unit?: string | null; className?: string; title?: string }) {
+  return (
+    <span className={clsx('whitespace-nowrap tabular-nums', className)} title={title}>
+      {value}
+      {unit && value !== DASH ? <span className="num-unit">{unit}</span> : null}
+    </span>
+  );
+}
+
+/** A formatted `value unit` string (`−6.1 kcal/mol`) rendered as Num. */
+export function NumText({ text, className, title }: { text: string | null | undefined; className?: string; title?: string }) {
+  const p = splitUnit(text);
+  return <Num value={p.value} unit={p.unit} className={className} title={title} />;
 }

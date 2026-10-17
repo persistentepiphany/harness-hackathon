@@ -17,7 +17,7 @@ export interface SeedSpreadProps extends FigureProps {
 export function SeedSpread({ record, tools, side = true, caption = true, figNo = 3, variant, className }: SeedSpreadProps) {
   const print = variant === 'print';
   const seeds = record.stats.seeds;
-  if (!seeds || !seeds.length) return <NotComputed what="seeds" print={print} className={className} />;
+  if (!seeds || !seeds.length) return <NotComputed what="seeds" print={print} record={record} className={className} />;
   const { points, cutX, band, axis } = seedSpreadPoints(record);
   const p = record.stats.pairwise;
   const yLabel = seedAxisLabel(record, tools);

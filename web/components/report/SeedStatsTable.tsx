@@ -45,7 +45,7 @@ export function SeedStatsTable({ record, variant, className }: ReportBlockProps)
             </div>
           </>
         ) : (
-          <NotComputed what="physics" print={print} />
+          <NotComputed what="physics" print={print} record={record} />
         )}
       </div>
     </div>

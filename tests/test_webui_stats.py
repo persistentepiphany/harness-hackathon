@@ -224,7 +224,10 @@ def test_overwritten_render_belongs_to_the_last_structure(tmp_path: Path) -> Non
     assert "render" not in rows["boltz2/seed0/sample0"]
     assert rows["boltz2/seed0/sample1"]["render"] == render["png"]
     assert record["report"]["rendersOverwritten"] == 1
-    assert ui_renders(load_state(run), []) == [{**render, "structure": "model"}]
+    meta = {"executor", "seed", "rank", "pose", "score", "checks"}
+    plain = {k: v for k, v in render.items() if k not in meta}
+    assert ui_renders(load_state(run), []) == [{**plain, "structure": "model"}]
+    assert render["executor"] == "boltz2" and isinstance(render["checks"], list)
 
 
 def test_docking_card_from_manifest_settings(vina: dict[str, Any]) -> None:

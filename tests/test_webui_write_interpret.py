@@ -1,4 +1,5 @@
-"""The rule-based interpreter returns what interpretRun() in runs.js returns."""
+"""The rule-based interpreter: interpretRun() in runs.js, restricted to Quick setup tasks
+(configs/catalog.yaml quickSetup), with a partner for every task that takes one."""
 
 import json
 import shutil
@@ -11,8 +12,9 @@ from pah.webui.interpret import interpret_request
 from tests.conftest import ROOT
 
 RUNS_JS = ROOT / "web/design/prototype/data/runs.js"
-# Expected values produced by `node` running interpretRun() from runs.js (tool ids mapped to
-# executor ids: af3 -> alphafold3, haddock -> haddock3).
+# Expected values: interpretRun() from runs.js (tool ids mapped to executor ids: af3 ->
+# alphafold3, haddock -> haddock3), changed where the interpreter departs from it on purpose
+# (src/pah/webui/interpret.py docstring).
 CASES = [
     (
         "Dock imatinib into the ABL1 kinase pocket with Boltz-2 and Gnina, 5 seeds at pH 7.4, "
@@ -21,12 +23,12 @@ CASES = [
     ),
     (
         "Does KRAS interact with RAF1? Run Boltz-2 and Protenix with decoy partners",
-        "virtual_screening", ["boltz2", "protenix"], "P01116", "", 5, 7.4,
+        "known_complex", ["boltz2", "protenix"], "P01116", "P04049", 5, 7.4,
     ),
     (
         "Rank the imatinib congeneric series against ABL1 by Boltz-2 affinity, corroborate with "
         "Gnina, 8 seeds",
-        "affinity_ranking", ["boltz2", "gnina"], "P00519", "", 8, 7.4,
+        "series_scoring", ["boltz2", "gnina"], "P00519", "", 8, 7.4,
     ),
     (
         "Screen the erlotinib library against EGFR with Vina and DiffDock-L, property-matched "
@@ -35,11 +37,11 @@ CASES = [
     ),
     (
         "Protein\u2013protein dock KRAS with RAF1 using pyDock and HADDOCK, compare against 6VJJ",
-        "protein_protein_docking", ["pydock", "haddock3"], "P01116", "", 5, 7.4,
+        "protein_protein_docking", ["pydock", "haddock3"], "P01116", "P04049", 5, 7.4,
     ),
     (
         "Does KRAS bind to RAF1 in a complex with GDP?",
-        "interaction_discovery", ["boltz2", "protenix"], "P01116", "P04049", 5, 7.4,
+        "known_complex", ["boltz2", "protenix"], "P01116", "P04049", 5, 7.4,
     ),
     (
         "Redock the crystal ligand of HSP90 with vina at ph 6.5",
@@ -77,8 +79,10 @@ def test_steps_explain_each_decision() -> None:
 
 def test_defaults_and_explicit_values() -> None:
     out = interpret_request("Blind docking of CC(=O)Oc1ccccc1C(=O)O against Q9Y6K9, 40 seeds")
-    assert out["task"] == "blind_docking"
-    assert out["tools"] == ["diffdock", "gnina"]  # task default
+    # blind docking is manual-setup only: the request falls through to the docked-pose task
+    assert out["task"] == "pose_known_pocket"
+    assert out["tools"] == ["vina", "gnina"]  # task default
+    assert any("blind_docking" in w for w in out["warnings"])
     assert out["target"] == "Q9Y6K9"
     assert out["ligand"] == "CC(=O)Oc1ccccc1C(=O)O"
     assert out["seeds"] == 20  # clamped as in the prototype
@@ -92,6 +96,7 @@ def test_any_registered_executor_is_recognised() -> None:
     assert interpret_request("monomer structure of P69905 with AF3")["tools"] == ["alphafold3"]
 
 
+@pytest.mark.skip(reason="the interpreter departs from runs.js on purpose (Quick setup tasks)")
 @pytest.mark.skipif(shutil.which("node") is None, reason="node not installed")
 def test_matches_node_on_sample_prompts(tmp_path: Path) -> None:
     script = tmp_path / "interp.mjs"

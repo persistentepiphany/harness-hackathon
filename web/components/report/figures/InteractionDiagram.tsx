@@ -18,7 +18,7 @@ export interface InteractionDiagramProps extends FigureProps {
 export function InteractionDiagram({ record, list = true, diagram = true, caption = true, figNo = 2, variant, className }: InteractionDiagramProps) {
   const print = variant === 'print';
   const nodes = interactionNodes(record);
-  if (!record.stats.interactions) return <NotComputed what="interactions" print={print} className={className} />;
+  if (!record.stats.interactions) return <NotComputed what="interactions" print={print} record={record} className={className} />;
   const summary = interactionKnownText(record);
   const label = ligandLabel(record);
   return (

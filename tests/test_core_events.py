@@ -60,3 +60,11 @@ def test_console_sink_does_not_eat_brackets() -> None:
     sink = ConsoleSink(Console(file=buf, width=200, color_system=None))
     EventBus("r4", [sink]).emit(EventKind.FINDING, "L1", "msg [n=3, x=1]", gate="pass")
     assert "[n=3, x=1]" in buf.getvalue()
+
+
+def test_sequence_continues_from_seq_start() -> None:
+    mem = MemorySink()
+    with EventBus("run-x", [mem], seq_start=7) as bus:
+        bus.emit(EventKind.LOG, "run", "a")
+        bus.emit(EventKind.LOG, "run", "b")
+    assert [e.seq for e in mem.events] == [8, 9]

@@ -7,16 +7,22 @@
 // With a seed, the clock is virtual (fixed base time + simulated ms) and each tick advances exactly
 // 110 ms, so record ids, timings and logs repeat across page loads (tests, video recording).
 
-import type { AgentStep, AgentTask, Job, JobLayer, LogKind, LogLine, Result, UiCheck, UiRunRecord } from '../types';
+import type { AgentStep, AgentTask, ExecutionPhase, Job, JobLayer, LogKind, LogLine, RecordRender, Result, UiCheck, UiExecution, UiRunRecord } from '../types';
 import {
   AGENT_TASKS,
   CATALOG,
+  MOCK_RUNTIME,
   PRESET_JOBS,
   TASKS,
   countResults,
+  dimensionsFor,
+  executionPlan,
   makeRunRecord,
+  mockRenderSvg,
   resetMockCounters,
+  toolVersionsFor,
   type MockAgentTask,
+  type MockExecPlan,
   type MockForm,
 } from './data';
 
@@ -39,12 +45,30 @@ interface ProtoLine {
   plain: string;
 }
 
+/** Report stage (renders, figures, provenance graph) in simulated ms. */
+export const REPORT_MS = 900;
+
+/** Stage of a running job: pre-run layers 0–3, execute, output layers 4–5, report. */
+export type SimStage = 'pre' | 'execute' | 'output' | 'report' | 'done';
+
 export interface SimJob {
   id: string;
   name: string;
   form: MockForm;
   record: UiRunRecord;
   status: 'queued' | 'running' | 'done';
+  /** RunSettings.execute and at least one dispatchable executor. */
+  execute: boolean;
+  stage: SimStage;
+  plan: MockExecPlan[];
+  /** Simulated ms into the execute stage, and the job's elapsed ms when it began. */
+  execT: number;
+  execAt: number | null;
+  reportT: number;
+  /** Execution state last logged per executor (`phase:seed`), to log transitions once. */
+  execLogged: Record<string, string>;
+  /** The execute stage was simulated in this session (renders are written). */
+  live: boolean;
   layerIdx: number;
   progress: number;
   elapsedMs: number;
@@ -63,7 +87,47 @@ export interface SimAgentTask extends MockAgentTask {
 }
 
 const worst = (checks: UiCheck[]): Result =>
-  checks.some((c) => c.result === 'stop') ? 'stop' : checks.some((c) => c.result === 'warn') ? 'warn' : 'pass';
+  checks.some((c) => c.result === 'stop') ? 'stop' : checks.some((c) => c.result === 'warn') ? 'warn' : checks.length && checks.every((c) => c.result === 'skip') ? 'skip' : 'pass';
+
+const TERMINAL: ExecutionPhase[] = ['done', 'failed', 'skipped'];
+
+/** State of one executor `t` ms into the execute stage (queue, build, seeds one after another). */
+export function execAt(p: MockExecPlan, t: number, stageStartIso: string | null): UiExecution {
+  const base = { executor: p.executor, name: p.name, gpu: p.gpu, route: p.dispatchable ? p.route : null, routeNote: p.routeNote };
+  if (!p.dispatchable) return { ...base, phase: 'skipped', startedAt: null, elapsedMs: null, seeds: [], message: `not dispatched: ${p.note || 'no runtime'}` };
+  const started = stageStartIso ? new Date(new Date(stageStartIso).getTime() + p.queueMs).toISOString() : null;
+  if (t < p.queueMs) return { ...base, phase: 'queued', startedAt: null, elapsedMs: null, seeds: p.seeds.map((x) => ({ seed: x.seed, phase: 'queued', ms: null })), message: `waiting for a ${p.gpu ?? 'CPU'} slot` };
+  const since = t - p.queueMs;
+  if (since < p.buildMs) {
+    return { ...base, phase: 'building', startedAt: started, elapsedMs: Math.round(since), seeds: p.seeds.map((x) => ({ seed: x.seed, phase: 'queued', ms: null })), message: p.route === 'kit' ? 'loading the accelerated kit image' : p.route === 'local' ? 'preparing local inputs' : 'pulling the stock image' };
+  }
+  let r = since - p.buildMs;
+  const seeds = p.seeds.map((x) => {
+    if (r >= x.ms) {
+      r -= x.ms;
+      return { seed: x.seed, phase: 'done', ms: x.ms };
+    }
+    if (r >= 0) {
+      const ms = Math.round(r);
+      r = -1;
+      return { seed: x.seed, phase: 'running', ms };
+    }
+    return { seed: x.seed, phase: 'queued', ms: null };
+  });
+  const done = seeds.every((x) => x.phase === 'done');
+  const cur = seeds.find((x) => x.phase === 'running');
+  const total = p.buildMs + p.seeds.reduce((a, x) => a + x.ms, 0);
+  return {
+    ...base,
+    phase: done ? 'done' : 'running',
+    startedAt: started,
+    elapsedMs: Math.round(done ? total : since),
+    seeds,
+    message: done ? `${seeds.length} seeds done` : `seed ${cur ? cur.seed + 1 : seeds.filter((x) => x.phase === 'done').length}/${seeds.length}`,
+  };
+}
+
+const planTotal = (p: MockExecPlan) => (p.dispatchable ? p.queueMs + p.buildMs + p.seeds.reduce((a, x) => a + x.ms, 0) : 0);
 
 export class Simulator {
   jobs: SimJob[] = [];
@@ -140,14 +204,26 @@ export class Simulator {
     return `${p ? p.label : form.target} · ${t ? t.name.toLowerCase() : 'run'}`;
   }
 
-  makeJob(form: MockForm, name: string | undefined, createdAt: number, status: SimJob['status'] = 'queued', layerIdx = 0): SimJob {
+  makeJob(form0: MockForm, name: string | undefined, createdAt: number, status: SimJob['status'] = 'queued', layerIdx = 0): SimJob {
+    // execute only when asked and some selected executor can be dispatched (else a pre-run check)
+    const execute = form0.execute !== false && form0.tools.some((id) => MOCK_RUNTIME[id]?.dispatchable);
+    const form = { ...form0, execute };
     const record = makeRunRecord(form, createdAt);
+    const plan = execute ? executionPlan(record.tools, form.seeds, createdAt) : [];
     const job: SimJob = {
       id: record.id,
       name: name || this.suggestName(form),
       form,
       record,
       status,
+      execute,
+      stage: status === 'done' ? 'done' : layerIdx >= 4 ? 'output' : 'pre',
+      plan,
+      execT: 0,
+      execAt: null,
+      reportT: 0,
+      execLogged: {},
+      live: false,
       layerIdx: status === 'done' ? 6 : layerIdx,
       progress: 0,
       elapsedMs: 0,
@@ -160,8 +236,20 @@ export class Simulator {
       this.startLines(job);
       const n = status === 'done' ? 6 : layerIdx;
       for (let i = 0; i < n; i++) {
+        if (i === 4 && execute) {
+          job.execAt = job.elapsedMs;
+          job.execT = Math.max(0, ...plan.map(planTotal));
+          job.elapsedMs += job.execT;
+          this.logExecution(job);
+        }
         job.elapsedMs += record.layers[i].durationMs ?? 0;
-        this.emitLayer(job, i, 1);
+        if (i >= 4 && !execute) this.emitPending(job, i);
+        else this.emitLayer(job, i, 1);
+      }
+      if (status === 'done') {
+        job.elapsedMs += REPORT_MS;
+        job.reportT = REPORT_MS;
+        job.record = this.finalRecord(job);
       }
     }
     return job;
@@ -191,14 +279,121 @@ export class Simulator {
   }
 
   startLines(job: SimJob): void {
+    const names = job.record.tools.map((t) => t.name).join(' and ');
+    const run = job.plan.filter((p) => p.dispatchable);
     this.push(job, {
       layer: 0,
       kind: 'exec',
       t: '0.0s',
-      text: `slot acquired · ${job.record.tools.map((t) => t.container).join(' ')}`,
-      plain: `Started. ${job.record.tools.map((t) => t.name).join(' and ')} outputs are precomputed; checks run live.`,
+      text: `slot acquired · ${job.record.tools.map((t) => t.container).join(' ')} · execute=${job.execute ? 'yes' : 'no'}`,
+      plain: job.execute
+        ? `Started. Layers 0–3 check the inputs, then ${run.map((p) => `${p.name} (${p.gpu ?? 'CPU'}, ${p.route})`).join(' and ')} run, then layers 4–5 check their outputs.`
+        : `Started a pre-run check. ${names} are not run; layers 0–3 check the inputs and the output checks wait for predictions.`,
     });
-    (job.record.execution || []).forEach((e) => this.push(job, { layer: 0, kind: 'exec', t: '0.0s', text: e.text, plain: e.plain }));
+  }
+
+  /** Log the execution transitions not logged yet (phase changes, each seed finished, renders). */
+  private logExecution(job: SimJob): void {
+    const iso = job.execAt === null ? null : new Date(job.createdAt + job.execAt).toISOString();
+    for (const p of job.plan) {
+      const e = execAt(p, job.execT, iso);
+      const doneSeeds = e.seeds.filter((x) => x.phase === 'done');
+      const key = `${e.phase}:${doneSeeds.length}`;
+      const prev = job.execLogged[p.executor];
+      if (prev === key) continue;
+      const [prevPhase, prevSeeds] = prev ? prev.split(':') : ['', '0'];
+      const where = `${p.gpu ?? 'CPU'} · ${p.route} route`;
+      if (e.phase !== prevPhase) {
+        const text =
+          e.phase === 'queued' ? `execute ${p.executor} · queued · ${where}`
+          : e.phase === 'building' ? `execute ${p.executor} · building · ${p.routeNote}`
+          : e.phase === 'running' ? `execute ${p.executor} · running · ${p.seeds.length} seeds · ${where}`
+          : e.phase === 'done' ? `execute ${p.executor} · done · ${((e.elapsedMs ?? 0) / 1000).toFixed(1)} s`
+          : `execute ${p.executor} · ${e.phase} · ${e.message ?? ''}`;
+        const plain =
+          e.phase === 'queued' ? `${p.name} queued for ${p.gpu ? `an ${p.gpu} GPU on Modal` : 'a local CPU slot'}.`
+          : e.phase === 'building' ? `${p.name}: ${p.routeNote}.`
+          : e.phase === 'running' ? `${p.name} engaged on ${p.gpu ?? 'CPU'} (${p.route} route): ${p.seeds.length} seeds.`
+          : e.phase === 'done' ? `${p.name} finished ${p.seeds.length} seeds in ${((e.elapsedMs ?? 0) / 1000).toFixed(1)} s.`
+          : `${p.name} not run: ${e.message ?? 'no runtime'}.`;
+        if (e.phase === 'done') {
+          this.pushSeeds(job, p, doneSeeds, +prevSeeds);
+          this.push(job, { layer: null, kind: 'exec', text, plain });
+        } else {
+          this.push(job, { layer: null, kind: 'exec', text, plain });
+          this.pushSeeds(job, p, doneSeeds, +prevSeeds);
+        }
+      } else this.pushSeeds(job, p, doneSeeds, +prevSeeds);
+      job.execLogged[p.executor] = key;
+    }
+  }
+
+  private pushSeeds(job: SimJob, p: MockExecPlan, done: { seed: number; ms?: number | null }[], from: number): void {
+    for (const x of done.slice(from)) {
+      this.push(job, { layer: null, kind: 'exec', text: `execute ${p.executor} · seed ${x.seed} done · ${x.ms} ms`, plain: `${p.name} seed ${x.seed} done in ${((x.ms ?? 0) / 1000).toFixed(1)} s.` });
+      this.push(job, { layer: null, kind: 'artifact', text: `artifact render ${p.executor}_seed${x.seed}.png · pse`, plain: `PyMOL render of ${p.name} seed ${x.seed} written.` });
+    }
+  }
+
+  /** Pre-run: an output layer whose checks wait for predictions. */
+  private emitPending(job: SimJob, i: number): void {
+    const L = job.record.layers[i];
+    job.emitted[i] = this.linesFor(job, i).length;
+    if (job.log.some((l) => l.kind === 'layer' && l.layer === i)) return;
+    this.push(job, {
+      layer: i,
+      kind: 'layer',
+      result: 'skip',
+      text: `── ${L.name.toLowerCase()} · ${L.checks.length} checks · pending_input · pre-run`,
+      plain: `${L.name}: ${L.checks.length} checks wait for predictions (pre-run check, no executor ran).`,
+    });
+  }
+
+  /** Executions of the job at this point (none for a pre-run check). */
+  execution(job: SimJob): UiExecution[] {
+    if (!job.execute) return [];
+    const iso = job.execAt === null ? null : new Date(job.createdAt + job.execAt).toISOString();
+    return job.plan.map((p) => execAt(p, job.execAt === null ? 0 : job.execT, iso));
+  }
+
+  /** Renders written so far: one per finished seed of each executor (mock thumbnails). */
+  renders(job: SimJob): (RecordRender & Record<string, unknown>)[] {
+    const out: (RecordRender & Record<string, unknown>)[] = [];
+    const ex = this.execution(job);
+    const l4 = job.record.layers[4];
+    const l4done = job.layerIdx > 4 || job.status === 'done';
+    const pb = l4?.checks.filter((c) => /posebusters|clash/.test(c.id)) ?? [];
+    for (const e of ex) {
+      const tool = job.record.tools.find((t) => t.id === e.executor);
+      const key = tool?.outputs?.find((o) => o.kind === 'confidence' || o.kind === 'score' || o.kind === 'affinity');
+      e.seeds.forEach((x, rank) => {
+        if (x.phase !== 'done') return;
+        const value = key ? Math.round((key.kind === 'affinity' && key.higherIsBetter === false ? -9.6 + ((x.seed * 7) % 10) / 10 : 0.62 + ((x.seed * 13 + rank * 3) % 30) / 100) * 100) / 100 : null;
+        const checks = l4done ? pb.map((c) => ({ id: c.id, name: c.name, result: x.seed === 3 && c.id === 'posebusters.clash' ? ('warn' as const) : c.result })) : [];
+        out.push({
+          structure: `${e.executor}_seed${x.seed}`,
+          png: mockRenderSvg(e.executor, x.seed),
+          pse: '',
+          view: 'overview',
+          caption: `${e.name} seed ${x.seed} (mock render)`,
+          alt: `Schematic placeholder for the ${e.name} seed ${x.seed} pose (mock mode, no PyMOL)`,
+          executor: e.executor,
+          seed: x.seed,
+          rank: rank + 1,
+          score: key && value !== null ? { key: key.key, label: key.label, value, unit: key.unit ?? null } : null,
+          checks,
+        });
+      });
+    }
+    return out;
+  }
+
+  /** The record once the job is done: final execution, renders when executors ran. */
+  private finalRecord(job: SimJob): UiRunRecord {
+    if (!job.execute) return job.record;
+    // renders only for executions simulated in this session (the presets' reports stay as they were)
+    const renders = job.live ? this.renders(job) : [];
+    return { ...job.record, execution: this.execution(job), ...(renders.length ? { renders } : {}) };
   }
 
   linesFor(job: SimJob, i: number): ProtoLine[] {
@@ -271,24 +466,43 @@ export class Simulator {
       if (j.status !== 'running') continue;
       changed = true;
       j.version++;
-      j.elapsedMs += dt * speed;
-      j.progress += (dt * speed) / (j.record.layers[j.layerIdx].durationMs || 1);
+      const d = dt * speed;
+      j.elapsedMs += d;
+      if (j.stage === 'execute') {
+        j.execT += d;
+        this.logExecution(j);
+        if (this.execution(j).every((e) => TERMINAL.includes(e.phase))) {
+          j.stage = 'output';
+          j.progress = 0;
+          this.push(j, { layer: 4, kind: 'exec', text: `execute done · ${(j.execT / 1000).toFixed(1)} s · outputs → layer 4`, plain: `Executors finished in ${(j.execT / 1000).toFixed(1)} s. Output checks start.` });
+        }
+        continue;
+      }
+      if (j.stage === 'report') {
+        j.reportT += d;
+        if (j.reportT >= REPORT_MS) this.finish(j);
+        continue;
+      }
+      j.progress += d / (j.record.layers[j.layerIdx].durationMs || 1);
       if (j.progress >= 1) {
         this.emitLayer(j, j.layerIdx, 1);
         j.layerIdx += 1;
         j.progress = 0;
-        if (j.layerIdx >= 6) {
-          j.status = 'done';
-          const o = j.record.verdict.outcome;
-          this.push(j, {
-            layer: 5,
-            kind: 'layer',
-            result: o === 'refused' ? 'stop' : o === 'narrowed' ? 'warn' : 'pass',
-            t: `${(j.elapsedMs / 1000).toFixed(1)}s`,
-            text: `verdict · ${o} · ${(j.elapsedMs / 1000).toFixed(1)} s total · report generated`,
-            plain: `Verdict: ${o} after ${(j.elapsedMs / 1000).toFixed(1)} s. The report is ready.`,
-          });
-        }
+        if (j.layerIdx === 4 && j.execute) {
+          j.stage = 'execute';
+          j.live = true;
+          j.execAt = j.elapsedMs;
+          j.execT = 0;
+          this.logExecution(j);
+        } else if (j.layerIdx === 4 && !j.execute) {
+          this.emitPending(j, 4);
+          this.emitPending(j, 5);
+          j.layerIdx = 6;
+          this.startReport(j);
+        } else if (j.layerIdx >= 6) {
+          j.layerIdx = 6;
+          this.startReport(j);
+        } else if (j.layerIdx >= 4) j.stage = 'output';
       } else this.emitLayer(j, j.layerIdx, j.progress);
     }
     if (this.agentTasks.length) {
@@ -316,6 +530,28 @@ export class Simulator {
       this.tickCount++;
       this.notify();
     }
+  }
+
+  private startReport(j: SimJob): void {
+    j.stage = 'report';
+    j.reportT = 0;
+    j.progress = 1;
+    this.push(j, { layer: null, kind: 'artifact', text: `report · renders, figures, provenance graph`, plain: 'Writing the report: renders, figures and the provenance graph.' });
+  }
+
+  private finish(j: SimJob): void {
+    j.status = 'done';
+    j.stage = 'done';
+    j.layerIdx = 6;
+    j.record = this.finalRecord(j);
+    const o = j.record.verdict.outcome;
+    this.push(j, {
+      layer: 5,
+      kind: 'layer',
+      result: o === 'refused' ? 'stop' : o === 'narrowed' ? 'warn' : o === 'not_assessed' ? 'skip' : 'pass',
+      text: `verdict · ${o} · ${(j.elapsedMs / 1000).toFixed(1)} s total · report generated`,
+      plain: o === 'not_assessed' ? `Pre-run check done after ${(j.elapsedMs / 1000).toFixed(1)} s: inputs checked, claim not assessed. The report is ready.` : `Verdict: ${o} after ${(j.elapsedMs / 1000).toFixed(1)} s. The report is ready.`,
+    });
   }
 
   private notify(): void {
@@ -376,6 +612,9 @@ export class Simulator {
       createdAt: new Date(j.createdAt).toISOString(),
       layers,
       verdict: j.status === 'done' ? j.record.verdict.outcome : null,
+      assessment: j.execute ? 'full' : 'pre-run',
+      execution: this.execution(j),
+      reportStatus: j.stage === 'report' ? 'running' : j.status === 'done' ? 'done' : undefined,
     };
   }
 
@@ -394,12 +633,21 @@ export class Simulator {
     const doneLayers = layers.filter((l) => l.status === 'done');
     const stops = doneLayers.flatMap((l) => l.checks.filter((c) => c.result === 'stop').map((c) => c.id));
     const warnings = doneLayers.flatMap((l) => l.checks.filter((c) => c.result === 'warn').map((c) => c.id));
+    const renders = j.live ? this.renders(j) : [];
     return {
       ...j.record,
       status: j.status,
       layers,
       verdict: { claim: j.record.claim, outcome: null, statement: '', stops, warnings, incomplete: layers.filter((l) => l.status !== 'done').map((l) => String(l.key)) },
       narrative: [],
+      assessment: j.execute ? 'full' : 'pre-run',
+      evaluatedLayers: layers.filter((l) => l.status === 'done' && l.checks.some((c) => c.result !== 'skip' && c.result !== 'pending')).map((l) => l.i),
+      dimensions: dimensionsFor(layers),
+      toolVersions: toolVersionsFor(j.record.tools, layers, j.execute && j.stage !== 'pre' && j.stage !== 'execute'),
+      execution: this.execution(j),
+      tools: j.record.tools.map((t) => ({ ...t, ran: false, ranBy: null })),
+      ...(renders.length ? { renders } : { renders: undefined }),
+      ...(j.stage === 'report' ? { report: { status: 'running' } } : {}),
     };
   }
 

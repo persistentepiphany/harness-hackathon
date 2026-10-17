@@ -71,7 +71,7 @@ describe('New run form (mock catalog)', () => {
 
   it('builds settings with only the inputs the task takes', () => {
     expect(settingsFromForm({ ...form, partner: 'P04049', seeds: '', ph: 'x' }, CATALOG, TASKS)).toEqual({
-      task: 'ligand_pose', tools: ['boltz2', 'gnina'], target: 'P00519', reference: '1IEP', ph: 7.4, seeds: 5, name: 'ABL1 kinase · ligand pose', ligand: form.ligand,
+      task: 'ligand_pose', tools: ['boltz2', 'gnina'], target: 'P00519', reference: '1IEP', ph: 7.4, seeds: 5, name: 'ABL1 kinase · ligand pose', ligand: form.ligand, execute: false,
     });
     const disc = selectTask(form, TASKS.find((t) => t.id === 'interaction_discovery') as Task, CATALOG);
     expect(disc).toMatchObject({ task: 'interaction_discovery', tools: ['boltz2', 'protenix'], partner: 'P04049' });
@@ -158,7 +158,9 @@ describe.skipIf(!liveTools || !liveTasks)('New run with the live register and ta
 
   it('groups executors by family; unavailable tools are disabled unless selected', () => {
     const groups = executorGroups(tools, ['boltz2']);
-    expect(groups.map((g) => g.family)).toEqual(['co-folding', 'docking']);
+    // docking splits into ligand docking and protein–protein docking (role)
+    expect(groups.map((g) => g.group)).toEqual(['co-folding', 'docking', 'ppi']);
+    expect(groups.map((g) => g.family)).toEqual(['co-folding', 'docking', 'docking']);
     const boltz = groups[0].chips.find((c) => c.id === 'boltz2');
     expect(boltz).toMatchObject({ selected: true, available: false, disabled: false });
     expect(boltz?.note).toMatch(/not installed/);

@@ -46,7 +46,7 @@ export function PaeHeatmap({ record, size = 240, side = true, caption = true, fi
   useEffect(() => {
     if (ref.current && data) draw(ref.current, data);
   }, [data]);
-  if (!data) return <NotComputed what="pae" print={print} className={className} />;
+  if (!data) return <NotComputed what="pae" print={print} record={record} className={className} />;
   return (
     <div className={className} data-testid="figure-pae">
       <div className="flex flex-wrap items-start gap-6">

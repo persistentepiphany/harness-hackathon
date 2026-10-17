@@ -10,7 +10,7 @@ import { FigureCaption, SVG_TEXT, type FigureProps } from './common';
 export function RocCurve({ record, tools, caption = true, figNo = 5, variant, className }: FigureProps) {
   const print = variant === 'print';
   const pts = rocPolyline(record);
-  if (!pts) return <NotComputed what="roc" print={print} className={className} />;
+  if (!pts) return <NotComputed what="roc" print={print} record={record} className={className} />;
   const { auc, enrichment } = record.stats;
   const label = [auc === null || auc === undefined ? null : `AUC ${fmtNum(auc, undefined, 2)}`, enrichment].filter(Boolean).join(' · ');
   const ranking = rankingOutputName(record, tools);
