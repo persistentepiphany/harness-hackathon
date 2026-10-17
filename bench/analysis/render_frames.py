@@ -32,7 +32,7 @@ INK, INK2, MUTED, CANVAS, LINE = "#1A1A18", "#55554F", "#8B8B85", "#F7F7F4", "#E
 ACCENT, PASS, STOP = "#B07E2C", "#3B8A58", "#C4513B"
 
 PYMOL_SCRIPT = r"""
-import json, sys
+import json, os, sys
 from pymol import cmd
 a = json.loads(sys.argv[1])
 cmd.reinitialize()
@@ -65,6 +65,7 @@ cmd.orient(lig)
 cmd.zoom(lig, 9)
 cmd.set("ray_shadows", 0)
 cmd.set("antialias", 2)
+cmd.set("max_threads", os.cpu_count() or 1)
 n = int(a["frames"])
 for i in range(n):
     cmd.turn("y", 360.0 / n)

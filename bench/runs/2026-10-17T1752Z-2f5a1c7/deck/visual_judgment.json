@@ -1,0 +1,70 @@
+{
+  "schema_version": "visual_judgment_v1",
+  "reviewer": {
+    "type": "model",
+    "name": "automated visual review of rendered slides"
+  },
+  "verdict": "pass",
+  "reviewed_at": "2026-10-17T18:49:49+00:00",
+  "review_context": {
+    "renders": "bench/runs/2026-10-17T1752Z-2f5a1c7/deck/qa/renders/slide-01..08.jpg",
+    "method": "each slide image inspected at full resolution for clipping, overlap, alignment, legibility and factual captions"
+  },
+  "findings": [
+    {
+      "slide": 3,
+      "severity": "warning",
+      "resolved": true,
+      "message": "Title wrapped with an orphaned executor name; system and executor moved to the subtitle."
+    },
+    {
+      "slide": 4,
+      "severity": "warning",
+      "resolved": true,
+      "message": "Caption said 'same view per panel' while each render is oriented on its own ligand; caption corrected and title made factual."
+    },
+    {
+      "slide": 5,
+      "severity": "warning",
+      "resolved": true,
+      "message": "Title at risk of clipping (172% of box); title shortened."
+    },
+    {
+      "slide": 6,
+      "severity": "warning",
+      "resolved": true,
+      "message": "Boltz-2 interval crossed the legend; legend moved above the axes. Sidebar values split one per section."
+    },
+    {
+      "slide": 8,
+      "severity": "warning",
+      "resolved": true,
+      "message": "Card headings at different heights; bullets shortened to one line each."
+    },
+    {
+      "slide": 2,
+      "severity": "info",
+      "message": "Empty band below the table (about 15% of the slide)."
+    },
+    {
+      "slide": 2,
+      "severity": "info",
+      "message": "Table index strip repeats the column headers (accessibility metadata from the template)."
+    },
+    {
+      "slide": 3,
+      "severity": "info",
+      "message": "Lower third of both comparison cards is empty; text is fully visible."
+    },
+    {
+      "slide": 5,
+      "severity": "info",
+      "message": "Empty band below the table caption."
+    },
+    {
+      "slide": 8,
+      "severity": "info",
+      "message": "Empty band below the two cards; card headings and bullets aligned."
+    }
+  ]
+}

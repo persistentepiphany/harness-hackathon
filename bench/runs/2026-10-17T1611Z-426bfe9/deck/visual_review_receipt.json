@@ -1,0 +1,119 @@
+{
+  "schema_version": "visual_review_receipt_v1",
+  "review_schema_version": "visual_judgment_v1",
+  "deck": {
+    "filename": "deck.pptx",
+    "sha256": "52ab5284a4db68b9a7ae7340f2056bfd9fe06020acbe14da5264626c07f9e3a8",
+    "normalized_office_sha256": "2294a4605734ac0e5ae56fe0fafd802fc3bba94486982639622b07348b6533c4"
+  },
+  "renders": [
+    {
+      "name": "slide-01.jpg",
+      "sha256": "604f0b5d6f3decb901e54abf9f1d6cf49b08432fb0dacfb384a256cc46950695",
+      "size_bytes": 79281
+    },
+    {
+      "name": "slide-02.jpg",
+      "sha256": "bea7e154d569645461f70618fd09345a4264026617c8069bacd92b730ea55212",
+      "size_bytes": 132047
+    },
+    {
+      "name": "slide-03.jpg",
+      "sha256": "6011cffe6269d851375c7fa66c6835a3461edced1daa014a11edbd766f54d7fa",
+      "size_bytes": 154826
+    },
+    {
+      "name": "slide-04.jpg",
+      "sha256": "64aeb51b0d6f0b721179c58e79aa9646003ff2fec46b98ac301f9349f7fae618",
+      "size_bytes": 134509
+    },
+    {
+      "name": "slide-05.jpg",
+      "sha256": "e503274ae2d848dadf43f8e5e99d70e1858a89612d05e9528d9462ff6619caff",
+      "size_bytes": 112412
+    },
+    {
+      "name": "slide-06.jpg",
+      "sha256": "2986f0dc406e1ee0b2fb32c6d9aaeb3d29d102efbe2902ce2571a0c338161710",
+      "size_bytes": 126800
+    },
+    {
+      "name": "slide-07.jpg",
+      "sha256": "2a1c67ffc60b57e79d1a79f7a1ec0dc5cdf80d0d758cf4a5e6a67fe2a4d639ad",
+      "size_bytes": 117628
+    },
+    {
+      "name": "slide-08.jpg",
+      "sha256": "a7b611fb86d960b34f9ca4fc4583ece497c59f6f6bc01468158b31e1ddc61590",
+      "size_bytes": 122079
+    }
+  ],
+  "render_count": 8,
+  "reviewer": {
+    "type": "model",
+    "name": "automated visual review of rendered slides"
+  },
+  "verdict": "pass",
+  "findings": [
+    {
+      "slide": 3,
+      "severity": "warning",
+      "resolved": true,
+      "message": "Title wrapped with an orphaned executor name; system and executor moved to the subtitle."
+    },
+    {
+      "slide": 4,
+      "severity": "warning",
+      "resolved": true,
+      "message": "Caption said 'same view per panel' while each render is oriented on its own ligand; caption corrected and title made factual."
+    },
+    {
+      "slide": 5,
+      "severity": "warning",
+      "resolved": true,
+      "message": "Title at risk of clipping (172% of box); title shortened."
+    },
+    {
+      "slide": 6,
+      "severity": "warning",
+      "resolved": true,
+      "message": "Boltz-2 interval crossed the legend; legend moved above the axes. Sidebar values split one per section."
+    },
+    {
+      "slide": 8,
+      "severity": "warning",
+      "resolved": true,
+      "message": "Card headings at different heights; bullets shortened to one line each."
+    },
+    {
+      "slide": 2,
+      "severity": "info",
+      "message": "Empty band below the table (about 15% of the slide)."
+    },
+    {
+      "slide": 2,
+      "severity": "info",
+      "message": "Table index strip repeats the column headers (accessibility metadata from the template)."
+    },
+    {
+      "slide": 3,
+      "severity": "info",
+      "message": "Lower third of both comparison cards is empty; text is fully visible."
+    },
+    {
+      "slide": 5,
+      "severity": "info",
+      "message": "Empty band below the table caption."
+    },
+    {
+      "slide": 8,
+      "severity": "info",
+      "message": "Empty band below the two cards; card headings and bullets aligned."
+    }
+  ],
+  "reviewed_at": "2026-10-17T18:49:49+00:00",
+  "review_context": {
+    "renders": "bench/runs/2026-10-17T1611Z-426bfe9/deck/qa/renders/slide-01..08.jpg",
+    "method": "each slide image inspected at full resolution for clipping, overlap, alignment, legibility and factual captions"
+  }
+}

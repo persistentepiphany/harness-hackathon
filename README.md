@@ -362,14 +362,18 @@ GLM-4.6 once from the confidence score and once from the harness fact file. Grou
 by construction. Setup, stages and files: [bench/README.md](bench/README.md). Each run records
 its scores in `bench/scores.csv`.
 
-| Run | Predictions | Score only, balanced accuracy (95% CI) | Fact file, balanced accuracy (95% CI) | McNemar exact p |
-| --- | --- | --- | --- | --- |
-| [2026-10-17T1611Z-426bfe9](bench/runs/2026-10-17T1611Z-426bfe9/report.md) | 16 (6 valid, 10 invalid) | 0.50 (0.24 to 0.77) | 0.53 (0.38 to 0.75) | 0.69 |
+| Run | Seeds | Predictions | Score only, balanced accuracy (95% CI) | Fact file, balanced accuracy (95% CI) | McNemar exact p |
+| --- | --- | --- | --- | --- | --- |
+| [2026-10-17T1611Z-426bfe9](bench/runs/2026-10-17T1611Z-426bfe9/report.md) | 1, 2, 3 | 16 (6 valid, 10 invalid) | 0.50 (0.24 to 0.77) | 0.53 (0.38 to 0.75) | 0.69 |
+| [2026-10-17T1752Z-2f5a1c7](bench/runs/2026-10-17T1752Z-2f5a1c7/report.md) | 4, 5, 6 | 16 (6 valid, 10 invalid) | 0.50 (0.24 to 0.77) | 0.58 (0.50 to 0.75) | 0.45 |
 
-In that run the score-only arm called all eight Boltz-2 predictions valid, including the four
-perturbed ones; the fact-file arm called all four perturbed Boltz-2 predictions invalid and also
-rejected 5 of the 6 valid poses. The agent's stated reasons for each misclassification are in the
-run report.
+The score-only arm called every Boltz-2 prediction valid in both runs, including the perturbed
+ones. The fact-file arm rejected all perturbed Boltz-2 poses in both runs; it also rejected some
+valid poses, five of six in the first run and three of six in the second. Across both runs the
+intervals overlap 0.5 and the McNemar test is not significant; eight systems per executor are a
+demonstration, not a statistical result. The agent's stated reason for each misclassification is in
+the per-run report. Each run also writes a slide deck ([deck.pptx](bench/runs/2026-10-17T1752Z-2f5a1c7/results/deck.pptx),
+reviewed against its rendered slides with a hash-bound receipt) and a walkthrough video.
 
 ## Executors
 

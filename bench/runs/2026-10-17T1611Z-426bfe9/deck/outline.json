@@ -75,7 +75,8 @@
       "type": "content",
       "role": "comparison",
       "variant": "comparison-2col",
-      "title": "One perturbed prediction, two views (CDK2, Boltz-2)",
+      "title": "One perturbed prediction, two views",
+      "subtitle": "CDK2, Boltz-2, 13 contacts to glycine",
       "left": {
         "title": "Score only",
         "bullets": [
@@ -102,7 +103,8 @@
       "type": "content",
       "role": "evidence",
       "variant": "scientific-figure",
-      "title": "The ligand stays in a pocket whose contacts are gone",
+      "title": "Medoid poses, wild type and perturbed",
+      "subtitle": "CDK2, Boltz-2",
       "figures": [
         {
           "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/cdk2_wt_boltz2/run/renders/boltz2_seed3_sample0_pocket.png",
@@ -118,7 +120,7 @@
         }
       ],
       "figure_layout": "panel-grid",
-      "caption": "PyMOL renders of the medoid poses, same view per panel.",
+      "caption": "Each panel oriented on its ligand; grey: residues \u2264 5 \u00c5.",
       "sources": [
         "S1"
       ],
@@ -128,7 +130,7 @@
       "type": "content",
       "role": "table",
       "variant": "table",
-      "title": "Confusion counts, pooled over both executors",
+      "title": "Confusion counts, executors pooled",
       "table": {
         "headers": [
           "Arm",
@@ -171,12 +173,16 @@
       },
       "sidebar_sections": [
         {
-          "title": "Pooled",
-          "body": "Score only 0.5 (0.236 to 0.767); fact file 0.533 (0.375 to 0.75)"
+          "title": "Score only, pooled",
+          "body": "0.5 (0.236 to 0.767)"
         },
         {
-          "title": "McNemar",
-          "body": "Exact p 0.6875 (4 for, 2 against)"
+          "title": "Fact file, pooled",
+          "body": "0.533 (0.375 to 0.75)"
+        },
+        {
+          "title": "McNemar exact p",
+          "body": "0.6875; discordant 4 and 2"
         }
       ],
       "caption": "Bootstrap over predictions; dashed line at 0.5.",
@@ -194,7 +200,7 @@
       "figures": [
         {
           "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/results/figures/decisions.png",
-          "label": "A"
+          "title": "Ground truth and majority verdict per prediction"
         }
       ],
       "figure_layout": "panel-grid",
@@ -213,17 +219,17 @@
       "left": {
         "title": "Measured",
         "bullets": [
-          "16 predictions of 4 systems, 2 executors",
-          "Every prompt and response recorded",
-          "Ground truth fixed before any decision"
+          "16 predictions, 2 executors",
+          "Every prompt and response logged",
+          "Ground truth fixed in advance"
         ]
       },
       "right": {
         "title": "Not established",
         "bullets": [
-          "A statistical difference between arms",
-          "Binding loss beyond the source studies",
-          "Effect of prompt length alone"
+          "A significant difference",
+          "Loss of binding (assumed)",
+          "Effect of prompt length"
         ]
       },
       "notes": "Eight systems per executor support a demonstration, not a statistical claim. A length-matched control arm was not run.",

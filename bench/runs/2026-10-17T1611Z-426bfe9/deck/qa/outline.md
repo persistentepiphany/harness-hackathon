@@ -30,8 +30,8 @@ Notes:
 ## Slide 3: (No title)
 
 Body:
-- One perturbed prediction, two views (CDK2,
-- Boltz-2)
+- One perturbed prediction, two views
+- CDK2, Boltz-2, 13 contacts to glycine
 - Score only
 - Confidence: ligand_iptm 0.947,
 - pocket_plddt 85,
@@ -55,20 +55,20 @@ Notes:
 ## Slide 4: (No title)
 
 Body:
-- The ligand stays in a pocket whose contacts
-- are gone
+- Medoid poses, wild type and perturbed
+- CDK2, Boltz-2
 - A. wild type
 - Boltz-2 medoid pose
 - B. perturbed
 - Boltz-2 medoid pose
-- PyMOL renders of the medoid poses, same view per panel.
+- Each panel oriented on its ligand; grey: residues ≤ 5 Å.
 - S1: bench/runs/2026-10-17T1611Z-426bfe9 (stats.json, facts, renders) · Sources: S1
 - 4/8
 
 ## Slide 5: (No title)
 
 Body:
-- Confusion counts, pooled over both executors
+- Confusion counts, executors pooled
 - TABLE INDEX
 - 2 rows | Arm | Valid kept | Valid rejected | Invalid kept | Invalid rejected
 - 16 predictions (6 valid, 10 invalid); majority verdict over three repeats.
@@ -79,13 +79,12 @@ Body:
 
 Body:
 - Balanced accuracy with 95% intervals
-- Pooled
-- Score only 0.5 (0.236 to
-- 0.767); fact file 0.533
-- (0.375 to 0.75)
-- McNemar
-- Exact p 0.6875 (4 for, 2
-- against)
+- Score only, pooled
+- 0.5 (0.236 to 0.767)
+- Fact file, pooled
+- 0.533 (0.375 to 0.75)
+- McNemar exact p
+- 0.6875; discordant 4 and 2
 - Bootstrap over predictions; dashed line at 0.5.
 - S1: bench/runs/2026-10-17T1611Z-426bfe9 (stats.json, facts, renders) · Sources: S1
 - 6/8
@@ -97,7 +96,7 @@ Notes:
 
 Body:
 - Decision per prediction
-- A
+- A. Ground truth and majority verdict per prediction
 - B2 Boltz-2, DD DiffDock-L. V valid, I invalid.
 - S1: bench/runs/2026-10-17T1611Z-426bfe9 (stats.json, facts, renders) · Sources: S1
 - 7/8
@@ -110,17 +109,13 @@ Notes:
 Body:
 - What this run does and does not establish
 - Measured
-- 16 predictions of 4 systems, 2
-- executors
-- Every prompt and response recorded
-- Ground truth fixed before any
-- decision
+- 16 predictions, 2 executors
+- Every prompt and response logged
+- Ground truth fixed in advance
 - Not established
-- A statistical difference
-- between arms
-- Binding loss beyond the source
-- studies
-- Effect of prompt length alone
+- A significant difference
+- Loss of binding (assumed)
+- Effect of prompt length
 - S1: bench/runs/2026-10-17T1611Z-426bfe9 (stats.json, facts, renders) · Sources: S1
 - 8/8
 
