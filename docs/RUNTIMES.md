@@ -29,9 +29,9 @@ the kit carries as stock, so kit and stock runs use the same tool and weights.
 ## Optimisation kits
 
 The kits come from `github.com/anthropics/uplifting-biomolecular-modeling` at the commit pinned
-in `accel.yaml`. Each kit runs the upstream release in one of four modes: `off` (stock), `exact`
-(identical outputs, faster), `fast` (differences within stock's seed-to-seed variation) and `big`
-(lowest GPU memory).
+in `accel.yaml`. Each kit runs the upstream release in one of four modes, described in the kit
+READMEs as `off` (stock), `exact` (identical outputs, faster), `fast` (differences within stock's
+seed-to-seed variation) and `big` (lowest GPU memory).
 
 | Policy | Behaviour |
 | --- | --- |
@@ -67,7 +67,8 @@ flowchart TD
 Under `kit`, every arrow into the stock branch is an error instead. Each stock reason is printed
 as it is decided, written to `runtime_record.json` and carried in the `runtime.accel` finding
 (layer 3). A kit run in `fast` or `big` yields `warn`, following the specification row
-"Accelerated mode verified against stock on this hardware"; `exact` and stock yield `pass`.
+"Accelerated mode verified against stock on this hardware", as does a kit run that printed no
+ACTIVE line; `exact` and stock yield `pass`.
 
 Cards map to kit configs by name first (H200, B300, B200, H100, A100), then by compute
 capability: 10.x to `b200` or `h100`, 9.x to `h100`, 8.x to `a100` (this covers the L40S, 8.9).
@@ -118,9 +119,10 @@ source deploy/csf3/env.sh
 deploy/csf3/prepare_executor.sh boltz2        # kits checkout, stock .sif, weights
 ```
 
-Kit `.sif` files are converted from a Docker image, and CSF3 has no Docker. Build them on a
-Docker host with `pah runtimes build <id> --target apptainer` and copy
-`.tools/images/<kit>-kit.sif` to `~/scratch/pah/images/`. Then:
+The kits' `apptainer.def` files convert the kit image from a local Docker daemon
+(`Bootstrap: docker-daemon`). If the login node has no Docker, build the `.sif` on a Docker host
+with `pah runtimes build <id> --target apptainer` and copy `.tools/images/<kit>-kit.sif` to
+`~/scratch/pah/images/`. Then:
 
 ```bash
 sbatch deploy/csf3/executor.sbatch boltz2 $PAH_ROOT/runs/b2-001 --param input=$PWD/x.yaml
@@ -141,9 +143,9 @@ PAH_EXECUTOR=vina PAH_MODAL_GPU=L4 modal run deploy/modal/executors_app.py --par
 
 One app per executor. Kit executors build from the kit Dockerfile; others pull, build from
 upstream, or render a CUDA image with the pinned pip packages or binary. The harness is installed
-into its own venv in the image so the executor's stack is left as built. Modal adds its client
-library to the image's Python, which the kits' pin checks do not cover; if a kit's `check`
-reports a broken stack, rebuild with `PAH_MODAL_IMAGE=native`.
+into its own venv in the image so the executor's stack is left as built. The app has not been run:
+how Modal's own runtime requirements interact with each kit's pinned Python stack is untested. If
+a kit's `check` reports a broken stack, rebuild with `PAH_MODAL_IMAGE=native`.
 
 ### Local GPU workstation
 
@@ -153,14 +155,15 @@ reports a broken stack, rebuild with `PAH_MODAL_IMAGE=native`.
 
 ## State on 2026-10-17
 
-The development sandbox has no GPU and no Docker daemon. Verified there:
+The development sandbox has no GPU. Docker is installed but its daemon is not running at start.
+Verified there:
 
 | What | Result |
 | --- | --- |
 | Kits repository at `f4f62fa` | Cloned; sparse checkout of the 7 kits used and `common/` |
-| Stock pins, entry points and flags | Read from the PyPI wheels (boltz 2.2.1, chai_lab 0.6.1, protenix 1.1.0 and 2.0.0, openfold3 0.4.1, colabfold 1.6.1) and the kit READMEs and STOCK.md files |
+| Stock pins, entry points and flags | Read from the PyPI wheels (boltz 2.2.1, chai_lab 0.6.1, protenix 1.1.0 and 2.0.0, openfold3 0.4.1, colabfold 1.6.1), the kit READMEs and STOCK.md files, AlphaFold3 `docker/Dockerfile` at `03f4f48`, the AutoDock-GPU README and Makefiles at `e63e6f6`, DiffDock `inference.py` at `85c49b6`, and the DiffDock image layers on Docker Hub |
 | Vina v1.2.5 binary | Installed with `pah runtimes install vina`; `vina --version` prints `AutoDock Vina v1.2.5` |
-| Gnina v1.3 binary | Installed with `pah runtimes install gnina`; needs `libcudart.so.12` at run time (CUDA 12 runtime, present in the rendered image) |
+| Gnina v1.3 binary | Installed with `pah runtimes install gnina`; does not start here (`libcudart.so.12` missing). The rendered image uses a CUDA 12.6 runtime base; that image was not built |
 | Weight and image hosts reachable from the sandbox | Hugging Face (Boltz), chaiassets.com (Chai-1), OpenFold S3 (OpenFold3, af3_jax), Google Cloud Storage (AlphaFold2 params), GitHub releases, Docker Hub |
 | Hosts blocked from the sandbox | `protenix.tos-cn-beijing.volces.com` (Protenix weights) |
 | Image builds, weight downloads, GPU runs | Not run |
