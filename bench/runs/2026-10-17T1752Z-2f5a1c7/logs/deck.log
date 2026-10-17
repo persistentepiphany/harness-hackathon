@@ -1,0 +1,174 @@
+on": "absent_or_invalid",
+    "status": "miss"
+  },
+  "render_status": "passed",
+  "repair_packet": "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/deck/qa/repair_packet.json",
+  "schema_version": "quick-deck-finalization/v1",
+  "stages": [
+    {
+      "accepted": true,
+      "accepted_returncodes": [
+        0,
+        1
+      ],
+      "command": [
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/.venv/bin/python",
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/scripts/preflight.py",
+        "--outline",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/deck/outline.json"
+      ],
+      "duration_seconds": 0.253,
+      "returncode": 0,
+      "stage": "preflight"
+    },
+    {
+      "accepted": true,
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "/opt/node22/bin/node",
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/scripts/build_deck_pptxgenjs.js",
+        "--outline",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/deck/outline.json",
+        "--output",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/results/deck.pptx",
+        "--style-preset",
+        "lab-report"
+      ],
+      "duration_seconds": 0.408,
+      "returncode": 0,
+      "stage": "build"
+    },
+    {
+      "accepted": false,
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/.venv/bin/python",
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/scripts/qa_gate.py",
+        "--input",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/results/deck.pptx",
+        "--outline",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/deck/outline.json",
+        "--outdir",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/deck/qa",
+        "--style-preset",
+        "lab-report",
+        "--strict-geometry",
+        "--fail-on-geometry-warnings",
+        "--fail-on-whitespace-warnings",
+        "--run-visual-review",
+        "--fail-on-visual-review-warnings",
+        "--fail-on-design-warnings",
+        "--accessibility",
+        "--strict-accessibility",
+        "--accessibility-min-body-pt",
+        "16.0",
+        "--accessibility-min-support-pt",
+        "13.0",
+        "--accessibility-min-metadata-pt",
+        "9.0",
+        "--skip-manual-review",
+        "--render-cache-dir",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/deck/qa/.render-cache"
+      ],
+      "duration_seconds": 4.934,
+      "returncode": 1,
+      "stage": "qa"
+    }
+  ],
+  "style_preset": "lab-report",
+  "style_resolution_basis": "outline_design_choice",
+  "timing_scope": "Pipeline only; excludes model authoring and visual judgment.",
+  "total_duration_seconds": 5.595,
+  "visual_inspection_status": "not_recorded"
+}
+ 
+7T1752Z-2f5a1c7/deck/qa/repair_packet.json",
+  "schema_version": "quick-deck-finalization/v1",
+  "stages": [
+    {
+      "accepted": true,
+      "accepted_returncodes": [
+        0,
+        1
+      ],
+      "command": [
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/.venv/bin/python",
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/scripts/preflight.py",
+        "--outline",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/deck/outline.json"
+      ],
+      "duration_seconds": 0.216,
+      "returncode": 0,
+      "stage": "preflight"
+    },
+    {
+      "accepted": true,
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "/opt/node22/bin/node",
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/scripts/build_deck_pptxgenjs.js",
+        "--outline",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/deck/outline.json",
+        "--output",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/results/deck.pptx",
+        "--style-preset",
+        "lab-report"
+      ],
+      "duration_seconds": 0.535,
+      "output_sha256_after_restore": "d2888b84defc1cd857fe2317aff5cbda8c6ce300b2c748975bfa95656fb53e76",
+      "previous_output_bytes_restored": true,
+      "returncode": 0,
+      "stage": "build"
+    },
+    {
+      "accepted": true,
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/.venv/bin/python",
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/scripts/qa_gate.py",
+        "--input",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/results/deck.pptx",
+        "--outline",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/deck/outline.json",
+        "--outdir",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/deck/qa",
+        "--style-preset",
+        "lab-report",
+        "--strict-geometry",
+        "--fail-on-geometry-warnings",
+        "--fail-on-whitespace-warnings",
+        "--run-visual-review",
+        "--fail-on-visual-review-warnings",
+        "--fail-on-design-warnings",
+        "--accessibility",
+        "--strict-accessibility",
+        "--accessibility-min-body-pt",
+        "16.0",
+        "--accessibility-min-support-pt",
+        "13.0",
+        "--accessibility-min-metadata-pt",
+        "9.0",
+        "--skip-manual-review",
+        "--render-cache-dir",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/deck/qa/.render-cache"
+      ],
+      "duration_seconds": 2.414,
+      "returncode": 0,
+      "stage": "qa"
+    }
+  ],
+  "style_preset": "lab-report",
+  "style_resolution_basis": "outline_design_choice",
+  "timing_scope": "Pipeline only; excludes model authoring and visual judgment.",
+  "total_duration_seconds": 3.165,
+  "visual_inspection_status": "not_recorded"
+}
+ 
