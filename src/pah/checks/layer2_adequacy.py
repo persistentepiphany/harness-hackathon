@@ -61,6 +61,9 @@ def msa_stats(records: list[tuple[str, str]], identity: float = 0.8) -> dict[str
 
 
 def _msa_proteins(ctx: CheckContext) -> list[Any]:
+    """Chains whose MSA feeds a co-folding model (an MSA declared for a docking run is unused)."""
+    if outputs.executors(ctx) and not _cofolding(ctx):
+        return []
     return [p for p in ctx.manifest.proteins if p.msa]
 
 
@@ -72,7 +75,7 @@ class MsaDepth(Check):
     requires_modules = ("numpy",)
 
     def applies(self, ctx: CheckContext) -> str | None:
-        return None if _msa_proteins(ctx) else "no MSA declared"
+        return None if _msa_proteins(ctx) else "no MSA declared for a co-folding model"
 
     def run(self, ctx: CheckContext) -> Finding:
         rows: list[dict[str, Any]] = []
@@ -180,7 +183,7 @@ class MsaPairing(Check):
                 thresholds=th,
                 evidence=info,
             )
-        if m["paired_species"] < th[0].value:
+        if m["paired_species"] < float(th[0].value):
             return self.finding(
                 Gate.WARN,
                 f"{m['paired_species']} paired species",
@@ -224,7 +227,7 @@ class MsaParalogAmbiguity(Check):
                 thresholds=th,
                 evidence=info,
             )
-        gate = Gate.WARN if frac > th[0].value else Gate.PASS
+        gate = Gate.WARN if frac > float(th[0].value) else Gate.PASS
         return self.finding(
             gate,
             f"{m['ambiguous_species']} of {paired} paired species have more than one candidate",
@@ -269,7 +272,7 @@ class Disorder(Check):
             "max_disordered_fraction": worst["fraction"],
             "disordered": worst["disordered"],
         }
-        gate = Gate.WARN if worst["fraction"] > th[0].value else Gate.PASS
+        gate = Gate.WARN if worst["fraction"] > float(th[0].value) else Gate.PASS
         return self.finding(
             gate,
             f"{worst['disordered']} of {worst['length']} residues of "
@@ -547,7 +550,7 @@ class ReceptorProtonation(Check):
         import gemmi
 
         th = (outputs.configured(self.id, "pka_margin"),)
-        path = _receptor_for_docking(ctx)
+        path = _docked_receptor(ctx) or _receptor_for_docking(ctx)
         raw = gemmi.read_structure(str(path))
         has_h = any(a.element.name == "H" for ch in raw[0] for r in ch for a in r)
         pdb = ctx.artifact_path(f"work/{path.stem}_propka.pdb")
@@ -594,6 +597,17 @@ class ReceptorProtonation(Check):
             evidence=ev,
             tool=tool,
         )
+
+
+def _docked_receptor(ctx: CheckContext) -> Path | None:
+    """The receptor file a docking prediction declares it was run against."""
+    for p in ctx.manifest.predictions:
+        entry = outputs.model_entry(p.executor) or {}
+        if entry.get("family") == "docking" and p.receptor:
+            path = ctx.manifest.path(p.receptor)
+            if path.is_file():
+                return path
+    return None
 
 
 def _version(module: str) -> str | None:
@@ -807,7 +821,10 @@ class DockingBoxCheck(Check):
     def run(self, ctx: CheckContext) -> Finding:
         import numpy as np
 
-        th = (outputs.configured(self.id, "margin"),)
+        th = (
+            outputs.configured(self.id, "margin"),
+            outputs.configured(self.id, "contact_distance"),
+        )
         margin = float(th[0].value)
         box = docking_box(ctx)
         ref = outputs.reference_ligand(ctx) if _needs_site(ctx) is None else None
@@ -842,7 +859,7 @@ class DockingBoxCheck(Check):
             )
         inside_margin = np.all((ref.coords >= lo + margin) & (ref.coords <= hi - margin), axis=1)
         st = outputs.read_structure(_receptor_for_docking(ctx))
-        pocket = outputs.pocket_residues(st, ref.coords, 6.0)
+        pocket = outputs.pocket_residues(st, ref.coords, float(th[1].value))
         outside: list[str] = []
         for pr in pocket:
             res = st[0][pr.chain][str(pr.seqnum) + pr.icode.strip()][0]

@@ -6,7 +6,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
-from pah.checks import resolve
+from pah.checks import outputs, resolve
 from pah.core.check import Check, CheckContext, SkipReason, register
 from pah.core.models import Finding, Gate, Layer, Threshold, ToolRef
 from pah.sources import SourceUnavailableError
@@ -665,10 +665,13 @@ class ModelProvenance(Check):
 
     def run(self, ctx: CheckContext) -> Finding:
         m = ctx.manifest.model
+        entry = outputs.model_entry(m.executor if m else None)
+        learned = bool(entry["learned"]) if entry else "cofolding" in ctx.task.families
+        cofolding = (entry["family"] == "cofolding") if entry else learned
         required = ["executor", "version"]
-        if "cofolding" in ctx.task.families:
+        if learned:
             required.append("checkpoint")
-        if any(p.msa for p in ctx.manifest.proteins):
+        if cofolding and any(p.msa for p in ctx.manifest.proteins):
             required.append("database_snapshot")
         values = m.model_dump() if m else {}
         missing = [k for k in required if not values.get(k)]

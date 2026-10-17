@@ -318,6 +318,27 @@ def ligand_poses(ctx: CheckContext) -> list[Any]:
     return [p for s in require_sets(ctx) for p in s.ranked() if p.ligand]
 
 
+def primary_set(ctx: CheckContext) -> Any:
+    sets = require_sets(ctx)
+    return next((s for s in sets if s.role == "primary"), sets[0])
+
+
+def ensemble_poses(ctx: CheckContext, pset: Any | None = None) -> list[Any]:
+    """Independent samples of one prediction set: every co-folding sample; for docking, the
+    top-ranked mode of each seed (lower modes rank one search, they are not replicates)."""
+    from pah.executors import Family
+
+    pset = pset or primary_set(ctx)
+    poses = [p for p in pset.ranked() if p.ligand]
+    if pset.family is Family.DOCKING:
+        best: dict[Any, Any] = {}
+        for p in poses:
+            if p.seed not in best or p.rank < best[p.seed].rank:
+                best[p.seed] = p
+        poses = sorted(best.values(), key=lambda p: (p.seed or 0, p.rank))
+    return poses
+
+
 def pose_mol(pose: Any) -> Any:
     from rdkit import Chem, rdBase
 
@@ -503,7 +524,7 @@ def frame_target(ctx: CheckContext) -> tuple[Path, str]:
         rec = None
     if rec is not None:
         return rec, rec.name
-    first = ligand_poses(ctx)[0]
+    first = ensemble_poses(ctx)[0]
     return first.structure, first.id
 
 
@@ -511,9 +532,9 @@ def ensemble(ctx: CheckContext) -> Ensemble:
     def build() -> Ensemble:
         import numpy as np
 
-        poses = ligand_poses(ctx)
+        poses = ensemble_poses(ctx)
         if not poses:
-            raise OutputUnavailableError("no ligand poses in the predictions")
+            raise OutputUnavailableError("no ligand poses in the primary prediction set")
         target, label = frame_target(ctx)
         coords, frame_rmsd = [], {}
         for pose in poses:
@@ -571,7 +592,7 @@ def representative(ctx: CheckContext) -> Any:
         ens = ensemble(ctx)
         return ens.poses[ens.medoid]
     except OutputUnavailableError:
-        return ligand_poses(ctx)[0]
+        return ensemble_poses(ctx)[0]
 
 
 def site_coords(ctx: CheckContext) -> tuple[Any, str] | None:

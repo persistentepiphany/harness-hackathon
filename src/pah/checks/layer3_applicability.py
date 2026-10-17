@@ -206,7 +206,7 @@ class LigandPrevalence(Check):
             "analogue_components": len(worst["components"]),
         }
         tool = ToolRef(name="RCSB search (chemical) + RDKit topological fingerprint")
-        prevalent = [r["ligand"] for r in rows if r["systems"] > th[1].value]
+        prevalent = [r["ligand"] for r in rows if r["systems"] > float(th[1].value)]
         codes = ", ".join(c["code"] for c in worst["components"][:6]) or "none"
         msg = (
             f"{worst['systems']} PDB entries released before {cutoff} ({model} cutoff) "
@@ -375,7 +375,7 @@ class PocketExposure(Check):
             f"max similarity {best['similarity']} to {best['entry']} ({best['ligand']}, "
             f"SuCOS {best['sucos']}, coverage {best['coverage']}), released before {cutoff}"
         )
-        gate = Gate.WARN if best["similarity"] > th[0].value else Gate.PASS
+        gate = Gate.WARN if best["similarity"] > float(th[0].value) else Gate.PASS
         return self.finding(gate, msg, measurements=m, thresholds=th, evidence=ev)
 
     def _candidates(
@@ -466,7 +466,7 @@ class Modality(Check):
         for e in outputs.executors(ctx):
             entry = outputs.model_entry(e) or {}
             valid = set(entry.get("validated_modalities", []))
-            missing = sorted(m for m in modalities if m not in valid)
+            missing = sorted(m for m in modalities if m not in valid and m != "protein")
             crop = entry.get("training_crop_tokens")
             rows.append(
                 {
@@ -630,7 +630,7 @@ class ChemotypeExposure(Check):
             "max_systems": worst["systems"],
             "cutoff": cutoff,
         }
-        gate = Gate.WARN if worst["systems"] > th[0].value else Gate.PASS
+        gate = Gate.WARN if worst["systems"] > float(th[0].value) else Gate.PASS
         return self.finding(
             gate,
             f"{len(rows)} scaffolds; {worst['scaffold'] or 'acyclic'} in "

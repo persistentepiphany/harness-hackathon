@@ -241,6 +241,37 @@ def run(
 
 
 @app.command()
+def dock(
+    manifest: Annotated[Path, typer.Argument(help="Run manifest with receptor and ligand")],
+    out: Annotated[Path, typer.Option(help="Output directory; manifest.yaml is written here")],
+    profile: ProfileOpt = "local",
+    seeds: Annotated[str, typer.Option(help="Comma-separated Vina seeds")] = "0,1,2,3,4",
+    exhaustiveness: Annotated[int, typer.Option(help="Vina exhaustiveness")] = 8,
+    redock: Annotated[
+        bool, typer.Option("--redock/--no-redock", help="Redock the crystal ligand as control")
+    ] = True,
+    fmt: FormatOpt = OutputFormat.console,
+) -> None:
+    """Dock the manifest ligand with local AutoDock Vina and write a manifest of the outputs."""
+    from pah.service import InputError, dock_manifest
+
+    prof = _profile(profile, fmt)
+    try:
+        path = dock_manifest(
+            manifest,
+            prof,
+            out,
+            seeds=[int(s) for s in seeds.split(",") if s.strip()],
+            exhaustiveness=exhaustiveness,
+            redock=redock,
+            sinks=[_sink(fmt)],
+        )
+    except InputError as exc:
+        raise _fail(f"{manifest}: {exc}", fmt) from exc
+    typer.echo(str(path))
+
+
+@app.command()
 def batch(
     spec: Annotated[Path, typer.Argument(help="Batch spec YAML (targets: [manifest paths])")],
     profile: ProfileOpt = "local",

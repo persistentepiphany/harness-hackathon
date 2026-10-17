@@ -5,6 +5,15 @@ from pah.checks import (
     layer1_integrity,
     layer2_adequacy,
     layer3_applicability,
+    layer4_validity,
+    layer5_support,
 )
 
-__all__ = ["layer0_provenance", "layer1_integrity", "layer2_adequacy", "layer3_applicability"]
+__all__ = [
+    "layer0_provenance",
+    "layer1_integrity",
+    "layer2_adequacy",
+    "layer3_applicability",
+    "layer4_validity",
+    "layer5_support",
+]

@@ -30,6 +30,7 @@ checks:
   l2.library.properties:
     property_gap: {value: 0.2, comparator: "<=", origin: "Harness default: difference in median between library subsets, as a fraction of the active range; not yet calibrated", evidence: uncalibrated}
   l2.docking.box:
+    contact_distance: {value: 4.0, comparator: "<=", origin: "Harness rule: contact residues (heavy atom within 4 Å of the reference ligand) must have an atom inside the box; not yet calibrated", evidence: uncalibrated}
     margin: {value: 2.0, comparator: ">=", origin: "Harness rule: every pocket heavy atom lies at least 2 Å inside the box; not yet calibrated", evidence: uncalibrated}
   l3.exposure.pocket:
     similarity: {value: 50, comparator: "<=", origin: "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50", evidence: published}
