@@ -1,0 +1,90 @@
+# Written by `pah dock` from examples/3ptb_ligand_pose/manifest.yaml. Vina 1.2.7, exhaustiveness 8, seeds [0, 1, 2, 3, 4].
+task: ligand_pose
+claim: Pose within stated uncertainty
+proteins:
+- id: trypsin
+  uniprot: P00760
+  pdb_id: 3PTB
+  chain: A
+  sequence: IVGGYTCGANTVPYQVSLNSGYHFCGGSLINSQWVVSAAHCYKSGIQVRLGEDNINVVEGNEQFISASKSIVHPSYNSNTLNNDIMLIKLKSAASLNSRVASISLPTSCASAGTQCLISGWGNTKSSGTSYPDVLKCLKAPILSDSSCKSAYPGQITSNMFCAGYLEGGKDSCQGDSGGPVVCSGKLQGIVSWGSGCAQKNKPGVYTKVCNYVSWIKQTIASN
+  copies: 1
+  msa: ../3ptb_ligand_pose/chain_A.a3m
+  mutations: []
+ligands:
+- id: benzamidine
+  smiles: NC(=N)c1ccccc1
+  ccd: BEN
+  pubchem_cid: 2332
+  file: ../3ptb_ligand_pose/ligand_BEN.sdf
+  copies: 1
+receptor:
+  pdb_id: 3PTB
+  chains:
+  - A
+model:
+  executor: vina
+  version: 1.2.7
+  seeds:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+ph: 7.4
+predictions:
+- executor: vina
+  path: pose
+  role: primary
+  version: 1.2.7
+  receptor: pose/receptor_H.pdb
+  seeds:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  settings:
+    center_x: -1.856
+    center_y: 14.366
+    center_z: 16.748
+    size_x: 9.883
+    size_y: 11.95
+    size_z: 12.514
+    exhaustiveness: 8
+    num_modes: 9
+    scoring: vina
+    box_origin: "BEN in 3PTB extent + 4 \xC5"
+controls:
+  decoys: []
+  actives: []
+  redocking:
+    executor: vina
+    path: redock
+    role: control
+    receptor: redock/receptor_H.pdb
+    seeds:
+    - 0
+    settings:
+      center_x: -1.856
+      center_y: 14.366
+      center_z: 16.748
+      size_x: 9.883
+      size_y: 11.95
+      size_z: 12.514
+      exhaustiveness: 8
+      num_modes: 9
+      scoring: vina
+      box_origin: "BEN in 3PTB extent + 4 \xC5"
+docking_box:
+  center:
+  - -1.856
+  - 14.366
+  - 16.748
+  size:
+  - 9.883
+  - 11.95
+  - 12.514
+  origin: "BEN in 3PTB extent + 4 \xC5"
+reference:
+  pdb_id: 3PTB
+  ligand: BEN

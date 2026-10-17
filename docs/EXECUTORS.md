@@ -16,6 +16,26 @@ To re-check a claim, clone the repo at the listed SHA and open the cited line.
 | HADDOCK3 | haddocking/haddock3 @ `c8414e6e4dff70daf40ea548c775025add12f6fa` (2026-10-15) | 2026.10.0 (`pyproject.toml:7`) | Apache-2.0 |
 | pyDock | not on GitHub | n/a | UNVERIFIED |
 
+## Output parsers
+
+`pah.executors.parse_prediction` reads one manifest `predictions` entry with the parser registered for its `executor` id and returns a `PredictionSet` of `Pose` objects. The parsers live in `src/pah/executors/parsers/`, one module per tool, and follow the layouts in sections 1 to 9.
+
+Every pose carries a complex structure file. When the manifest declares the ligand with a SMILES (or an SDF file), the pose also carries an SDF of the ligand alone, heavy atoms only, with bond orders assigned from that SMILES. The ligand is the manifest ligand named by the prediction's `ligand` field, or the only manifest ligand. Ranks are 0-based and keep the tool's own order, except for Chai-1, whose files are unsorted and are ranked by `aggregate_score`. Pose ids are `<executor>/seed<seed>/sample<i>` for co-folding and `<executor>/seed<seed>/mode<i>` for docking, with the seed part left out when neither the layout nor the manifest `seeds` records one. Per-residue pLDDT is on a 0 to 100 scale and covers polymer residues only. PAE matrices are saved as `.npy` in the work directory. A missing optional file, such as a PAE matrix or a Boltz affinity file, is recorded in `PredictionSet.issues`. A path that does not match the layout raises `ParseError` with the expected path pattern.
+
+| Executor id | Module | One pose per | Scores and per-residue data |
+|---|---|---|---|
+| `boltz2`, `boltz1` | `boltz.py` | `<name>_model_<k>.cif`; `path` may be `OUT`, `boltz_results_<stem>`, `predictions/<name>` or a folder of `seed_<n>` runs | confidence JSON keys; pLDDT from `plddt_*.npz` times 100, mapped from tokens to polymer residues; PAE from `pae_*.npz`; `affinity_<name>.json` values in `PredictionSet.settings["affinity"]` |
+| `protenix` | `protenix.py` | `seed_<seed>/predictions/<name>_sample_<rank>.cif`; `path` may be `OUT`, `OUT/<name>` or one seed folder | summary confidence keys; pLDDT as the mean B-factor per residue |
+| `alphafold3` | `alphafold3.py` | `seed-<seed>_sample-<i>/*_model.cif`; rank from `<job>_ranking_scores.csv` | summary confidences keys; pLDDT as the mean of `atom_plddts` per residue; PAE from `*_confidences.json` |
+| `chai1` | `chai.py` | `pred.model_idx_<i>.cif`; `path` may hold `seed_<n>` runs | `aggregate_score`, `ptm`, `iptm`, `has_inter_chain_clashes` from the npz; pLDDT as the mean B-factor per residue |
+| `colabfold` | `colabfold.py` | `<job>_unrelaxed_rank_<NNN>_<tag>_seed_<SSS>.pdb`; rank is `NNN` minus 1, sample is the AF2 model number minus 1 | `ptm`, `iptm`, `max_pae`, `actifptm`, pair maps as `pdockq.A-B` and similar; pLDDT list and PAE from the scores JSON |
+| `vina` | `vina.py` | `MODEL` block of a `_out.pdbqt`, or of each file in a folder of seed runs (seed from a `seed<N>` token in the name, else the manifest `seeds`) | `vina_affinity` (kcal/mol), `rmsd_lb`, `rmsd_ub` |
+| `gnina` | `gnina.py` | record of the `-o` SDF, plain or gzipped | SD tags `minimizedAffinity`, `minimizedRMSD`, `CNNscore`, `CNNaffinity`, `CNN_VS`, `CNNaffinity_variance` |
+| `diffdock` | `diffdock.py` | `rank<k>_confidence<c>.sdf` in `OUT/<complex_name>`; `rank1.sdf` is skipped | `diffdock_confidence` from the file name |
+| `haddock3` | `haddock.py` | row of `capri_ss.tsv` in the last `<N>_caprieval` step; the model file is the complex, decompressed into the work directory when gzipped; no ligand | `score`, `irmsd`, `fnat`, `dockq` when the column holds a number |
+
+For Vina, Gnina and DiffDock the parser writes the complex as a PDB in the work directory: the receptor as docked (the prediction's `receptor`, else the manifest `receptor.file`; PDB, PDBQT or mmCIF) followed by the ligand as residue `LIG` on chain `L`. PDBQT receptor lines keep columns 1 to 66 and gain the element derived from the AutoDock type. The Vina ligand is rebuilt with Meeko from the `REMARK SMILES` lines that Meeko writes. Without those lines RDKit reads the PDBQT atoms and bond orders come from the declared SMILES.
+
 ---
 
 ## 1. Boltz-1 / Boltz-2 (`jwohlwend/boltz`)

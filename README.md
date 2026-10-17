@@ -294,7 +294,11 @@ source at a pinned commit and cites file and line. pyDock has no public source a
 unverified.
 
 An agent benchmark that runs these tools itself can use the harness on their outputs alone.
-That path needs only the output parser for the tool.
+That path needs only the output parser for the tool. Parsers for every tool above except pyDock
+are in `src/pah/executors/parsers/`. Each one turns an output directory into poses that carry a
+complex structure, the ligand as SDF with bond orders from the declared SMILES, the tool's own
+scores and per-residue pLDDT where the tool writes it. The "Output parsers" section of
+[docs/EXECUTORS.md](docs/EXECUTORS.md#output-parsers) lists what each parser reads.
 
 ### Running executors on GPU hosts
 

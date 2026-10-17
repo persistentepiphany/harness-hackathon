@@ -26,6 +26,14 @@ CLEAN = ROOT / "examples/3ptb_ligand_pose/manifest.yaml"
 FAULTY = ROOT / "examples/3ptb_faulty_inputs/manifest.yaml"
 
 
+OUTCOMES = {
+    "pass": "supported",
+    "pass_with_warnings": "narrowed",
+    "stop": "refused",
+    "incomplete": "incomplete",
+}
+
+
 def _run(profile: Profile, manifest: Path, run_id: str, layers: tuple[int, ...]) -> Path:
     from pah.service import RunOptions, run_manifest
 
@@ -57,7 +65,8 @@ def test_record_outcomes_results_and_gates(runs: dict[str, Path]) -> None:
     assert clean["verdict"]["outcome"] == "narrowed"
     assert clean["verdict"]["warnings"] == ["l1.ligand.stereo_defined"]
     assert clean["task"] == "ligand_pose" and clean["source"] == "pah" and clean["stats"] == {}
-    assert to_ui_record(runs["deep"])["verdict"]["outcome"] == "incomplete"
+    deep_raw = json.loads((runs["deep"] / "record.json").read_text())["verdict"]["outcome"]
+    assert to_ui_record(runs["deep"])["verdict"]["outcome"] == OUTCOMES[deep_raw]
     faulty = to_ui_record(runs["faulty"])
     assert faulty["verdict"]["outcome"] == "refused"
     assert "l1.ligand.identity" in faulty["verdict"]["stops"]
@@ -75,8 +84,14 @@ def test_record_outcomes_results_and_gates(runs: dict[str, Path]) -> None:
     assert checks["l1.receptor.altlocs"]["gate"] == "Warn"
 
 
-def test_layers_counts_durations_and_unknown_checks(runs: dict[str, Path]) -> None:
-    record = to_ui_record(runs["deep"])
+def test_layers_counts_durations_and_unknown_checks(
+    offline_profile: Profile, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from pah.core.check import CHECKS
+
+    # A task check with no registered implementation is a skip with unknown_check.
+    monkeypatch.delitem(CHECKS, "l2.context.cofactors")
+    record = to_ui_record(_run(offline_profile, CLEAN, "clean-03", (0, 1, 2)))
     layers = record["layers"]
     assert [layer["i"] for layer in layers] == [0, 1, 2, 3, 4, 5]
     assert [layer["key"] for layer in layers][:2] == ["provenance", "integrity"]
@@ -85,11 +100,12 @@ def test_layers_counts_durations_and_unknown_checks(runs: dict[str, Path]) -> No
     assert all(isinstance(layer["durationMs"], int) for layer in layers[:3])
     assert all("durationMs" not in layer and layer["counts"] == {} for layer in layers[3:])
     l2 = layers[2]
-    assert l2["counts"]["skip"] == len(l2["checks"]) == 8
-    assert {c["skipReason"] for c in l2["checks"]} == {"unknown_check"}
+    assert sum(l2["counts"].values()) == len(l2["checks"])
+    cofactors = _checks(record)["l2.context.cofactors"]
+    assert (cofactors["result"], cofactors["skipReason"]) == ("skip", "unknown_check")
     # an escalated check keeps Stop as its failure gate even when not implemented
-    assert _checks(record)["l2.context.cofactors"]["gate"] == "Stop"
-    assert any("8 not implemented" in line for line in record["narrative"])
+    assert cofactors["gate"] == "Stop"
+    assert any("1 not implemented" in line for line in record["narrative"])
     assert record["narrative"][-1].startswith("Verdict: incomplete.")
     assert layers[0]["summary"][0] == "7 objects"
 

@@ -3,7 +3,8 @@ from pathlib import Path
 import pytest
 
 import pah.checks  # noqa: F401 - registers checks
-from pah.checks.layer1_integrity import _diff, _read_a3m
+from pah.checks.layer1_integrity import _diff
+from pah.checks.resolve import read_a3m as _read_a3m
 from pah.core.check import CheckContext
 from pah.core.engine import Engine, RunRecord
 from pah.core.events import EventBus
