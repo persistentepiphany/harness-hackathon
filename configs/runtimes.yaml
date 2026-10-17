@@ -1,0 +1,375 @@
+# How to install, boot and run each executor (co-folding and docking engine) on a GPU host.
+# executors.yaml says where code and weights live; this file says how to run them.
+# I/O contracts with source citations: docs/EXECUTORS.md. Runtime design: docs/RUNTIMES.md.
+#
+# Routes, chosen per run by pah.runtimes.accel (policy in accel.yaml):
+#   kit      the Anthropic optimisation kit in a kit mode (exact | fast | big)
+#   kit_off  the kit image in mode `off`: stock exactly as released, same pinned stack as `kit`
+#   native   the stock tool from its own pinned install (pip venv, binary, or upstream image)
+#
+# Command templates are argument lists. Placeholders in braces are filled from run parameters
+# (`--param key=value`), `defaults`, and the launcher: {weights} {kit_dir} {card} {mode} {out_dir}.
+# Arguments after `--` on the command line are appended verbatim.
+#
+# `verified` records what was checked from the development sandbox (no GPU there): `pins` means
+# versions, entry points and flags were read from the pinned wheel or kit source; `reachable`
+# means the download URL answered. Nothing here has been run on a GPU yet.
+version: 1
+
+# Where things live per deployment profile (names match configs/profiles/).
+# launcher: host (commands run directly, inside a venv or inside the executor image on Modal),
+# docker, or apptainer. kit_probe: `import` (kit package must import in <envs_root>/<kit>-kit or
+# on PATH) or `checkout` (inside a kit image; run.sh check decides).
+profiles:
+  local:
+    launcher: host
+    envs_root: ./.tools/executors
+    kits_root: ./.tools/accel
+    images_root: ./.tools/images
+    weights_root: ./.tools/weights
+  csf3:
+    launcher: apptainer
+    envs_root: ${HOME}/scratch/pah/executors
+    kits_root: ${HOME}/scratch/pah/accel
+    images_root: ${HOME}/scratch/pah/images
+    weights_root: ${HOME}/scratch/pah/weights
+  modal:
+    launcher: host
+    kit_probe: checkout
+    envs_root: /opt/executors
+    kits_root: /kit
+    images_root: /images
+    weights_root: /weights
+
+# Kit commands shared by all kits; a kit may override them.
+kit_defaults:
+  check: [bash, "{kit_dir}/run.sh", check, --config, "{card}", --mode, "{mode}"]
+  install_weights: [bash, "{kit_dir}/run.sh", install, --weights, "{weights}"]
+  dockerfile: "{kit}/environment/Dockerfile"
+  apptainer_def: "{kit}/environment/apptainer.def"
+  # The kits' apptainer.def files convert this tag from the local Docker daemon.
+  image_tag: "{kit}-kit:dev"
+  dir_in_image: "/kit/{kit}"
+
+# Base image for rendered native images (pip and binary routes).
+native_image:
+  base: nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04
+  uv_installer: https://astral.sh/uv/0.9.5/install.sh
+
+executors:
+  # ---------------------------------------------------------------- co-folding
+  - id: boltz2
+    tool: Boltz-2
+    gpu: true
+    weights_dir: boltz
+    defaults: {seed: 0, samples: 5}
+    native:
+      version: 2.2.1
+      python: "3.11"
+      pip: ["boltz[cuda]==2.2.1"]
+      env: {BOLTZ_CACHE: "{weights}"}
+      fetch_weights: [python, -c, "from pathlib import Path; from boltz.main import download_boltz2; download_boltz2(Path('{weights}'))"]
+      command: [boltz, predict, "{input}", --out_dir, "{out_dir}", --model, boltz2, --cache, "{weights}",
+                --seed, "{seed}", --diffusion_samples, "{samples}", --override]
+      outputs: {structures: "boltz_results_*/predictions/*/*.cif", confidence: "boltz_results_*/predictions/*/confidence_*.json"}
+    accel:
+      kit: boltz2
+      stock: boltz 2.2.1 (tag v2.2.1, cb04aecc)
+      configs: [a100, h100, h200]
+      modes: ["off", exact, fast, big]
+      min_driver: 580
+      env: {BOLTZ_CACHE: "{weights}"}
+      command: [bash, "{kit_dir}/run.sh", pred, --config, "{card}", --mode, "{mode}", --input, "{input}",
+                --out_dir, "{out_dir}", --seeds, "{seed}", --diffusion_samples, "{samples}"]
+      outputs_kit: {structures: "by_seed/*/s*/**/*.cif", confidence: "by_seed/*/s*/**/confidence_*.json"}
+      outputs_off: {structures: "boltz_results_*/predictions/*/*.cif", confidence: "boltz_results_*/predictions/*/confidence_*.json"}
+    verified: [pins]
+
+  - id: boltz1
+    tool: Boltz-1
+    gpu: true
+    weights_dir: boltz
+    defaults: {seed: 0, samples: 5}
+    native:
+      version: 2.2.1
+      python: "3.11"
+      pip: ["boltz[cuda]==2.2.1"]
+      env: {BOLTZ_CACHE: "{weights}"}
+      fetch_weights: [python, -c, "from pathlib import Path; from boltz.main import download_boltz1; download_boltz1(Path('{weights}'))"]
+      command: [boltz, predict, "{input}", --out_dir, "{out_dir}", --model, boltz1, --cache, "{weights}",
+                --seed, "{seed}", --diffusion_samples, "{samples}", --override]
+      outputs: {structures: "boltz_results_*/predictions/*/*.cif", confidence: "boltz_results_*/predictions/*/confidence_*.json"}
+    accel: null
+    accel_note: The boltz2 kit accelerates `boltz predict --model boltz2` only.
+    verified: [pins]
+
+  - id: protenix
+    tool: Protenix v1 (protenix_base_default_v1.0.0)
+    gpu: true
+    weights_dir: protenix_v1
+    defaults: {seed: 101, samples: 5}
+    native:
+      version: 1.1.0
+      python: "3.11"
+      pip: ["protenix==1.1.0"]
+      env: {PROTENIX_ROOT_DIR: "{weights}"}
+      fetch_weights: null
+      fetch_note: Stock downloads checkpoint/ and common/ into PROTENIX_ROOT_DIR on first run. Without network, fill it with the kit's install step.
+      command: [protenix, pred, --input, "{input}", --out_dir, "{out_dir}", --seeds, "{seed}", --sample, "{samples}"]
+      outputs: {structures: "*/seed_*/predictions/*_sample_*.cif", confidence: "*/seed_*/predictions/*_summary_confidence_sample_*.json"}
+    accel:
+      kit: protenix_v1
+      stock: protenix 1.1.0 (PyPI wheel)
+      configs: [a100, h100, h200]
+      modes: ["off", exact, fast, big]
+      min_driver: 580
+      env: {PROTENIX_ROOT_DIR: "{weights}"}
+      command: [bash, "{kit_dir}/run.sh", pred, --config, "{card}", --mode, "{mode}", --input, "{input}",
+                --out_dir, "{out_dir}", --seeds, "{seed}", --sample, "{samples}"]
+      outputs_kit: {structures: "*/seed_*/predictions/*_sample_*.cif", confidence: "*/seed_*/predictions/*_summary_confidence_sample_*.json"}
+      outputs_off: {structures: "*/seed_*/predictions/*_sample_*.cif", confidence: "*/seed_*/predictions/*_summary_confidence_sample_*.json"}
+      note: The input file's directory must be writable; stock writes an updated copy beside it.
+    verified: [pins]
+
+  - id: protenix_v2
+    tool: Protenix v2
+    gpu: true
+    weights_dir: protenix_v2
+    defaults: {seed: 101, samples: 5}
+    native:
+      version: 2.0.0
+      python: "3.11"
+      pip: ["protenix==2.0.0"]
+      env: {PROTENIX_ROOT_DIR: "{weights}"}
+      fetch_weights: null
+      fetch_note: "checkpoint/protenix-v2.pt is not served by upstream (HTTP 403); place it by hand (sha256 8f931f9774a396b67033d0e58628e1834f4a1448165e04254b40a780b0c0d599)."
+      command: [protenix, pred, --input, "{input}", --out_dir, "{out_dir}", --seeds, "{seed}", --sample, "{samples}",
+                --model_name, protenix-v2]
+      outputs: {structures: "*/seed_*/predictions/*_sample_*.cif", confidence: "*/seed_*/predictions/*_summary_confidence_sample_*.json"}
+    accel:
+      kit: protenix_v2
+      stock: protenix 2.0.0 (tag v2.0.0, 2475421)
+      configs: [a100, h100, h200, b200, b300]
+      modes: ["off", exact, fast, big]
+      min_driver: 580
+      env: {PROTENIX_ROOT_DIR: "{weights}"}
+      command: [bash, "{kit_dir}/run.sh", pred, --config, "{card}", --mode, "{mode}", --input, "{input}",
+                --out_dir, "{out_dir}", --seeds, "{seed}", --sample, "{samples}", --model_name, protenix-v2]
+      outputs_kit: {structures: "*/seed_*/predictions/*_sample_*.cif", confidence: "*/seed_*/predictions/*_summary_confidence_sample_*.json"}
+      outputs_off: {structures: "*/seed_*/predictions/*_sample_*.cif", confidence: "*/seed_*/predictions/*_summary_confidence_sample_*.json"}
+    verified: [pins]
+
+  - id: chai1
+    tool: Chai-1
+    gpu: true
+    weights_dir: chai1
+    defaults: {seed: 42, samples: 5}
+    native:
+      version: 0.6.1
+      python: "3.11"
+      pip: ["chai_lab==0.6.1"]
+      env: {CHAI_DOWNLOADS_DIR: "{weights}"}
+      fetch_weights: null
+      fetch_note: Stock downloads models_v2/, conformers and esm/ into CHAI_DOWNLOADS_DIR on first run.
+      command: [chai-lab, fold, "{input}", "{out_dir}", --seed, "{seed}", --num-diffn-samples, "{samples}"]
+      outputs: {structures: "pred.model_idx_*.cif", confidence: "scores.model_idx_*.npz"}
+    accel:
+      kit: chai1
+      stock: chai_lab 0.6.1 (tag v0.6.1, 8d5ac0f9)
+      configs: [a100, h100, h200]
+      modes: ["off", exact, fast, big]
+      min_driver: 580
+      env: {CHAI_DOWNLOADS_DIR: "{weights}"}
+      command: [bash, "{kit_dir}/run.sh", pred, --config, "{card}", --mode, "{mode}", --seed, "{seed}",
+                --input, "{input}", --out_dir, "{out_dir}", --num-diffn-samples, "{samples}"]
+      check: [bash, "{kit_dir}/run.sh", check, --config, "{card}"]
+      outputs_kit: {structures: "*/*/seed_*/pred.model_idx_*.cif", confidence: "*/*/seed_*/scores.model_idx_*.npz"}
+      outputs_off: {structures: "*/*/seed_*/pred.model_idx_*.cif", confidence: "*/*/seed_*/scores.model_idx_*.npz"}
+    verified: [pins, reachable]
+
+  - id: alphafold3
+    tool: AlphaFold3 (DeepMind weights)
+    gpu: true
+    weights_dir: alphafold3
+    defaults: {}
+    native:
+      version: 03f4f48867748c164ae6d5144ae0529477df02e3
+      image:
+        build:
+          git: https://github.com/google-deepmind/alphafold3
+          ref: 03f4f48867748c164ae6d5144ae0529477df02e3
+          dockerfile: docker/Dockerfile
+        tag: alphafold3:03f4f48
+      fetch_weights: null
+      fetch_note: Weights are issued by request under separate terms. Put af3.bin(.zst) in the weights directory or set PAH_AF3_WEIGHTS.
+      weights_env_override: PAH_AF3_WEIGHTS
+      host_probe: /app/alphafold/run_alphafold.py
+      command: [python, /app/alphafold/run_alphafold.py, "--json_path={input}", "--output_dir={out_dir}",
+                "--model_dir={weights}", --norun_data_pipeline]
+      outputs: {structures: "*/seed-*_sample-*/*_model.cif", confidence: "*/seed-*_sample-*/*_summary_confidences.json"}
+    accel: null
+    accel_note: >-
+      The af3_jax and af3_torch kits run the AlphaFold3 architecture on OpenFold3 weights, which is a
+      different model. They are registered as alphafold3_of3 and never substituted for alphafold3.
+    verified: [pins]
+
+  - id: alphafold3_of3
+    tool: AlphaFold3 architecture on OpenFold3-preview2 weights (sokrypton/alphafold3 v3.1.4)
+    gpu: true
+    weights_dir: af3_of3
+    defaults: {}
+    native: null
+    native_note: Stock is the kit image in mode `off` (the fork is built from source inside the image).
+    accel:
+      kit: af3_jax
+      stock: sokrypton/alphafold3 v3.1.4 (bc32b22f) with of3-p2-155k.pt ported (variant p2)
+      configs: [a100, h100, h200]
+      modes: ["off", exact, fast, big]
+      min_driver: 550
+      env: {AF3_JAX_PARAMS_ROOT: "{weights}"}
+      command: [bash, "{kit_dir}/run.sh", pred, --config, "{card}", --variant, p2, --mode, "{mode}",
+                --json_path, "{input}", --output_dir, "{out_dir}"]
+      check: [bash, "{kit_dir}/run.sh", check, --config, "{card}", --variant, p2, --mode, "{mode}"]
+      install_weights: [bash, "{kit_dir}/run.sh", install, --config, "{card}", --weights, "{weights}"]
+      outputs_kit: {structures: "*/seed-*_sample-*/*_model.cif", confidence: "*/seed-*_sample-*/*_summary_confidences.json"}
+      outputs_off: {structures: "*/seed-*_sample-*/*_model.cif", confidence: "*/seed-*_sample-*/*_summary_confidences.json"}
+      note: Inputs carry MSAs and templates inline; the kit always passes --norun_data_pipeline.
+    verified: [pins]
+
+  - id: colabfold
+    tool: ColabFold (AlphaFold2-multimer v3)
+    gpu: true
+    weights_dir: colabfold
+    defaults: {seed: 0}
+    native:
+      version: 1.6.1
+      python: "3.11"
+      pip: ["colabfold[alphafold]==1.6.1", "jax[cuda12]"]
+      pip_note: jax is unpinned on this route; the kit image pins the exact stack (kit STOCK.md, Stack).
+      env: {}
+      fetch_weights: [python, -m, colabfold.download, "{weights}"]
+      command: [colabfold_batch, "{input}", "{out_dir}", --random-seed, "{seed}", --data, "{weights}"]
+      outputs: {structures: "*_unrelaxed_rank_*.pdb", confidence: "*_scores_rank_*.json"}
+    accel:
+      kit: colabfold
+      stock: colabfold 1.6.1 with alphafold-colabfold 2.3.13
+      configs: [a100, h100, h200]
+      modes: ["off", exact, fast, big]
+      min_driver: 580
+      env: {COLABFOLD_OPT_DATA_DIR: "{weights}"}
+      command: [bash, "{kit_dir}/run.sh", pred, --config, "{card}", --mode, "{mode}", "{input}", "{out_dir}",
+                --random-seed, "{seed}"]
+      outputs_kit: {structures: "*_unrelaxed_rank_*.pdb", confidence: "*_scores_rank_*.json"}
+      outputs_off: {structures: "*_unrelaxed_rank_*.pdb", confidence: "*_scores_rank_*.json"}
+    verified: [pins]
+
+  - id: openfold3
+    tool: OpenFold3 (preview-2)
+    gpu: true
+    weights_dir: openfold3
+    defaults: {}
+    native:
+      version: 0.4.1
+      python: "3.11"
+      pip: ["openfold3==0.4.1"]
+      env: {}
+      fetch_weights: null
+      fetch_note: of3-p2-155k.pt from https://openfold.s3.amazonaws.com/staging/of3-p2-155k.pt (kit STOCK.md, Pin).
+      command: [run_openfold, predict, --query-json, "{input}", --output-dir, "{out_dir}",
+                --inference-ckpt-path, "{weights}/of3-p2-155k.pt"]
+      outputs: {structures: "**/*.cif", confidence: "**/*confidences*.json"}
+    accel:
+      kit: openfold3
+      stock: openfold3 0.4.1 (tag 0.4.1, d12f5955)
+      configs: [a100, h100, h200, b200, b300]
+      modes: ["off", exact, fast, big]
+      min_driver: 580
+      env: {OPENFOLD3_CKPT: "{weights}/of3-p2-155k.pt"}
+      command: [bash, "{kit_dir}/run.sh", pred, --config, "{card}", --mode, "{mode}", --query-json, "{input}",
+                --output-dir, "{out_dir}"]
+      outputs_kit: {structures: "**/*.cif", confidence: "**/*confidences*.json"}
+      outputs_off: {structures: "**/*.cif", confidence: "**/*confidences*.json"}
+    verified: [pins]
+
+  # ---------------------------------------------------------------- docking
+  - id: diffdock
+    tool: DiffDock-L
+    gpu: true
+    weights_dir: diffdock
+    defaults: {samples: 10, name: complex}
+    native:
+      version: v1.1.3
+      image:
+        pull: docker.io/rbgcsail/diffdock:v1.1.3@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0
+        workdir: /home/appuser/DiffDock
+      host_probe: /home/appuser/DiffDock/inference.py
+      fetch_weights: null
+      fetch_note: Score and confidence models download into ./workdir on first run (GitHub release v1.1); ESM2 weights from dl.fbaipublicfiles.com.
+      command: [micromamba, run, -n, diffdock, python, -m, inference, --config, default_inference_args.yaml,
+                --protein_path, "{receptor}", --ligand_description, "{ligand}", --complex_name, "{name}",
+                --out_dir, "{out_dir}", --samples_per_complex, "{samples}"]
+      outputs: {poses: "*/rank*_confidence*.sdf"}
+    accel: null
+    verified: [reachable]
+
+  - id: gnina
+    tool: Gnina
+    gpu: true
+    weights_dir: gnina
+    defaults: {seed: 0, exhaustiveness: 8}
+    native:
+      version: "1.3"
+      binary:
+        url: https://github.com/gnina/gnina/releases/download/v1.3/gnina
+        name: gnina
+        sha256: c7e40b0258ff55941b0a0716d28ec9661b2917d809a04bcbab20c20a13b4beb9
+      fetch_weights: null
+      fetch_note: CNN models are built into the binary.
+      command: [gnina, -r, "{receptor}", -l, "{ligand}", --autobox_ligand, "{box_ligand}",
+                -o, "{out_dir}/docked.sdf", --seed, "{seed}", --exhaustiveness, "{exhaustiveness}"]
+      outputs: {poses: "docked.sdf"}
+    accel: null
+    verified: [reachable, installed]
+
+  - id: vina
+    tool: AutoDock Vina
+    gpu: false
+    weights_dir: vina
+    defaults: {seed: 0, exhaustiveness: 8}
+    native:
+      version: 1.2.5
+      binary:
+        url: https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_linux_x86_64
+        name: vina
+        sha256: fa0126a28a9ea9162d1b161dfa92bc76e632416db28ca246278ea4b2dc6860cb
+      fetch_weights: null
+      command: [vina, --receptor, "{receptor}", --ligand, "{ligand}", --config, "{box}",
+                --out, "{out_dir}/out.pdbqt", --seed, "{seed}", --exhaustiveness, "{exhaustiveness}"]
+      outputs: {poses: "out.pdbqt"}
+    accel: null
+    verified: [reachable]
+
+  - id: autodock_gpu
+    tool: AutoDock-GPU (AutoDock4 scoring) with AutoGrid4
+    gpu: true
+    weights_dir: autodock_gpu
+    defaults: {seed: 0, runs: 20, name: ligand}
+    native:
+      version: v1.6
+      image:
+        recipe:
+          base: nvidia/cuda:12.6.3-devel-ubuntu24.04
+          steps:
+            - apt-get update && apt-get install -y --no-install-recommends git make g++ curl bzip2 ca-certificates && rm -rf /var/lib/apt/lists/*
+            - git clone https://github.com/ccsb-scripps/AutoDock-GPU /opt/AutoDock-GPU && git -C /opt/AutoDock-GPU checkout e63e6f6280ebfad18caa3e8f48afdc269e79e063
+            - cd /opt/AutoDock-GPU && make DEVICE=CUDA NUMWI=128 GPU_INCLUDE_PATH=/usr/local/cuda/include GPU_LIBRARY_PATH=/usr/local/cuda/lib64 && cp bin/autodock_gpu_128wi /usr/local/bin/
+            - curl -fsSL https://micro.mamba.pm/api/micromamba/linux-64/2.3.3 | tar -xj -C /usr/local bin/micromamba
+            - micromamba create -y -p /opt/autogrid -c conda-forge -c bioconda autogrid=4.2.6 && ln -s /opt/autogrid/bin/autogrid4 /usr/local/bin/autogrid4
+        tag: autodock-gpu:v1.6
+      fetch_weights: null
+      command: [autodock_gpu_128wi, --ffile, "{maps_fld}", --lfile, "{ligand}", --nrun, "{runs}",
+                --seed, "{seed}", --resnam, "{out_dir}/{name}"]
+      outputs: {poses: "*.dlg", xml: "*.xml"}
+      note: Grid maps come from autogrid4 (bioconda autogrid 4.2.6), included in the image.
+    accel: null
+    verified: [pins]
