@@ -133,12 +133,34 @@ unverified.
 An agent benchmark that runs these tools itself can use the harness on their outputs alone.
 That path needs only the output parser for the tool.
 
+### Running executors on GPU hosts
+
+The core harness installs no engines. The optional `pah runtimes` commands install, build and
+run them on GPU hosts: Boltz-1/2, Protenix v1 and v2, Chai-1, AlphaFold3, AlphaFold3 on OpenFold3
+weights, ColabFold, OpenFold3, DiffDock-L, Gnina, AutoDock Vina and AutoDock-GPU. Where an
+[optimisation kit](https://github.com/anthropics/uplifting-biomolecular-modeling) exists for the
+tool, it is used by default in `fast` mode whenever it can engage on the host; otherwise the stock
+tool runs and the reason is recorded in `runtime_record.json` and a `runtime.accel` finding.
+`--accel stock` or `PAH_ACCEL=stock` turns the kits off, and `--accel kit` makes them mandatory.
+
+```bash
+pah runtimes list
+pah runtimes hardware                         # GPUs here and the route each executor would take
+pah runtimes kits fetch                       # kits at the commit pinned in configs/accel.yaml
+pah runtimes build boltz2 --target apptainer  # kit image; it also runs stock as mode off
+pah runtimes run boltz2 -p input=x.yaml --out runs/b2
+```
+
+Routes, launchers (host, Docker, Apptainer), the CSF3 and Modal entry points and what was
+verified without a GPU are in [docs/RUNTIMES.md](docs/RUNTIMES.md).
+
 ## Layout
 
 | Path | Contents |
 | --- | --- |
 | `src/pah/core/` | Models and the event bus |
 | `src/pah/doctor/` | Probes, catalog, runner, report |
+| `src/pah/runtimes/` | Executor install, image recipes, kit or stock routing, launchers, runner |
 | `src/pah/interfaces/` | CLI (MCP server and HTTP API to follow) |
 | `configs/` | Sources, tools, executors and deployment profiles as YAML |
 | `deploy/csf3/`, `deploy/modal/` | Slurm and Modal entry points |
