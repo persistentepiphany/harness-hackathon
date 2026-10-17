@@ -1,0 +1,2399 @@
+{
+  "id": "ligand_pose-79ea73116653",
+  "task": "ligand_pose",
+  "taskName": "Ligand pose in a known pocket",
+  "claim": "Predicted pose of FZC in MEK1 is valid",
+  "tools": [
+    {
+      "id": "diffdock",
+      "name": "DiffDock-L",
+      "version": "v1.1.3",
+      "family": "docking"
+    },
+    {
+      "id": "boltz2",
+      "name": "Boltz-2",
+      "family": "co-folding"
+    }
+  ],
+  "inputs": {
+    "target": "protein",
+    "ligand": "Cc1ccnc(n1)Oc2ccc(c(c2)Cl)c3cc4c(c(n[nH]4)C)c(c3)O[C@H]5CCC[C@H](C5)N",
+    "reference": "7XLP",
+    "ph": 7.4,
+    "seeds": 3
+  },
+  "sources": [
+    {
+      "source": "rcsb_files",
+      "accession": "7XLP",
+      "release": "n/a",
+      "sha256": "48ffbc34e5fd126dcc382784b2335898244931b81bfec941885710ee66a1ddcb",
+      "retrievedAt": "2026-10-17T17:04:21.179210Z",
+      "cached": true,
+      "url": "https://files.rcsb.org/download/7XLP.cif",
+      "sizeBytes": 527387
+    },
+    {
+      "source": "ccd",
+      "accession": "FZC",
+      "release": "2023-02-24",
+      "sha256": "6ce219c20fef4b83e61254569b4daf815eb01d22f48fc5d4eb3f3eb9d9e04b35",
+      "retrievedAt": "2026-10-17T17:04:21.648041Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/FZC",
+      "sizeBytes": 3599
+    },
+    {
+      "source": "rcsb",
+      "accession": "7XLP",
+      "release": "1.2",
+      "sha256": "66dacec771f9d4b53b9f16da634aac9c9751120076cfa91fc91f74126ec0c7aa",
+      "retrievedAt": "2026-10-17T17:04:23.964913Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/entry/7XLP",
+      "sizeBytes": 12056
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "chem:Cc1ccnc(n1)Oc2ccc(c(c2)Cl)c3cc4c(c(n[nH]4)C)c(c3)O[C@H]5CCC[C@H](C5)N",
+      "release": "n/a",
+      "sha256": "b46bdf44403804ed9493083945d49cd9a13b20895fab1c6801271e1d6cb7107d",
+      "retrievedAt": "2026-10-17T17:04:25.223944Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22parameters%22%3A+%7B%22descriptor_type%22%3A+%22SMILES%22%2C+%22match_type%22%3A+%22fingerprint-similarity%22%2C+%22type%22%3A+%22descriptor%22%2C+%22value%22%3A+%22Cc1ccnc%28n1%29Oc2ccc%28c%28c2%29Cl%29c3cc4c%28c%28n%5BnH%5D4%29C%29c%28c3%29O%5BC%40H%5D5CCC%5BC%40H%5D%28C5%29N%22%7D%2C+%22service%22%3A+%22chemical%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+50%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22mol_definition%22%7D",
+      "sizeBytes": 186
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:FZC:2019-01-01",
+      "release": "n/a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retrievedAt": "2026-10-17T17:04:24.853483Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22FZC%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 0
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "seq0.9:2019-01-01:348",
+      "release": "n/a",
+      "sha256": "940237010733505a827f1f814543a153dc628df82bd0293dc4edfee9932c1ae9",
+      "retrievedAt": "2026-10-17T17:10:16.909681Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.9%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22GLEELELDEQQRKRLEAFLTQKQKVGELKDDDFEKISELGGGNGGVVFKVSHKPSGLVMGRGLIHLEIKPAIRNQIIRELQVLHECNSPYIVGFYGAFYSDGEISGCMGHGDGGSLDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKIMHRDVKPGGIGVNSRGEIKLCGGGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSMGLSLVEMAVGRYPIPPPDAKELELMFGCQVEGDAAETPPRPRTPGRPLNKKGMDSRPPMAIFELLDYIVNEPPPKLPSGVFSLEFQDFVNKCLIKNPAERADLKQLMVHAFIKRSDAEEVDFAGWLCSTIGLNQ%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+200%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 2411
+    },
+    {
+      "source": "rcsb_files",
+      "accession": "3ZLS",
+      "release": "n/a",
+      "sha256": "ae30cf1ed7b4035f15a89ef073b302dde250349568c2e7aafe8feedf1fbf1ed1",
+      "retrievedAt": "2026-10-17T17:10:16.556200Z",
+      "cached": true,
+      "url": "https://files.rcsb.org/download/3ZLS.cif",
+      "sizeBytes": 315218
+    },
+    {
+      "source": "rcsb_files",
+      "accession": "3ZLX",
+      "release": "n/a",
+      "sha256": "1334dfc31103f3e6b0649ad7b3da707845e58b20bc6d7476b5745470c3435deb",
+      "retrievedAt": "2026-10-17T17:10:17.337567Z",
+      "cached": true,
+      "url": "https://files.rcsb.org/download/3ZLX.cif",
+      "sizeBytes": 313366
+    },
+    {
+      "source": "rcsb_files",
+      "accession": "3ZM4",
+      "release": "n/a",
+      "sha256": "eccb79a35cb7a9f22d341afa7a6adccb1cfca80e5b619b3846bfa7a867c8c916",
+      "retrievedAt": "2026-10-17T17:10:17.421020Z",
+      "cached": true,
+      "url": "https://files.rcsb.org/download/3ZM4.cif",
+      "sizeBytes": 321513
+    },
+    {
+      "source": "rcsb_files",
+      "accession": "5BX0",
+      "release": "n/a",
+      "sha256": "7ef25dd3b72e153ed3a5b358d87b3119cabeabb34cfeda76701473c0d9918cee",
+      "retrievedAt": "2026-10-17T17:10:17.659377Z",
+      "cached": true,
+      "url": "https://files.rcsb.org/download/5BX0.cif",
+      "sizeBytes": 312068
+    },
+    {
+      "source": "rcsb_files",
+      "accession": "3ZLY",
+      "release": "n/a",
+      "sha256": "e858c796adc5339d7facf5b2dc33ac5a76f377aaba4e56a3ae889b5c64b7a80b",
+      "retrievedAt": "2026-10-17T17:10:17.937608Z",
+      "cached": true,
+      "url": "https://files.rcsb.org/download/3ZLY.cif",
+      "sizeBytes": 310846
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "seq0.95:2019-01-01:348",
+      "release": "n/a",
+      "sha256": "137b5572110a227cb0656c30713d3ddef23f43a3429bc94c8e38ee15459cae21",
+      "retrievedAt": "2026-10-17T17:04:26.399150Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.95%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22GLEELELDEQQRKRLEAFLTQKQKVGELKDDDFEKISELGGGNGGVVFKVSHKPSGLVMGRGLIHLEIKPAIRNQIIRELQVLHECNSPYIVGFYGAFYSDGEISGCMGHGDGGSLDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKIMHRDVKPGGIGVNSRGEIKLCGGGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSMGLSLVEMAVGRYPIPPPDAKELELMFGCQVEGDAAETPPRPRTPGRPLNKKGMDSRPPMAIFELLDYIVNEPPPKLPSGVFSLEFQDFVNKCLIKNPAERADLKQLMVHAFIKRSDAEEVDFAGWLCSTIGLNQ%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+5%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 402
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "seq0.4:2019-01-01:348",
+      "release": "n/a",
+      "sha256": "d6df9b9b71ba434e7f00812877cfc18ac7957cf7a5519b73e1d9e5ce49f0d375",
+      "retrievedAt": "2026-10-17T17:04:27.117581Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.4%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22GLEELELDEQQRKRLEAFLTQKQKVGELKDDDFEKISELGGGNGGVVFKVSHKPSGLVMGRGLIHLEIKPAIRNQIIRELQVLHECNSPYIVGFYGAFYSDGEISGCMGHGDGGSLDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKIMHRDVKPGGIGVNSRGEIKLCGGGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSMGLSLVEMAVGRYPIPPPDAKELELMFGCQVEGDAAETPPRPRTPGRPLNKKGMDSRPPMAIFELLDYIVNEPPPKLPSGVFSLEFQDFVNKCLIKNPAERADLKQLMVHAFIKRSDAEEVDFAGWLCSTIGLNQ%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+5%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 402
+    }
+  ],
+  "layers": [
+    {
+      "i": 0,
+      "key": "provenance",
+      "name": "Provenance",
+      "question": "Where did every input come from?",
+      "status": "not_run",
+      "counts": {},
+      "checks": []
+    },
+    {
+      "i": 1,
+      "key": "integrity",
+      "name": "Input integrity",
+      "question": "Did the run receive exactly what was declared?",
+      "status": "not_run",
+      "counts": {},
+      "checks": []
+    },
+    {
+      "i": 2,
+      "key": "adequacy",
+      "name": "Input adequacy",
+      "question": "Does the input carry enough information?",
+      "status": "done",
+      "counts": {
+        "pass": 3,
+        "warn": 3,
+        "stop": 1,
+        "skip": 1
+      },
+      "checks": [
+        {
+          "id": "l2.msa.depth",
+          "name": "Alignment depth, distinct sequences, Neff and gap fraction",
+          "gate": "Stop",
+          "result": "skip",
+          "message": "no MSA declared for a co-folding model",
+          "evidence": "no MSA declared for a co-folding model",
+          "skipReason": "not_applicable"
+        },
+        {
+          "id": "l2.context.cofactors",
+          "name": "Required cofactors, ions and partners present",
+          "gate": "Stop",
+          "result": "stop",
+          "message": "components within 8.0 \u00c5 of FZC in 7XLP not supplied: CA",
+          "evidence": "components within 8.0 \u00c5 of FZC in 7XLP not supplied: CA \u00b7 near_site=1, missing=1, uniprot_cofactors=0",
+          "ms": 208,
+          "threshold": {
+            "value": "<= 8",
+            "origin": "Harness rule: a component of the reference entry within 8 \u00c5 of the declared ligand is required context; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "pocket_distance",
+              "value": 8.0,
+              "comparator": "<=",
+              "origin": "Harness rule: a component of the reference entry within 8 \u00c5 of the declared ligand is required context; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "near_site",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "missing",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "uniprot_cofactors",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l2.pocket.resolved",
+          "name": "Pocket residues resolved, no missing loops lining the pocket",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "37 pocket residues complete in 7XLP.cif",
+          "tool": "gemmi",
+          "evidence": "37 pocket residues complete in 7XLP.cif \u00b7 pocket_residues=37, incomplete=0, sequence_gaps=0",
+          "ms": 16,
+          "threshold": {
+            "value": "<= 6",
+            "origin": "Harness rule: pocket residues have a heavy atom within 6 \u00c5 of the ligand; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "pocket_distance",
+              "value": 6.0,
+              "comparator": "<=",
+              "origin": "Harness rule: pocket residues have a heavy atom within 6 \u00c5 of the ligand; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            },
+            {
+              "name": "missing_pocket_residues",
+              "value": 0,
+              "comparator": "==",
+              "origin": "Specification layer 2: stop when the pocket is incomplete",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "pocket_residues",
+              "value": 37,
+              "unit": null
+            },
+            {
+              "name": "incomplete",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "sequence_gaps",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l2.receptor.state",
+          "name": "Receptor state apo or holo",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "7XLP.cif holo: FZC in the site",
+          "evidence": "7XLP.cif holo: FZC in the site \u00b7 state=holo, site_ligands=1",
+          "ms": 15,
+          "measurements": [
+            {
+              "name": "state",
+              "value": "holo",
+              "unit": null
+            },
+            {
+              "name": "site_ligands",
+              "value": 1,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l2.receptor.protonation",
+          "name": "Receptor protonation at the stated pH",
+          "gate": "Stop",
+          "result": "warn",
+          "message": "receptor has no hydrogens (protonation not assigned)",
+          "tool": "propka 3.5.1",
+          "evidence": "receptor has no hydrogens (protonation not assigned) \u00b7 hydrogens_present=False, ph=7.4, pocket_titratable=12",
+          "ms": 333,
+          "threshold": {
+            "value": "> 1",
+            "origin": "Harness rule: a titratable pocket residue with PROPKA pKa within 1 unit of the stated pH has an ambiguous state; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "pka_margin",
+              "value": 1.0,
+              "comparator": ">",
+              "origin": "Harness rule: a titratable pocket residue with PROPKA pKa within 1 unit of the stated pH has an ambiguous state; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "hydrogens_present",
+              "value": false,
+              "unit": null
+            },
+            {
+              "name": "ph",
+              "value": 7.4,
+              "unit": null
+            },
+            {
+              "name": "pocket_titratable",
+              "value": 12,
+              "unit": null
+            },
+            {
+              "name": "ambiguous",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l2.ligand.protonation",
+          "name": "Ligand protonation and tautomers enumerated at the stated pH",
+          "gate": "Stop",
+          "result": "warn",
+          "message": "ligand: 16 states",
+          "tool": "dimorphite_dl 2.1.0",
+          "evidence": "ligand: 16 states \u00b7 ph=7.4, max_states=16, declared_not_enumerated=0",
+          "ms": 90,
+          "threshold": {
+            "value": "== 1",
+            "origin": "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "ph_window",
+              "value": 1.0,
+              "comparator": "==",
+              "origin": "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            },
+            {
+              "name": "states",
+              "value": 1,
+              "comparator": "==",
+              "origin": "Specification layer 2: warn when more than one plausible state",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "ph",
+              "value": 7.4,
+              "unit": null
+            },
+            {
+              "name": "max_states",
+              "value": 16,
+              "unit": null
+            },
+            {
+              "name": "declared_not_enumerated",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "max_tautomers",
+              "value": 6,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l2.ligand.conformers",
+          "name": "Ligand conformers generated and minimised",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "10 ETKDG conformers per ligand, MMFF minimised",
+          "tool": "rdkit",
+          "evidence": "10 ETKDG conformers per ligand, MMFF minimised \u00b7 ligands=1, failed=0, min_embedded=10",
+          "ms": 1494,
+          "threshold": {
+            "value": ">= 10",
+            "origin": "Harness default number of ETKDG conformers; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "conformers",
+              "value": 10,
+              "comparator": ">=",
+              "origin": "Harness default number of ETKDG conformers; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "ligands",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "failed",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "min_embedded",
+              "value": 10,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l2.docking.box",
+          "name": "Docking box encloses the pocket with margin",
+          "gate": "Stop",
+          "result": "warn",
+          "message": "no box declared; derived box encloses 19 contact residues and the FZC ligand with 2.0 \u00c5 margin",
+          "evidence": "no box declared; derived box encloses 19 contact residues and the FZC ligand with 2.0 \u00c5 margin \u00b7 volume_A3=5697, ligand_atoms_inside_margin=33, ligand_atoms=33",
+          "ms": 13,
+          "threshold": {
+            "value": ">= 2",
+            "origin": "Harness rule: every pocket heavy atom lies at least 2 \u00c5 inside the box; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "margin",
+              "value": 2.0,
+              "comparator": ">=",
+              "origin": "Harness rule: every pocket heavy atom lies at least 2 \u00c5 inside the box; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            },
+            {
+              "name": "contact_distance",
+              "value": 4.0,
+              "comparator": "<=",
+              "origin": "Harness rule: contact residues (heavy atom within 4 \u00c5 of the reference ligand) must have an atom inside the box; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "volume_A3",
+              "value": 5697.0,
+              "unit": null
+            },
+            {
+              "name": "ligand_atoms_inside_margin",
+              "value": 33,
+              "unit": null
+            },
+            {
+              "name": "ligand_atoms",
+              "value": 33,
+              "unit": null
+            },
+            {
+              "name": "contact_residues",
+              "value": 19,
+              "unit": null
+            },
+            {
+              "name": "contact_residues_outside",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        }
+      ],
+      "durationMs": 2186,
+      "figures": [
+        [
+          "near site",
+          "1"
+        ],
+        [
+          "missing",
+          "1"
+        ],
+        [
+          "uniprot cofactors",
+          "0"
+        ],
+        [
+          "pocket residues",
+          "37"
+        ],
+        [
+          "incomplete",
+          "0"
+        ],
+        [
+          "sequence gaps",
+          "0"
+        ],
+        [
+          "state",
+          "holo"
+        ],
+        [
+          "site ligands",
+          "1"
+        ]
+      ]
+    },
+    {
+      "i": 3,
+      "key": "applicability",
+      "name": "Applicability",
+      "question": "Is the tool inside its validated regime?",
+      "status": "done",
+      "counts": {
+        "pass": 6,
+        "warn": 0,
+        "stop": 0,
+        "skip": 0
+      },
+      "checks": [
+        {
+          "id": "l3.model.training_cutoff",
+          "name": "Model training cutoff recorded",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "diffdock 2019-01-01; boltz2 2023-06-01; reference 7XLP released 2023-03-01, before the cutoff of boltz2",
+          "evidence": "diffdock 2019-01-01; boltz2 2023-06-01; reference 7XLP released 2023-03-01, before the cutoff of boltz2 \u00b7 executors=2, unknown=0, reference_released=2023-03-01",
+          "ms": 1,
+          "threshold": {
+            "value": "== recorded",
+            "origin": "Specification, Layer 3 (applicability): stop when unknown",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "training_cutoff",
+              "value": "recorded",
+              "comparator": "==",
+              "origin": "Specification, Layer 3 (applicability): stop when unknown",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "executors",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "unknown",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "reference_released",
+              "value": "2023-03-01",
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l3.exposure.pocket",
+          "name": "Pocket similarity to pre-cutoff complexes (SuCOS times pocket coverage)",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "max similarity 24.3 to 3ZM4 (22T, SuCOS 0.567, coverage 0.429), released before 2019-01-01",
+          "evidence": "max similarity 24.3 to 3ZM4 (22T, SuCOS 0.567, coverage 0.429), released before 2019-01-01 \u00b7 cutoff=2019-01-01, entries_compared=5, max_similarity=24.3",
+          "ms": 518,
+          "threshold": {
+            "value": "<= 50",
+            "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "similarity",
+              "value": 50,
+              "comparator": "<=",
+              "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
+              "evidenceLevel": "published"
+            },
+            {
+              "name": "entries",
+              "value": 5,
+              "comparator": "<=",
+              "origin": "Harness budget: pre-cutoff holo entries compared per run",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "cutoff",
+              "value": "2019-01-01",
+              "unit": null
+            },
+            {
+              "name": "entries_compared",
+              "value": 5,
+              "unit": null
+            },
+            {
+              "name": "max_similarity",
+              "value": 24.3,
+              "unit": null
+            },
+            {
+              "name": "pocket_residues",
+              "value": 35,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l3.exposure.ligand_prevalence",
+          "name": "Ligand analogues in pre-cutoff training systems",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "0 PDB entries released before 2019-01-01 (diffdock cutoff) contain analogues of ligand above Tanimoto 0.9: FZC",
+          "tool": "RCSB search (chemical) + RDKit topological fingerprint",
+          "evidence": "0 PDB entries released before 2019-01-01 (diffdock cutoff) contain analogues of ligand above Tanimoto 0.9: FZC \u00b7 cutoff=2019-01-01, systems=0, analogue_components=1",
+          "ms": 0,
+          "threshold": {
+            "value": "> 0.9",
+            "origin": "Specification layer 3: analogues above 0.9 Tanimoto (RDKit topological fingerprint)",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "tanimoto",
+              "value": 0.9,
+              "comparator": ">",
+              "origin": "Specification layer 3: analogues above 0.9 Tanimoto (RDKit topological fingerprint)",
+              "evidenceLevel": "published"
+            },
+            {
+              "name": "systems",
+              "value": 100,
+              "comparator": "<=",
+              "origin": "Specification layer 3: prevalent when analogues occur in more than 100 training systems",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "cutoff",
+              "value": "2019-01-01",
+              "unit": null
+            },
+            {
+              "name": "systems",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "analogue_components",
+              "value": 1,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l3.exposure.sequence",
+          "name": "Chain sequence identity to pre-cutoff entries (secondary measure)",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "protein: 35 entries at 95 percent identity, 44 at 40 percent, released before 2019-01-01 (reported, not gating)",
+          "tool": "RCSB search (sequence, MMseqs2)",
+          "evidence": "protein: 35 entries at 95 percent identity, 44 at 40 percent, released before 2019-01-01 (reported, not gating) \u00b7 cutoff=2019-01-01, entries_95=35, entries_40=44",
+          "ms": 1,
+          "threshold": {
+            "value": "< 0.4",
+            "origin": "Specification layer 3: conventional 40 percent identity leakage threshold, reported as a secondary measure only",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "identity",
+              "value": 0.4,
+              "comparator": "<",
+              "origin": "Specification layer 3: conventional 40 percent identity leakage threshold, reported as a secondary measure only",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "cutoff",
+              "value": "2019-01-01",
+              "unit": null
+            },
+            {
+              "name": "entries_95",
+              "value": 35,
+              "unit": null
+            },
+            {
+              "name": "entries_40",
+              "value": 44,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l3.regime.modality",
+          "name": "Modality inside the validated set; token count against the training crop",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "modalities protein, protein_ligand inside the validated set; 381 tokens",
+          "evidence": "modalities protein, protein_ligand inside the validated set; 381 tokens \u00b7 modalities=2, tokens=381, outside=0",
+          "ms": 7,
+          "measurements": [
+            {
+              "name": "modalities",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "tokens",
+              "value": 381,
+              "unit": null
+            },
+            {
+              "name": "outside",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l3.metric.endpoint",
+          "name": "Endpoint fits the tool",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "endpoint pose produced by diffdock, boltz2",
+          "evidence": "endpoint pose produced by diffdock, boltz2 \u00b7 endpoint=pose, executors=2, not_fitting=0",
+          "ms": 0,
+          "threshold": {
+            "value": "in pose",
+            "origin": "Specification, Layer 3 (applicability): no affinity from interface confidence, no protein-protein affinity from Boltz-2",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "endpoint",
+              "value": "pose",
+              "comparator": "in",
+              "origin": "Specification, Layer 3 (applicability): no affinity from interface confidence, no protein-protein affinity from Boltz-2",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "endpoint",
+              "value": "pose",
+              "unit": null
+            },
+            {
+              "name": "executors",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "not_fitting",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        }
+      ],
+      "durationMs": 530,
+      "figures": [
+        [
+          "executors",
+          "2"
+        ],
+        [
+          "unknown",
+          "0"
+        ],
+        [
+          "reference released",
+          "2023-03-01"
+        ],
+        [
+          "cutoff",
+          "2019-01-01"
+        ],
+        [
+          "entries compared",
+          "5"
+        ],
+        [
+          "max similarity",
+          "24.3"
+        ],
+        [
+          "pocket residues",
+          "35"
+        ],
+        [
+          "systems",
+          "0"
+        ]
+      ]
+    },
+    {
+      "i": 4,
+      "key": "validity",
+      "name": "Output validity",
+      "question": "Is the result physically and chemically sensible?",
+      "status": "done",
+      "counts": {
+        "pass": 5,
+        "warn": 2,
+        "stop": 0,
+        "skip": 0
+      },
+      "checks": [
+        {
+          "id": "l4.posebusters",
+          "name": "PoseBusters geometry, stereochemistry, clashes and protein contact",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "20 of 20 tests pass for diffdock/seed5/mode0; 3 of 3 poses pass all",
+          "tool": "posebusters 0.6.5",
+          "evidence": "20 of 20 tests pass for diffdock/seed5/mode0; 3 of 3 poses pass all \u00b7 poses=3, passed=20, total=20",
+          "ms": 2729,
+          "threshold": {
+            "value": "== 0",
+            "origin": "Specification, Layer 4 (output validity): stop on failure",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "tests_failed",
+              "value": 0,
+              "comparator": "==",
+              "origin": "Specification, Layer 4 (output validity): stop on failure",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "passed",
+              "value": 20,
+              "unit": null
+            },
+            {
+              "name": "total",
+              "value": 20,
+              "unit": null
+            },
+            {
+              "name": "poses_all_pass",
+              "value": 3,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l4.torsion_strain",
+          "name": "Torsional strain of the ligand pose",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "0 of 7 torsions above 2.5 kcal/mol in diffdock/seed5/mode0; strain 2.08 kcal/mol",
+          "tool": "rdkit MMFF94",
+          "evidence": "0 of 7 torsions above 2.5 kcal/mol in diffdock/seed5/mode0; strain 2.08 kcal/mol \u00b7 poses=3, unlikely_torsions=0, torsions=7",
+          "ms": 7869,
+          "threshold": {
+            "value": "<= 2.5",
+            "origin": "Harness rule: a rotatable torsion whose MMFF energy lies more than 2.5 kcal/mol above the minimum of its rigid scan is unlikely; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "torsion_energy",
+              "value": 2.5,
+              "comparator": "<=",
+              "origin": "Harness rule: a rotatable torsion whose MMFF energy lies more than 2.5 kcal/mol above the minimum of its rigid scan is unlikely; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "unlikely_torsions",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "torsions",
+              "value": 7,
+              "unit": null
+            },
+            {
+              "name": "strain_kcal",
+              "value": 2.08,
+              "unit": null
+            },
+            {
+              "name": "poses_with_unlikely",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l4.interactions.fingerprint",
+          "name": "Interaction fingerprint (PLIP)",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "7 interactions in diffdock/seed5/mode0 (halogen, hbond, hydrophobic); 8 distinct across 3 poses (reported)",
+          "tool": "plip 3.0.1",
+          "evidence": "7 interactions in diffdock/seed5/mode0 (halogen, hbond, hydrophobic); 8 distinct across 3 poses (reported) \u00b7 poses=3, interactions_representative=7, distinct=8",
+          "ms": 994,
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "interactions_representative",
+              "value": 7,
+              "unit": null
+            },
+            {
+              "name": "distinct",
+              "value": 8,
+              "unit": null
+            },
+            {
+              "name": "hbonds_representative",
+              "value": 3,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l4.interactions.unsatisfied_polars",
+          "name": "Buried ligand polar atoms without a hydrogen-bond partner",
+          "gate": "Stop",
+          "result": "warn",
+          "message": "1 of 3 buried polar ligand atoms without a partner in diffdock/seed5/mode0",
+          "tool": "freesasa 2.2.1",
+          "evidence": "1 of 3 buried polar ligand atoms without a partner in diffdock/seed5/mode0 \u00b7 poses=3, unsatisfied=1, buried_charged=0",
+          "ms": 262,
+          "threshold": {
+            "value": "< 0.1",
+            "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "relative_sasa",
+              "value": 0.1,
+              "comparator": "<",
+              "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            },
+            {
+              "name": "hbond_distance",
+              "value": 3.5,
+              "comparator": "<=",
+              "origin": "PLIP hydrogen bond distance cut-off (donor-acceptor 4.1 \u00c5; harness uses 3.5 \u00c5 heavy-atom distance)",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "unsatisfied",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "buried_charged",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "buried_polar",
+              "value": 3,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l4.interactions.hydrophobic",
+          "name": "Hydrophobic complementarity of buried ligand surface",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "nonpolar fraction of protein contacts around 15 buried nonpolar ligand atoms in diffdock/seed5/mode0: 0.681",
+          "tool": "freesasa",
+          "evidence": "nonpolar fraction of protein contacts around 15 buried nonpolar ligand atoms in diffdock/seed5/mode0: 0.681 \u00b7 poses=3, complementarity=0.681, buried_nonpolar=15",
+          "ms": 293,
+          "threshold": {
+            "value": ">= 0.35",
+            "origin": "Harness default anchored on 3PTB: the crystal benzamidine scores 0.51, Vina and Boltz-2 poses within 0.5 \u00c5 of it score 0.45 and 0.49; not calibrated on the benchmark",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "fraction",
+              "value": 0.35,
+              "comparator": ">=",
+              "origin": "Harness default anchored on 3PTB: the crystal benzamidine scores 0.51, Vina and Boltz-2 poses within 0.5 \u00c5 of it score 0.45 and 0.49; not calibrated on the benchmark",
+              "evidenceLevel": "uncalibrated"
+            },
+            {
+              "name": "relative_sasa",
+              "value": 0.1,
+              "comparator": "<",
+              "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "complementarity",
+              "value": 0.681,
+              "unit": null
+            },
+            {
+              "name": "buried_nonpolar",
+              "value": 15,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l4.interactions.known_binders",
+          "name": "Interactions of the crystal ligand reproduced by the pose",
+          "gate": "Stop",
+          "result": "warn",
+          "message": "diffdock/seed5/mode0 reproduces none of 3 FZC interactions",
+          "tool": "plip 3.0.1",
+          "evidence": "diffdock/seed5/mode0 reproduces none of 3 FZC interactions \u00b7 key_interactions=3, reproduced=0, poses_reproducing_all=0",
+          "ms": 396,
+          "threshold": {
+            "value": ">= 1",
+            "origin": "Specification layer 4: warn when no key interaction is reproduced",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "reproduced",
+              "value": 1,
+              "comparator": ">=",
+              "origin": "Specification layer 4: warn when no key interaction is reproduced",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "key_interactions",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "reproduced",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "poses_reproducing_all",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l4.minimisation_drift",
+          "name": "Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF)",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "diffdock/seed5/mode0 moves 0.681 \u00c5 under restrained minimisation; 0 of 3 poses above 2.0 \u00c5",
+          "tool": "openmm 8.6.1",
+          "evidence": "diffdock/seed5/mode0 moves 0.681 \u00c5 under restrained minimisation; 0 of 3 poses above 2.0 \u00c5 \u00b7 poses=3, drift_A=0.681, max_drift_A=0.764",
+          "ms": 135723,
+          "threshold": {
+            "value": "<= 2",
+            "origin": "Specification layer 4: warn when the pose moves beyond 2 \u00c5 under restrained minimisation",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "drift",
+              "value": 2.0,
+              "comparator": "<=",
+              "origin": "Specification layer 4: warn when the pose moves beyond 2 \u00c5 under restrained minimisation",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "drift_A",
+              "value": 0.681,
+              "unit": null
+            },
+            {
+              "name": "max_drift_A",
+              "value": 0.764,
+              "unit": null
+            },
+            {
+              "name": "poses_over",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "failed",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        }
+      ],
+      "durationMs": 148273,
+      "figures": [
+        [
+          "poses",
+          "3"
+        ],
+        [
+          "passed",
+          "20"
+        ],
+        [
+          "total",
+          "20"
+        ],
+        [
+          "poses all pass",
+          "3"
+        ],
+        [
+          "unlikely torsions",
+          "0"
+        ],
+        [
+          "torsions",
+          "7"
+        ],
+        [
+          "strain kcal",
+          "2.08"
+        ],
+        [
+          "poses with unlikely",
+          "0"
+        ]
+      ]
+    },
+    {
+      "i": 5,
+      "key": "support",
+      "name": "Output support",
+      "question": "Is a valid result corroborated?",
+      "status": "done",
+      "counts": {
+        "pass": 3,
+        "warn": 1,
+        "stop": 1,
+        "skip": 0
+      },
+      "checks": [
+        {
+          "id": "l5.confidence.local",
+          "name": "Confidence restricted to the pocket; per-model thresholds",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "diffdock/seed5/mode0: diffdock_confidence -0.13; no per-model confidence threshold registered for diffdock (reported)",
+          "evidence": "diffdock/seed5/mode0: diffdock_confidence -0.13; no per-model confidence threshold registered for diffdock (reported) \u00b7 poses=3, diffdock_confidence=-0.13",
+          "ms": 0,
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "diffdock_confidence",
+              "value": -0.13,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l5.sampling.seeds",
+          "name": "Independent seeds counted separately from samples; duplicates flagged",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "3 independent seeds, 30 poses, no duplicates",
+          "evidence": "3 independent seeds, 30 poses, no duplicates \u00b7 independent_seeds=3, samples=30, duplicated_outputs=0",
+          "ms": 0,
+          "threshold": {
+            "value": ">= 3",
+            "origin": "Harness default for independent docking seeds; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "seeds_docking",
+              "value": 3,
+              "comparator": ">=",
+              "origin": "Harness default for independent docking seeds; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "independent_seeds",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "samples",
+              "value": 30,
+              "unit": null
+            },
+            {
+              "name": "duplicated_outputs",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l5.sampling.clusters",
+          "name": "Medoid of the largest cluster, populations, pairwise spread, site and pose accuracy",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "medoid diffdock/seed5/mode0; 1 clusters, largest 3 of 3; pairwise RMSD median 1.29 \u00c5 (IQR 0.77 to 1.31); 3 of 3 poses within 4.0 \u00c5 of the site (FZC in 7XLP); 3 of 3 poses within 2.0 \u00c5 of the medoid",
+          "tool": "spyrmsd 0.9.0",
+          "evidence": "medoid diffdock/seed5/mode0; 1 clusters, largest 3 of 3; pairwise RMSD median 1.29 \u00c5 (IQR 0.77 to 1.31); 3 of 3 poses within 4.0 \u00c5 of the site (FZC in 7XLP); 3 of 3 poses within 2.0 \u00c5 of the medoid \u00b7 poses=3, clusters=1, largest_cluster=3",
+          "ms": 421,
+          "threshold": {
+            "value": "<= 2",
+            "origin": "Specification layer 5: 2 \u00c5 symmetry-aware ligand RMSD (spyrmsd) separates pose clusters",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "cluster_rmsd",
+              "value": 2.0,
+              "comparator": "<=",
+              "origin": "Specification layer 5: 2 \u00c5 symmetry-aware ligand RMSD (spyrmsd) separates pose clusters",
+              "evidenceLevel": "published"
+            },
+            {
+              "name": "site_distance",
+              "value": 4.0,
+              "comparator": "<=",
+              "origin": "Harness rule: a ligand centroid within 4 \u00c5 of the reference site centroid is placed in the site; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            },
+            {
+              "name": "largest_fraction",
+              "value": 0.5,
+              "comparator": ">=",
+              "origin": "Harness rule: the largest cluster holds at least half of the poses; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "clusters",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "largest_cluster",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "pairwise_rmsd_median_A",
+              "value": 1.291,
+              "unit": null
+            },
+            {
+              "name": "within_medoid",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "in_site",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "best_sampled_rmsd_to_reference_A",
+              "value": 1.051,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l5.agreement.cross_family",
+          "name": "Agreement between methods, weighted by independence",
+          "gate": "Stop",
+          "result": "warn",
+          "message": "diffdock vs boltz2 3.207 \u00c5 (high); diffdock vs crystal 7XLP 1.051 \u00c5 (decisive); boltz2 vs crystal 7XLP 2.924 \u00c5 (decisive)",
+          "tool": "spyrmsd",
+          "evidence": "diffdock vs boltz2 3.207 \u00c5 (high); diffdock vs crystal 7XLP 1.051 \u00c5 (decisive); boltz2 vs crystal 7XLP 2.924 \u00c5 (decisive) \u00b7 methods=2, comparisons=3, disagreeing=2",
+          "ms": 140,
+          "threshold": {
+            "value": "<= 2",
+            "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 \u00c5",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "rmsd",
+              "value": 2.0,
+              "comparator": "<=",
+              "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 \u00c5",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "methods",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "comparisons",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "disagreeing",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "rmsd_to_crystal_A",
+              "value": 1.051,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l5.controls.redocking",
+          "name": "Redocking control reproduces the crystal pose",
+          "gate": "Stop",
+          "result": "stop",
+          "message": "redocking control required by the task and not supplied (controls.redocking)",
+          "evidence": "redocking control required by the task and not supplied (controls.redocking)",
+          "ms": 0,
+          "threshold": {
+            "value": "<= 2",
+            "origin": "Specification layer 5: redocking must reproduce the crystal pose (2 \u00c5 ligand RMSD)",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "rmsd",
+              "value": 2.0,
+              "comparator": "<=",
+              "origin": "Specification layer 5: redocking must reproduce the crystal pose (2 \u00c5 ligand RMSD)",
+              "evidenceLevel": "published"
+            }
+          ]
+        }
+      ],
+      "durationMs": 564,
+      "figures": [
+        [
+          "poses",
+          "3"
+        ],
+        [
+          "diffdock confidence",
+          "-0.13"
+        ],
+        [
+          "independent seeds",
+          "3"
+        ],
+        [
+          "samples",
+          "30"
+        ],
+        [
+          "duplicated outputs",
+          "0"
+        ],
+        [
+          "clusters",
+          "1"
+        ],
+        [
+          "largest cluster",
+          "3"
+        ],
+        [
+          "pairwise rmsd median A",
+          "1.291"
+        ]
+      ]
+    }
+  ],
+  "stats": {
+    "docking": {
+      "rows": [
+        [
+          "center",
+          "-3.608, 64.879, 34.516\u2009\u00c5"
+        ],
+        [
+          "size",
+          "19.183 \u00d7 21.381 \u00d7 13.89\u2009\u00c5"
+        ],
+        [
+          "origin",
+          "derived from FZC (+4 \u00c5)"
+        ]
+      ]
+    },
+    "posebusters": [
+      {
+        "test": "sanitization",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "inchi_convertible",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "all_atoms_connected",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "no_radicals",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "bond_lengths",
+        "pass": true,
+        "value": "0 long outliers"
+      },
+      {
+        "test": "bond_angles",
+        "pass": true,
+        "value": "0 outliers"
+      },
+      {
+        "test": "internal_steric_clash",
+        "pass": true,
+        "value": "0"
+      },
+      {
+        "test": "aromatic_ring_flatness",
+        "pass": true,
+        "value": "0.00 \u00c5"
+      },
+      {
+        "test": "non-aromatic_ring_non-flatness",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "double_bond_flatness",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "internal_energy",
+        "pass": true,
+        "value": "1.4 times the ensemble mean"
+      },
+      {
+        "test": "protein-ligand_maximum_distance",
+        "pass": true,
+        "value": "2.64 \u00c5"
+      },
+      {
+        "test": "minimum_distance_to_protein",
+        "pass": true,
+        "value": "2.64 \u00c5"
+      },
+      {
+        "test": "minimum_distance_to_organic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "minimum_distance_to_inorganic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "minimum_distance_to_waters",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "volume_overlap_with_protein",
+        "pass": true,
+        "value": "0.011"
+      },
+      {
+        "test": "volume_overlap_with_organic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "volume_overlap_with_inorganic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "volume_overlap_with_waters",
+        "pass": true,
+        "value": "pass"
+      }
+    ],
+    "interactions": [
+      {
+        "residue": "GLY95A",
+        "type": "halogen",
+        "distance": 3.15,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "GLY144A",
+        "type": "hbond",
+        "distance": 2.89,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "GLY146A",
+        "type": "hbond",
+        "distance": 2.99,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "LEU118A",
+        "type": "hydrophobic",
+        "distance": 3.6,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "LEU74A",
+        "type": "hydrophobic",
+        "distance": 3.62,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "VAL82A",
+        "type": "hydrophobic",
+        "distance": 3.51,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "GLY208A",
+        "type": "hbond",
+        "distance": 3.73,
+        "poses": 2,
+        "of": 3
+      },
+      {
+        "residue": "SER150A",
+        "type": "hbond",
+        "distance": 3.58,
+        "poses": 2,
+        "of": 3
+      }
+    ],
+    "interactionsPose": "diffdock/seed5/mode0",
+    "seeds": [
+      {
+        "seed": 4,
+        "rmsdToMedoid": 1.291,
+        "cluster": 1,
+        "confidence": -0.24,
+        "pose": "diffdock/seed4/mode0"
+      },
+      {
+        "seed": 5,
+        "rmsdToMedoid": 0.0,
+        "cluster": 1,
+        "confidence": -0.13,
+        "pose": "diffdock/seed5/mode0"
+      },
+      {
+        "seed": 6,
+        "rmsdToMedoid": 0.258,
+        "cluster": 1,
+        "confidence": -0.16,
+        "pose": "diffdock/seed6/mode0"
+      }
+    ],
+    "clusters": [
+      {
+        "id": 1,
+        "size": 3,
+        "medoid": "diffdock/seed5/mode0"
+      }
+    ],
+    "medoid": "diffdock/seed5/mode0",
+    "pairwise": {
+      "median": 1.291,
+      "n": 3,
+      "iqr": [
+        0.775,
+        1.306
+      ]
+    },
+    "sitePlacement": "3 of 3 poses within 4.0 \u00c5 of the site (FZC in 7XLP)",
+    "poseAccuracy": "3 of 3 poses within 2.0 \u00c5 of the medoid",
+    "agreement": [
+      {
+        "method": "diffdock",
+        "cells": [
+          {
+            "vs": "boltz2",
+            "value": 3.207,
+            "unit": "\u00c5",
+            "weight": "high"
+          },
+          {
+            "vs": "crystal 7XLP",
+            "value": 1.051,
+            "unit": "\u00c5",
+            "weight": "decisive"
+          }
+        ]
+      },
+      {
+        "method": "boltz2",
+        "cells": [
+          {
+            "vs": "crystal 7XLP",
+            "value": 2.924,
+            "unit": "\u00c5",
+            "weight": "decisive"
+          }
+        ]
+      }
+    ],
+    "physics": [
+      {
+        "pose": "diffdock/seed4/mode0",
+        "pbPassed": 20,
+        "pbTotal": 20,
+        "pbFailed": [],
+        "torsions": 0,
+        "torsionsTotal": 7,
+        "unsatisfied": 1,
+        "buriedCharged": 0,
+        "drift": 0.764,
+        "converged": true,
+        "seed": 4
+      },
+      {
+        "pose": "diffdock/seed5/mode0",
+        "pbPassed": 20,
+        "pbTotal": 20,
+        "pbFailed": [],
+        "torsions": 0,
+        "torsionsTotal": 7,
+        "unsatisfied": 1,
+        "buriedCharged": 0,
+        "drift": 0.681,
+        "converged": true,
+        "seed": 5
+      },
+      {
+        "pose": "diffdock/seed6/mode0",
+        "pbPassed": 20,
+        "pbTotal": 20,
+        "pbFailed": [],
+        "torsions": 0,
+        "torsionsTotal": 7,
+        "unsatisfied": 1,
+        "buriedCharged": 0,
+        "drift": 0.519,
+        "converged": true,
+        "seed": 6
+      }
+    ],
+    "ensemble": [
+      {
+        "id": "diffdock/seed4/mode0",
+        "label": "diffdock/seed4/mode0",
+        "kind": "docking",
+        "source": "diffdock",
+        "rmsdToMedoid": 1.291,
+        "cluster": 1
+      },
+      {
+        "id": "diffdock/seed5/mode0",
+        "label": "diffdock/seed5/mode0",
+        "kind": "medoid",
+        "source": "diffdock",
+        "rmsdToMedoid": 0.0,
+        "cluster": 1
+      },
+      {
+        "id": "diffdock/seed6/mode0",
+        "label": "diffdock/seed6/mode0",
+        "kind": "docking",
+        "source": "diffdock",
+        "rmsdToMedoid": 0.258,
+        "cluster": 1
+      }
+    ]
+  },
+  "narrative": [],
+  "controls": [
+    {
+      "name": "redocking",
+      "status": "incomplete",
+      "note": "redocking control required by the task and not supplied (controls.redocking)"
+    }
+  ],
+  "outputs": [
+    "predictions/00_diffdock/diffdock/seed4/mode0/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed4/mode1/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed4/mode2/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed4/mode3/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed4/mode4/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed4/mode5/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed4/mode6/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed4/mode7/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed4/mode8/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed4/mode9/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed5/mode0/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed5/mode1/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed5/mode2/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed5/mode3/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed5/mode4/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed5/mode5/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed5/mode6/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed5/mode7/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed5/mode8/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed5/mode9/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed6/mode0/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed6/mode1/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed6/mode2/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed6/mode3/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed6/mode4/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed6/mode5/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed6/mode6/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed6/mode7/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed6/mode8/complex.pdb",
+    "predictions/00_diffdock/diffdock/seed6/mode9/complex.pdb",
+    "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/predictions/mek1_pert/boltz2/seed_4/boltz_results_mek1_pert/predictions/mek1_pert/mek1_pert_model_0.cif",
+    "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/predictions/mek1_pert/boltz2/seed_5/boltz_results_mek1_pert/predictions/mek1_pert/mek1_pert_model_0.cif",
+    "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/predictions/mek1_pert/boltz2/seed_6/boltz_results_mek1_pert/predictions/mek1_pert/mek1_pert_model_0.cif",
+    "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/predictions/mek1_pert/diffdock",
+    "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/predictions/mek1_pert/boltz2"
+  ],
+  "record": {
+    "pahVersion": "0.1.0",
+    "toolVersions": {
+      "numpy": "1.26.4",
+      "gemmi": "0.7.5",
+      "propka": "3.5.1",
+      "rdkit": "2026.9.1",
+      "dimorphite_dl": "2.1.0",
+      "posebusters": "0.6.5",
+      "plip": "3.0.1",
+      "openbabel": "3.2.1",
+      "freesasa": "2.2.1",
+      "openmm": "8.6.1",
+      "spyrmsd": "0.9.0",
+      "scipy": "1.17.1"
+    },
+    "seeds": [
+      4,
+      5,
+      6
+    ]
+  },
+  "structures": [
+    {
+      "id": "artifacts/sources/3ZLS.cif",
+      "label": "3ZLS mmCIF",
+      "kind": "crystal",
+      "url": "/runs/run/files/artifacts/sources/3ZLS.cif",
+      "format": "mmcif"
+    },
+    {
+      "id": "artifacts/sources/3ZLX.cif",
+      "label": "3ZLX mmCIF",
+      "kind": "crystal",
+      "url": "/runs/run/files/artifacts/sources/3ZLX.cif",
+      "format": "mmcif"
+    },
+    {
+      "id": "artifacts/sources/3ZLY.cif",
+      "label": "3ZLY mmCIF",
+      "kind": "crystal",
+      "url": "/runs/run/files/artifacts/sources/3ZLY.cif",
+      "format": "mmcif"
+    },
+    {
+      "id": "artifacts/sources/3ZM4.cif",
+      "label": "3ZM4 mmCIF",
+      "kind": "crystal",
+      "url": "/runs/run/files/artifacts/sources/3ZM4.cif",
+      "format": "mmcif"
+    },
+    {
+      "id": "artifacts/sources/5BX0.cif",
+      "label": "5BX0 mmCIF",
+      "kind": "crystal",
+      "url": "/runs/run/files/artifacts/sources/5BX0.cif",
+      "format": "mmcif"
+    },
+    {
+      "id": "artifacts/sources/7XLP.cif",
+      "label": "7XLP mmCIF",
+      "kind": "crystal",
+      "url": "/runs/run/files/artifacts/sources/7XLP.cif",
+      "format": "mmcif"
+    },
+    {
+      "id": "artifacts/work/7XLP_FZC_complex.pdb",
+      "label": "7XLP_FZC_complex.pdb",
+      "kind": "model",
+      "url": "/runs/run/files/artifacts/work/7XLP_FZC_complex.pdb",
+      "format": "pdb"
+    },
+    {
+      "id": "artifacts/work/rec_propka.pdb",
+      "label": "rec_propka.pdb",
+      "kind": "model",
+      "url": "/runs/run/files/artifacts/work/rec_propka.pdb",
+      "format": "pdb"
+    }
+  ],
+  "renders": [
+    {
+      "structure": "3ZLS",
+      "png": "/runs/run/files/renders/3ZLS_overview.png",
+      "pse": "/runs/run/files/renders/3ZLS.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "3ZLS",
+      "png": "/runs/run/files/renders/3ZLS_pocket.png",
+      "pse": "/runs/run/files/renders/3ZLS.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "3ZLX",
+      "png": "/runs/run/files/renders/3ZLX_overview.png",
+      "pse": "/runs/run/files/renders/3ZLX.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "3ZLX",
+      "png": "/runs/run/files/renders/3ZLX_pocket.png",
+      "pse": "/runs/run/files/renders/3ZLX.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "3ZLY",
+      "png": "/runs/run/files/renders/3ZLY_overview.png",
+      "pse": "/runs/run/files/renders/3ZLY.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "3ZLY",
+      "png": "/runs/run/files/renders/3ZLY_pocket.png",
+      "pse": "/runs/run/files/renders/3ZLY.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "3ZM4",
+      "png": "/runs/run/files/renders/3ZM4_overview.png",
+      "pse": "/runs/run/files/renders/3ZM4.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "3ZM4",
+      "png": "/runs/run/files/renders/3ZM4_pocket.png",
+      "pse": "/runs/run/files/renders/3ZM4.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "5BX0",
+      "png": "/runs/run/files/renders/5BX0_overview.png",
+      "pse": "/runs/run/files/renders/5BX0.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "5BX0",
+      "png": "/runs/run/files/renders/5BX0_pocket.png",
+      "pse": "/runs/run/files/renders/5BX0.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "7XLP",
+      "png": "/runs/run/files/renders/7XLP_overview.png",
+      "pse": "/runs/run/files/renders/7XLP.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "7XLP",
+      "png": "/runs/run/files/renders/7XLP_pocket.png",
+      "pse": "/runs/run/files/renders/7XLP.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "boltz2_seed4_sample0",
+      "png": "/runs/run/files/renders/boltz2_seed4_sample0_overview.png",
+      "pse": "/runs/run/files/renders/boltz2_seed4_sample0.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "boltz2_seed4_sample0",
+      "png": "/runs/run/files/renders/boltz2_seed4_sample0_pocket.png",
+      "pse": "/runs/run/files/renders/boltz2_seed4_sample0.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "boltz2_seed5_sample0",
+      "png": "/runs/run/files/renders/boltz2_seed5_sample0_overview.png",
+      "pse": "/runs/run/files/renders/boltz2_seed5_sample0.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "boltz2_seed5_sample0",
+      "png": "/runs/run/files/renders/boltz2_seed5_sample0_pocket.png",
+      "pse": "/runs/run/files/renders/boltz2_seed5_sample0.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "boltz2_seed6_sample0",
+      "png": "/runs/run/files/renders/boltz2_seed6_sample0_overview.png",
+      "pse": "/runs/run/files/renders/boltz2_seed6_sample0.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "boltz2_seed6_sample0",
+      "png": "/runs/run/files/renders/boltz2_seed6_sample0_pocket.png",
+      "pse": "/runs/run/files/renders/boltz2_seed6_sample0.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode0",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode0_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode0.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode0",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode0_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode0.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode1",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode1_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode1.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode1",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode1_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode1.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode2",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode2_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode2.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode2",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode2_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode2.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode3",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode3_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode3.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode3",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode3_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode3.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode4",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode4_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode4.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode4",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode4_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode4.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode5",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode5_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode5.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode5",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode5_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode5.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode6",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode6_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode6.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode6",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode6_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode6.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode7",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode7_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode7.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode7",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode7_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode7.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode8",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode8_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode8.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode8",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode8_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode8.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode9",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode9_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode9.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode9",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode9_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode9.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode0",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode0_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode0.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode0",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode0_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode0.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode1",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode1_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode1.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode1",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode1_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode1.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode2",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode2_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode2.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode2",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode2_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode2.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode3",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode3_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode3.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode3",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode3_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode3.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode4",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode4_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode4.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode4",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode4_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode4.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode5",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode5_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode5.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode5",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode5_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode5.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode6",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode6_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode6.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode6",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode6_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode6.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode7",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode7_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode7.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode7",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode7_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode7.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode8",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode8_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode8.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode8",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode8_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode8.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode9",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode9_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode9.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode9",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode9_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode9.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode0",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode0_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode0.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode0",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode0_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode0.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode1",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode1_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode1.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode1",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode1_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode1.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode2",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode2_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode2.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode2",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode2_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode2.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode3",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode3_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode3.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode3",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode3_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode3.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode4",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode4_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode4.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode4",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode4_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode4.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode5",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode5_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode5.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode5",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode5_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode5.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode6",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode6_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode6.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode6",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode6_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode6.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode7",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode7_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode7.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode7",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode7_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode7.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode8",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode8_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode8.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode8",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode8_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode8.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode9",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode9_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode9.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode9",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode9_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode9.pse",
+      "view": "pocket"
+    }
+  ],
+  "source": "pah",
+  "createdAt": "2026-10-17T18:20:27.444615Z",
+  "verdict": {
+    "claim": "Predicted pose of FZC in MEK1 is valid",
+    "outcome": "refused",
+    "statement": "Refused over layers 2,3,4,5: 17 pass, 6 warn, 2 stop, 1 skip. Stopped by l2.context.cofactors, l5.controls.redocking. Warnings from l2.receptor.protonation, l2.ligand.protonation, l2.docking.box, l4.interactions.unsatisfied_polars, l4.interactions.known_binders, l5.agreement.cross_family.",
+    "stops": [
+      "l2.context.cofactors",
+      "l5.controls.redocking"
+    ],
+    "warnings": [
+      "l2.receptor.protonation",
+      "l2.ligand.protonation",
+      "l2.docking.box",
+      "l4.interactions.unsatisfied_polars",
+      "l4.interactions.known_binders",
+      "l5.agreement.cross_family"
+    ],
+    "incomplete": []
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "check_id": "l3.exposure.ligand_prevalence",
+  "layer": 3,
+  "gate": "warn",
+  "message": "3474 PDB entries released before 2019-01-01 (diffdock cutoff) contain analogues of ligand above Tanimoto 0.9: 5FA, ADP, AQP, ATP, HEJ, LA8",
+  "measurements": [
+    {
+      "name": "cutoff",
+      "value": "2019-01-01",
+      "unit": null
+    },
+    {
+      "name": "systems",
+      "value": 3474,
+      "unit": null
+    },
+    {
+      "name": "analogue_components",
+      "value": 19,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "tanimoto",
+      "value": 0.9,
+      "comparator": ">",
+      "origin": "Specification layer 3: analogues above 0.9 Tanimoto (RDKit topological fingerprint)",
+      "evidence_level": "published"
+    },
+    {
+      "name": "systems",
+      "value": 100,
+      "comparator": "<=",
+      "origin": "Specification layer 3: prevalent when analogues occur in more than 100 training systems",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "ligands": [
+      {
+        "ligand": "ligand",
+        "systems": 3474,
+        "components": [
+          {
+            "code": "5FA",
+            "tanimoto": 0.996,
+            "entries": 3
+          },
+          {
+            "code": "ADP",
+            "tanimoto": 0.978,
+            "entries": 2004
+          },
+          {
+            "code": "AQP",
+            "tanimoto": 0.996,
+            "entries": 2
+          },
+          {
+            "code": "ATP",
+            "tanimoto": 1.0,
+            "entries": 1220
+          },
+          {
+            "code": "HEJ",
+            "tanimoto": 1.0,
+            "entries": 1
+          },
+          {
+            "code": "LA8",
+            "tanimoto": 0.978,
+            "entries": 2
+          },
+          {
+            "code": "ZF9",
+            "tanimoto": 0.996,
+            "entries": 0
+          },
+          {
+            "code": "ZSF",
+            "tanimoto": 0.996,
+            "entries": 0
+          },
+          {
+            "code": "50T",
+            "tanimoto": 0.902,
+            "entries": 1
+          },
+          {
+            "code": "AD9",
+            "tanimoto": 0.914,
+            "entries": 7
+          },
+          {
+            "code": "AOV",
+            "tanimoto": 0.91,
+            "entries": 4
+          },
+          {
+            "code": "CX0",
+            "tanimoto": 0.937,
+            "entries": 0
+          },
+          {
+            "code": "CXC",
+            "tanimoto": 0.957,
+            "entries": 0
+          },
+          {
+            "code": "0A",
+            "tanimoto": 0.935,
+            "entries": 0
+          },
+          {
+            "code": "PAP",
+            "tanimoto": 0.937,
+            "entries": 8
+          },
+          {
+            "code": "AP5",
+            "tanimoto": 0.996,
+            "entries": 60
+          },
+          {
+            "code": "T99",
+            "tanimoto": 0.92,
+            "entries": 1
+          },
+          {
+            "code": "TAT",
+            "tanimoto": 0.92,
+            "entries": 6
+          },
+          {
+            "code": "AGS",
+            "tanimoto": 0.975,
+            "entries": 155
+          }
+        ]
+      }
+    ]
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "RCSB search (chemical) + RDKit topological fingerprint",
+    "version": null
+  },
+  "duration_s": 0.0
+}

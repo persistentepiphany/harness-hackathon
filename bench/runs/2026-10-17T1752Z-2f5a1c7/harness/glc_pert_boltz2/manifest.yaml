@@ -1,0 +1,38 @@
+task: ligand_pose
+claim: Predicted pose of BGC in glucose dehydrogenase (glucose-binding) is valid
+ph: 7.4
+proteins:
+- id: protein
+  sequence: MKAIAVKRGEDRPVVIEKPRPEPESGEALVRTLRVGVDGTDHEVIAGGHGGFPEGEDHLVLGHEAVGVVVDPNDTELEEGDIVVPTVRRPPASGTNEYFERDQPDMAPDGMYFERGIVGAHGYMSEFFTSPEKYLVRIPRSQAELGFLIEPISITEKALEHAYASRSAFDWDPSSAFVLGNGSLGLLTLAMLKVDDKGYENLYCLGRRDRPDPTIDIIEELDATYVDSRQTPVEDVPDVYEQMDFIYEATGFPKHAIQSVQALAPNGVGALLGVPSDWAFEVDAGAFHREMVLHNKALVGSVNSHVEHFEAATVTFTKLPKWFLEDLVTGVHPLSEFEAAFDDDDTTIKTAIEFSTV
+ligands:
+- id: ligand
+  smiles: CO[C@@H]1[C@@H](OC)[C@H](O)O[C@H](CO)[C@H]1OC
+receptor:
+  pdb_id: 2VWH
+  chains:
+  - A
+reference:
+  pdb_id: 2VWH
+  ligand: BGC
+  chain: A
+model:
+  executor: boltz2
+  version: 2.2.1
+  checkpoint: boltz2_conf.ckpt
+  database_snapshot: colabfold_msa_server
+  seeds: &id001
+  - 4
+  - 5
+  - 6
+predictions:
+- executor: boltz2
+  path: /home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/predictions/glc_pert/boltz2
+  ligand: ligand
+  role: primary
+  seeds: *id001
+- executor: diffdock
+  path: /home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/predictions/glc_pert/diffdock
+  ligand: ligand
+  role: secondary
+  seeds: *id001
+  receptor: /home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/prep/glc_pert/rec.pdb

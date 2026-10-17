@@ -1,0 +1,79 @@
+{
+  "check_id": "l2.ligand.protonation",
+  "layer": 2,
+  "gate": "warn",
+  "message": "ligand: 16 states",
+  "measurements": [
+    {
+      "name": "ph",
+      "value": 7.4,
+      "unit": null
+    },
+    {
+      "name": "max_states",
+      "value": 16,
+      "unit": null
+    },
+    {
+      "name": "declared_not_enumerated",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "max_tautomers",
+      "value": 6,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "ph_window",
+      "value": 1.0,
+      "comparator": "==",
+      "origin": "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    },
+    {
+      "name": "states",
+      "value": 1,
+      "comparator": "==",
+      "origin": "Specification layer 2: warn when more than one plausible state",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "ligands": [
+      {
+        "ligand": "ligand",
+        "declared": "Cc1ccnc(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H](N)C4)c4c(C)n[nH]c4c3)c(Cl)c2)n1",
+        "states": [
+          "Cc1cc[nH+]c(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H](N)C4)c4c(C)[nH+][nH]c4c3)c(Cl)c2)[nH+]1",
+          "Cc1cc[nH+]c(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H](N)C4)c4c(C)[nH+][nH]c4c3)c(Cl)c2)n1",
+          "Cc1cc[nH+]c(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H](N)C4)c4c(C)n[nH]c4c3)c(Cl)c2)[nH+]1",
+          "Cc1cc[nH+]c(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H](N)C4)c4c(C)n[nH]c4c3)c(Cl)c2)n1",
+          "Cc1cc[nH+]c(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H]([NH3+])C4)c4c(C)[nH+][nH]c4c3)c(Cl)c2)[nH+]1",
+          "Cc1cc[nH+]c(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H]([NH3+])C4)c4c(C)[nH+][nH]c4c3)c(Cl)c2)n1",
+          "Cc1cc[nH+]c(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H]([NH3+])C4)c4c(C)n[nH]c4c3)c(Cl)c2)[nH+]1",
+          "Cc1cc[nH+]c(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H]([NH3+])C4)c4c(C)n[nH]c4c3)c(Cl)c2)n1",
+          "Cc1ccnc(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H](N)C4)c4c(C)[nH+][nH]c4c3)c(Cl)c2)[nH+]1",
+          "Cc1ccnc(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H](N)C4)c4c(C)[nH+][nH]c4c3)c(Cl)c2)n1",
+          "Cc1ccnc(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H](N)C4)c4c(C)n[nH]c4c3)c(Cl)c2)[nH+]1",
+          "Cc1ccnc(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H](N)C4)c4c(C)n[nH]c4c3)c(Cl)c2)n1",
+          "Cc1ccnc(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H]([NH3+])C4)c4c(C)[nH+][nH]c4c3)c(Cl)c2)[nH+]1",
+          "Cc1ccnc(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H]([NH3+])C4)c4c(C)[nH+][nH]c4c3)c(Cl)c2)n1",
+          "Cc1ccnc(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H]([NH3+])C4)c4c(C)n[nH]c4c3)c(Cl)c2)[nH+]1",
+          "Cc1ccnc(Oc2ccc(-c3cc(O[C@H]4CCC[C@@H]([NH3+])C4)c4c(C)n[nH]c4c3)c(Cl)c2)n1"
+        ],
+        "n_states": 16,
+        "declared_in_states": true,
+        "tautomers": 6
+      }
+    ]
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "dimorphite_dl",
+    "version": "2.1.0"
+  },
+  "duration_s": 0.123
+}

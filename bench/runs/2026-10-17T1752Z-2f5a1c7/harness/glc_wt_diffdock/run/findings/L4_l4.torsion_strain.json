@@ -1,0 +1,261 @@
+{
+  "check_id": "l4.torsion_strain",
+  "layer": 4,
+  "gate": "warn",
+  "message": "1 of 6 torsions above 2.5 kcal/mol in diffdock/seed4/mode0",
+  "measurements": [
+    {
+      "name": "poses",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "unlikely_torsions",
+      "value": 1,
+      "unit": null
+    },
+    {
+      "name": "torsions",
+      "value": 6,
+      "unit": null
+    },
+    {
+      "name": "strain_kcal",
+      "value": 12.38,
+      "unit": null
+    },
+    {
+      "name": "poses_with_unlikely",
+      "value": 1,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "torsion_energy",
+      "value": 2.5,
+      "comparator": "<=",
+      "origin": "Harness rule: a rotatable torsion whose MMFF energy lies more than 2.5 kcal/mol above the minimum of its rigid scan is unlikely; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "representative": "diffdock/seed4/mode0",
+    "poses": [
+      {
+        "pose": "diffdock/seed4/mode0",
+        "torsions": 6,
+        "unlikely_torsions": 1,
+        "max_excess_kcal": 2.61,
+        "strain_kcal": 12.38,
+        "detail": [
+          {
+            "atoms": [
+              11,
+              0,
+              1,
+              2
+            ],
+            "angle": 46.3,
+            "excess_kcal": 2.61
+          },
+          {
+            "atoms": [
+              1,
+              0,
+              11,
+              23
+            ],
+            "angle": -86.0,
+            "excess_kcal": 2.08
+          },
+          {
+            "atoms": [
+              1,
+              2,
+              10,
+              22
+            ],
+            "angle": 161.9,
+            "excess_kcal": -0.01
+          },
+          {
+            "atoms": [
+              2,
+              3,
+              9,
+              21
+            ],
+            "angle": -61.2,
+            "excess_kcal": -0.0
+          },
+          {
+            "atoms": [
+              3,
+              4,
+              8,
+              20
+            ],
+            "angle": -40.3,
+            "excess_kcal": -0.0
+          },
+          {
+            "atoms": [
+              4,
+              5,
+              7,
+              19
+            ],
+            "angle": 25.8,
+            "excess_kcal": -0.02
+          }
+        ]
+      },
+      {
+        "pose": "diffdock/seed5/mode0",
+        "torsions": 6,
+        "unlikely_torsions": 0,
+        "max_excess_kcal": 0.61,
+        "strain_kcal": 5.1,
+        "detail": [
+          {
+            "atoms": [
+              11,
+              0,
+              1,
+              2
+            ],
+            "angle": -62.2,
+            "excess_kcal": 0.08
+          },
+          {
+            "atoms": [
+              1,
+              0,
+              11,
+              23
+            ],
+            "angle": -172.6,
+            "excess_kcal": -0.01
+          },
+          {
+            "atoms": [
+              1,
+              2,
+              10,
+              22
+            ],
+            "angle": -35.5,
+            "excess_kcal": -0.05
+          },
+          {
+            "atoms": [
+              2,
+              3,
+              9,
+              21
+            ],
+            "angle": 44.9,
+            "excess_kcal": -0.06
+          },
+          {
+            "atoms": [
+              3,
+              4,
+              8,
+              20
+            ],
+            "angle": -53.2,
+            "excess_kcal": -0.02
+          },
+          {
+            "atoms": [
+              4,
+              5,
+              7,
+              19
+            ],
+            "angle": 159.9,
+            "excess_kcal": 0.61
+          }
+        ]
+      },
+      {
+        "pose": "diffdock/seed6/mode0",
+        "torsions": 6,
+        "unlikely_torsions": 0,
+        "max_excess_kcal": -0.0,
+        "strain_kcal": 1.28,
+        "detail": [
+          {
+            "atoms": [
+              11,
+              0,
+              1,
+              2
+            ],
+            "angle": 68.2,
+            "excess_kcal": -0.02
+          },
+          {
+            "atoms": [
+              1,
+              0,
+              11,
+              23
+            ],
+            "angle": 50.4,
+            "excess_kcal": -0.0
+          },
+          {
+            "atoms": [
+              1,
+              2,
+              10,
+              22
+            ],
+            "angle": 173.6,
+            "excess_kcal": -0.03
+          },
+          {
+            "atoms": [
+              2,
+              3,
+              9,
+              21
+            ],
+            "angle": -168.5,
+            "excess_kcal": -0.0
+          },
+          {
+            "atoms": [
+              3,
+              4,
+              8,
+              20
+            ],
+            "angle": 173.6,
+            "excess_kcal": -0.03
+          },
+          {
+            "atoms": [
+              4,
+              5,
+              7,
+              19
+            ],
+            "angle": 178.2,
+            "excess_kcal": -0.0
+          }
+        ]
+      }
+    ],
+    "method": "MMFF94 after relaxation with heavy atoms held within 0.3 Å; rigid torsion scan in 10° steps; strain against 20 relaxed ETKDG conformers"
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "rdkit MMFF94",
+    "version": null
+  },
+  "duration_s": 0.49
+}

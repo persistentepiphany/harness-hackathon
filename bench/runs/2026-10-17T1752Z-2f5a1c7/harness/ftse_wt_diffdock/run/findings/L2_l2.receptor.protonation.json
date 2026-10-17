@@ -1,0 +1,127 @@
+{
+  "check_id": "l2.receptor.protonation",
+  "layer": 2,
+  "gate": "warn",
+  "message": "receptor has no hydrogens (protonation not assigned); pKa within 1.0 of pH 7.4: HIS36A pKa 6.97",
+  "measurements": [
+    {
+      "name": "hydrogens_present",
+      "value": false,
+      "unit": null
+    },
+    {
+      "name": "ph",
+      "value": 7.4,
+      "unit": null
+    },
+    {
+      "name": "pocket_titratable",
+      "value": 10,
+      "unit": null
+    },
+    {
+      "name": "ambiguous",
+      "value": 1,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "pka_margin",
+      "value": 1.0,
+      "comparator": ">",
+      "origin": "Harness rule: a titratable pocket residue with PROPKA pKa within 1 unit of the stated pH has an ambiguous state; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "site": "ATP in 8X61",
+    "pocket_pka": [
+      {
+        "residue": "LYS9A",
+        "chain": "A",
+        "seqnum": 9,
+        "pka": 10.0,
+        "model_pka": 10.5
+      },
+      {
+        "residue": "TYR11A",
+        "chain": "A",
+        "seqnum": 11,
+        "pka": 10.69,
+        "model_pka": 10.0
+      },
+      {
+        "residue": "ARG15A",
+        "chain": "A",
+        "seqnum": 15,
+        "pka": 12.44,
+        "model_pka": 12.5
+      },
+      {
+        "residue": "HIS36A",
+        "chain": "A",
+        "seqnum": 36,
+        "pka": 6.97,
+        "model_pka": 6.5
+      },
+      {
+        "residue": "LYS41A",
+        "chain": "A",
+        "seqnum": 41,
+        "pka": 9.41,
+        "model_pka": 10.5
+      },
+      {
+        "residue": "LYS46A",
+        "chain": "A",
+        "seqnum": 46,
+        "pka": 10.96,
+        "model_pka": 10.5
+      },
+      {
+        "residue": "GLU52A",
+        "chain": "A",
+        "seqnum": 52,
+        "pka": 4.89,
+        "model_pka": 4.5
+      },
+      {
+        "residue": "ASP162A",
+        "chain": "A",
+        "seqnum": 162,
+        "pka": 5.37,
+        "model_pka": 3.8
+      },
+      {
+        "residue": "HIS195A",
+        "chain": "A",
+        "seqnum": 195,
+        "pka": 6.1,
+        "model_pka": 6.5
+      },
+      {
+        "residue": "ASP212A",
+        "chain": "A",
+        "seqnum": 212,
+        "pka": 3.75,
+        "model_pka": 3.8
+      }
+    ],
+    "ambiguous": [
+      {
+        "residue": "HIS36A",
+        "chain": "A",
+        "seqnum": 36,
+        "pka": 6.97,
+        "model_pka": 6.5
+      }
+    ]
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "propka",
+    "version": "3.5.1"
+  },
+  "duration_s": 0.222
+}

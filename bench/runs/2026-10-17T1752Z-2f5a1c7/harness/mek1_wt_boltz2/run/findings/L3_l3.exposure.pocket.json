@@ -1,0 +1,93 @@
+{
+  "check_id": "l3.exposure.pocket",
+  "layer": 3,
+  "gate": "pass",
+  "message": "max similarity 37.6 to 3ZM4 (22T, SuCOS 0.595, coverage 0.632), released before 2019-01-01",
+  "measurements": [
+    {
+      "name": "cutoff",
+      "value": "2019-01-01",
+      "unit": null
+    },
+    {
+      "name": "entries_compared",
+      "value": 5,
+      "unit": null
+    },
+    {
+      "name": "max_similarity",
+      "value": 37.6,
+      "unit": null
+    },
+    {
+      "name": "pocket_residues",
+      "value": 38,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "similarity",
+      "value": 50,
+      "comparator": "<=",
+      "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
+      "evidence_level": "published"
+    },
+    {
+      "name": "entries",
+      "value": 5,
+      "comparator": "<=",
+      "origin": "Harness budget: pre-cutoff holo entries compared per run",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "query": "boltz2/seed5/sample0",
+    "model": "diffdock",
+    "entries": [
+      {
+        "entry": "3ZLS",
+        "ligand": "92P",
+        "sucos": 0.552,
+        "coverage": 0.474,
+        "similarity": 26.1,
+        "ca_rmsd": 0.63
+      },
+      {
+        "entry": "3ZLX",
+        "ligand": "5EZ",
+        "sucos": 0.435,
+        "coverage": 0.553,
+        "similarity": 24.0,
+        "ca_rmsd": 0.51
+      },
+      {
+        "entry": "3ZM4",
+        "ligand": "22T",
+        "sucos": 0.595,
+        "coverage": 0.632,
+        "similarity": 37.6,
+        "ca_rmsd": 0.54
+      },
+      {
+        "entry": "5BX0",
+        "ligand": "4W5",
+        "sucos": 0.529,
+        "coverage": 0.579,
+        "similarity": 30.7,
+        "ca_rmsd": 0.66
+      },
+      {
+        "entry": "3ZLY",
+        "ligand": "YSO",
+        "sucos": 0.622,
+        "coverage": 0.474,
+        "similarity": 29.5,
+        "ca_rmsd": 0.52
+      }
+    ]
+  },
+  "artifacts": [],
+  "tool": null,
+  "duration_s": 0.495
+}

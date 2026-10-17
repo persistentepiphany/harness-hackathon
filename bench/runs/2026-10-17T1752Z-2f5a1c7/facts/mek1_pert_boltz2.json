@@ -1,0 +1,59 @@
+{
+  "executor": "boltz2",
+  "representative_pose": "boltz2/seed6/sample0",
+  "confidence": {
+    "ligand_iptm": 0.971,
+    "pocket_plddt": 90.0,
+    "confidence_score": 0.915
+  },
+  "posebusters": {
+    "passed": 20,
+    "total": 20,
+    "failed": []
+  },
+  "interactions": [
+    "hbond ASP152A",
+    "hbond GLY111A",
+    "hbond SER150A",
+    "hydrophobic VAL82A"
+  ],
+  "interactions_reference": [
+    "halogen ALA95A",
+    "hbond MET146A",
+    "hbond SER194A",
+    "hydrophobic ALA95A",
+    "hydrophobic ILE141A",
+    "hydrophobic LEU118A",
+    "hydrophobic LEU197A",
+    "hydrophobic LYS97A",
+    "hydrophobic PHE209A",
+    "hydrophobic VAL82A"
+  ],
+  "key_interactions_recovered": 0,
+  "key_interactions_reference": 3,
+  "torsion_strain_kcal": 1.11,
+  "unlikely_torsions": 0,
+  "buried_unsatisfied_polars": 1,
+  "buried_charged_unsatisfied": 0,
+  "hydrophobic_complementarity": 0.656,
+  "n_seeds": 3,
+  "ensemble_poses": 3,
+  "ensemble_spread_A": 0.38,
+  "medoid_cluster_fraction": 1.0,
+  "cross_tool_rmsd_A": 3.207,
+  "harness_gates": {
+    "l4.posebusters": "pass",
+    "l4.torsion_strain": "pass",
+    "l4.interactions.fingerprint": "pass",
+    "l4.interactions.unsatisfied_polars": "warn",
+    "l4.interactions.hydrophobic": "pass",
+    "l4.interactions.known_binders": "warn",
+    "l4.minimisation_drift": "pass",
+    "l5.confidence.local": "pass",
+    "l5.sampling.seeds": "warn",
+    "l5.sampling.clusters": "pass",
+    "l5.agreement.cross_family": "warn",
+    "l5.controls.redocking": "stop"
+  },
+  "system": "mek1_pert"
+}
