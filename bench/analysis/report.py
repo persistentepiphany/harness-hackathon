@@ -19,6 +19,18 @@ from typing import Any
 import yaml
 
 REPO = Path(__file__).resolve().parents[2]
+
+
+def run_config(run: Path) -> dict[str, Any]:
+    """The run's own copy of the design when it has one (bench/run_pipeline.py writes it),
+    otherwise bench/config/targets.yaml."""
+
+    own = run / "config" / "targets.yaml"
+    return dict(
+        yaml.safe_load((own if own.is_file() else REPO / "bench/config/targets.yaml").read_text())
+    )
+
+
 EXEC = {"boltz2": "Boltz-2", "diffdock": "DiffDock-L"}
 
 
@@ -237,7 +249,7 @@ def main() -> None:
     ap.add_argument("--run-id", required=True)
     args = ap.parse_args()
     run = REPO / "bench" / "runs" / args.run_id
-    cfg = yaml.safe_load((REPO / "bench/config/targets.yaml").read_text())
+    cfg = run_config(run)
     man = manifest(run, cfg)
     (run / "manifest.json").write_text(json.dumps(man, indent=2))
     text = report(run, cfg, man)

@@ -1,5 +1,5 @@
 {
-  "run_id": "ligand_pose-1afec2c2b754",
+  "run_id": "ligand_pose-65d1e1a4779c",
   "task": "ligand_pose",
   "claim": "Predicted pose of ATP in CDK2 is valid",
   "layers": [
@@ -67,6 +67,20 @@
           3
         ],
         "settings": {}
+      },
+      {
+        "executor": "boltz2",
+        "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/predictions/cdk2_wt/boltz2",
+        "role": "secondary",
+        "version": null,
+        "ligand": "ligand",
+        "receptor": null,
+        "seeds": [
+          1,
+          2,
+          3
+        ],
+        "settings": {}
       }
     ],
     "docking_box": null,
@@ -84,8 +98,8 @@
       "sticky": null
     }
   },
-  "started_at": "2026-10-17T16:42:54.188098Z",
-  "finished_at": "2026-10-17T16:44:00.673863Z",
+  "started_at": "2026-10-17T16:48:07.991928Z",
+  "finished_at": "2026-10-17T16:50:25.808692Z",
   "pah_version": "0.1.0",
   "tool_versions": {
     "numpy": "1.26.4",
@@ -161,7 +175,7 @@
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 1.014
+      "duration_s": 0.214
     },
     {
       "check_id": "l2.pocket.resolved",
@@ -244,7 +258,7 @@
         "name": "gemmi",
         "version": null
       },
-      "duration_s": 0.009
+      "duration_s": 0.008
     },
     {
       "check_id": "l2.receptor.state",
@@ -273,7 +287,7 @@
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 0.011
+      "duration_s": 0.01
     },
     {
       "check_id": "l2.receptor.protonation",
@@ -455,7 +469,7 @@
         "name": "propka",
         "version": "3.5.1"
       },
-      "duration_s": 0.388
+      "duration_s": 0.379
     },
     {
       "check_id": "l2.ligand.protonation",
@@ -520,7 +534,7 @@
         "name": "dimorphite_dl",
         "version": "2.1.0"
       },
-      "duration_s": 0.08
+      "duration_s": 0.054
     },
     {
       "check_id": "l2.ligand.conformers",
@@ -568,7 +582,7 @@
         "name": "rdkit",
         "version": null
       },
-      "duration_s": 0.953
+      "duration_s": 1.067
     },
     {
       "check_id": "l2.docking.box",
@@ -635,17 +649,17 @@
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 0.011
+      "duration_s": 0.013
     },
     {
       "check_id": "l3.model.training_cutoff",
       "layer": 3,
       "gate": "pass",
-      "message": "diffdock 2019-01-01; reference 1B38 released 1998-12-23, before the cutoff of diffdock",
+      "message": "diffdock 2019-01-01; boltz2 2023-06-01; reference 1B38 released 1998-12-23, before the cutoff of diffdock, boltz2",
       "measurements": [
         {
           "name": "executors",
-          "value": 1,
+          "value": 2,
           "unit": null
         },
         {
@@ -678,12 +692,21 @@
             "origin": "PDBBind time split used by DiffDock (training complexes released before 2019)",
             "evidence": "published",
             "reference_before_cutoff": true
+          },
+          {
+            "executor": "boltz2",
+            "registered": true,
+            "learned": true,
+            "training_cutoff": "2023-06-01",
+            "origin": "Passaro et al. 2025, Boltz-2 technical report (training structures released before 2023-06-01); not stated in the repository (docs/EXECUTORS.md)",
+            "evidence": "published",
+            "reference_before_cutoff": true
           }
         ]
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 0.047
+      "duration_s": 0.001
     },
     {
       "check_id": "l3.exposure.pocket",
@@ -776,7 +799,7 @@
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 5.679
+      "duration_s": 1.182
     },
     {
       "check_id": "l3.exposure.ligand_prevalence",
@@ -989,7 +1012,7 @@
         "name": "RCSB search (sequence, MMseqs2)",
         "version": null
       },
-      "duration_s": 1.176
+      "duration_s": 0.001
     },
     {
       "check_id": "l3.regime.modality",
@@ -1028,18 +1051,32 @@
             "outside": [],
             "crop_tokens": null,
             "crop_origin": null
+          },
+          {
+            "executor": "boltz2",
+            "validated": [
+              "covalent",
+              "metal_site",
+              "nucleic_acid",
+              "protein",
+              "protein_ligand",
+              "protein_protein"
+            ],
+            "outside": [],
+            "crop_tokens": 768,
+            "crop_origin": "Boltz-2 technical report, final training crop 768 tokens"
           }
         ]
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 0.008
+      "duration_s": 0.005
     },
     {
       "check_id": "l3.metric.endpoint",
       "layer": 3,
       "gate": "pass",
-      "message": "endpoint pose produced by diffdock",
+      "message": "endpoint pose produced by diffdock, boltz2",
       "measurements": [
         {
           "name": "endpoint",
@@ -1048,7 +1085,7 @@
         },
         {
           "name": "executors",
-          "value": 1,
+          "value": 2,
           "unit": null
         },
         {
@@ -1073,6 +1110,16 @@
             "executor": "diffdock",
             "endpoints": [
               "pose"
+            ],
+            "fits": true
+          },
+          {
+            "executor": "boltz2",
+            "endpoints": [
+              "pose",
+              "structure",
+              "interface",
+              "affinity_series"
             ],
             "fits": true
           }
@@ -1254,7 +1301,7 @@
         "name": "posebusters",
         "version": "0.6.5"
       },
-      "duration_s": 2.237
+      "duration_s": 2.592
     },
     {
       "check_id": "l4.torsion_strain",
@@ -1755,7 +1802,7 @@
         "name": "rdkit MMFF94",
         "version": null
       },
-      "duration_s": 5.005
+      "duration_s": 9.794
     },
     {
       "check_id": "l4.interactions.fingerprint",
@@ -2107,7 +2154,7 @@
         "name": "plip",
         "version": "3.0.1"
       },
-      "duration_s": 0.894
+      "duration_s": 1.756
     },
     {
       "check_id": "l4.interactions.unsatisfied_polars",
@@ -2474,7 +2521,7 @@
         "name": "freesasa",
         "version": "2.2.1"
       },
-      "duration_s": 0.323
+      "duration_s": 0.355
     },
     {
       "check_id": "l4.interactions.hydrophobic",
@@ -2540,7 +2587,7 @@
         "name": "freesasa",
         "version": null
       },
-      "duration_s": 0.294
+      "duration_s": 0.539
     },
     {
       "check_id": "l4.interactions.known_binders",
@@ -2678,13 +2725,13 @@
         "name": "plip",
         "version": "3.0.1"
       },
-      "duration_s": 0.337
+      "duration_s": 0.8
     },
     {
       "check_id": "l4.minimisation_drift",
       "layer": 4,
       "gate": "pass",
-      "message": "diffdock/seed3/mode0 moves 1.244 Å under restrained minimisation; 0 of 3 poses above 2.0 Å",
+      "message": "diffdock/seed3/mode0 moves 1.147 Å under restrained minimisation; 0 of 3 poses above 2.0 Å",
       "measurements": [
         {
           "name": "poses",
@@ -2693,12 +2740,12 @@
         },
         {
           "name": "drift_A",
-          "value": 1.244,
+          "value": 1.147,
           "unit": null
         },
         {
           "name": "max_drift_A",
-          "value": 1.244,
+          "value": 1.201,
           "unit": null
         },
         {
@@ -2726,27 +2773,27 @@
         "poses": [
           {
             "pose": "diffdock/seed1/mode0",
-            "drift_A": 1.208,
-            "energy_before_kJ": 232480.1,
-            "energy_after_kJ": -22813.2,
+            "drift_A": 1.201,
+            "energy_before_kJ": 229736.6,
+            "energy_after_kJ": -22814.0,
             "converged": true,
             "openmm": "8.6.1",
             "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
           },
           {
             "pose": "diffdock/seed2/mode0",
-            "drift_A": 0.962,
-            "energy_before_kJ": 219732.9,
-            "energy_after_kJ": -22796.1,
+            "drift_A": 0.797,
+            "energy_before_kJ": 217375.8,
+            "energy_after_kJ": -22762.2,
             "converged": true,
             "openmm": "8.6.1",
             "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
           },
           {
             "pose": "diffdock/seed3/mode0",
-            "drift_A": 1.244,
-            "energy_before_kJ": 242562.6,
-            "energy_after_kJ": -23064.4,
+            "drift_A": 1.147,
+            "energy_before_kJ": 265898.0,
+            "energy_after_kJ": -22846.5,
             "converged": true,
             "openmm": "8.6.1",
             "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
@@ -2759,7 +2806,7 @@
         "name": "openmm",
         "version": "8.6.1"
       },
-      "duration_s": 47.7
+      "duration_s": 118.455
     },
     {
       "check_id": "l5.confidence.local",
@@ -2984,22 +3031,22 @@
         "name": "spyrmsd",
         "version": "0.9.0"
       },
-      "duration_s": 0.224
+      "duration_s": 0.33
     },
     {
       "check_id": "l5.agreement.cross_family",
       "layer": 5,
       "gate": "pass",
-      "message": "diffdock vs crystal 1B38 0.791 Å (decisive)",
+      "message": "diffdock vs boltz2 1.665 Å (high); diffdock vs crystal 1B38 0.791 Å (decisive); boltz2 vs crystal 1B38 1.499 Å (decisive)",
       "measurements": [
         {
           "name": "methods",
-          "value": 1,
+          "value": 2,
           "unit": null
         },
         {
           "name": "comparisons",
-          "value": 1,
+          "value": 3,
           "unit": null
         },
         {
@@ -3026,14 +3073,29 @@
         "comparisons": [
           {
             "method": "diffdock",
+            "vs": "boltz2",
+            "value": 1.665,
+            "unit": "Å",
+            "weight": "high"
+          },
+          {
+            "method": "diffdock",
             "vs": "crystal 1B38",
             "value": 0.791,
+            "unit": "Å",
+            "weight": "decisive"
+          },
+          {
+            "method": "boltz2",
+            "vs": "crystal 1B38",
+            "value": 1.499,
             "unit": "Å",
             "weight": "decisive"
           }
         ],
         "medoids": {
-          "diffdock": "diffdock/seed3/mode0"
+          "diffdock": "diffdock/seed3/mode0",
+          "boltz2": "boltz2/seed3/sample0"
         }
       },
       "artifacts": [],
@@ -3041,7 +3103,7 @@
         "name": "spyrmsd",
         "version": null
       },
-      "duration_s": 0.034
+      "duration_s": 0.098
     },
     {
       "check_id": "l5.controls.redocking",
@@ -3074,7 +3136,7 @@
       "retrieved_at": "2026-10-17T16:42:54.674307Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3086,7 +3148,7 @@
       "retrieved_at": "2026-10-17T16:42:55.103746Z",
       "release": "2011-06-04",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3098,7 +3160,7 @@
       "retrieved_at": "2026-10-17T16:42:56.715882Z",
       "release": "1.4",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3110,7 +3172,7 @@
       "retrieved_at": "2026-10-17T16:42:57.520257Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3122,7 +3184,7 @@
       "retrieved_at": "2026-10-17T16:42:57.567236Z",
       "release": "2011-06-04",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3134,7 +3196,7 @@
       "retrieved_at": "2026-10-17T16:42:57.619840Z",
       "release": "2025-10-10",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3146,7 +3208,7 @@
       "retrieved_at": "2026-10-17T16:42:57.668705Z",
       "release": "2011-06-04",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3158,7 +3220,7 @@
       "retrieved_at": "2026-10-17T16:42:57.723051Z",
       "release": "2021-03-01",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3170,7 +3232,7 @@
       "retrieved_at": "2026-10-17T16:42:57.774636Z",
       "release": "2020-06-17",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3182,7 +3244,7 @@
       "retrieved_at": "2026-10-17T16:42:57.824701Z",
       "release": "2024-03-08",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3194,7 +3256,7 @@
       "retrieved_at": "2026-10-17T16:42:57.896802Z",
       "release": "2024-03-29",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3206,7 +3268,7 @@
       "retrieved_at": "2026-10-17T16:42:57.952589Z",
       "release": "2026-09-16",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3218,7 +3280,7 @@
       "retrieved_at": "2026-10-17T16:42:58.018473Z",
       "release": "2026-09-16",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3230,7 +3292,7 @@
       "retrieved_at": "2026-10-17T16:42:58.102696Z",
       "release": "2026-09-16",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3242,7 +3304,7 @@
       "retrieved_at": "2026-10-17T16:42:58.151845Z",
       "release": "2022-03-25",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3254,7 +3316,7 @@
       "retrieved_at": "2026-10-17T16:42:58.203812Z",
       "release": "2022-03-25",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3266,7 +3328,7 @@
       "retrieved_at": "2026-10-17T16:42:58.255370Z",
       "release": "2015-04-24",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3278,7 +3340,7 @@
       "retrieved_at": "2026-10-17T16:42:58.312588Z",
       "release": "2011-06-04",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3290,7 +3352,7 @@
       "retrieved_at": "2026-10-17T16:42:58.362678Z",
       "release": "2016-06-10",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3302,7 +3364,7 @@
       "retrieved_at": "2026-10-17T16:42:58.416630Z",
       "release": "2016-06-10",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3314,7 +3376,7 @@
       "retrieved_at": "2026-10-17T16:42:58.468364Z",
       "release": "2011-06-04",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3326,7 +3388,7 @@
       "retrieved_at": "2026-10-17T16:42:58.519520Z",
       "release": "2011-06-04",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3338,7 +3400,7 @@
       "retrieved_at": "2026-10-17T16:42:58.572579Z",
       "release": "2021-04-30",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3350,7 +3412,7 @@
       "retrieved_at": "2026-10-17T16:42:58.626324Z",
       "release": "2011-06-04",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3362,7 +3424,7 @@
       "retrieved_at": "2026-10-17T16:42:58.682050Z",
       "release": "2018-06-01",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3374,7 +3436,7 @@
       "retrieved_at": "2026-10-17T16:42:58.736110Z",
       "release": "2012-01-25",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3386,7 +3448,7 @@
       "retrieved_at": "2026-10-17T16:42:58.794338Z",
       "release": "2025-01-24",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3398,7 +3460,7 @@
       "retrieved_at": "2026-10-17T16:42:58.849064Z",
       "release": "2020-06-17",
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3410,7 +3472,7 @@
       "retrieved_at": "2026-10-17T16:42:58.902223Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3422,7 +3484,7 @@
       "retrieved_at": "2026-10-17T16:42:58.953847Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3434,7 +3496,7 @@
       "retrieved_at": "2026-10-17T16:42:58.999276Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3446,7 +3508,7 @@
       "retrieved_at": "2026-10-17T16:42:59.050223Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3458,7 +3520,7 @@
       "retrieved_at": "2026-10-17T16:42:59.098424Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3470,7 +3532,7 @@
       "retrieved_at": "2026-10-17T16:42:59.143601Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3482,7 +3544,7 @@
       "retrieved_at": "2026-10-17T16:42:59.187900Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3494,7 +3556,7 @@
       "retrieved_at": "2026-10-17T16:42:59.230500Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3506,7 +3568,7 @@
       "retrieved_at": "2026-10-17T16:42:59.275190Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3518,7 +3580,7 @@
       "retrieved_at": "2026-10-17T16:42:59.319053Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3530,7 +3592,7 @@
       "retrieved_at": "2026-10-17T16:42:59.364881Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3542,7 +3604,7 @@
       "retrieved_at": "2026-10-17T16:42:59.407422Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3554,7 +3616,7 @@
       "retrieved_at": "2026-10-17T16:42:59.450311Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3566,7 +3628,7 @@
       "retrieved_at": "2026-10-17T16:42:59.492914Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3578,7 +3640,7 @@
       "retrieved_at": "2026-10-17T16:42:59.539327Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3590,7 +3652,7 @@
       "retrieved_at": "2026-10-17T16:42:59.586389Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3602,7 +3664,7 @@
       "retrieved_at": "2026-10-17T16:42:59.634169Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3614,7 +3676,7 @@
       "retrieved_at": "2026-10-17T16:42:59.681396Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3626,7 +3688,7 @@
       "retrieved_at": "2026-10-17T16:42:59.730180Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3638,7 +3700,7 @@
       "retrieved_at": "2026-10-17T16:43:01.212670Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3650,7 +3712,7 @@
       "retrieved_at": "2026-10-17T16:43:01.849797Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3662,7 +3724,7 @@
       "retrieved_at": "2026-10-17T16:43:01.964283Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3674,7 +3736,7 @@
       "retrieved_at": "2026-10-17T16:43:02.237412Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3686,7 +3748,7 @@
       "retrieved_at": "2026-10-17T16:43:02.333602Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3698,7 +3760,7 @@
       "retrieved_at": "2026-10-17T16:43:02.837610Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     },
     {
@@ -3710,7 +3772,7 @@
       "retrieved_at": "2026-10-17T16:43:03.572880Z",
       "release": null,
       "extra": {
-        "cache": "miss"
+        "cache": "hit"
       }
     }
   ],
@@ -4206,6 +4268,54 @@
       "derived_from": []
     },
     {
+      "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/predictions/cdk2_wt/boltz2/seed_1/boltz_results_cdk2_wt/predictions/cdk2_wt/cdk2_wt_model_0.cif",
+      "kind": "prediction_structure",
+      "sha256": "58727e8eeafe0654609ff20a0b212adccebf4465edaccc8f60bf7273467ef0af",
+      "size_bytes": 214881,
+      "label": "boltz2/seed1/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/01_boltz2/boltz2/seed1/sample0/ligand.sdf",
+      "kind": "data",
+      "sha256": "ae37f8ca1f338fdd246849e613215972cc5bb82de2259f29ade96fa64474b77c",
+      "size_bytes": 2682,
+      "label": "boltz2/seed1/sample0 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/predictions/cdk2_wt/boltz2/seed_2/boltz_results_cdk2_wt/predictions/cdk2_wt/cdk2_wt_model_0.cif",
+      "kind": "prediction_structure",
+      "sha256": "0612eaca25c00819d4e6cae9dec83d1d896ab9c023092164591e5af4035dbe84",
+      "size_bytes": 215141,
+      "label": "boltz2/seed2/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/01_boltz2/boltz2/seed2/sample0/ligand.sdf",
+      "kind": "data",
+      "sha256": "848ad7250227b9a8262897b5c01b23f1c0482abf09070dd1712e92823a9819d7",
+      "size_bytes": 2682,
+      "label": "boltz2/seed2/sample0 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/predictions/cdk2_wt/boltz2/seed_3/boltz_results_cdk2_wt/predictions/cdk2_wt/cdk2_wt_model_0.cif",
+      "kind": "prediction_structure",
+      "sha256": "bacee41da600a9644db365ca1253169dde7a54c2c4a90fedc03b4ed0d415151e",
+      "size_bytes": 214845,
+      "label": "boltz2/seed3/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/01_boltz2/boltz2/seed3/sample0/ligand.sdf",
+      "kind": "data",
+      "sha256": "e49cf4e3d3b3195f5bead480e7ecaf7cb2ada3e1290a0f73cfbe491ea79a3b82",
+      "size_bytes": 2682,
+      "label": "boltz2/seed3/sample0 ligand",
+      "derived_from": []
+    },
+    {
       "path": "artifacts/sources/1B39.cif",
       "kind": "source_structure",
       "sha256": "43b7b7417024c3f48df86236a0518307593cf48dbe60e5a608aa53fa420cfa83",
@@ -4324,9 +4434,6 @@
       "rcsb_files:1B38:b851c5e8a986"
     ],
     "l4.interactions.fingerprint": [
-      "rcsb_files:1B38:b851c5e8a986"
-    ],
-    "l4.interactions.known_binders": [
       "rcsb_files:1B38:b851c5e8a986"
     ],
     "l5.sampling.clusters": [

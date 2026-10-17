@@ -25,6 +25,17 @@ import yaml
 
 REPO = Path(__file__).resolve().parents[2]
 
+
+def run_config(run: Path) -> dict[str, Any]:
+    """The run's own copy of the design when it has one (bench/run_pipeline.py writes it),
+    otherwise bench/config/targets.yaml."""
+
+    own = run / "config" / "targets.yaml"
+    return dict(
+        yaml.safe_load((own if own.is_file() else REPO / "bench/config/targets.yaml").read_text())
+    )
+
+
 SYSTEM_PROMPT = """You are assessing whether a predicted protein-ligand pose should be
 trusted as evidence that this ligand binds this protein in this
 orientation.
@@ -176,7 +187,7 @@ def main() -> None:
     ap.add_argument("--repeats", type=int, default=None)
     ap.add_argument("--order-seed", type=int, default=20261017)
     args = ap.parse_args()
-    cfg = yaml.safe_load((REPO / "bench/config/targets.yaml").read_text())["agent"]
+    cfg = run_config(REPO / "bench" / "runs" / args.run_id)["agent"]
     model = args.model or cfg["model"]
     repeats = args.repeats or int(cfg["repeats"])
     run = REPO / "bench" / "runs" / args.run_id

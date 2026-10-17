@@ -74,6 +74,17 @@ CHUNK = 1 << 18  # results come back in pieces small enough to travel inline ove
 app = modal.App("pah-perturbation-bench")
 
 
+def run_config(run: Path) -> dict[str, Any]:
+    """The run's own copy of the design when it has one (bench/run_pipeline.py writes it),
+    otherwise bench/config/targets.yaml."""
+    import yaml
+
+    own = run / "config" / "targets.yaml"
+    return dict(
+        yaml.safe_load((own if own.is_file() else REPO / "bench/config/targets.yaml").read_text())
+    )
+
+
 def _run(argv: list[str], cwd: str | None = None) -> dict[str, Any]:
     print("+", shlex.join(argv), flush=True)
     t0 = time.time()
@@ -346,11 +357,10 @@ def probe() -> None:
 
 @app.local_entrypoint()
 def predict_all(run_id: str, only: str = "", executors: str = "boltz2,diffdock") -> None:
-    import yaml
 
     run = REPO / "bench" / "runs" / run_id
     prep = run / "prep"
-    cfg = yaml.safe_load((REPO / "bench/config/targets.yaml").read_text())
+    cfg = run_config(run)
     seeds = list(cfg["seeds"])
     systems = sorted(p.parent.name for p in prep.glob("*/boltz.yaml"))
     if only:

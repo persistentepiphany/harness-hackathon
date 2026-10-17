@@ -2,16 +2,16 @@
   "check_id": "l5.agreement.cross_family",
   "layer": 5,
   "gate": "pass",
-  "message": "diffdock vs crystal 1B38 0.791 Å (decisive)",
+  "message": "diffdock vs boltz2 1.665 Å (high); diffdock vs crystal 1B38 0.791 Å (decisive); boltz2 vs crystal 1B38 1.499 Å (decisive)",
   "measurements": [
     {
       "name": "methods",
-      "value": 1,
+      "value": 2,
       "unit": null
     },
     {
       "name": "comparisons",
-      "value": 1,
+      "value": 3,
       "unit": null
     },
     {
@@ -38,14 +38,29 @@
     "comparisons": [
       {
         "method": "diffdock",
+        "vs": "boltz2",
+        "value": 1.665,
+        "unit": "Å",
+        "weight": "high"
+      },
+      {
+        "method": "diffdock",
         "vs": "crystal 1B38",
         "value": 0.791,
+        "unit": "Å",
+        "weight": "decisive"
+      },
+      {
+        "method": "boltz2",
+        "vs": "crystal 1B38",
+        "value": 1.499,
         "unit": "Å",
         "weight": "decisive"
       }
     ],
     "medoids": {
-      "diffdock": "diffdock/seed3/mode0"
+      "diffdock": "diffdock/seed3/mode0",
+      "boltz2": "boltz2/seed3/sample0"
     }
   },
   "artifacts": [],
@@ -53,5 +68,5 @@
     "name": "spyrmsd",
     "version": null
   },
-  "duration_s": 0.034
+  "duration_s": 0.098
 }
