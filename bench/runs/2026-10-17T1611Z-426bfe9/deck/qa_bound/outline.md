@@ -68,41 +68,45 @@ Body:
 ## Slide 5: (No title)
 
 Body:
-- Confusion counts, executors pooled
+- What the perturbation did, by system
+- Deposited contacts the medoid reproduces, wild type against perturbed
 - TABLE INDEX
-- 2 rows | Arm | Valid kept | Valid rejected | Invalid kept | Invalid rejected
-- 16 predictions (6 valid, 10 invalid); majority verdict over three repeats.
+- 4 rows | System | Wild type contacts | Perturbed contacts | Perturbed medoid (Å)
+- Each cell Boltz-2 / DiffDock-L. Medoid RMSD is to the deposited ligand; n/a where the perturbation modifies the ligand.
 - S1: bench/runs/2026-10-17T1611Z-426bfe9 (stats.json, facts, renders) · Sources: S1
 - 5/8
 
-## Slide 6: (No title)
-
-Body:
-- Balanced accuracy with 95% intervals
-- Score only, pooled
-- 0.5 (0.236 to 0.767)
-- Fact file, pooled
-- 0.533 (0.375 to 0.75)
-- McNemar exact p
-- 0.6875; discordant 4 and 2
-- Bootstrap over predictions; dashed line at 0.5.
-- S1: bench/runs/2026-10-17T1611Z-426bfe9 (stats.json, facts, renders) · Sources: S1
-- 6/8
-
 Notes:
-- Boltz-2: score only 0.5 (0.5 to 0.5), fact file 0.567 (0.25 to 0.929). DiffDock-L: score only 0.5 (0.5 to 0.5), fact file 0.5 (0.5 to 0.5).
+- Contact recovery is the signal that separates the states. Confidence and PoseBusters stay clean on the perturbed poses.
 
-## Slide 7: (No title)
+## Slide 6: (No title)
 
 Body:
 - Decision per prediction
 - A. Ground truth and majority verdict per prediction
 - B2 Boltz-2, DD DiffDock-L. V valid, I invalid.
 - S1: bench/runs/2026-10-17T1611Z-426bfe9 (stats.json, facts, renders) · Sources: S1
-- 7/8
+- 6/8
 
 Notes:
 - Score only kept 5 of 10 invalid predictions; the fact file arm kept 1 of 6 valid.
+
+## Slide 7: (No title)
+
+Body:
+- Aggregate over this run
+- Score only, pooled
+- 0.5 (0.236 to 0.767)
+- Fact file, pooled
+- 0.533 (0.375 to 0.75)
+- McNemar exact p
+- 0.6875; discordant 4 and 2
+- 16 predictions; intervals are wide at this size. Invalid kept: score only 5 of 10, fact file 1 of 10. Dashed line at 0.5.
+- S1: bench/runs/2026-10-17T1611Z-426bfe9 (stats.json, facts, renders) · Sources: S1
+- 7/8
+
+Notes:
+- Boltz-2: score only 0.5 (0.5 to 0.5), fact file 0.567 (0.25 to 0.929). DiffDock-L: score only 0.5 (0.5 to 0.5), fact file 0.5 (0.5 to 0.5).
 
 ## Slide 8: (No title)
 

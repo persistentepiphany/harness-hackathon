@@ -3,8 +3,8 @@
   "review_schema_version": "visual_judgment_v1",
   "deck": {
     "filename": "deck.pptx",
-    "sha256": "0d662b4cffbc61dc6d9de32ae8927f627aef0cc6d25a2b06955f7f32b051a34c",
-    "normalized_office_sha256": "fd8cdced480c2a0bbdbd84a0a43c7a6327cdfbf0e40dda6b8b6d58ecabd7a697"
+    "sha256": "26cc38ab9f974353858fa52b7ef0fc87ee8f2d358be503a660d635338eff5002",
+    "normalized_office_sha256": "af8812a38680f25744fe38a55cc548c77ff36e3f84098d19871b07dc44a1b153"
   },
   "renders": [
     {
@@ -29,18 +29,18 @@
     },
     {
       "name": "slide-05.jpg",
-      "sha256": "9eaa4c5d6596b3a5d836bb48f0799c95a0a63e92ea5422ba1c99ce1273ce51f0",
-      "size_bytes": 113113
+      "sha256": "71906cbed1e799d72967f229e32b152a2975863d8cdb62da750f43ed285f2794",
+      "size_bytes": 162154
     },
     {
       "name": "slide-06.jpg",
-      "sha256": "fd6984d2b4e9cb3d222982d70908da05122dfc9463d14ea17f6c12d32ffb57ff",
-      "size_bytes": 127084
+      "sha256": "5b3908f36b1df93ec5a0fcd2398ef7e853e1356c0ca6f118c009f91ae346c9c6",
+      "size_bytes": 118245
     },
     {
       "name": "slide-07.jpg",
-      "sha256": "3290cc7776f1444f6c8b08e37ecc651e5b9401c8395e8717b732bce09355ecca",
-      "size_bytes": 117789
+      "sha256": "691bff78f06e4b59c781fa9e108bac3658f4df680e113647d90e7e9cfebef92c",
+      "size_bytes": 125365
     },
     {
       "name": "slide-08.jpg",
@@ -56,39 +56,44 @@
   "verdict": "pass",
   "findings": [
     {
-      "slide": 3,
+      "slide": 2,
       "severity": "info",
-      "message": "Confidence value wraps to three lines inside the left card; fully legible."
+      "message": "Table index strip repeats the column headers; template accessibility metadata."
     },
     {
       "slide": 3,
       "severity": "info",
-      "message": "Lower third of both comparison cards is empty; text fully visible."
+      "message": "Confidence value wraps inside the left card; fully legible, lower third empty."
+    },
+    {
+      "slide": 4,
+      "severity": "info",
+      "message": "Two PyMOL panels with subfigure labels A and B; caption states each panel is oriented on its own ligand."
     },
     {
       "slide": 5,
       "severity": "info",
-      "message": "Fact-file row reads 3 valid kept, 3 valid rejected, 0 invalid kept, 10 invalid rejected, matching stats.json."
+      "message": "Named per-system table renders four rows; CDK2 Boltz-2 reads 6 of 9 wild type against 1 perturbed; FtsE perturbed medoids 16.401 and 17.821 A, matching the fact files."
     },
     {
       "slide": 6,
       "severity": "info",
-      "message": "Bars 0.83 / 0.67 / 0.75 with intervals; legend above the axes; sidebar shows pooled values and McNemar p 0.125."
+      "message": "Decision grid legible at panel size; row labels and prediction names readable."
     },
     {
       "slide": 7,
       "severity": "info",
-      "message": "Decision grid: fact-file row rejects all perturbed and keeps glc_wt, mek1_wt (both executors) valid."
+      "message": "Aggregate chart with legend above the axes; three sidebar sections fit the rail; counts moved to the caption."
     },
     {
       "slide": 8,
       "severity": "info",
-      "message": "Empty band below the two cards; headings aligned."
+      "message": "Two cards with headings aligned and one-line bullets; empty band below."
     }
   ],
-  "reviewed_at": "2026-10-17T19:56:53+00:00",
+  "reviewed_at": "2026-10-17T20:41:09+00:00",
   "review_context": {
     "renders": "bench/runs/2026-10-17T1859Z-849c856/deck/qa/renders/slide-01..08.jpg",
-    "method": "each slide image inspected at full resolution for clipping, overlap, alignment, legibility and factual captions; data slides (3, 5, 6, 7) checked against stats.json"
+    "method": "each slide image inspected at full resolution for clipping, overlap, alignment and legibility; slide 5 and slide 7 values checked against facts/ and results/stats.json"
   }
 }
