@@ -1,0 +1,56 @@
+systems:
+- id: ftse
+  protein: FtsE
+  pdb: 8X61
+  chain: A
+  ligand: ATP
+  context: []
+  perturbation:
+    kind: pocket_to_gly
+    radius: 3.5
+- id: cdk2
+  protein: CDK2
+  pdb: 1B38
+  chain: A
+  ligand: ATP
+  context:
+  - MG
+  perturbation:
+    kind: pocket_to_gly
+    radius: 3.5
+- id: mek1
+  protein: MEK1
+  pdb: 7XLP
+  chain: A
+  ligand: FZC
+  context: []
+  perturbation:
+    kind: pocket_to_gly
+    radius: 3.5
+- id: glc
+  protein: glucose dehydrogenase (glucose-binding)
+  pdb: 2VWH
+  chain: A
+  ligand: BGC
+  context:
+  - NAP
+  - ZN
+  perturbation:
+    kind: ligand_methylate
+    n_hydroxyls: 3
+seeds:
+- 7
+- 8
+- 9
+executors:
+- boltz2
+- diffdock
+diffdock_samples: 10
+ground_truth_rmsd_A: 2.0
+agent:
+  model: glm-4.6
+  base_url: https://api.z.ai/api/paas/v4
+  repeats: 3
+  temperature: 0
+modal:
+  gpu: A100
