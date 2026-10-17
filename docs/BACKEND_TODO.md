@@ -1,7 +1,7 @@
 # Backend and API work list
 
 Handover list for the API and backend changes the user asked for on 17 Oct 2026. Branch
-`claude/nifty-mccarthy-h7qg64`, last pushed commit `7ea4456`. The working tree holds uncommitted work
+`web-ui`, last pushed commit `7ea4456`. The working tree holds uncommitted work
 from stopped agents; the state of each item is noted. `make check` currently fails 6 tests, all from
 the partial gate-policy work (item 2):
 `test_engine.py::test_stop_halts_later_layers`, `test_engine.py::test_task_escalates_warn_to_stop`,
