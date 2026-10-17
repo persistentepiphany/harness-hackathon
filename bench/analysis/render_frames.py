@@ -136,8 +136,15 @@ def render_turn(structure: Path, ligand: Path | None, highlight: list[str], out:
     args = {"structure": str(structure), "ligand": str(ligand) if ligand else None,
             "highlight": highlight, "frames": frames, "out": str(out / "f%04d.png"),
             "w": 760, "h": 600}  # fmt: skip
+    stamp = out / "turn.json"
+    done = sorted(out.glob("f*.png"))
+    if stamp.is_file() and json.loads(stamp.read_text()) == args and len(done) == frames:
+        return done
+    for old in done:
+        old.unlink()
     subprocess.run([sys.executable, "-c", PYMOL_SCRIPT, json.dumps(args)], check=True,
-                   timeout=1800, capture_output=True)  # fmt: skip
+                   timeout=3600, capture_output=True)  # fmt: skip
+    stamp.write_text(json.dumps(args))
     return sorted(out.glob("f*.png"))
 
 
