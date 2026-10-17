@@ -1,0 +1,115 @@
+# Assets the end user fetches on their own host with `pah fetch`.
+# These cannot be bundled through PyPI or conda, or were not downloadable where the
+# repository was built. Paths are relative to the profile's tools_dir.
+# Every asset is fetched independently: a failure is recorded and the next asset proceeds.
+#
+# kind: http | github_release | command | manual
+# default: true assets are fetched by plain `pah fetch`; others need --only <id> or --all.
+version: 1
+assets:
+  - id: p2rank
+    kind: github_release
+    description: P2Rank pocket prediction (Java launcher `prank`)
+    required_for: [layer2.pocket_detection]
+    repo: rdk/p2rank
+    asset_patterns: ['^p2rank_.*\.tar\.gz$']
+    dest: opt/p2rank
+    extract: tar
+    links: {prank: "*/prank"}
+    size_hint: ~400 MB
+    source: README.md of rdk/p2rank; releases page
+
+  - id: mmseqs
+    kind: http
+    description: MMseqs2 static binary (sequence exposure, MSA depth)
+    required_for: [layer2.msa_depth, layer3.sequence_exposure]
+    url: https://mmseqs.com/latest/mmseqs-linux-avx2.tar.gz
+    dest: opt/mmseqs
+    extract: tar
+    links: {mmseqs: "*/bin/mmseqs"}
+    size_hint: ~30 MB
+    source: soedinglab/MMseqs2 README.md:39
+
+  - id: foldseek
+    kind: http
+    description: Foldseek static binary (structural exposure)
+    required_for: [layer3.structural_exposure]
+    url: https://mmseqs.com/foldseek/foldseek-linux-avx2.tar.gz
+    dest: opt/foldseek
+    extract: tar
+    links: {foldseek: "*/bin/foldseek"}
+    size_hint: ~40 MB
+    source: steineggerlab/foldseek README.md:75
+
+  - id: plinder_index
+    kind: command
+    description: PLINDER index tables (pocket-level exposure, calibration splits)
+    required_for: [layer3.pocket_exposure]
+    requires: [gcloud]
+    command: [gcloud, storage, cp, -r, "gs://plinder/2024-06/v2/index", "."]
+    dest: data/plinder/2024-06/v2
+    instructions: Run `gcloud auth login` first. The bucket denies anonymous reads.
+
+  - id: pinder_index
+    kind: command
+    description: PINDER index (protein-protein exposure)
+    required_for: [layer3.interface_exposure]
+    requires: [gcloud]
+    command: [gcloud, storage, cp, "gs://pinder/2024-02/index.parquet", "."]
+    dest: data/pinder/2024-02
+    instructions: Run `gcloud auth login` first. The bucket denies anonymous reads.
+
+  - id: gnina
+    kind: github_release
+    description: Gnina docking binary (executor hosts only)
+    required_for: [executor.gnina]
+    default: false
+    repo: gnina/gnina
+    asset_patterns: ['^gnina$', '^gnina[^/]*$']
+    dest: opt/gnina/gnina
+    executable: true
+    links: {gnina: "."}
+    size_hint: ~1 GB
+    source: gnina/gnina docs (releases/download/<tag>/gnina)
+
+  - id: protenix_weights
+    kind: http
+    description: Protenix base checkpoint (executor hosts only)
+    required_for: [executor.protenix]
+    default: false
+    url: https://protenix.tos-cn-beijing.volces.com/checkpoint/protenix_base_default_v1.0.0.pt
+    dest: weights/protenix/protenix_base_default_v1.0.0.pt
+    size_hint: ~1.4 GB
+    source: bytedance/Protenix protenix/web_service/dependency_url.py:17
+
+  - id: colabfold_databases
+    kind: command
+    description: UniRef30 and ColabFoldDB for local MSAs (executor hosts only)
+    required_for: [executor.colabfold, layer2.msa_depth]
+    default: false
+    requires: [bash, wget]
+    command: [bash, "-c", "wget -q https://raw.githubusercontent.com/sokrypton/ColabFold/main/setup_databases.sh && bash setup_databases.sh ."]
+    dest: data/colabfold
+    size_hint: ~1 TB uncompressed
+    instructions: Large download. Run on a storage node; see ColabFold setup_databases.sh.
+
+  - id: alphafold3_weights
+    kind: manual
+    description: AlphaFold3 model parameters
+    required_for: [executor.alphafold3]
+    env_var: PAH_AF3_WEIGHTS
+    instructions: Request access from Google DeepMind (alphafold3 repo, WEIGHTS_TERMS_OF_USE.md), then set PAH_AF3_WEIGHTS to the directory.
+
+  - id: pydock
+    kind: manual
+    description: pyDock protein-protein docking
+    required_for: [executor.pydock]
+    env_var: PAH_PYDOCK_HOME
+    instructions: Academic licence from the pyDock authors; set PAH_PYDOCK_HOME to the install path.
+
+  - id: phenix
+    kind: manual
+    description: Phenix (MolProbity validation)
+    required_for: [layer4.molprobity]
+    env_var: PAH_PHENIX_HOME
+    instructions: Academic licence from phenix-online.org; set PAH_PHENIX_HOME and put phenix.molprobity on PATH.
