@@ -1,0 +1,179 @@
+@import 'tailwindcss';
+
+/* Design tokens: web/design/prototype/HANDOFF.md §3. Use as bg-canvas, text-ink2, border-line,
+   bg-accent-tint, text-pass, bg-stop-tint, text-terminal-fg, rounded (6px), rounded-card (8px). */
+@theme {
+  --color-canvas: #f7f7f4;
+  --color-surface: #ffffff;
+  --color-line: #e6e6e1;
+  --color-line2: #efefeb;
+  --color-line3: #f3f3ef;
+  --color-ink: #1a1a18;
+  --color-ink2: #55554f;
+  --color-muted: #8b8b85;
+  --color-faint: #b9b9b3;
+
+  --color-accent: #b07e2c;
+  --color-accent-deep: #8e6420;
+  --color-accent-tint: #f6eedc;
+  --color-accent-soft: #fbf7ee;
+
+  --color-pass: #3b8a58;
+  --color-pass-tint: #e4f1e8;
+  --color-warn: #c28a1a;
+  --color-warn-tint: #faf0d9;
+  --color-stop: #c4513b;
+  --color-stop-tint: #f9e5e0;
+  --color-reported: #8b8b85;
+
+  --color-cofolding: #b07e2c;
+  --color-docking: #5b7fa6;
+  --color-seed: #c9a86a;
+  --color-model: #8b6fb5;
+
+  --color-terminal-bg: #1a1a18;
+  --color-terminal-fg: #e8e8e3;
+  --color-terminal-pass: #6fbf8a;
+  --color-terminal-warn: #e3b45a;
+  --color-terminal-stop: #e8826e;
+
+  --font-sans: var(--font-geist), Geist, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), 'Geist Mono', ui-monospace, monospace;
+
+  --text-base: 13px;
+  --text-base--line-height: 1.45;
+
+  --radius: 6px;
+  --radius-card: 8px;
+
+  --animate-fade-up: fadeUp 0.3s ease-out;
+  --animate-fade-in: fadeIn 0.3s ease-out;
+  --animate-pulse: pulse 1.2s infinite;
+  --animate-pulse-slow: pulse 1.4s infinite;
+  --animate-spin: spin 0.8s linear infinite;
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+/* next/font exposes --font-geist-sans; the contract name is --font-geist. */
+:root {
+  --font-geist: var(--font-geist-sans);
+}
+
+/* Prototype global styles (<helmet> in Harness v2.dc.html). */
+@layer base {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    font-size: 13px;
+    line-height: 1.45;
+    min-height: 100vh;
+  }
+  *,
+  ::before,
+  ::after {
+    box-sizing: border-box;
+  }
+  a {
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+  a:hover {
+    color: var(--color-accent);
+  }
+  input,
+  textarea,
+  button {
+    font-family: inherit;
+  }
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--color-accent) !important;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #deded9;
+    border-radius: 8px;
+  }
+  @media print {
+    [data-print='hide'] {
+      display: none !important;
+    }
+    body {
+      background: #fff;
+    }
+    [data-print='page'] {
+      box-shadow: none !important;
+      border: 0 !important;
+      margin: 0 !important;
+      width: auto !important;
+      min-height: 0 !important;
+    }
+  }
+}
+
+/* Mol*: hide the viewport control strip, as the prototype does. */
+.msp-plugin .msp-viewport-controls {
+  display: none;
+}
+
+/* Section eyebrow: 11px uppercase, tracking .06em, muted. */
+@utility eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* Numbers and identifiers in tables: Geist Mono 11.5px. */
+@utility mono-data {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
