@@ -188,6 +188,29 @@ def regenerate_report(path: Path, sinks: Sequence[Sink] = ()) -> list[Path]:
     return files
 
 
+def run_doctor(
+    profile: Profile,
+    categories: Sequence[str] | None = None,
+    sinks: Sequence[Sink] = (),
+    timeout: float = 20.0,
+) -> Any:
+    """Runs the reachability probes and writes doctor_report.{json,md}; returns the report."""
+    from pah.doctor import Doctor, ProbeContext, build_catalog, write_report
+
+    run_id = new_run_id("doctor")
+    out_dir = resolve_path(profile.runs_dir) / run_id
+    with (
+        httpx.Client(follow_redirects=True, timeout=timeout) as client,
+        EventBus(run_id, [*sinks, JsonlSink(out_dir / "events.jsonl")]) as bus,
+    ):
+        catalog = build_catalog(
+            ProbeContext(client=client, profile=profile), list(categories or []) or None
+        )
+        report = Doctor(bus).run(catalog, profile.name)
+        write_report(report, out_dir)
+    return report
+
+
 def task_rows() -> list[dict[str, Any]]:
     import pah.checks  # noqa: F401
     from pah.core.check import CHECKS
