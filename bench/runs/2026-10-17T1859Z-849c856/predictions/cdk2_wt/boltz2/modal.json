@@ -1,0 +1,93 @@
+{
+  "system": "cdk2_wt",
+  "executor": "boltz2",
+  "version": "2.2.1",
+  "runs": [
+    {
+      "seed": 7,
+      "argv": [
+        "boltz",
+        "predict",
+        "/tmp/boltz/cdk2_wt/cdk2_wt.yaml",
+        "--out_dir",
+        "/tmp/boltz/cdk2_wt/seed_7",
+        "--model",
+        "boltz2",
+        "--cache",
+        "/weights/boltz",
+        "--seed",
+        "7",
+        "--diffusion_samples",
+        "1",
+        "--write_full_pae",
+        "--output_format",
+        "mmcif",
+        "--override",
+        "--use_msa_server"
+      ],
+      "rc": 0,
+      "seconds": 124.2,
+      "tail": "cessing 1 inputs with 1 threads.\nGenerating MSA for /tmp/boltz/cdk2_wt/cdk2_wt.yaml with 1 protein entities.\nCalling MSA server for target cdk2_wt with 1 sequences\nMSA server URL: https://api.colabfold.com\nMSA pairing strategy: greedy\nNo authentication provided for MSA server\nRunning structure prediction for 1 input.\n\nPredicting: |          | 0/? [00:00<?, ?it/s]\nPredicting:   0%|          | 0/1 [00:00<?, ?it/s]\nPredicting DataLoader 0:   0%|          | 0/1 [00:00<?, ?it/s]\nPredicting DataLoader 0: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:24<00:00,  0.04it/s]Number of failed examples: 0\n\nPredicting DataLoader 0: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:24<00:00,  0.04it/s]\n\nPredicting property: affinity\n\nChecking input data for affinity.\nRunning affinity prediction for 1 input.\n\nPredicting: |          | 0/? [00:00<?, ?it/s]\nPredicting:   0%|          | 0/1 [00:00<?, ?it/s]\nPredicting DataLoader 0:   0%|          | 0/1 [00:00<?, ?it/s]\nPredicting DataLoader 0: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:18<00:00,  0.06it/s]Number of failed examples: 0\n\nPredicting DataLoader 0: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:18<00:00,  0.06it/s]\nSeed set to 7\n\n  0%|          | 0/1 [00:00<?, ?it/s]\n\n  0%|          | 0/150 [elapsed: 00:00 remaining: ?]\u001b[A\n\nSUBMIT:   0%|          | 0/150 [elapsed: 00:00 remaining: ?]\u001b[A\n\nCOMPLETE:   0%|          | 0/150 [elapsed: 00:00 remaining: ?]\u001b[A\n\nCOMPLETE: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 150/150 [elapsed: 00:00 remaining: 00:00]\u001b[A\nCOMPLETE: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 150/150 [elapsed: 00:00 remaining: 00:00]\n\n100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:02<00:00,  2.10s/it]\n100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:02<00:00,  2.10s/it]\nUsing bfloat16 Automatic Mixed Precision (AMP)\nGPU available: True (cuda), used: True\nTPU available: False, using: 0 TPU cores\nHPU available: False, using: 0 HPUs\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/logger_connector/logger_connector.py:76: Starting from v1.9.0, `tensorboardX` has been removed as a dependency of the `pytorch_lightning` package, due to potential conflicts with other packages in the ML ecosystem. For this reason, `logger=True` will use `CSVLogger` as the default logger, unless the `tensorboard` or `tensorboardX` packages are found. Please `pip install lightning[extra]` or one of them to enable TensorBoard support by default\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/utilities/migration/utils.py:56: The loaded checkpoint was produced with Lightning v2.5.0.post0, which is newer than your current Lightning version: v2.5.0\nYou are using a CUDA device ('NVIDIA A100-SXM4-80GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision\nLOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.\n/opt/executor/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.\n  warnings.warn(\n/opt/executor/lib/python3.11/site-packages/cuequivariance_ops_torch/triangle_attention.py:623: UserWarning: Generic kernel expects bias to be float32 so it's going to be cast to torch.float32. Check if you can change your code for maximum performance.\n  warn_eager_only(\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/utilities/migration/utils.py:56: The loaded checkpoint was produced with Lightning v2.5.0.post0, which is newer than your current Lightning version: v2.5.0\nLOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.\n"
+    },
+    {
+      "seed": 8,
+      "argv": [
+        "boltz",
+        "predict",
+        "/tmp/boltz/cdk2_wt/cdk2_wt.yaml",
+        "--out_dir",
+        "/tmp/boltz/cdk2_wt/seed_8",
+        "--model",
+        "boltz2",
+        "--cache",
+        "/weights/boltz",
+        "--seed",
+        "8",
+        "--diffusion_samples",
+        "1",
+        "--write_full_pae",
+        "--output_format",
+        "mmcif",
+        "--override"
+      ],
+      "rc": 0,
+      "seconds": 110.2,
+      "tail": "Checking input data.\nProcessing 1 inputs with 1 threads.\nRunning structure prediction for 1 input.\n\nPredicting: |          | 0/? [00:00<?, ?it/s]\nPredicting:   0%|          | 0/1 [00:00<?, ?it/s]\nPredicting DataLoader 0:   0%|          | 0/1 [00:00<?, ?it/s]\nPredicting DataLoader 0: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:17<00:00,  0.06it/s]Number of failed examples: 0\n\nPredicting DataLoader 0: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:17<00:00,  0.06it/s]\n\nPredicting property: affinity\n\nChecking input data for affinity.\nRunning affinity prediction for 1 input.\n\nPredicting: |          | 0/? [00:00<?, ?it/s]\nPredicting:   0%|          | 0/1 [00:00<?, ?it/s]\nPredicting DataLoader 0:   0%|          | 0/1 [00:00<?, ?it/s]\nPredicting DataLoader 0: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:17<00:00,  0.06it/s]Number of failed examples: 0\n\nPredicting DataLoader 0: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:17<00:00,  0.06it/s]\nSeed set to 8\n\n  0%|          | 0/1 [00:00<?, ?it/s]\n100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:01<00:00,  1.28s/it]\n100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:01<00:00,  1.28s/it]\nUsing bfloat16 Automatic Mixed Precision (AMP)\nGPU available: True (cuda), used: True\nTPU available: False, using: 0 TPU cores\nHPU available: False, using: 0 HPUs\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/logger_connector/logger_connector.py:76: Starting from v1.9.0, `tensorboardX` has been removed as a dependency of the `pytorch_lightning` package, due to potential conflicts with other packages in the ML ecosystem. For this reason, `logger=True` will use `CSVLogger` as the default logger, unless the `tensorboard` or `tensorboardX` packages are found. Please `pip install lightning[extra]` or one of them to enable TensorBoard support by default\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/utilities/migration/utils.py:56: The loaded checkpoint was produced with Lightning v2.5.0.post0, which is newer than your current Lightning version: v2.5.0\nYou are using a CUDA device ('NVIDIA A100-SXM4-80GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision\nLOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.\n/opt/executor/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.\n  warnings.warn(\n/opt/executor/lib/python3.11/site-packages/cuequivariance_ops_torch/triangle_attention.py:623: UserWarning: Generic kernel expects bias to be float32 so it's going to be cast to torch.float32. Check if you can change your code for maximum performance.\n  warn_eager_only(\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/utilities/migration/utils.py:56: The loaded checkpoint was produced with Lightning v2.5.0.post0, which is newer than your current Lightning version: v2.5.0\nLOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.\n"
+    },
+    {
+      "seed": 9,
+      "argv": [
+        "boltz",
+        "predict",
+        "/tmp/boltz/cdk2_wt/cdk2_wt.yaml",
+        "--out_dir",
+        "/tmp/boltz/cdk2_wt/seed_9",
+        "--model",
+        "boltz2",
+        "--cache",
+        "/weights/boltz",
+        "--seed",
+        "9",
+        "--diffusion_samples",
+        "1",
+        "--write_full_pae",
+        "--output_format",
+        "mmcif",
+        "--override"
+      ],
+      "rc": 0,
+      "seconds": 110.2,
+      "tail": "Checking input data.\nProcessing 1 inputs with 1 threads.\nRunning structure prediction for 1 input.\n\nPredicting: |          | 0/? [00:00<?, ?it/s]\nPredicting:   0%|          | 0/1 [00:00<?, ?it/s]\nPredicting DataLoader 0:   0%|          | 0/1 [00:00<?, ?it/s]\nPredicting DataLoader 0: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:18<00:00,  0.05it/s]Number of failed examples: 0\n\nPredicting DataLoader 0: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:18<00:00,  0.05it/s]\n\nPredicting property: affinity\n\nChecking input data for affinity.\nRunning affinity prediction for 1 input.\n\nPredicting: |          | 0/? [00:00<?, ?it/s]\nPredicting:   0%|          | 0/1 [00:00<?, ?it/s]\nPredicting DataLoader 0:   0%|          | 0/1 [00:00<?, ?it/s]\nPredicting DataLoader 0: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:18<00:00,  0.06it/s]Number of failed examples: 0\n\nPredicting DataLoader 0: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:18<00:00,  0.06it/s]\nSeed set to 9\n\n  0%|          | 0/1 [00:00<?, ?it/s]\n100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:01<00:00,  1.31s/it]\n100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:01<00:00,  1.31s/it]\nUsing bfloat16 Automatic Mixed Precision (AMP)\nGPU available: True (cuda), used: True\nTPU available: False, using: 0 TPU cores\nHPU available: False, using: 0 HPUs\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/logger_connector/logger_connector.py:76: Starting from v1.9.0, `tensorboardX` has been removed as a dependency of the `pytorch_lightning` package, due to potential conflicts with other packages in the ML ecosystem. For this reason, `logger=True` will use `CSVLogger` as the default logger, unless the `tensorboard` or `tensorboardX` packages are found. Please `pip install lightning[extra]` or one of them to enable TensorBoard support by default\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/utilities/migration/utils.py:56: The loaded checkpoint was produced with Lightning v2.5.0.post0, which is newer than your current Lightning version: v2.5.0\nYou are using a CUDA device ('NVIDIA A100-SXM4-80GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision\nLOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.\n/opt/executor/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.\n  warnings.warn(\n/opt/executor/lib/python3.11/site-packages/cuequivariance_ops_torch/triangle_attention.py:623: UserWarning: Generic kernel expects bias to be float32 so it's going to be cast to torch.float32. Check if you can change your code for maximum performance.\n  warn_eager_only(\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/utilities/migration/utils.py:56: The loaded checkpoint was produced with Lightning v2.5.0.post0, which is newer than your current Lightning version: v2.5.0\nLOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]\n/opt/executor/lib/python3.11/site-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.\n"
+    }
+  ],
+  "gpu": "NVIDIA A100-SXM4-80GB, 610.57.04, 81920 MiB",
+  "env": {
+    "MODAL_IMAGE_ID": "im-sC7Kxfl8WRyiLZEjfHoql9",
+    "MODAL_TASK_ID": "ta-01M55KQ8R6X4SNZXHYFHSMS70R",
+    "MODAL_REGION": "us-west"
+  },
+  "tar": {
+    "path": "/results/cdk2_wt_boltz2.tar.gz",
+    "bytes": 11010416
+  }
+}
