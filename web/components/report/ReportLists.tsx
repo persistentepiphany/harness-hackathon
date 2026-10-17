@@ -33,8 +33,8 @@ export function PerturbationList({ record, className }: ReportBlockProps) {
   );
 }
 
-export function ThresholdsList({ record, className }: ReportBlockProps) {
-  const rows = thresholdRows(record);
+export function ThresholdsList({ record, className, checks }: ReportBlockProps & { checks?: string[] }) {
+  const rows = thresholdRows(record).filter((t) => !checks || !t.check || checks.includes(t.check));
   return (
     <div className={className} data-testid="thresholds">
       <BlockLabel>Thresholds · origin</BlockLabel>

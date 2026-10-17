@@ -23,6 +23,7 @@ import type {
   StartRunResult,
   Task,
   Tool,
+  UiGlossary,
   UiRunRecord,
   UploadResult,
 } from './types';
@@ -81,6 +82,8 @@ export interface HarnessApi {
   addTool(spec: AddToolSpec, opts?: CallOptions): Promise<Tool>;
   listTasks(opts?: CallOptions): Promise<Task[]>;
   listExamples(opts?: CallOptions): Promise<ExampleManifest[]>;
+  /** `GET /ui/glossary`: what each score means, which tool produces it and from which inputs. */
+  getGlossary(opts?: CallOptions): Promise<UiGlossary>;
   uploadFiles(files: File[], opts?: CallOptions): Promise<UploadResult>;
 
   listAgentTasks(opts?: CallOptions): Promise<AgentTask[]>;
@@ -139,12 +142,16 @@ export function poll<T>(h: WatchHandlers<T>, p: PollOptions<T>): Unsubscribe {
 
 const anyActive = (items: { status: string }[]) => items.some((j) => j.status === 'running' || j.status === 'queued');
 
+/** An executor still queued, building or running (execution events). */
+const executing = (execution: { phase: string }[] | null | undefined) => (execution ?? []).some((e) => e.phase === 'queued' || e.phase === 'building' || e.phase === 'running');
+
 /**
  * A record still being written: run status running/queued, a layer running or pending, or a
  * finished run whose report stage (renders, figures, graph) is still running.
  */
 export function isRecordActive(r: UiRunRecord): boolean {
-  if (r.status === 'done' || r.status === 'failed') return r.report?.status === 'running';
+  if (r.status === 'done' || r.status === 'failed') return r.report?.status === 'running' || executing(r.execution);
+  if (executing(r.execution)) return true;
   return r.status === 'running' || r.status === 'queued' || r.layers.some((l) => l.status === 'running' || l.status === 'pending');
 }
 
@@ -179,7 +186,7 @@ export function createLiveHarnessApi(opts: LiveOptions = {}): HarnessApi {
       poll(h, {
         fetch: (signal) => http.get<Job>(`/ui/jobs/${enc(id)}`, { signal }),
         // a done job keeps polling while its report stage runs, so reportStatus settles
-        nextDelay: (job) => (job.status === 'running' || job.status === 'queued' || job.reportStatus === 'running' ? 2000 : null),
+        nextDelay: (job) => (job.status === 'running' || job.status === 'queued' || job.reportStatus === 'running' || executing(job.execution) ? 2000 : null),
       }),
 
     getJobLog: (id, o) => http.get<LogLine[]>(`/ui/jobs/${enc(id)}/log`, { signal: o?.signal, query: { format: 'json' } }),
@@ -193,7 +200,8 @@ export function createLiveHarnessApi(opts: LiveOptions = {}): HarnessApi {
         fetch: (signal) => http.get<UiRunRecord>(`/ui/runs/${enc(runId)}/record`, { signal }),
         nextDelay: (r) => {
           if (!isRecordActive(r)) return null;
-          const key = JSON.stringify([r.layers.map((l) => [l.status, l.checks.length]), r.report?.status, r.renders?.length ?? 0]);
+          // execution progress and new renders count as changes, so polling stays at 2 s while executors run
+          const key = JSON.stringify([r.layers.map((l) => [l.status, l.checks.length]), r.report?.status, r.renders?.length ?? 0, (r.execution ?? []).map((e) => [e.phase, e.seeds.filter((x) => x.phase === 'done').length])]);
           unchanged = key === last ? unchanged + 1 : 0;
           last = key;
           return unchanged > 15 ? 10000 : 2000;
@@ -211,6 +219,7 @@ export function createLiveHarnessApi(opts: LiveOptions = {}): HarnessApi {
     addTool: (spec, o) => http.post<Tool>('/ui/tools', spec, { signal: o?.signal }),
     listTasks: (o) => http.get<Task[]>('/ui/tasks', { signal: o?.signal }),
     listExamples: (o) => http.get<ExampleManifest[]>('/ui/examples', { signal: o?.signal }),
+    getGlossary: (o) => http.get<UiGlossary>('/ui/glossary', { signal: o?.signal }),
     uploadFiles: (files, o) => {
       const form = new FormData();
       files.forEach((f) => form.append('files', f, f.name));

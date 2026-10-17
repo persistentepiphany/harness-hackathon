@@ -6,8 +6,8 @@ import { API_BASE, type MockOptions } from '../config';
 import { resolveFileUrl } from '../files';
 import type { CallOptions, HarnessApi, LogStreamHandlers, StepStreamHandlers, WatchHandlers } from '../harness-api';
 import type { Unsubscribe } from '../sse';
-import type { AgentTask, Catalog, ExampleManifest, Health, InterpretResult, Job, Task, Tool, UploadedFile, UploadResult } from '../types';
-import { CATALOG, TASKS, formFromSettings, interpretRun, lookupEntities, mockTools, registerMockTool } from './data';
+import type { AgentTask, Catalog, ExampleManifest, Health, InterpretResult, Job, Task, Tool, UiGlossary, UploadedFile, UploadResult } from '../types';
+import { CATALOG, GLOSSARY, TASKS, formFromSettings, interpretRun, lookupEntities, mockTools, registerMockTool } from './data';
 import { Simulator, type SimJob } from './simulator';
 
 export interface MockControls {
@@ -196,7 +196,7 @@ export function createMockHarnessApi(opts: CreateMockOptions = {}): MockHarnessA
     interpret: (text, o) =>
       respond<InterpretResult>(() => {
         const r = interpretRun(text);
-        return { settings: { task: r.task, tools: r.tools, target: r.target, partner: r.partner, ligand: r.ligand, reference: r.reference, ph: r.ph, seeds: r.seeds }, steps: r.steps };
+        return { settings: { task: r.task, tools: r.tools, target: r.target, partner: r.partner, ligand: r.ligand, reference: r.reference, ph: r.ph, seeds: r.seeds }, steps: r.steps, warnings: r.warnings };
       }, o),
     lookupEntities: (q, o) => respond(() => lookupEntities(q), o, Math.max(latency, 350)),
     getCatalog: (o) => respond<Catalog>(() => clone(CATALOG), o),
@@ -212,6 +212,7 @@ export function createMockHarnessApi(opts: CreateMockOptions = {}): MockHarnessA
       }, o),
     listTasks: (o) => respond<Task[]>(() => clone(TASKS), o),
     listExamples: (o) => respond<ExampleManifest[]>(() => [], o),
+    getGlossary: (o) => respond<UiGlossary>(() => clone(GLOSSARY), o),
     uploadFiles: async (files, o) => {
       const out: UploadedFile[] = [];
       for (const f of files) {

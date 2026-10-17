@@ -13,6 +13,7 @@ import type {
   PhysicsRow,
   RecordLayer,
   RecordRender,
+  RecordSource,
   RecordStructure,
   Result,
   StatsSource,
@@ -1518,9 +1519,9 @@ export function verdictView(record: UiRunRecord): VerdictView {
 export type StageId = 'inputs' | 'applicability' | 'outputs';
 
 export const STAGES: { id: StageId; label: string; range: string; layers: number[] }[] = [
-  { id: 'inputs', label: 'Inputs', range: 'L0–L2', layers: [0, 1, 2] },
-  { id: 'applicability', label: 'Applicability', range: 'L3', layers: [3] },
-  { id: 'outputs', label: 'Outputs', range: 'L4–L5', layers: [4, 5] },
+  { id: 'inputs', label: 'Inputs', range: '', layers: [0, 1, 2] },
+  { id: 'applicability', label: 'Applicability', range: '', layers: [3] },
+  { id: 'outputs', label: 'Outputs', range: '', layers: [4, 5] },
 ];
 
 export interface CheckBreakdown {
@@ -1611,38 +1612,51 @@ export function layerBreakdown(record: UiRunRecord, idx: number): CheckBreakdown
 
 const DIM_LABEL: Record<DimensionId, string> = {
   inputs: 'Inputs',
-  applicability: 'Applicability',
-  geometry: 'Geometry',
-  physics: 'Physics',
-  interactions: 'Interactions',
-  confidence: 'Confidence',
-  support: 'Support',
+  exposure: 'Exposure',
+  physical_validity: 'Physical validity',
+  chemical_plausibility: 'Chemical plausibility',
+  stability: 'Stability',
+  corroboration: 'Corroboration and physical response',
 };
-export const DIMENSION_ORDER: DimensionId[] = ['inputs', 'applicability', 'geometry', 'physics', 'interactions', 'confidence', 'support'];
+export const DIMENSION_ORDER: DimensionId[] = ['inputs', 'exposure', 'physical_validity', 'chemical_plausibility', 'stability', 'corroboration'];
 
-/** Fallback grouping by check id when the record carries no dimensions (configs/catalog.yaml is the source). */
-function dimensionOfCheck(id: string, layer: number): DimensionId {
+const CATEGORY_DIMENSION: Record<string, DimensionId> = {
+  provenance_identity: 'inputs',
+  structural_completeness: 'inputs',
+  chemical_state: 'inputs',
+  applicability: 'exposure',
+  physical_validity: 'physical_validity',
+  interaction_chemistry: 'chemical_plausibility',
+  sampling_stability: 'stability',
+  corroboration_controls: 'corroboration',
+};
+
+/** Fallback grouping when the record carries no dimensions: the check's category, else its layer and id. */
+function dimensionOfCheck(c: Pick<UiCheck, 'id' | 'category'>, layer: number): DimensionId {
+  const byCat = c.category ? CATEGORY_DIMENSION[c.category] : undefined;
+  if (byCat) return byCat;
+  const id = c.id;
   if (layer <= 2) return 'inputs';
-  if (layer === 3) return 'applicability';
-  if (/^l4\.interactions\./.test(id)) return 'interactions';
-  if (/^l4\.(minimisation|physics|energy|strain|clash)/.test(id)) return 'physics';
-  if (layer === 4) return 'geometry';
-  if (/^l5\.confidence\./.test(id)) return 'confidence';
-  return 'support';
+  if (layer === 3) return 'exposure';
+  if (/^l4\.interactions\./.test(id)) return 'chemical_plausibility';
+  if (layer === 4) return 'physical_validity';
+  if (/^l5\.sampling\./.test(id)) return 'stability';
+  return 'corroboration';
 }
 
-const CERTAINTY_RANK: Record<Certainty, number> = { none: 3, calibrated: 2, published: 1, uncalibrated: 0 };
+const CERTAINTY_RANK: Record<Certainty, number> = { none: 4, definitional: 3, published: 2, inherited: 1, uncalibrated: 0 };
 
-/** Evidence level of a threshold as a certainty class. */
+/** Evidence level (standing) of a threshold as a certainty class. */
 export function certaintyOf(level: string | null | undefined): Certainty {
   const l = (level ?? '').toLowerCase();
   if (!l) return 'none';
-  if (l === 'calibrated') return 'calibrated';
-  if (l === 'published' || l === 'reproduced' || l === 'literature') return 'published';
+  if (l === 'definitional') return 'definitional';
+  if (l === 'published' || l === 'reproduced' || l === 'literature' || l === 'calibrated') return 'published';
+  if (l === 'inherited') return 'inherited';
   return 'uncalibrated';
 }
 
-/** Weakest certainty of a list (uncalibrated < published < calibrated; `none` only when nothing has a level). */
+/** Weakest certainty of a list (uncalibrated < inherited < published < definitional; `none` only when nothing has a level). */
 export function weakestCertainty(levels: Certainty[]): Certainty {
   const real = levels.filter((l) => l !== 'none');
   if (!real.length) return 'none';
@@ -1653,7 +1667,7 @@ function deriveDimensions(record: UiRunRecord): UiDimension[] {
   const preRun = assessmentOf(record) === 'pre-run';
   const groups = new Map<DimensionId, { c: UiCheck; layer: number }[]>();
   for (const l of record.layers) for (const c of l.checks) {
-    const d = dimensionOfCheck(c.id, l.i);
+    const d = dimensionOfCheck(c, l.i);
     groups.set(d, [...(groups.get(d) ?? []), { c, layer: l.i }]);
   }
   return DIMENSION_ORDER.filter((id) => groups.has(id)).map((id) => {
@@ -1661,7 +1675,7 @@ function deriveDimensions(record: UiRunRecord): UiDimension[] {
     const b = checkBreakdown(list, preRun);
     const levels = list
       .filter(({ c }) => c.result !== 'skip' && c.result !== 'pending')
-      .flatMap(({ c }) => (c.thresholds?.length ? c.thresholds.map((t) => certaintyOf(t.evidenceLevel)) : c.threshold ? [certaintyOf(c.threshold.evidenceLevel)] : []));
+      .flatMap(({ c }) => (c.standing ? [certaintyOf(c.standing)] : c.thresholds?.length ? c.thresholds.map((t) => certaintyOf(t.standing ?? t.evidenceLevel)) : c.threshold ? [certaintyOf(c.threshold.evidenceLevel)] : []));
     const result: UiDimension['result'] = b.stop ? 'stop' : b.warn ? 'warn' : b.pass || b.reported ? 'pass' : b.pending ? 'pending' : 'na';
     return { id, label: DIM_LABEL[id], result, checks: b.total, passed: b.pass, warned: b.warn, stopped: b.stop, pending: b.pending, certainty: weakestCertainty(levels), checkIds: list.map(({ c }) => c.id) };
   });
@@ -1674,8 +1688,9 @@ export function dimensionsOf(record: UiRunRecord): UiDimension[] {
 }
 
 export const CERTAINTY_TEXT: Record<Certainty, string> = {
-  calibrated: 'calibrated',
+  definitional: 'definitional',
   published: 'published',
+  inherited: 'inherited',
   uncalibrated: 'uncalibrated',
   none: 'no threshold',
 };
@@ -1757,6 +1772,9 @@ export interface BlockAvailability {
  */
 export function blockAvailability(record: UiRunRecord, block: string, computed: boolean, register?: Register): BlockAvailability {
   if (computed) return { state: 'computed', reason: null };
+  const st = (record.stats.status as Record<string, { status?: string; reason?: string | null }> | undefined)?.[block];
+  if (st?.status === 'na') return { state: 'not_applicable', reason: st.reason ?? null };
+  if (st?.status === 'pending') return { state: 'pending', reason: st.reason ?? 'waits for predictions' };
   const preRun = assessmentOf(record) === 'pre-run';
   const ids = BLOCK_CHECKS[block] ?? [];
   const found = record.layers.flatMap((l) => l.checks.filter((c) => ids.includes(c.id)).map((c) => ({ c, layer: l.i })));
@@ -1940,4 +1958,56 @@ export function overallMedians(summaries: RunSummary[]): (SummaryScore & { runs:
     }
   }
   return [...groups.values()].map(({ s, values }) => ({ ...s, value: describe(values)!.median, n: values.length, runs: values.length }));
+}
+
+// ---------------------------------------------------------------- check focus (check → viewer)
+
+export interface CheckFocus {
+  check: string;
+  /** Residues the check names (evidence, message, interaction rows of the interaction checks). */
+  residues: FlaggedResidue[];
+  /** Pose id the evidence names (`vina/seed0/mode0`), when a structure of the record has it. */
+  pose: string | null;
+  /** The check is about the ligand or the pocket: frame the ligand. */
+  ligand: boolean;
+}
+
+/** Residues named in a text (`HIS57A`, `Asp189`), amino acids only, deduplicated. */
+export function residuesIn(text: string, check: string, result: Result): FlaggedResidue[] {
+  const out: FlaggedResidue[] = [];
+  const seen = new Set<string>();
+  for (const m of text.matchAll(RESIDUE_RE)) {
+    const name = m[1].toUpperCase();
+    if (!AMINO.has(name)) continue;
+    const r: FlaggedResidue = { name, num: Number(m[2]), chain: m[3], check, result };
+    const key = `${r.chain ?? ''}:${r.num}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(r);
+  }
+  return out;
+}
+
+/** What the viewer shows for a selected check: its residues, the pose it names, or the ligand. */
+export function checkFocus(record: UiRunRecord, checkId: string): CheckFocus | null {
+  let found: { c: UiCheck; layer: number } | null = null;
+  for (const l of record.layers) for (const c of l.checks) if (c.id === checkId) found = { c, layer: l.i };
+  if (!found) return null;
+  const { c, layer } = found;
+  const text = [c.evidence, c.message].filter(Boolean).join(' ');
+  const residues = residuesIn(text, c.id, c.result);
+  if (/^l4\.interactions\./.test(c.id)) {
+    const rows = record.stats.interactions ?? [];
+    const rep = rows.filter((r) => (r as { inRepresentative?: boolean }).inRepresentative !== false);
+    for (const r of residuesIn(rep.map((x) => x.residue).join(' '), c.id, c.result)) if (!residues.some((x) => x.num === r.num && x.chain === r.chain)) residues.push(r);
+  }
+  const poses = new Set((record.stats.ensemble ?? []).flatMap((e) => [e.pose, e.label].filter((x): x is string => !!x)));
+  const pose = (text.match(/[\w.-]+(?:\/[\w.-]+)+/g) ?? []).find((p) => poses.has(p)) ?? null;
+  const ligand = layer >= 4 || /ligand|pocket|docking|pose|interaction/.test(c.id);
+  return { check: c.id, residues, pose, ligand };
+}
+
+/** Source objects a check used (record.sources[].usedBy). */
+export function checkSources(record: Pick<UiRunRecord, 'sources'>, checkId: string): RecordSource[] {
+  return record.sources.filter((s) => s.usedBy?.includes(checkId));
 }

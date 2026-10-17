@@ -1,24 +1,40 @@
 import { describe, expect, it } from 'vitest';
-import { AGENT_TASKS, PRESET_JOBS, SAMPLE_PROMPTS, interpretRun, lookupEntities, makeRunRecord } from '@/lib/mock/data';
+import { AGENT_TASKS, PRESET_JOBS, SAMPLE_PROMPTS, TASKS, interpretRun, lookupEntities, makeRunRecord, toPreRun } from '@/lib/mock/data';
 import { createMockHarnessApi } from '@/lib/mock/mock-api';
 import { Simulator } from '@/lib/mock/simulator';
 import type { AgentStep, LogLine } from '@/lib/types';
 
 describe('mock data port', () => {
-  it('interprets the sample prompts like the prototype', () => {
-    expect(SAMPLE_PROMPTS.map((p) => interpretRun(p).task)).toEqual([
-      'ligand_pose',
-      // prototype rule order: "decoy" selects virtual_screening before the interaction rule
-      'virtual_screening',
-      'affinity_ranking',
-      'virtual_screening',
-      'protein_protein_docking',
-    ]);
+  it('interprets the sample prompts onto Quick setup tasks', () => {
+    expect(SAMPLE_PROMPTS.map((p) => interpretRun(p).task)).toEqual(['ligand_pose', 'known_complex', 'pose_known_pocket', 'redocking', 'series_scoring', 'protein_protein_docking']);
     const r = interpretRun(SAMPLE_PROMPTS[0]);
-    expect(r.tools).toEqual(['boltz2', 'gnina']);
+    expect(r.tools).toEqual(['boltz2', 'protenix']);
     expect(r.target).toBe('P00519');
-    expect(r.reference).toBe('1IEP');
+    // a PDB entry named in the request wins over the target's default holo entry
+    expect(r.reference).toBe('2HYY');
     expect(r.steps.map((s) => s.field)).toEqual(['task', 'tools', 'target', 'ligand', 'seeds', 'ph', 'reference', 'claim']);
+    // the redocking prompt names only the PDB entry: the target comes from it
+    expect(interpretRun(SAMPLE_PROMPTS[3])).toMatchObject({ target: 'P00760', reference: '3PTB' });
+    expect(interpretRun(SAMPLE_PROMPTS[1])).toMatchObject({ target: 'P01116', partner: 'P04049', ligand: '' });
+  });
+
+  it('suggests only runs whose outputs are possible', () => {
+    for (const p of SAMPLE_PROMPTS) {
+      const r = interpretRun(p);
+      const task = TASKS.find((t) => t.id === r.task);
+      expect(task?.quickSetup, p).toBe(true);
+      expect(r.warnings, p).toEqual([]);
+      for (const id of r.tools) expect(task?.compatibleTools, `${p}: ${id}`).toContain(id);
+      expect(r.target, p).toBeTruthy();
+      if (task?.kind === 'complex') expect(r.partner, p).toBeTruthy();
+      if (task?.kind === 'ligand') expect(r.ligand, p).toBeTruthy();
+    }
+    // every task's defaults report its endpoint
+    for (const t of TASKS) for (const id of t.defaultTools) expect(t.compatibleTools, `${t.id}: ${id}`).toContain(id);
+    // a named tool that cannot report the endpoint is kept, with a warning
+    const r = interpretRun('Rank the imatinib congeneric series against ABL1 by Boltz-2 affinity, corroborate with Gnina');
+    expect(r.task).toBe('affinity_ranking');
+    expect(r.warnings).toEqual(['Gnina cannot produce affinity series for affinity ranking']);
   });
 
   it('resolves entities by name', () => {
@@ -185,5 +201,81 @@ describe('mock entity lookups for names outside the catalog', () => {
     const groups = lookupEntities('P00519 imatinib');
     expect(groups.length).toBeGreaterThan(0);
     expect(groups.every((g) => g.status !== 'error')).toBe(true);
+  });
+});
+
+describe('execution stage and pre-run checks', () => {
+  it('runs a GPU executor through queued, building, running and done, with seeds, renders and log lines', () => {
+    const sim = new Simulator({ seed: 2 });
+    const job = sim.submit({ task: 'ligand_pose', tools: ['boltz2', 'gnina'], target: 'P00519', ligand: 'Cc1ccc', reference: '1IEP', ph: 7.4, seeds: 3, execute: true });
+    const phases = new Set<string>();
+    let sawStage = false;
+    for (let i = 0; i < 600 && job.status !== 'done'; i++) {
+      sim.advance(110);
+      const snap = sim.jobSnapshot(job);
+      (snap.execution ?? []).forEach((e) => phases.add(`${e.executor}:${e.phase}`));
+      if (job.stage === 'execute') {
+        sawStage = true;
+        expect(snap.layerIdx).toBe(4);
+      }
+    }
+    expect(job.status).toBe('done');
+    expect(sawStage).toBe(true);
+    for (const p of ['queued', 'building', 'running', 'done']) expect(phases).toContain(`boltz2:${p}`);
+    const rec = sim.recordSnapshot(job);
+    expect(rec.assessment).toBe('full');
+    const boltz = rec.execution?.find((e) => e.executor === 'boltz2');
+    expect(boltz).toMatchObject({ phase: 'done', gpu: 'A100', route: 'stock' });
+    expect(boltz?.seeds.map((s) => s.phase)).toEqual(['done', 'done', 'done']);
+    expect(boltz?.seeds.every((s) => typeof s.ms === 'number' && s.ms > 0)).toBe(true);
+    // one render per finished seed and executor, with seed, rank, score and per-pose checks
+    expect(rec.renders?.filter((r) => r.executor === 'boltz2')).toHaveLength(3);
+    expect(rec.renders?.[0]).toMatchObject({ seed: 0, rank: 1 });
+    expect(rec.renders?.[0].checks?.length).toBeGreaterThan(0);
+    expect(job.log.some((l) => l.kind === 'exec' && /boltz2 · running/.test(l.text))).toBe(true);
+    expect(job.log.some((l) => l.kind === 'artifact')).toBe(true);
+    expect(rec.verdict.outcome).toBe('narrowed');
+  });
+
+  it('keeps polling-relevant state while executing: job.execution active, report stage reported', () => {
+    const sim = new Simulator({ seed: 3 });
+    const job = sim.submit({ task: 'redocking', tools: ['vina', 'gnina'], target: 'P00519', ligand: 'C', reference: '1IEP', ph: 7.4, seeds: 2, execute: true });
+    let sawReport = false;
+    for (let i = 0; i < 600 && job.status !== 'done'; i++) {
+      sim.advance(110);
+      if (sim.jobSnapshot(job).reportStatus === 'running') sawReport = true;
+    }
+    expect(sawReport).toBe(true);
+    expect(sim.jobSnapshot(job).reportStatus).toBe('done');
+  });
+
+  it('a run with execute off is a pre-run check: layers 4–5 pending, verdict not assessed', () => {
+    const sim = new Simulator({ seed: 5 });
+    const job = sim.submit({ task: 'pose_known_pocket', tools: ['vina', 'gnina'], target: 'P00760', ligand: 'NC(=N)c1ccccc1', reference: '3PTB', ph: 7.4, seeds: 3, execute: false });
+    for (let i = 0; i < 400 && job.status !== 'done'; i++) sim.advance(110);
+    const rec = sim.recordSnapshot(job);
+    expect(rec.assessment).toBe('pre-run');
+    expect(rec.verdict.outcome).toBe('not_assessed');
+    expect(rec.verdict.assessedClaim).toBe('Inputs fit to run');
+    expect(rec.verdict.pending?.length).toBe(rec.layers.filter((l) => l.i >= 4).flatMap((l) => l.checks).length);
+    expect(rec.layers.filter((l) => l.i >= 4).every((l) => l.status === 'not_run' && l.checks.every((c) => c.skipReason === 'pending_input'))).toBe(true);
+    expect(rec.evaluatedLayers).toEqual([0, 1, 2, 3]);
+    expect(rec.execution).toEqual([]);
+    expect(rec.stats.ensemble?.every((e) => e.kind === 'crystal')).toBe(true);
+    expect(sim.jobSnapshot(job).layers.slice(4).map((l) => l.result)).toEqual(['skip', 'skip']);
+    // a refused input check stays refused, never supported without predictions
+    const disc = toPreRun(makeRunRecord(PRESET_JOBS[1].form, Date.UTC(2026, 9, 17, 12)));
+    expect(disc.verdict.outcome).toBe('refused');
+    expect(disc.dimensions?.map((d) => d.id)).toEqual(['inputs', 'exposure', 'physical_validity', 'chemical_plausibility', 'stability', 'corroboration']);
+  });
+
+  it('serves the glossary and passes execute through startRun', async () => {
+    const api = createMockHarnessApi({ seed: 6, latencyMs: 0, autoStart: false });
+    const g = await api.getGlossary();
+    expect(g.scores.find((s) => s.key === 'vina_score')).toMatchObject({ unit: 'kcal/mol', producedBy: ['vina'], higherIsBetter: false });
+    const off = await api.startRun({ task: 'redocking', tools: ['vina'], target: 'P00760', reference: '3PTB', ligand: 'NC(=N)c1ccccc1', ph: 7.4, seeds: 2, execute: false });
+    expect((await api.getJob(off.jobId)).assessment).toBe('pre-run');
+    const on = await api.startRun({ task: 'redocking', tools: ['vina'], target: 'P00760', reference: '3PTB', ligand: 'NC(=N)c1ccccc1', ph: 7.4, seeds: 2, execute: true });
+    expect((await api.getJob(on.jobId)).assessment).toBe('full');
   });
 });

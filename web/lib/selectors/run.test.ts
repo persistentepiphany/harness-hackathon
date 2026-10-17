@@ -56,7 +56,7 @@ describe('New run form (mock catalog)', () => {
   const form = defaultForm(CATALOG, TASKS);
 
   it('starts from the prototype defaults', () => {
-    expect(form).toMatchObject({ task: 'ligand_pose', tools: ['boltz2', 'gnina'], target: 'P00519', reference: '1IEP', ph: '7.4', seeds: '5', partner: '' });
+    expect(form).toMatchObject({ task: 'ligand_pose', tools: ['boltz2', 'protenix'], target: 'P00519', reference: '1IEP', ph: '7.4', seeds: '5', partner: '' });
     expect(form.ligand).toBe(CATALOG.ligands[0].smiles);
     expect(suggestName(form, CATALOG, TASKS)).toBe('ABL1 kinase · ligand pose');
     expect(formText(form, CATALOG, 'with gnina')).toBe('P00519 imatinib with gnina');
@@ -71,7 +71,7 @@ describe('New run form (mock catalog)', () => {
 
   it('builds settings with only the inputs the task takes', () => {
     expect(settingsFromForm({ ...form, partner: 'P04049', seeds: '', ph: 'x' }, CATALOG, TASKS)).toEqual({
-      task: 'ligand_pose', tools: ['boltz2', 'gnina'], target: 'P00519', reference: '1IEP', ph: 7.4, seeds: 5, name: 'ABL1 kinase · ligand pose', ligand: form.ligand, execute: false,
+      task: 'ligand_pose', tools: ['boltz2', 'protenix'], target: 'P00519', reference: '1IEP', ph: 7.4, seeds: 5, name: 'ABL1 kinase · ligand pose', ligand: form.ligand, execute: false,
     });
     const disc = selectTask(form, TASKS.find((t) => t.id === 'interaction_discovery') as Task, CATALOG);
     expect(disc).toMatchObject({ task: 'interaction_discovery', tools: ['boltz2', 'protenix'], partner: 'P04049' });
@@ -88,8 +88,8 @@ describe('New run form (mock catalog)', () => {
     expect(taskKind({ ...TASKS[0], kind: undefined as never, inputs: ['target', 'partner'] })).toBe('complex');
     expect(taskKind({ ...TASKS[0], kind: undefined as never, inputs: [] })).toBe('ligand');
     const g = taskGroups(TASKS);
-    expect(g.cofolding).toHaveLength(8);
-    expect(g.docking).toHaveLength(6);
+    expect(g.cofolding).toHaveLength(9);
+    expect(g.docking).toHaveLength(5);
     expect(taskHint(TASKS[3])).toBe('permitted claim: Pose within stated uncertainty');
   });
 
@@ -99,7 +99,7 @@ describe('New run form (mock catalog)', () => {
     expect(f.seeds).toBe('8');
     expect(applyStep(form, { field: 'claim', value: 'x', because: '' })).toBe(form);
     expect(fmtStep({ field: 'tools', value: ['boltz2', 'gnina', 'nope'], because: '' }, TASKS, TOOLS)).toBe('Boltz-2 · Gnina · nope');
-    expect(fmtStep({ field: 'task', value: 'ligand_pose', because: '' }, TASKS, TOOLS)).toBe('Ligand pose in a known pocket');
+    expect(fmtStep({ field: 'task', value: 'ligand_pose', because: '' }, TASKS, TOOLS)).toBe('Co-folded ligand pose');
     expect(fmtStep({ field: 'ligand', value: 'C'.repeat(50), because: '' }, TASKS, TOOLS)).toBe(`${'C'.repeat(38)}…`);
     expect(requestSummary(' dock  imatinib ', [{ field: 'task', value: 'x', because: '' }])).toBe('2 tokens · 1 decisions');
     expect(shortPrompt('Does KRAS interact with RAF1? Run Boltz-2')).toBe('Does KRAS interact with RAF1?');

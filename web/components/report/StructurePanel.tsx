@@ -1,40 +1,37 @@
 'use client';
 
-// Report structure block: structure chips (crystal, medoid, seeds, docking poses, models, overlay),
-// the Mol* viewer (PyMOL renders without WebGL), the ensemble table and the stat cards. A run with
-// only reference (input) structures shows them as inputs, without pose statistics. A selected
-// check with residues highlights them in the viewer.
+// Report structure block: structure chips (crystal, medoid, seeds, docking poses, models, overlay)
+// above the Mol* viewer (PyMOL renders without WebGL). A run with only reference (input)
+// structures is labelled as such. A selected check highlights its residues, or frames the ligand
+// of the pose it names. `fill` stretches the viewer to the parent height (sticky report column).
 
 import clsx from 'clsx';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { StructureViewer } from '@/components/viewer/StructureViewer';
 import { useViewerConfig } from '@/components/viewer/config';
-import { getHarnessApi } from '@/lib/harness-api';
-import { defaultStructureId, ensembleMembers, referenceOnly, reportChipMembers, structureCaption, structureTargets, type FlaggedResidue } from '@/lib/selectors/report';
-import { EnsembleTable } from './EnsembleTable';
+import { defaultStructureId, referenceOnly, structureCaption, type CheckFocus } from '@/lib/selectors/report';
 import { StatCards } from './StatCards';
 import type { ReportBlockProps } from './types';
+import { useStructures } from './useStructures';
 
 export interface StructurePanelProps extends ReportBlockProps {
-  /** Show the stat cards under the viewer (default true). */
+  /** Show the stat cards under the viewer (default false). */
   cards?: boolean;
   /** Controlled structure selection (chip id); uncontrolled when absent. */
   selected?: string | null;
   onSelect?: (id: string) => void;
-  /** Residues to highlight (the selected check's), with the check id for the caption. */
-  highlight?: { check: string; residues: FlaggedResidue[] } | null;
+  /** Focus of the selected check (residues to highlight, ligand to frame). */
+  focus?: CheckFocus | null;
+  /** Viewer fills the parent height (flex column). */
+  fill?: boolean;
 }
 
-export function StructurePanel({ record, tools, className, cards = true, selected: controlled, onSelect, highlight }: StructurePanelProps) {
+export function StructurePanel({ record, tools, className, cards = false, selected: controlled, onSelect, focus, fill }: StructurePanelProps) {
   const cfg = useViewerConfig();
-  const targets = useMemo(() => structureTargets(record, { assetUrl: (p) => getHarnessApi().assetUrl(p), register: tools }), [record, tools]);
-  const members = useMemo(() => ensembleMembers(record, targets, tools), [record, targets, tools]);
-  const overlay = targets.find((t) => t.kind === 'overlay');
-  const chips = reportChipMembers(members);
-  const hiddenCount = members.length - chips.length;
+  const model = useStructures(record, tools);
+  const { targets, shown, hiddenCount } = model;
   const [picked, setPicked] = useState<{ run: string; id: string } | null>(null);
-  const shown = [...chips, ...(overlay ? [overlay] : [])];
   const own = controlled !== undefined ? controlled : picked && picked.run === record.id ? picked.id : null;
   const selected = own && shown.some((t) => t.id === own) ? own : defaultStructureId(shown);
   const target = shown.find((t) => t.id === selected);
@@ -44,13 +41,15 @@ export function StructurePanel({ record, tools, className, cards = true, selecte
   };
   const refRenders = record.renders ?? [];
   const refOnly = referenceOnly(record);
-  const residues = useMemo(() => highlight?.residues ?? [], [highlight]);
+  const residues = useMemo(() => focus?.residues ?? [], [focus]);
   const flagged = useMemo(() => residues.map((r) => ({ num: r.num, chain: r.chain })), [residues]);
+  // ligand checks frame the ligand of the shown pose (no residues to colour)
+  const loads = useMemo(() => (focus?.ligand && !flagged.length && target && target.kind !== 'overlay' && target.kind !== 'crystal' ? target.load.map((l) => ({ ...l, focus: 'ligand' as const })) : undefined), [focus, flagged.length, target]);
 
   return (
-    <div className={className} data-testid="structure-panel" data-state={refOnly ? 'reference-only' : 'predictions'}>
-      <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-1">
+    <div className={clsx(fill && 'flex min-h-0 flex-col', className)} data-testid="structure-panel" data-state={refOnly ? 'reference-only' : 'predictions'}>
+      <div className="mb-2 flex min-h-[30px] min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+        <div className="flex min-w-0 flex-wrap items-center gap-1">
           {refOnly && (
             <span className="mr-2 text-[12px] font-medium text-ink" data-testid="reference-label">
               Reference structure (input) · not a prediction
@@ -84,39 +83,36 @@ export function StructurePanel({ record, tools, className, cards = true, selecte
             </Link>
           )}
         </div>
-        <span className="font-mono text-[11px] text-muted" data-testid="structure-caption">
+        <span className="min-w-0 truncate font-mono text-[11px] text-muted" data-testid="structure-caption">
           {structureCaption(record, target, targets)}
         </span>
       </div>
-      <div className={clsx('grid items-stretch gap-4', refOnly ? 'grid-cols-[minmax(0,1fr)]' : 'grid-cols-[minmax(0,1.2fr)_minmax(330px,1fr)]')}>
-        <div className="relative">
-          <StructureViewer
-            target={target}
-            mode={cfg.mode}
-            colorMode={flagged.length ? 'flagged' : target?.kind === 'overlay' ? 'member' : 'chain'}
-            flagged={flagged.length ? flagged : undefined}
-            // a chip shows only its own structure's renders (the overlay has none); record renders only without chips
-            fallbackRenders={target ? [] : refRenders}
-            placeholder={!targets.length ? record.inputs.reference || 'no structures in the record' : undefined}
-            className={clsx('rounded-card border border-line', refOnly ? 'h-[360px]' : 'h-[400px]')}
-          />
-          {highlight && (
-            <div className="pointer-events-none absolute top-2.5 left-3 max-w-[70%] animate-fade-in rounded-[4px] bg-white/90 px-2 py-[3px] font-mono text-[10.5px] text-ink2" data-testid="viewer-highlight" data-check={highlight.check}>
-              {highlight.check}
-              {residues.length ? ` · ${residues.map((r) => `${r.name}${r.num}${r.chain ?? ''}`).join(', ')}` : ' · no residues named in the record'}
-            </div>
+      <div className={clsx('relative', fill && 'min-h-0 flex-1')}>
+        <StructureViewer
+          target={target}
+          mode={cfg.mode}
+          colorMode={flagged.length ? 'flagged' : target?.kind === 'overlay' ? 'member' : 'chain'}
+          flagged={flagged.length ? flagged : undefined}
+          loads={loads}
+          // a chip shows only its own structure's renders (the overlay has none); record renders only without chips
+          fallbackRenders={target ? [] : refRenders}
+          placeholder={!targets.length ? record.inputs.reference || 'no structures in the record' : undefined}
+          className={clsx('rounded-card border border-line', fill ? 'h-full min-h-[280px]' : 'h-[400px]')}
+        />
+        <div
+          className={clsx('pointer-events-none absolute top-2.5 left-3 max-w-[75%] rounded-[4px] bg-white/90 px-2 py-[3px] font-mono text-[10.5px] text-ink2 transition-opacity duration-200', focus ? 'opacity-100' : 'opacity-0')}
+          data-testid="viewer-highlight"
+          data-check={focus?.check}
+          aria-hidden={!focus}
+        >
+          {focus && (
+            <>
+              {focus.check}
+              {residues.length ? ` · ${residues.map((r) => `${r.name}${r.num}${r.chain ?? ''}`).join(', ')}` : focus.ligand && loads ? ' · ligand' : ' · no residues named'}
+            </>
           )}
         </div>
-        {!refOnly && <EnsembleTable record={record} tools={tools} members={chips} more={hiddenCount} selected={selected} onSelect={select} />}
       </div>
-      {refOnly && (
-        <div className="mt-1.5 font-mono text-[11px] text-muted" data-testid="reference-note">
-          {(() => {
-            const n = targets.filter((t) => t.kind === 'crystal').length;
-            return `${n} reference structure${n === 1 ? '' : 's'} from the inputs · pose statistics need predictions`;
-          })()}
-        </div>
-      )}
       {cards && <StatCards record={record} tools={tools} className="mt-4" />}
     </div>
   );

@@ -169,9 +169,13 @@ export interface Tool {
   custom?: boolean;
   /** Live API: endpoints the tool can report (configs/models.yaml models[*].endpoints). */
   endpoints?: string[];
-  /** Live API: whether the harness can dispatch the executor (RunSettings.execute). */
+  /** Live API: whether the harness can dispatch the executor (RunSettings.execute; configs/dispatch.yaml). */
   dispatchable?: boolean;
   gpu?: string | null;
+  /** Live API: `modal` (remote GPU app), `local` (API process), `none` (not dispatchable). */
+  route?: 'modal' | 'local' | 'none' | null;
+  dispatchReason?: string;
+  dispatchApp?: string;
 }
 
 /** `POST /ui/tools` body: an executor entered as `name:version` (the whole input as `image`). */
@@ -392,6 +396,8 @@ export interface ThresholdDef {
   evidenceLevel: string;
   /** Live API: name of the measurement the check compared with this threshold, when it differs. */
   measurement?: string;
+  /** Live API: standing of the threshold (configs/standing.yaml checks.<id>.thresholds). */
+  standing?: Standing | null;
 }
 
 export interface UiCheck {
@@ -407,6 +413,18 @@ export interface UiCheck {
   skipReason?: string;
   measurements?: Measurement[];
   thresholds?: ThresholdDef[];
+  /** Live API: configs/standing.yaml labels (null when the table does not list the check). */
+  category?: CheckCategory | null;
+  categoryLabel?: string;
+  standing?: Standing | null;
+  /** Whether a stop from this check may set the verdict alone (policy in configs/standing.yaml). */
+  decisive?: boolean | null;
+  /** Live API: the engine downgraded the check's stop by policy (evidence.policy). */
+  downgraded?: boolean;
+  originalGate?: string;
+  policyReason?: string;
+  /** Live API: RecordSource ids the check read (the inverse of RecordSource.usedBy). */
+  sources?: string[];
 }
 
 /**
@@ -415,21 +433,37 @@ export interface UiCheck {
  */
 export type SkipReason = 'pending_input' | 'not_applicable' | 'not_implemented' | 'tool_missing' | 'error' | string;
 
-export type DimensionId = 'inputs' | 'applicability' | 'geometry' | 'physics' | 'interactions' | 'confidence' | 'support';
-export type Certainty = 'calibrated' | 'published' | 'uncalibrated' | 'none';
+/** Check categories (configs/standing.yaml `categories`). */
+export type CheckCategory =
+  | 'provenance_identity'
+  | 'structural_completeness'
+  | 'chemical_state'
+  | 'applicability'
+  | 'physical_validity'
+  | 'interaction_chemistry'
+  | 'sampling_stability'
+  | 'corroboration_controls';
+/** Standing of a check or threshold, strongest first (configs/standing.yaml `standings`). */
+export type Standing = 'definitional' | 'published' | 'inherited' | 'uncalibrated';
+/** Verdict dimensions (configs/standing.yaml `dimensions`), each built from categories. */
+export type DimensionId = 'inputs' | 'exposure' | 'physical_validity' | 'chemical_plausibility' | 'stability' | 'corroboration';
+/** Weakest standing among a dimension's non-skip checks; `none` when none ran. */
+export type Certainty = Standing | 'none';
 
-/** Checks grouped by what they test (configs/catalog.yaml `dimensions`). */
 export interface UiDimension {
   id: DimensionId;
   label: string;
+  /** Categories the dimension is built from. */
+  categories?: CheckCategory[];
   result: 'pass' | 'warn' | 'stop' | 'pending' | 'na';
   checks: number;
   passed: number;
   warned: number;
   stopped: number;
   pending: number;
-  /** Weakest evidence level among the thresholds of the non-skip checks. */
   certainty: Certainty;
+  /** Check ids in the dimension that may decide the verdict alone (standing.yaml `decisive`). */
+  decisive?: string[];
   checkIds: string[];
 }
 
@@ -450,11 +484,22 @@ export interface UiGlossaryScore {
   key: string;
   label: string;
   unit?: string | null;
+  /** Executor output kind (confidence, pae, ...), `check` or `measurement`. */
   kind: string;
+  /** Executor ids, or the check id. */
   producedBy: string[];
   what: string;
   inputs: string[];
   higherIsBetter?: boolean | null;
+  scope?: string;
+  rankingOnly?: boolean;
+  /** Config file or registry the entry is read from. */
+  source?: string;
+  /** Per-executor notes when executors describe the same key differently. */
+  notes?: Record<string, string>;
+  /** Check entries: threshold names and the thresholds (configs/thresholds.yaml). */
+  measurements?: string[];
+  thresholds?: { name: string; comparator: string; value: number | string | boolean; origin: string; evidence: string }[];
 }
 
 export interface UiGlossary {
@@ -535,6 +580,8 @@ export interface Verdict {
   assessedClaim?: string | null;
   /** Live API: the engine's own outcome before scoping (e.g. 'supported' for a pre-run). */
   engineOutcome?: Outcome | null;
+  /** Live API: checks whose stop the policy downgraded to warn (not decisive). */
+  downgraded?: string[];
 }
 
 // ----- stats blocks (all optional: absent means not computed)
@@ -705,9 +752,6 @@ export interface StatsStatus {
 }
 
 export interface UiPae {
-  /** Live API: present instead of the matrix when the block is not applicable or not computed. */
-  status?: 'na' | 'pending' | 'ok';
-  reason?: string;
   path?: string;
   url?: string;
   format?: string;
@@ -747,9 +791,7 @@ export interface UiStats {
   pae?: UiPae;
   /** Live API: source of each block, keyed by block name (or `block.field`). */
   provenance?: Record<string, StatsSource>;
-  /** Live API: why `agreement` is absent (e.g. na with one executor). */
-  agreementStatus?: StatsStatus;
-  /** Live API: status of absent blocks keyed by block name (pae, agreement, seeds, ...). */
+  /** Live API: why a block is absent, keyed by block name (pae, agreement, seeds, ...). */
   status?: Record<string, StatsStatus>;
   [key: string]: unknown;
 }

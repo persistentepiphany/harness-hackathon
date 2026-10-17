@@ -50,30 +50,32 @@ export function TopNav() {
 
   const connection = health.connection;
   const disconnected = connection === 'disconnected';
-  const clusterStatus = jobs.data
-    ? running
-      ? `${running} running · ${queued} queued`
-      : queued
-        ? `${queued} queued`
-        : 'idle'
-    : jobs.error
-      ? 'no data'
-      : '';
-  const modeLabel = connection === 'mock' ? 'mock' : connection === 'connected' ? 'live' : connection === 'checking' ? 'connecting' : 'disconnected';
+  // connection first (Live, Mock data, API unreachable), then runs in progress; never "idle"
+  const connLabel = connection === 'mock' ? 'Mock data' : connection === 'connected' ? 'Live' : connection === 'checking' ? 'Connecting' : 'API unreachable';
+  const connColor = connection === 'connected' ? 'var(--color-pass)' : disconnected ? 'var(--color-stop)' : 'var(--color-faint)';
+  const connTitle =
+    connection === 'connected'
+      ? `Connected to the harness API${health.data?.version ? ` · ${health.data.version}` : ''}`
+      : connection === 'mock'
+        ? 'Mock data: the in-browser simulator, no harness API'
+        : disconnected
+          ? `Harness API unreachable${health.error ? `: ${health.error.message}` : ''}`
+          : 'Checking the harness API';
+  const runsLabel = running ? `${running} running${queued ? ` · ${queued} queued` : ''}` : queued ? `${queued} queued` : '';
 
   return (
     <nav
       data-print="hide"
       data-testid="top-nav"
-      className="sticky top-0 z-20 flex h-11 items-center gap-8 border-b border-line bg-canvas px-6"
+      className="sticky top-0 z-20 flex h-11 items-center gap-4 border-b border-line bg-canvas px-4 sm:gap-8 sm:px-6"
     >
       <Link href="/runs/new" className="flex items-center gap-[9px] text-ink hover:text-ink" aria-label="Dock Harness">
         <span className="relative h-3.5 w-3.5 rounded-[3px] border-[1.5px] border-ink">
           <span className="absolute inset-[3px] rounded-[1px] bg-accent" />
         </span>
-        <span className="text-[13px] font-semibold">Dock Harness</span>
+        <span className="text-[13px] font-semibold max-md:sr-only">Dock Harness</span>
       </Link>
-      <div className="flex flex-1 gap-0.5">
+      <div className="flex min-w-0 flex-1 gap-0.5 overflow-x-auto [scrollbar-width:none]">
         {tabs.map((t) => (
           <Link
             key={t.id}
@@ -95,19 +97,21 @@ export function TopNav() {
           </Link>
         ))}
       </div>
-      <div className="flex items-center gap-2 text-[12px] text-ink2" data-testid="cluster-status">
-        <span
-          className={clsx('h-1.5 w-1.5 rounded-full', running && !disconnected && 'animate-pulse-slow')}
-          style={{ background: disconnected ? 'var(--color-stop)' : running ? 'var(--color-accent)' : 'var(--color-faint)' }}
-        />
-        {clusterStatus && <span className="font-mono text-[11px]">{clusterStatus}</span>}
+      <div className="flex flex-none items-center gap-3 text-[12px] text-ink2" data-testid="cluster-status">
+        {runsLabel && !disconnected && (
+          <span className="flex items-center gap-1.5 font-mono text-[11px] whitespace-nowrap" data-testid="runs-status">
+            <span aria-hidden className="h-1.5 w-1.5 animate-pulse-slow rounded-full bg-accent" />
+            {runsLabel}
+          </span>
+        )}
         <span
           data-testid="api-status"
           data-state={connection}
-          title={disconnected && health.error ? health.error.message : health.data ? [health.data.mode ?? health.data.profile, health.data.version].filter(Boolean).join(' · ') : undefined}
-          className={clsx('font-mono text-[11px]', disconnected ? 'text-stop' : 'text-faint')}
+          title={connTitle}
+          className={clsx('flex items-center gap-1.5 text-[11.5px] whitespace-nowrap', disconnected ? 'text-stop' : connection === 'connected' ? 'text-ink2' : 'text-muted')}
         >
-          {clusterStatus ? `· ${modeLabel}` : modeLabel}
+          <span aria-hidden className="h-1.5 w-1.5 rounded-full" style={{ background: connColor }} />
+          {connLabel}
         </span>
       </div>
     </nav>

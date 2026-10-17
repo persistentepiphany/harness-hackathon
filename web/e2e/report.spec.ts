@@ -10,6 +10,18 @@ import { expect, test, type Page } from '@playwright/test';
 const FIXTURES = path.join(__dirname, '..', 'tests', 'fixtures', 'live');
 const RUNS = path.join(__dirname, '..', '..', 'runs');
 
+/** Stage of a layer in the report's stage switcher. */
+function stageOf(i: number): string {
+  return i <= 2 ? 'inputs' : i === 3 ? 'applicability' : 'outputs';
+}
+
+/** Opens the stage of a layer; the stage lists all of its checks, each row tagged with its layer. */
+async function openLayer(page: Page, i: number) {
+  await page.locator(`[data-testid=stage-tab][data-stage=${stageOf(i)}]`).click();
+  await expect(page.getByTestId('check-table')).toHaveAttribute('data-stage', stageOf(i));
+  await expect(page.locator(`[data-testid=check-row][data-layer="${i}"]`).first()).toBeVisible();
+}
+
 async function serverMode(page: Page): Promise<string | null> {
   await page.goto('/runs/new');
   const status = page.getByTestId('api-status');
@@ -56,10 +68,17 @@ test.describe('mock', () => {
     await page.goto('/reports/latest?seed=7');
     await expect(page).toHaveURL(/\/reports\/run_[0-9a-z_]+\?seed=7$/);
     await expect(page.getByTestId('verdict')).toHaveAttribute('data-state', 'narrowed');
-    await expect(page.getByTestId('layer-cell')).toHaveCount(6);
-    await expect(page.getByTestId('layer-cell').nth(4)).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByTestId('check-table')).toHaveAttribute('data-layer', '4');
+    await expect(page.getByTestId('verdict')).toHaveAttribute('data-assessment', 'full');
+    await expect(page.getByTestId('dimension')).toHaveCount(7);
+    // stage switcher: three stages, the report opens on Outputs (layers 4-5 evaluated)
+    await expect(page.getByTestId('stage-tab')).toHaveCount(3);
+    await expect(page.locator('[data-testid=stage-tab][data-stage=outputs]')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('[data-testid=stage-tab][data-stage=inputs]')).toHaveAttribute('aria-selected', 'false');
+    await expect(page.getByTestId('check-table')).toHaveAttribute('data-stage', 'outputs');
+    await expect(page.locator('[data-testid=check-row][data-layer="4"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid=check-row][data-layer="5"]').first()).toBeVisible();
     await expect(page.getByTestId('check-row').first()).toHaveAttribute('data-state', /pass|warn|stop/);
+    expect(await page.locator('[data-testid=check-row]:not([data-state=pass]):not([data-state=warn]):not([data-state=stop]):not([data-state=skip]):not([data-state=reported])').count()).toBe(0);
 
     await expect(page.getByTestId('structure-chip')).toHaveCount(10);
     await expect(page.locator('[data-testid=structure-chip][data-structure=medoid]')).toHaveAttribute('data-state', 'selected');
@@ -75,10 +94,8 @@ test.describe('mock', () => {
     await expect(page.getByTestId('not-computed')).toHaveCount(0);
   });
 
-  test('layer, structure and figure selection', async ({ page }) => {
+  test('stage, layer, structure and figure selection', async ({ page }) => {
     await page.goto('/reports/latest?seed=7');
-    await page.getByTestId('layer-cell').nth(0).click();
-    await expect(page.getByTestId('check-table')).toHaveAttribute('data-layer', '0');
     await page.locator('[data-testid=structure-chip][data-kind=crystal]').click();
     await expect(page.locator('[data-testid=structure-chip][data-kind=crystal]')).toHaveAttribute('data-state', 'selected');
     await expect(page.getByTestId('structure-caption')).toContainText('experimental');
@@ -87,6 +104,15 @@ test.describe('mock', () => {
       await expect(page.locator(`[data-testid=figure-tab][data-tab=${tab}]`)).toHaveAttribute('data-state', 'active');
     }
     await expect(page.getByTestId('figure-calibration')).toBeVisible();
+    // Inputs stage, then layer 0 only
+    await page.locator('[data-testid=stage-tab][data-stage=inputs]').click();
+    await expect(page.locator('[data-testid=stage-tab][data-stage=inputs]')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByTestId('check-table')).toHaveAttribute('data-stage', 'inputs');
+    for (const i of [0, 1, 2]) await expect(page.locator(`[data-testid=check-row][data-layer="${i}"]`).first()).toBeVisible();
+    await openLayer(page, 0);
+    await expect(page.getByTestId('check-row').first()).toHaveAttribute('data-state', /pass|warn|stop/);
+    await page.locator('[data-testid=stage-tab][data-stage=applicability]').click();
+    await expect(page.getByTestId('check-table')).toHaveAttribute('data-stage', 'applicability');
   });
 
   test('ensemble grid caps viewers and shows summary statistics', async ({ page }) => {
@@ -121,7 +147,7 @@ test.describe('mock', () => {
 });
 
 test.describe('live-shaped (fixtures)', () => {
-  type Rec = { verdict: { outcome: string }; layers: { checks: { result: string }[] }[]; stats: Record<string, unknown> };
+  type Rec = { verdict: { outcome: string }; layers: { i: number; checks: { result: string }[] }[]; stats: Record<string, unknown> };
   const rec = (name: string) => JSON.parse(fixture(name)) as Rec;
 
   test.beforeEach(async ({ page }) => {
@@ -133,16 +159,23 @@ test.describe('live-shaped (fixtures)', () => {
   test('3PTB run: verdict, layers and checks from the record, renders and figures', async ({ page }) => {
     const r = rec('ui-record-3ptb.json');
     await page.goto('/reports/ui-3ptb?viewerMode=placeholder');
-    await expect(page.getByTestId('verdict')).toHaveAttribute('data-state', r.verdict.outcome);
-    await expect(page.getByTestId('layer-cell')).toHaveCount(r.layers.length);
+    // the run holds no predictions (pre-run): never shown supported or narrowed
+    await expect(page.getByTestId('verdict')).toHaveAttribute('data-state', 'not_assessed');
+    await expect(page.getByTestId('verdict')).toHaveAttribute('data-assessment', 'pre-run');
+    await expect(page.getByTestId('pre-run-note')).toContainText('nothing was predicted');
+    await expect(page.getByTestId('reference-label')).toBeVisible();
+    await expect(page.getByTestId('stage-tab')).toHaveCount(3);
     for (let i = 0; i < r.layers.length; i++) {
-      await page.getByTestId('layer-cell').nth(i).click();
+      await openLayer(page, i);
       await expect(page.getByTestId('check-row')).toHaveCount(r.layers[i].checks.length);
       const stops = r.layers[i].checks.filter((c) => c.result === 'stop').length;
       await expect(page.locator('[data-testid=check-row][data-state=stop]')).toHaveCount(stops);
     }
-    await page.getByTestId('layer-cell').nth(0).click();
+    // output checks of a pre-run record wait for predictions
+    await expect(page.locator('[data-testid=check-row] [data-testid=check-result]').first()).toHaveText(/pending/i);
+    await openLayer(page, 0);
     await expect(page.locator('[data-testid=check-row][data-check="l0.cross.uniprot_seqres"] [data-testid=check-cmp]')).toHaveText('mismatches 0 == 0');
+    await page.locator('[data-testid=stage-tab][data-stage=outputs]').click();
     await expect(page.getByTestId('posebusters')).toHaveAttribute('data-state', r.stats.posebusters ? 'computed' : 'not-computed');
     await expect(page.getByTestId('seed-stats')).toHaveAttribute('data-state', r.stats.physics ? 'computed' : 'not-computed');
 
@@ -162,15 +195,19 @@ test.describe('live-shaped (fixtures)', () => {
   test('refused run opens on the first layer with a stop', async ({ page }) => {
     const r = rec('ui-record-faulty.json');
     const first = r.layers.findIndex((l) => l.checks.some((c) => c.result === 'stop'));
+    const stage = stageOf(r.layers[first].i);
+    const inStage = r.layers.filter((l) => stageOf(l.i) === stage);
     await page.goto('/reports/ui-faulty?viewerMode=placeholder');
     await expect(page.getByTestId('verdict')).toHaveAttribute('data-state', 'refused');
-    await expect(page.getByTestId('check-table')).toHaveAttribute('data-layer', String(first));
-    await expect(page.locator('[data-testid=check-row][data-state=stop]')).toHaveCount(r.layers[first].checks.filter((c) => c.result === 'stop').length);
+    await expect(page.getByTestId('check-table')).toHaveAttribute('data-stage', stage);
+    await expect(page.locator(`[data-testid=stage-tab][data-stage=${stage}]`)).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('[data-testid=check-row][data-state=stop]')).toHaveCount(inStage.flatMap((l) => l.checks).filter((c) => c.result === 'stop').length);
   });
 
   test('Vina run: stats blocks present, few structure chips, columns from the outputs', async ({ page }) => {
     const r = rec('ui-record-vina.json');
     await page.goto('/reports/ui-vina?viewerMode=placeholder');
+    await expect(page.locator('[data-testid=stage-tab][data-stage=outputs]')).toHaveAttribute('aria-selected', 'true');
     await expect(page.getByTestId('posebusters')).toHaveAttribute('data-state', 'computed');
     await expect(page.getByTestId('pb-test')).toHaveCount((r.stats.posebusters as unknown[]).length);
     await expect(page.getByTestId('seed-stats')).toHaveAttribute('data-state', 'computed');

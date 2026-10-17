@@ -14,7 +14,7 @@ function Svg({ children, size = 14, title }: { children: React.ReactNode; size?:
   );
 }
 
-/** Icon per dimension: MSA rows (inputs), target (applicability), ruler (geometry), spring (physics), link (interactions), gauge (confidence), check-shield (support). */
+/** Icon per dimension: MSA rows (inputs), target (exposure), ruler (physical validity), link (chemical plausibility), spring (stability), check-shield (corroboration); gauge for confidence. */
 export function DimensionIcon({ id, size }: { id: DimensionId | string; size?: number }) {
   switch (id) {
     case 'inputs':
@@ -23,28 +23,28 @@ export function DimensionIcon({ id, size }: { id: DimensionId | string; size?: n
           <path {...P} d="M2 3.5h10M2 6h7.5M2 8.5h10M2 11h5.5" />
         </Svg>
       );
-    case 'applicability':
+    case 'exposure':
       return (
         <Svg size={size}>
           <circle {...P} cx="7" cy="7" r="5" />
           <circle {...P} cx="7" cy="7" r="2" />
         </Svg>
       );
-    case 'geometry':
+    case 'physical_validity':
       return (
         <Svg size={size}>
           <path {...P} d="M1.8 9.6 9.6 1.8l2.6 2.6-7.8 7.8z" />
           <path {...P} d="M4.4 7l1.2 1.2M6.1 5.3l.9.9M7.8 3.6l1.2 1.2" />
         </Svg>
       );
-    case 'physics':
+    case 'stability':
       return (
         <Svg size={size}>
           <path {...P} d="M7 1.5v1.6l3 1-6 1.6 6 1.6-6 1.6 3 1v2.6" />
           <circle {...P} cx="7" cy="12.4" r=".2" />
         </Svg>
       );
-    case 'interactions':
+    case 'chemical_plausibility':
       return (
         <Svg size={size}>
           <path {...P} d="M5.8 8.2 8.2 5.8" />
@@ -58,7 +58,7 @@ export function DimensionIcon({ id, size }: { id: DimensionId | string; size?: n
           <path {...P} d="M7 10.5 9.4 6.6" />
         </Svg>
       );
-    case 'support':
+    case 'corroboration':
       return (
         <Svg size={size}>
           <path {...P} d="M7 1.6 11.6 3.3v3.4c0 2.7-1.9 4.8-4.6 5.7C4.3 11.5 2.4 9.4 2.4 6.7V3.3z" />

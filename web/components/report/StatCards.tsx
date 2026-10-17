@@ -8,10 +8,11 @@ import { blockSource, referenceOnly, sourceLabel, statCards } from '@/lib/select
 import { BlockLabel, KvRow, NotComputed, NumText } from './parts';
 import type { ReportBlockProps } from './types';
 
-export function StatCards({ record, tools, variant, className }: ReportBlockProps) {
+export function StatCards({ record, tools, variant, className, only }: ReportBlockProps & { only?: string[] }) {
   const print = variant === 'print';
   // inputs only (no predictions): the site card, no empty pose cards
-  const cards = statCards(record, tools).filter((c) => !referenceOnly(record) || c.id === 'site');
+  const cards = statCards(record, tools).filter((c) => (!referenceOnly(record) || c.id === 'site') && (!only || only.includes(c.id)));
+  if (!cards.length) return null;
   return (
     <div
       className={clsx('grid', print ? 'grid-cols-3 gap-4' : 'gap-4', className)}

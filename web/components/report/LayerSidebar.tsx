@@ -92,3 +92,30 @@ export function LayerSidebar({ record, tools, selected, onSelect, inStage = [], 
     </div>
   );
 }
+
+/** Executors and check libraries: exercised, or declared and not run (muted). */
+export function ToolsList({ record, tools, className }: ReportBlockProps) {
+  const rows = toolRows(record, tools);
+  return (
+    <div className={className} data-testid="tool-versions">
+      {rows.map((t) => (
+        <div
+          key={`${t.role}:${t.name}`}
+          className={clsx('grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 border-b border-line3 py-[3px] font-mono text-[11px]', t.exercised ? 'text-ink2' : 'text-faint')}
+          data-testid="tool-version"
+          data-role={t.role}
+          data-state={t.exercised ? 'exercised' : 'declared'}
+          title={t.checks.length ? t.checks.join('\n') : t.note}
+        >
+          <span className="min-w-0 break-words">
+            {t.name}
+            {t.version ? ` ${t.version}` : ''}
+            <span className="ml-1.5 font-sans text-[10px] text-muted">{t.role === 'executor' ? 'executor' : ''}</span>
+          </span>
+          <span className="text-right text-[10.5px]">{t.note}</span>
+        </div>
+      ))}
+      {record.record.pahVersion && <div className="py-[3px] font-mono text-[11px] text-ink2">pah {record.record.pahVersion}</div>}
+    </div>
+  );
+}

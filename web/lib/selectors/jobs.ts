@@ -5,7 +5,7 @@
 
 import { DASH, fmtMs, fmtSeconds, fmtSha } from '../format';
 import { familyOf, toolById } from '../tools';
-import type { Job, JobStatus, LayerStatus, Outcome, RecordLayer, Result, Task, Tool, UiCheck, UiRunRecord } from '../types';
+import type { Assessment, ExecutionPhase, Job, JobStatus, LayerStatus, Outcome, RecordLayer, RecordRender, RecordSource, Result, Task, Tool, UiCheck, UiExecution, UiPoseCheck, UiRunRecord } from '../types';
 import { LAYER_COUNT } from '../types';
 
 /** Layer names of the specification, used until a record names them. */
@@ -44,6 +44,8 @@ export function verdictMeta(outcome: Outcome | null | undefined): VerdictMeta {
       return { label: 'Supported', tone: 'pass' };
     case 'incomplete':
       return { label: 'Incomplete', tone: 'muted' };
+    case 'not_assessed':
+      return { label: 'Not assessed', tone: 'muted' };
     default:
       return { label: 'No verdict', tone: 'muted' };
   }
@@ -445,3 +447,299 @@ export function jobCardModel(job: Job, index: number, total: number, record: UiR
 export function isDockingTool(tool: { family?: string | null } | null | undefined): boolean {
   return familyOf(tool) === 'docking';
 }
+
+// ---------------------------------------------------------------- execution (executor progress)
+
+const ACTIVE_PHASES: ExecutionPhase[] = ['queued', 'building', 'running'];
+
+/** Executions of the run: the job's (fresher, pushed with every poll) else the record's. */
+export function executionOf(job: Pick<Job, 'execution'> | null | undefined, record: Pick<UiRunRecord, 'execution'> | null | undefined): UiExecution[] {
+  if (job?.execution?.length) return job.execution;
+  return record?.execution ?? [];
+}
+
+export function isExecutionActive(execs: Pick<UiExecution, 'phase'>[] | null | undefined): boolean {
+  return (execs ?? []).some((e) => ACTIVE_PHASES.includes(e.phase));
+}
+
+export function assessmentOf(job: Pick<Job, 'assessment'> | null | undefined, record: Pick<UiRunRecord, 'assessment'> | null | undefined): Assessment | null {
+  return job?.assessment ?? record?.assessment ?? null;
+}
+
+const where = (e: Pick<UiExecution, 'gpu' | 'route'>) => [e.gpu ?? 'CPU', e.route ? `${e.route} route` : ''].filter(Boolean).join(' · ');
+
+/**
+ * One line on what the executors do now: `Boltz-2 engaged · A100 · stock route · seed 2/5`,
+ * `Boltz-2 building · A100 · stock route`, `Boltz-2 · Protenix ran · 17.4 s`; null without executions.
+ */
+export function engagedLine(execs: UiExecution[]): { text: string; active: boolean } | null {
+  if (!execs.length) return null;
+  const order: ExecutionPhase[] = ['running', 'building', 'queued'];
+  for (const ph of order) {
+    const e = execs.find((x) => x.phase === ph);
+    if (!e) continue;
+    const done = e.seeds.filter((x) => x.phase === 'done').length;
+    const label = ph === 'running' ? 'engaged' : ph;
+    const seed = ph === 'running' && e.seeds.length ? ` · seed ${Math.min(e.seeds.length, done + 1)}/${e.seeds.length}` : '';
+    return { text: `${e.name} ${label} · ${where(e)}${seed}`, active: true };
+  }
+  const ran = execs.filter((e) => e.phase === 'done');
+  const failed = execs.filter((e) => e.phase === 'failed');
+  const total = Math.max(0, ...execs.map((e) => e.elapsedMs ?? 0));
+  if (failed.length) return { text: `${failed.map((e) => e.name).join(' · ')} failed${ran.length ? ` · ${ran.map((e) => e.name).join(' · ')} ran` : ''}`, active: false };
+  if (ran.length) return { text: `${ran.map((e) => e.name).join(' · ')} ran · ${[...new Set(ran.map((e) => e.gpu ?? 'CPU'))].join(' + ')}${total ? ` · ${fmtSeconds(total)}` : ''}`, active: false };
+  return { text: `executors not run: ${execs.map((e) => e.message ?? e.phase).join('; ')}`, active: false };
+}
+
+export type PhaseStepState = 'done' | 'active' | 'todo' | 'failed';
+
+export interface ExecutionView {
+  key: string;
+  name: string;
+  phase: ExecutionPhase;
+  where: string;
+  routeNote: string | null;
+  elapsed: string;
+  message: string | null;
+  /** queued → building → running → done, with the state of each step. */
+  steps: { phase: 'queued' | 'building' | 'running' | 'done'; state: PhaseStepState }[];
+  seeds: { seed: number; phase: string; ms: number | null; label: string; frac: number }[];
+}
+
+const STEP_ORDER = ['queued', 'building', 'running', 'done'] as const;
+
+export function executionViews(execs: UiExecution[]): ExecutionView[] {
+  return execs.map((e) => {
+    const idx = STEP_ORDER.indexOf(e.phase as (typeof STEP_ORDER)[number]);
+    const steps = STEP_ORDER.map((ph, i) => {
+      let state: PhaseStepState = 'todo';
+      if (e.phase === 'failed') state = i === 0 ? 'done' : i === 3 ? 'failed' : 'todo';
+      else if (e.phase === 'done') state = 'done';
+      else if (idx >= 0) state = i < idx ? 'done' : i === idx ? 'active' : 'todo';
+      return { phase: ph, state };
+    });
+    const max = Math.max(1, ...e.seeds.map((x) => x.ms ?? 0));
+    return {
+      key: e.executor,
+      name: e.name,
+      phase: e.phase,
+      where: where(e),
+      routeNote: e.routeNote ?? null,
+      elapsed: e.elapsedMs === null || e.elapsedMs === undefined ? DASH : fmtSeconds(e.elapsedMs),
+      message: e.message ?? null,
+      steps,
+      seeds: e.seeds.map((x) => ({ seed: x.seed, phase: String(x.phase), ms: x.ms ?? null, label: x.ms === null || x.ms === undefined ? DASH : fmtMs(x.ms), frac: Math.max(0.04, (x.ms ?? 0) / max) })),
+    };
+  });
+}
+
+export type StageKey = 'pre' | 'execute' | 'output' | 'report';
+export type StageState = 'done' | 'active' | 'todo' | 'skipped';
+
+export interface StageView {
+  key: StageKey;
+  label: string;
+  ms: number | null;
+  text: string;
+  state: StageState;
+}
+
+const sumDur = (record: UiRunRecord | null | undefined, from: number, to: number) => {
+  const ls = (record?.layers ?? []).filter((l) => l.i >= from && l.i <= to && typeof l.durationMs === 'number');
+  return ls.length ? ls.reduce((a, l) => a + (l.durationMs ?? 0), 0) : null;
+};
+
+/** Execution span: first start to last end when start times are known, else the longest executor. */
+function executeMs(execs: UiExecution[]): number | null {
+  const timed = execs.filter((e) => typeof e.elapsedMs === 'number');
+  if (!timed.length) return null;
+  const starts = timed.filter((e) => e.startedAt).map((e) => ({ s: Date.parse(e.startedAt as string), e: Date.parse(e.startedAt as string) + (e.elapsedMs ?? 0) }));
+  if (starts.length === timed.length && starts.every((x) => Number.isFinite(x.s))) return Math.max(...starts.map((x) => x.e)) - Math.min(...starts.map((x) => x.s));
+  return Math.max(...timed.map((e) => e.elapsedMs ?? 0));
+}
+
+/** Stage timings: pre-run layers 0–3, execute, output layers 4–5, report. */
+export function stageTimings(job: Job, record: UiRunRecord | null | undefined, execs: UiExecution[]): StageView[] {
+  const pre = assessmentOf(job, record) === 'pre-run';
+  const active = isExecutionActive(execs);
+  const reporting = job.reportStatus === 'running' || record?.report?.status === 'running';
+  const running = job.status === 'running';
+  const preMs = sumDur(record, 0, 3);
+  const outMs = sumDur(record, 4, 5);
+  const exMs = executeMs(execs);
+  const done = job.status === 'done';
+  let reportMs: number | null = null;
+  if (done && job.elapsedMs) {
+    const rest = job.elapsedMs - (preMs ?? 0) - (exMs ?? 0) - (outMs ?? 0);
+    reportMs = rest > 0 ? rest : null;
+  }
+  const preState: StageState = job.layerIdx >= 4 || done ? 'done' : running ? 'active' : 'todo';
+  const exState: StageState = pre || (!execs.length && (done || job.layerIdx >= 4)) ? 'skipped' : active ? 'active' : execs.length && execs.every((e) => !ACTIVE_PHASES.includes(e.phase)) ? 'done' : 'todo';
+  const outState: StageState = pre ? 'skipped' : done || (job.layerIdx >= 6) ? 'done' : running && job.layerIdx >= 4 && !active ? 'active' : 'todo';
+  const repState: StageState = reporting ? 'active' : done ? 'done' : 'todo';
+  const t = (ms: number | null, st: StageState) => (st === 'skipped' ? 'not run' : ms === null ? (st === 'active' ? 'running' : DASH) : fmtSeconds(ms));
+  return [
+    { key: 'pre', label: 'Pre-run layers', ms: preMs, state: preState, text: t(preMs, preState) },
+    { key: 'execute', label: 'Execute', ms: exMs, state: exState, text: t(exMs, exState) },
+    { key: 'output', label: 'Output layers', ms: outMs, state: outState, text: t(outMs, outState) },
+    { key: 'report', label: 'Report', ms: reportMs, state: repState, text: t(reportMs, repState) },
+  ];
+}
+
+/** Execution line of a job card: what runs now, what ran, or that the run is a pre-run check. */
+export function jobExecutionLine(job: Job, record: UiRunRecord | null | undefined): { text: string; active: boolean } | null {
+  const execs = executionOf(job, record);
+  if (assessmentOf(job, record) === 'pre-run') return { text: 'pre-run check · executors not run', active: false };
+  const line = engagedLine(execs);
+  if (line) return line;
+  return null;
+}
+
+// ---------------------------------------------------------------- job story (provenance → report)
+
+export interface SourceRowView {
+  key: string;
+  source: string;
+  accession: string;
+  release: string;
+  sha: string;
+  shaTitle: string;
+  cached: boolean | null;
+  ms: string;
+}
+
+/**
+ * Source rows revealed so far: in step with the fetch/cache log lines when the log has them,
+ * else every record source once layer 0 has started.
+ */
+export function sourceRows(sources: RecordSource[] | null | undefined, fetchLines: number | null, layer0Started: boolean): SourceRowView[] {
+  const list = sources ?? [];
+  const shown = fetchLines !== null && fetchLines > 0 ? list.slice(0, fetchLines) : layer0Started ? list : [];
+  return shown.map((x, i) => ({
+    key: x.id ?? `${x.source}-${x.accession}-${i}`,
+    source: x.source,
+    accession: x.accession,
+    release: x.release || x.version || DASH,
+    sha: fmtSha(x.sha256),
+    shaTitle: x.sha256,
+    cached: typeof x.cached === 'boolean' ? x.cached : null,
+    ms: typeof x.ms === 'number' ? fmtMs(x.ms) : DASH,
+  }));
+}
+
+/** `8 identifiers → 7 records · 1 failed · 4 cache hits · chains A, B` from record.sourceSummary, else from the rows. */
+export function sourceCounts(record: UiRunRecord | null | undefined, rows: SourceRowView[]): string {
+  const s = record?.sourceSummary;
+  const parts: string[] = [];
+  if (s && typeof s.identifiers === 'number' && typeof s.records === 'number') parts.push(`${s.identifiers} identifiers → ${s.records} records`);
+  else if (rows.length) parts.push(`${rows.length} records`);
+  if (s?.failed) parts.push(`${s.failed} failed`);
+  const hits = typeof s?.cacheHits === 'number' ? s.cacheHits : rows.filter((r) => r.cached === true).length;
+  if (rows.length || s) parts.push(`${hits} from cache`);
+  if (s?.chains?.length) parts.push(`chains ${s.chains.join(', ')}`);
+  return parts.join(' · ');
+}
+
+export interface CheckRowView {
+  id: string;
+  name: string;
+  layer: number;
+  result: Result;
+  gate: string;
+  /** `0.62 Å · ≤ 2 Å` or the evidence text. */
+  value: string;
+  origin: string | null;
+  category: string | null;
+  standing: string | null;
+}
+
+const cmpText = (c: string) => ({ '<=': '≤', '>=': '≥', '<': '<', '>': '>', '==': '=', '!=': '≠' })[c] ?? c;
+
+/** Finished checks of layers `from`..`to` (pending ones left out), with value vs threshold. */
+export function checkRows(record: UiRunRecord | null | undefined, from: number, to: number): CheckRowView[] {
+  const out: CheckRowView[] = [];
+  for (const l of record?.layers ?? []) {
+    if (l.i < from || l.i > to) continue;
+    for (const c of l.checks) {
+      if (c.result === 'pending') continue;
+      const extra = c as UiCheck & { category?: string | null; standing?: string | null };
+      const m = c.measurements?.find((x) => typeof x.value === 'number') ?? c.measurements?.[0];
+      const th = c.thresholds?.find((t) => !t.measurement || t.measurement === m?.name) ?? c.thresholds?.[0];
+      let value = '';
+      if (m && m.value !== null && m.value !== undefined) value = `${typeof m.value === 'number' ? +m.value.toPrecision(4) : String(m.value)}${m.unit ? `${' '}${m.unit}` : ''}`;
+      if (th) value = `${value ? `${value} · ` : ''}${cmpText(th.comparator)} ${th.value}`;
+      else if (c.threshold?.value) value = `${value ? `${value} · ` : ''}${c.threshold.value}`;
+      if (!value) value = c.result === 'skip' ? `skip${c.skipReason ? ` · ${c.skipReason.replace(/_/g, ' ')}` : ''}` : (c.evidence ?? c.message ?? '');
+      out.push({
+        id: c.id,
+        name: c.name,
+        layer: l.i,
+        result: c.result,
+        gate: c.gate,
+        value,
+        origin: th?.origin ?? c.threshold?.origin ?? null,
+        category: extra.category ?? null,
+        standing: extra.standing ?? null,
+      });
+    }
+  }
+  return out;
+}
+
+/** Output checks waiting for predictions (skip with pending_input, or verdict.pending). */
+export function pendingOutputChecks(record: UiRunRecord | null | undefined): number {
+  const own = (record?.layers ?? []).filter((l) => l.i >= 4).flatMap((l) => l.checks).filter((c) => c.result === 'skip' && c.skipReason === 'pending_input').length;
+  return Math.max(own, record?.verdict.pending?.length ?? 0);
+}
+
+export interface PoseThumbView {
+  key: string;
+  png: string;
+  alt: string;
+  caption: string;
+  executor: string | null;
+  /** `seed 0 · #1`. */
+  label: string;
+  /** `Confidence 0.81`, `Vina score −9.2 kcal/mol`; null when the pose reports none. */
+  score: string | null;
+  badge: { text: string; tone: 'pass' | 'warn' | 'stop' | 'muted' };
+}
+
+function poseBadge(checks: UiPoseCheck[]): PoseThumbView['badge'] {
+  if (!checks.length) return { text: 'checks pending', tone: 'muted' };
+  const stop = checks.filter((c) => c.result === 'stop');
+  if (stop.length) return { text: `fails ${stop[0].name.toLowerCase()}${stop[0].failed?.length ? ` · ${stop[0].failed.slice(0, 2).join(', ')}` : ''}`, tone: 'stop' };
+  const warn = checks.filter((c) => c.result === 'warn');
+  if (warn.length) return { text: `warn · ${warn[0].name.toLowerCase()}`, tone: 'warn' };
+  const pass = checks.filter((c) => c.result === 'pass');
+  if (pass.length) return { text: `${pass.length}/${checks.length} checks pass`, tone: 'pass' };
+  return { text: 'values reported', tone: 'muted' };
+}
+
+/** Thumbnails of predicted poses (renders with an executor, or every render when none says). */
+export function poseThumbs(record: UiRunRecord | null | undefined, executor?: string | null): PoseThumbView[] {
+  const renders: RecordRender[] = record?.renders ?? [];
+  const poseRenders = renders.filter((r) => r.executor || r.seed !== undefined || r.pose);
+  return poseRenders
+    .filter((r) => !executor || r.executor === executor)
+    .map((r, i) => {
+      const fromRecord = r.pose ? record?.poseChecks?.find((p) => p.pose === r.pose)?.checks : undefined;
+      const checks = r.checks?.length ? r.checks : (fromRecord ?? []);
+      const label = [r.seed !== null && r.seed !== undefined ? `seed ${r.seed}` : r.pose ?? '', r.rank !== null && r.rank !== undefined ? `#${r.rank}` : ''].filter(Boolean).join(' · ') || `pose ${i + 1}`;
+      return {
+        key: `${r.structure}-${r.view}-${i}`,
+        png: r.png,
+        alt: r.alt ?? r.caption ?? `PyMOL render ${label}`,
+        caption: r.caption ?? label,
+        executor: r.executor ?? null,
+        label,
+        score: r.score ? `${r.score.label} ${fmtNumber(r.score.value)}${r.score.unit ? `${' '}${r.score.unit}` : ''}` : null,
+        badge: poseBadge(checks),
+      };
+    });
+}
+
+const fmtNumber = (v: number) => {
+  const s = String(+v.toPrecision(3));
+  return s.startsWith('-') ? `−${s.slice(1)}` : s;
+};

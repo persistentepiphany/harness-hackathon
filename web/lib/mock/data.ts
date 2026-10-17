@@ -11,6 +11,7 @@ import type {
   DimensionId,
   UiDimension,
   UiExecution,
+  UiGlossary,
   UiToolVersion,
   CatalogLigand,
   CatalogProtein,
@@ -176,13 +177,29 @@ export const MOCK_RUNTIME: Record<string, { endpoints: string[]; dispatchable: b
   gnina: { endpoints: ['pose', 'score_within_run'], dispatchable: true, gpu: 'T4', route: 'stock', routeNote: 'stock image gnina 1.3', seedMs: 600 },
   vina: { endpoints: ['pose', 'score_within_run'], dispatchable: true, gpu: null, route: 'local', routeNote: 'local CPU, vina 1.2.5', seedMs: 380 },
   diffdock: { endpoints: ['pose'], dispatchable: true, gpu: 'A10G', route: 'stock', routeNote: 'stock image DiffDock-L 1.1', seedMs: 800 },
-  pydock: { endpoints: ['interface'], dispatchable: false, gpu: null, route: 'local', routeNote: 'academic licence', seedMs: 900 },
-  haddock: { endpoints: ['interface'], dispatchable: false, gpu: null, route: 'local', routeNote: 'academic licence', seedMs: 900 },
+  pydock: { endpoints: ['interface'], dispatchable: false, gpu: null, route: 'local', routeNote: 'no runtime in configs/dispatch.yaml (academic licence)', seedMs: 900 },
+  haddock: { endpoints: ['interface'], dispatchable: true, gpu: null, route: 'local', routeNote: 'local CPU, haddock3 2.5', seedMs: 900 },
+};
+
+/** Mock overrides of availability: both protein–protein tools are installed in the mock register. */
+const MOCK_AVAILABLE: Record<string, { available: boolean; note?: string }> = {
+  pydock: { available: true, note: 'installed; not dispatchable (no runtime in configs/dispatch.yaml)' },
+  haddock: { available: true, note: 'runs locally on CPU' },
 };
 
 export const TOOLS: Tool[] = BASE_TOOLS.map((t) => {
   const r = MOCK_RUNTIME[t.id];
-  return r ? { ...t, endpoints: [...r.endpoints], dispatchable: r.dispatchable, gpu: r.gpu } : t;
+  if (!r) return t;
+  const dispatchRoute: Tool['route'] = !r.dispatchable ? 'none' : r.gpu ? 'modal' : 'local';
+  return {
+    ...t,
+    ...(MOCK_AVAILABLE[t.id] ?? {}),
+    endpoints: [...r.endpoints],
+    dispatchable: r.dispatchable,
+    gpu: r.gpu,
+    route: dispatchRoute,
+    ...(r.dispatchable ? {} : { dispatchReason: r.routeNote }),
+  };
 });
 
 /** addition: endpoint each task's claim needs (configs/models.yaml task_endpoints, mock task ids). */
@@ -204,22 +221,24 @@ export const TASK_ENDPOINTS: Record<string, string> = {
 };
 
 const BASE_TASKS: Task[] = [
-  // Co-folding task classes
-  { id: 'monomer', group: 'co-folding', kind: 'monomer', name: 'Monomer structure', long: 'Monomer structure', defaultTools: ['boltz2', 'afdb'], claim: 'Fold of confident regions', controls: [], inputs: ['target', 'seeds'] },
-  { id: 'known_complex', group: 'co-folding', kind: 'complex', name: 'Known complex', long: 'Known complex assembly', defaultTools: ['boltz2', 'protenix'], claim: 'Interface geometry, scoped by exposure', controls: ['Exposure report'], inputs: ['target', 'partner', 'reference', 'seeds'] },
-  { id: 'interaction_discovery', group: 'co-folding', kind: 'complex', name: 'Interaction discovery', long: 'Interaction discovery', defaultTools: ['boltz2', 'protenix'], claim: 'Plausible relative to controls, never that the proteins bind', controls: ['Decoy partners', 'Sticky control', 'Known positive'], inputs: ['target', 'partner', 'reference', 'seeds'] },
-  { id: 'ligand_pose', group: 'co-folding', kind: 'ligand', name: 'Ligand pose', long: 'Ligand pose in a known pocket', defaultTools: ['boltz2', 'gnina'], claim: 'Pose within stated uncertainty', controls: ['Redocking of a known ligand'], inputs: ['target', 'ligand', 'reference', 'ph', 'seeds'] },
-  { id: 'binding_site', group: 'co-folding', kind: 'ligand', name: 'Binding site', long: 'Binding site identification', defaultTools: ['boltz2', 'protenix'], claim: 'Candidate sites ranked', controls: ['Known sites from PDBe-KB'], inputs: ['target', 'ligand', 'seeds'] },
-  { id: 'affinity_ranking', group: 'co-folding', kind: 'ligand', name: 'Affinity ranking', long: 'Affinity ranking within a congeneric series', defaultTools: ['boltz2'], claim: 'Relative order within a congeneric series, never absolute affinity', controls: ['Known actives and inactives from ChEMBL', 'Target-specific recalibration'], inputs: ['target', 'series', 'reference', 'ph', 'seeds'] },
-  { id: 'variant_effect', group: 'co-folding', kind: 'ligand', name: 'Variant effect', long: 'Variant effect', defaultTools: ['boltz2', 'chai1'], claim: 'Change detected, or not distinguishable from model noise', controls: ['Wild type against itself across seeds'], inputs: ['target', 'ligand', 'reference', 'seeds'] },
-  { id: 'design_validation', group: 'co-folding', kind: 'complex', name: 'Design validation', long: 'Design validation', defaultTools: ['boltz2', 'protenix'], claim: 'Design is self-consistent, not that it binds', controls: ['Scrambled or non-cognate designs'], inputs: ['target', 'partner', 'seeds'] },
-  // Docking task classes
-  { id: 'redocking', group: 'docking', kind: 'ligand', name: 'Redocking', long: 'Redocking of the crystal ligand', defaultTools: ['vina', 'gnina'], claim: 'The protocol reproduces known poses on this receptor', controls: ['It is itself the control'], inputs: ['target', 'ligand', 'reference', 'ph', 'seeds'] },
-  { id: 'pose_known_pocket', group: 'docking', kind: 'ligand', name: 'Docked pose', long: 'Pose prediction in a known pocket', defaultTools: ['gnina', 'diffdock'], claim: 'Pose within stated uncertainty', controls: ['Redocking on the same receptor'], inputs: ['target', 'ligand', 'reference', 'ph', 'seeds'] },
-  { id: 'blind_docking', group: 'docking', kind: 'ligand', name: 'Blind docking', long: 'Blind docking', defaultTools: ['diffdock', 'gnina'], claim: 'Candidate sites, low confidence', controls: ['Known site where one exists'], inputs: ['target', 'ligand', 'seeds'] },
-  { id: 'virtual_screening', group: 'docking', kind: 'ligand', name: 'Virtual screening', long: 'Virtual screening', defaultTools: ['vina', 'gnina'], claim: 'Enrichment over decoys, not individual affinities', controls: ['Property-matched decoys or confirmed inactives'], inputs: ['target', 'series', 'reference', 'ph', 'seeds'] },
-  { id: 'series_scoring', group: 'docking', kind: 'ligand', name: 'Series scoring', long: 'Series scoring', defaultTools: ['gnina', 'vina'], claim: 'Weak ranking, explicitly flagged', controls: ['Known actives from ChEMBL'], inputs: ['target', 'series', 'reference', 'ph', 'seeds'] },
-  { id: 'protein_protein_docking', group: 'docking', kind: 'complex', name: 'Protein–protein docking', long: 'Protein–protein docking', defaultTools: ['pydock', 'haddock'], claim: 'Candidate arrangements', controls: ['Non-cognate partner'], inputs: ['target', 'partner', 'reference', 'seeds'] },
+  // Quick setup, co-folding
+  { id: 'known_complex', group: 'co-folding', kind: 'complex', name: 'Complex structure', long: 'Complex structure', defaultTools: ['boltz2', 'protenix'], claim: 'Interface geometry, scoped by exposure', controls: ['Exposure report'], inputs: ['target', 'partner', 'reference', 'seeds'], quickSetup: true },
+  { id: 'ligand_pose', group: 'co-folding', kind: 'ligand', name: 'Ligand pose', long: 'Co-folded ligand pose', defaultTools: ['boltz2', 'protenix'], claim: 'Pose within stated uncertainty', controls: ['Redocking of a known ligand'], inputs: ['target', 'ligand', 'reference', 'ph', 'seeds'], quickSetup: true },
+  { id: 'monomer', group: 'co-folding', kind: 'monomer', name: 'Monomer structure', long: 'Monomer structure', defaultTools: ['boltz2', 'protenix'], claim: 'Fold of confident regions', controls: [], inputs: ['target', 'seeds'], quickSetup: true },
+  // Quick setup, docking
+  { id: 'pose_known_pocket', group: 'docking', kind: 'ligand', name: 'Docked pose', long: 'Ligand pose in a known pocket', defaultTools: ['vina', 'gnina'], claim: 'Pose within stated uncertainty', controls: ['Redocking on the same receptor'], inputs: ['target', 'ligand', 'reference', 'ph', 'seeds'], quickSetup: true },
+  { id: 'redocking', group: 'docking', kind: 'ligand', name: 'Redocking', long: 'Redocking control of the crystal ligand', defaultTools: ['vina', 'gnina'], claim: 'The protocol reproduces known poses on this receptor', controls: ['It is itself the control'], inputs: ['target', 'ligand', 'reference', 'ph', 'seeds'], quickSetup: true },
+  { id: 'series_scoring', group: 'docking', kind: 'ligand', name: 'Series ranking', long: 'Series ranking with docking scores', defaultTools: ['vina', 'gnina'], claim: 'Weak ranking, explicitly flagged', controls: ['Known actives from ChEMBL'], inputs: ['target', 'series', 'reference', 'ph', 'seeds'], quickSetup: true },
+  { id: 'virtual_screening', group: 'docking', kind: 'ligand', name: 'Virtual screening', long: 'Virtual screening with docking scores', defaultTools: ['vina', 'gnina'], claim: 'Enrichment over decoys, not individual affinities', controls: ['Property-matched decoys or confirmed inactives'], inputs: ['target', 'series', 'reference', 'ph', 'seeds'], quickSetup: true },
+  // Quick setup, protein–protein
+  { id: 'protein_protein_docking', group: 'protein-protein', kind: 'complex', name: 'Protein–protein docking', long: 'Protein–protein docking', defaultTools: ['pydock', 'haddock'], claim: 'Candidate arrangements', controls: ['Non-cognate partner'], inputs: ['target', 'partner', 'reference', 'seeds'], quickSetup: true },
+  // Manual setup only
+  { id: 'interaction_discovery', group: 'co-folding', kind: 'complex', name: 'Interaction discovery', long: 'Interaction discovery', defaultTools: ['boltz2', 'protenix'], claim: 'Plausible relative to controls, never that the proteins bind', controls: ['Decoy partners', 'Sticky control', 'Known positive'], inputs: ['target', 'partner', 'reference', 'seeds'], quickSetup: false },
+  { id: 'binding_site', group: 'co-folding', kind: 'ligand', name: 'Binding site', long: 'Binding site identification', defaultTools: ['boltz2', 'protenix'], claim: 'Candidate sites ranked', controls: ['Known sites from PDBe-KB'], inputs: ['target', 'ligand', 'seeds'], quickSetup: false },
+  { id: 'affinity_ranking', group: 'co-folding', kind: 'ligand', name: 'Affinity ranking', long: 'Affinity ranking within a congeneric series', defaultTools: ['boltz2'], claim: 'Relative order within a congeneric series, never absolute affinity', controls: ['Known actives and inactives from ChEMBL', 'Target-specific recalibration'], inputs: ['target', 'series', 'reference', 'ph', 'seeds'], quickSetup: false },
+  { id: 'variant_effect', group: 'co-folding', kind: 'ligand', name: 'Variant effect', long: 'Variant effect', defaultTools: ['boltz2', 'chai1'], claim: 'Change detected, or not distinguishable from model noise', controls: ['Wild type against itself across seeds'], inputs: ['target', 'ligand', 'reference', 'seeds'], quickSetup: false },
+  { id: 'design_validation', group: 'co-folding', kind: 'complex', name: 'Design validation', long: 'Design validation', defaultTools: ['boltz2', 'protenix'], claim: 'Design is self-consistent, not that it binds', controls: ['Scrambled or non-cognate designs'], inputs: ['target', 'partner', 'seeds'], quickSetup: false },
+  { id: 'blind_docking', group: 'docking', kind: 'ligand', name: 'Blind docking', long: 'Blind docking', defaultTools: ['diffdock', 'gnina'], claim: 'Candidate sites, low confidence', controls: ['Known site where one exists'], inputs: ['target', 'ligand', 'seeds'], quickSetup: false },
 ];
 
 /** Tasks with their endpoint and the register tools that report it (Task.endpoint, Task.compatibleTools). */
@@ -256,16 +275,31 @@ const ENTITIES: { proteins: CatalogProtein[]; ligands: CatalogLigand[] } = {
     { names: ['kras', 'p01116'], accession: 'P01116', entry: 'RASK_HUMAN', label: 'KRAS', organism: 'Homo sapiens', length: 189, pdb: '6VJJ', resolution: '1.90 Å', holo: 312, afPlddt: 93, sites: 2, domains: 'Small GTPase', disorder: '8% (HVR)', cofactors: 'GDP · Mg²⁺' },
     { names: ['raf1', 'craf', 'raf', 'p04049'], accession: 'P04049', entry: 'RAF1_HUMAN', label: 'RAF1 RBD', organism: 'Homo sapiens', length: 648, pdb: '6VJJ', resolution: '1.90 Å', holo: 21, afPlddt: 74, sites: 1, domains: 'RBD · C1 · Protein kinase', disorder: '31%', cofactors: 'none annotated' },
     { names: ['egfr', 'p00533'], accession: 'P00533', entry: 'EGFR_HUMAN', label: 'EGFR kinase', organism: 'Homo sapiens', length: 1210, pdb: '1M17', resolution: '2.60 Å', holo: 198, afPlddt: 86, sites: 2, domains: 'Receptor L · Furin-like · Protein kinase', disorder: '15%', cofactors: 'Mg²⁺ · ATP site' },
+    { names: ['trypsin', 'try1', 'p00760'], accession: 'P00760', entry: 'TRY1_BOVIN', label: 'Trypsin', organism: 'Bos taurus', length: 246, pdb: '3PTB', resolution: '1.70 Å', holo: 412, afPlddt: 93, sites: 1, domains: 'Peptidase S1', disorder: '2%', cofactors: 'Ca²⁺' },
     { names: ['hsp90', 'p07900'], accession: 'P07900', entry: 'HS90A_HUMAN', label: 'HSP90α', organism: 'Homo sapiens', length: 732, pdb: '2VCI', resolution: '1.90 Å', holo: 356, afPlddt: 85, sites: 1, domains: 'HATPase_c · HSP90', disorder: '11% (charged linker)', cofactors: 'ATP · Mg²⁺' },
   ],
   ligands: [
     { names: ['imatinib', 'gleevec', 'sti-571', 'sti571'], smiles: 'Cc1ccc(NC(=O)c2ccc(CN3CCN(C)CC3)cc2)cc1Nc1nccc(-c2cccnc2)n1', ccd: 'STI', cid: '5291', chembl: 'CHEMBL941', formula: 'C29H31N7O', mw: 493.6, inchikey: 'KTUFNOKKBVMGRW-UHFFFAOYSA-N', activities: 1842, stereo: 0, pka: 'piperazine 7.7' },
     { names: ['erlotinib'], smiles: 'COCCOc1cc2ncnc(Nc3cccc(C#C)c3)c2cc1OCCOC', ccd: 'AQ4', cid: '176870', chembl: 'CHEMBL553', formula: 'C22H23N3O4', mw: 393.4, inchikey: 'AAKJLRGGTJKAMG-UHFFFAOYSA-N', activities: 1203, stereo: 0, pka: 'quinazoline 5.4' },
+    { names: ['benzamidine'], smiles: 'NC(=N)c1ccccc1', ccd: 'BEN', cid: '2332', chembl: 'CHEMBL20936', formula: 'C7H8N2', mw: 120.15, inchikey: 'PXXJHWLDUBFPOL-UHFFFAOYSA-N', activities: 312, stereo: 0, pka: 'amidine 11.6' },
     { names: ['adp-ribose', 'adpr'], smiles: 'Nc1ncnc2n(cnc12)C1OC(COP(O)(=O)OP(O)(=O)OCC2OC(O)C(O)C2O)C(O)C1O', ccd: 'APR', cid: '32014', chembl: '—', formula: 'C15H23N5O14P2', mw: 559.3, inchikey: 'SRNWOUGRCWSEMX-UHFFFAOYSA-N', activities: 0, stereo: 9, pka: 'phosphates 1.5, 6.4' },
   ],
 };
 
-export const CATALOG = ENTITIES;
+/**
+ * Sample requests, one per Quick setup task family (configs/catalog.yaml `prompts`); each maps onto
+ * a task whose endpoint the named tools report.
+ */
+export const SAMPLE_PROMPTS: string[] = [
+  'Co-fold imatinib with the ABL1 kinase using Boltz-2 and Protenix, 5 seeds at pH 7.4, compare against 2HYY',
+  'Predict the KRAS and RAF1 complex structure with Boltz-2 and Protenix, compare against 6VJJ',
+  'Dock benzamidine into the trypsin pocket with Vina and Gnina, 5 seeds, compare against 3PTB',
+  'Redock the benzamidine crystal ligand of 3PTB with Vina and Gnina',
+  'Rank the imatinib congeneric series against ABL1 with Vina and Gnina docking scores, 8 seeds',
+  'Protein–protein dock KRAS with RAF1 using pyDock and HADDOCK, compare against 6VJJ',
+];
+
+export const CATALOG: { proteins: CatalogProtein[]; ligands: CatalogLigand[]; prompts: string[] } = { ...ENTITIES, prompts: SAMPLE_PROMPTS };
 
 /** Executors added with "+ executor" in this browser session (prototype pushes into TOOLS). */
 export const CUSTOM_TOOLS: Tool[] = [];
@@ -358,13 +392,15 @@ export function interpretRun(text: string): InterpretRunResult {
   else if (/binding site|where does|which pocket|site identif/.test(t)) task = 'binding_site';
   else if (/rank|series|analog|congeneric|sar\b|affinit/.test(t)) task = 'affinity_ranking';
   else if (/pydock|haddock|protein.protein docking/.test(t)) task = 'protein_protein_docking';
-  else if (/known complex|assembl|stoichiometr/.test(t)) task = 'known_complex';
+  else if (/known complex|complex structure|assembl|stoichiometr/.test(t)) task = 'known_complex';
   else if (/interact|partner|bind(s|ing)? to|complex with|discover/.test(t) && !/pocket|dock|pose|ligand/.test(t)) task = 'interaction_discovery';
   else if (/dock/.test(t) && !/boltz|protenix|alphafold|chai|co-?fold/.test(t)) task = 'pose_known_pocket';
   const taskWords = (t.match(/screen|redock|blind|variant|design|monomer|site|dock|pose|pocket|rank|series|analog|congeneric|interact|partner|discover|assembl|bind\w*/g) || []).slice(0, 3);
   steps.push({ field: 'task', value: task, because: taskWords.length ? `matched “${[...new Set(taskWords)].join('”, “')}”` : 'default for a ligand input' });
 
   const tools = TOOLS.filter((x) => t.includes(x.name.toLowerCase()) || t.includes(x.id)).map((x) => x.id);
+  // a series ranked with docking tools only is series ranking by docking scores (no co-folding affinity)
+  if (task === 'affinity_ranking' && tools.length && tools.every((id) => TOOLS.find((x) => x.id === id)?.family === 'docking')) task = 'series_scoring';
   const taskDef = TASKS.find((x) => x.id === task) as Task;
   // task defaults that report the task's endpoint; named tools are kept as written, with a warning
   const fits = (id: string) => !taskDef.endpoint || (taskDef.compatibleTools ?? []).includes(id);
@@ -378,7 +414,10 @@ export function interpretRun(text: string): InterpretRunResult {
   }
   steps.push({ field: 'tools', value: chosenTools, because: tools.length ? 'named in the request' : `task default: tools that report ${(taskDef.endpoint ?? 'the endpoint').replace(/_/g, ' ')} for ${taskDef.name.toLowerCase()}` });
 
-  const prots = ENTITIES.proteins.filter((p) => p.names.some((n) => t.includes(n)));
+  const pdbNamed = text.match(/\b[1-9][A-Za-z0-9]{3}\b/)?.[0]?.toUpperCase();
+  const named = ENTITIES.proteins.filter((p) => p.names.some((n) => t.includes(n)));
+  // no protein named: the PDB entry names it (e.g. "the crystal ligand of 3PTB")
+  const prots = named.length ? named : ENTITIES.proteins.filter((p) => p.pdb === pdbNamed);
   const accMatch = text.match(/\b[OPQ][0-9][A-Z0-9]{3}[0-9]\b|\b[A-NR-Z][0-9][A-Z][A-Z0-9]{2}[0-9]\b/);
   const target = prots[0] ? prots[0].accession : accMatch ? accMatch[0] : 'P00519';
   steps.push({ field: 'target', value: target, because: prots[0] ? `“${prots[0].label}” → UniProt ${target}` : accMatch ? 'accession given explicitly' : 'no target recognised; example target used' });
@@ -400,7 +439,7 @@ export function interpretRun(text: string): InterpretRunResult {
   const ph = phMatch ? +phMatch[1] : 7.4;
   steps.push({ field: 'ph', value: ph, because: phMatch ? 'stated in the request' : 'physiological default; protonation enumerated at this pH' });
   const pdbMatch = text.match(/\b[1-9][A-Za-z0-9]{3}\b/);
-  const reference = (prots[0] && prots[0].pdb) || (pdbMatch ? pdbMatch[0].toUpperCase() : '1IEP');
+  const reference = pdbMatch ? pdbMatch[0].toUpperCase() : (prots[0] && prots[0].pdb) || '1IEP';
   steps.push({ field: 'reference', value: reference, because: pdbMatch ? 'PDB entry named in the request' : `holo entry for the target from RCSB, used for redocking control` });
   steps.push({ field: 'claim', value: taskDef.claim, because: 'the only claim this task is permitted to support' });
   const partnerStep = steps.find((s) => s.field === 'partner');
@@ -931,34 +970,31 @@ export function finishedExecution(p: MockExecPlan, startedAt?: string): UiExecut
 
 const DIMENSION_LABELS: Record<DimensionId, string> = {
   inputs: 'Inputs',
-  applicability: 'Applicability',
-  geometry: 'Geometry',
-  physics: 'Physics',
-  interactions: 'Interactions',
-  confidence: 'Confidence',
-  support: 'Support',
+  exposure: 'Exposure',
+  physical_validity: 'Physical validity',
+  chemical_plausibility: 'Chemical plausibility',
+  stability: 'Stability',
+  corroboration: 'Corroboration',
 };
 const DIMENSION_CERTAINTY: Record<DimensionId, Certainty> = {
-  inputs: 'published',
-  applicability: 'published',
-  geometry: 'calibrated',
-  physics: 'uncalibrated',
-  interactions: 'uncalibrated',
-  confidence: 'published',
-  support: 'uncalibrated',
+  inputs: 'definitional',
+  exposure: 'published',
+  physical_validity: 'published',
+  chemical_plausibility: 'uncalibrated',
+  stability: 'inherited',
+  corroboration: 'uncalibrated',
 };
 
 /** Which dimension a check tests (mock mapping by layer and id). */
 export function checkDimension(layer: number, id: string): DimensionId {
   if (layer <= 2) return 'inputs';
-  if (layer === 3) return 'applicability';
+  if (layer === 3) return 'exposure';
+  if (/drift|stabil|replicate|cluster|ranking/.test(id)) return 'stability';
   if (layer === 4) {
-    if (/strain|minimi|drift|torsion|protonation|molprobity/.test(id)) return 'physics';
-    if (/chem\.|interface\.|interaction|plip|prolif/.test(id)) return 'interactions';
-    return 'geometry';
+    if (/chem\.|interface\.|interaction|plip|prolif|protonation/.test(id)) return 'chemical_plausibility';
+    return 'physical_validity';
   }
-  if (/metric\.|confidence|plddt|iptm|pae|length_confound|threshold/.test(id)) return 'confidence';
-  return 'support';
+  return 'corroboration';
 }
 
 /** Checks grouped by dimension; pending checks (result pending, or skipped for pending input) count as pending. */
@@ -1053,13 +1089,6 @@ export function toPreRun(r: UiRunRecord): UiRunRecord {
   };
 }
 
-export const SAMPLE_PROMPTS: string[] = [
-  'Dock imatinib into the ABL1 kinase pocket with Boltz-2 and Gnina, 5 seeds at pH 7.4, compare against 1IEP',
-  'Does KRAS interact with RAF1? Run Boltz-2 and Protenix with decoy partners',
-  'Rank the imatinib congeneric series against ABL1 by Boltz-2 affinity, corroborate with Gnina, 8 seeds',
-  'Screen the erlotinib library against EGFR with Vina and DiffDock-L, property-matched decoys',
-  'Protein–protein dock KRAS with RAF1 using pyDock and HADDOCK, compare against 6VJJ',
-];
 
 export interface MockAgentStep {
   kind: 'thought' | 'tool' | 'result' | 'report' | 'conclusion';
@@ -1163,3 +1192,26 @@ export function mockRenderSvg(executor: string, seed: number): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120"><rect width="200" height="120" fill="#f7f7f4"/><polyline points="${pts.join(' ')}" fill="none" stroke="#8b8b85" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/><polyline points="${pts.join(' ')}" fill="none" stroke="#55554f" stroke-width="1.4" stroke-linejoin="round"/>${atoms}<text x="194" y="114" text-anchor="end" font-family="monospace" font-size="8" fill="#b9b9b3">mock</text></svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
+
+/** addition: GET /ui/glossary in mock mode (score keys of the mock register and check measurements). */
+export const GLOSSARY: UiGlossary = {
+  scores: [
+    { key: 'vina_score', label: 'Vina score', unit: 'kcal/mol', kind: 'affinity', producedBy: ['vina'], what: 'Vina empirical scoring function of the docked pose; ranks poses within one run, not an affinity.', inputs: ['receptor PDBQT', 'ligand pose'], higherIsBetter: false },
+    { key: 'minimizedAffinity', label: 'Vina score (Gnina)', unit: 'kcal/mol', kind: 'affinity', producedBy: ['gnina'], what: 'Vina scoring function after Gnina minimisation.', inputs: ['receptor', 'ligand pose'], higherIsBetter: false },
+    { key: 'rmsd_lb', label: 'RMSD l.b. to best mode', unit: 'Å', kind: 'rmsd', producedBy: ['vina'], what: 'Lower-bound RMSD of the mode to the best-scoring mode (symmetry not considered).', inputs: ['docked modes'], higherIsBetter: false },
+    { key: 'rmsd_ub', label: 'RMSD u.b. to best mode', unit: 'Å', kind: 'rmsd', producedBy: ['vina'], what: 'Upper-bound RMSD of the mode to the best-scoring mode.', inputs: ['docked modes'], higherIsBetter: false },
+    { key: 'CNNscore', label: 'CNN pose score', unit: null, kind: 'score', producedBy: ['gnina'], what: 'Gnina CNN probability that the pose is within 2 Å of a native pose.', inputs: ['receptor', 'ligand pose'], higherIsBetter: true },
+    { key: 'clashes', label: 'Clashes', unit: null, kind: 'check', producedBy: ['PoseBusters'], what: 'Protein–ligand van der Waals overlaps beyond the PoseBusters tolerance.', inputs: ['pose', 'receptor'], higherIsBetter: false },
+    { key: 'pbPassed', label: 'PoseBusters tests passed', unit: null, kind: 'check', producedBy: ['PoseBusters'], what: 'Number of PoseBusters geometry, chemistry and intermolecular tests the pose passes.', inputs: ['pose', 'receptor', 'ligand definition'], higherIsBetter: true },
+    { key: 'unsatisfied', label: 'Unsatisfied buried polars', unit: null, kind: 'check', producedBy: ['FreeSASA', 'RDKit'], what: 'Buried polar atoms of the ligand without a hydrogen-bond partner.', inputs: ['pose', 'receptor'], higherIsBetter: false },
+    { key: 'strain', label: 'Torsion strain', unit: 'kcal/mol', kind: 'check', producedBy: ['RDKit'], what: 'MMFF94 strain of the pose relative to the relaxed conformer.', inputs: ['ligand pose'], higherIsBetter: false },
+    { key: 'drift', label: 'Minimisation drift', unit: 'Å', kind: 'check', producedBy: ['OpenMM', 'RDKit'], what: 'Heavy-atom RMSD of the ligand after restrained minimisation in the pocket.', inputs: ['pose', 'receptor'], higherIsBetter: false },
+    { key: 'plddt', label: 'pLDDT', unit: null, kind: 'plddt', producedBy: ['boltz2', 'protenix', 'chai1', 'afdb'], what: 'Per-residue local distance difference test predicted by the model (0–100).', inputs: ['model output'], higherIsBetter: true },
+    { key: 'pocketPlddt', label: 'Pocket pLDDT', unit: null, kind: 'plddt', producedBy: ['boltz2', 'protenix', 'chai1'], what: 'Mean pLDDT over pocket residues.', inputs: ['model output', 'pocket residues'], higherIsBetter: true },
+    { key: 'iptm', label: 'ipTM', unit: null, kind: 'interface', producedBy: ['boltz2', 'protenix', 'chai1'], what: 'Interface predicted TM-score (0–1).', inputs: ['model output'], higherIsBetter: true },
+    { key: 'ptm', label: 'pTM', unit: null, kind: 'confidence', producedBy: ['boltz2', 'protenix', 'chai1'], what: 'Predicted TM-score of the whole complex (0–1).', inputs: ['model output'], higherIsBetter: true },
+    { key: 'pae', label: 'PAE', unit: 'Å', kind: 'pae', producedBy: ['boltz2', 'protenix'], what: 'Predicted aligned error between token pairs.', inputs: ['model output'], higherIsBetter: false },
+    { key: 'rmsdToMedoid', label: 'RMSD to medoid', unit: 'Å', kind: 'rmsd', producedBy: ['spyrmsd'], what: 'Symmetry-corrected ligand RMSD of each pose to the ensemble medoid.', inputs: ['poses'], higherIsBetter: false },
+    { key: 'siteDistance', label: 'Site distance', unit: 'Å', kind: 'distance', producedBy: ['gemmi'], what: 'Distance of the ligand centroid to the reference site centroid.', inputs: ['pose', 'reference site'], higherIsBetter: false },
+  ],
+};
