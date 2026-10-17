@@ -41,6 +41,8 @@ def _pose_frame(ctx: CheckContext, pose: Any) -> Any:
 
 
 def _rmsd_to_reference(ctx: CheckContext, pose: Any) -> float | None:
+    """Symmetry-aware RMSD of a pose to the crystal ligand; None when there is no reference or
+    the predicted ligand is a different molecule (for example a modified analogue)."""
     ref = outputs.reference_ligand(ctx)
     if ref is None:
         return None
@@ -52,7 +54,11 @@ def _rmsd_to_reference(ctx: CheckContext, pose: Any) -> float | None:
         ref_path = resolve.mmcif_path(ctx, pdb_id)
         rot, tran, _, _ = outputs.superpose(target, ref_path)
         xyz = xyz @ rot.T + tran
-    return round(outputs.symmetric_rmsd(outputs.pose_mol(pose), xyz, ref.mol, ref.coords), 3)
+    try:
+        value = outputs.symmetric_rmsd(outputs.pose_mol(pose), xyz, ref.mol, ref.coords)
+    except (outputs.OutputUnavailableError, ValueError):
+        return None
+    return round(value, 3)
 
 
 def _confidence(pose: Any) -> float | None:

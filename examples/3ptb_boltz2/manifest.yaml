@@ -1,0 +1,47 @@
+# Boltz-2 2.2.1 prediction of trypsin with benzamidine, run on CPU in the development sandbox
+# (one seed, one diffusion sample, MSA from the ColabFold server). Input: trypsin_ben.yaml.
+# The affinity head did not run (process killed for memory after the structure was written).
+task: ligand_pose
+claim: Pose within stated uncertainty
+ph: 7.4
+proteins:
+  - id: trypsin
+    uniprot: P00760
+    pdb_id: 3PTB
+    chain: A
+    sequence: >-
+      IVGGYTCGANTVPYQVSLNSGYHFCGGSLINSQWVVSAAHCYKSGIQVRLGEDNINVVEG
+      NEQFISASKSIVHPSYNSNTLNNDIMLIKLKSAASLNSRVASISLPTSCASAGTQCLISG
+      WGNTKSSGTSYPDVLKCLKAPILSDSSCKSAYPGQITSNMFCAGYLEGGKDSCQGDSGGP
+      VVCSGKLQGIVSWGSGCAQKNKPGVYTKVCNYVSWIKQTIASN
+    msa: seed_0/boltz_results_trypsin_ben/msa/trypsin_ben_0.csv
+ligands:
+  - id: benzamidine
+    smiles: NC(=N)c1ccccc1
+    ccd: BEN
+    pubchem_cid: 2332
+receptor:
+  pdb_id: 3PTB
+  chains: [A]
+reference:
+  pdb_id: 3PTB
+  ligand: BEN
+model:
+  executor: boltz2
+  version: 2.2.1
+  checkpoint: boltz2_conf.ckpt
+  database_snapshot: colabfold_msa_server_2026-10-17
+  seeds: [0]
+predictions:
+  - executor: boltz2
+    path: seed_0
+    role: primary
+    version: 2.2.1
+    ligand: benzamidine
+    seeds: [0]
+  - executor: vina
+    path: ../3ptb_vina/pose
+    role: secondary
+    receptor: ../3ptb_vina/pose/receptor_H.pdb
+    ligand: benzamidine
+    seeds: [0, 1, 2, 3, 4]

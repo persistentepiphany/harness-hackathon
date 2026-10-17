@@ -1,0 +1,51 @@
+# Perturbation benchmark design, declared before any run (bench/README.md).
+# Four protein-ligand systems, each as wild type and perturbed. Ground truth by construction:
+# a perturbed system is a true negative; a wild-type system is a true positive when the
+# representative predicted pose lies within 2 Å (symmetry-aware heavy-atom RMSD) of the
+# deposited ligand.
+# Entry details read from the mmCIF files on 2026-10-17:
+#   8X61 FtsE-FtsX complex; FtsE is chains A and B, ATP bound to each; chain A is predicted.
+#   1B38 CDK2 with ATP and Mg; Mg is supplied to Boltz-2 as context.
+#   7XLP MEK1 with inhibitor FZC (plus DMSO and Ca ions, not supplied).
+#   2VWH glucose dehydrogenase with beta-D-glucose (BGC), NADP and Zn in the site; NADP and Zn
+#        are supplied to Boltz-2 as context. The runbook names the ligand GLC; the entry has BGC.
+systems:
+  - id: ftse
+    protein: FtsE
+    pdb: 8X61
+    chain: A
+    ligand: ATP
+    context: []
+    perturbation: {kind: pocket_to_gly, radius: 3.5}
+  - id: cdk2
+    protein: CDK2
+    pdb: 1B38
+    chain: A
+    ligand: ATP
+    context: [MG]
+    perturbation: {kind: pocket_to_gly, radius: 3.5}
+  - id: mek1
+    protein: MEK1
+    pdb: 7XLP
+    chain: A
+    ligand: FZC
+    context: []
+    perturbation: {kind: pocket_to_gly, radius: 3.5}
+  - id: glc
+    protein: glucose dehydrogenase (glucose-binding)
+    pdb: 2VWH
+    chain: A
+    ligand: BGC
+    context: [NAP, ZN]
+    perturbation: {kind: ligand_methylate, n_hydroxyls: 3}
+seeds: [1, 2, 3]
+executors: [boltz2, diffdock]
+diffdock_samples: 10
+ground_truth_rmsd_A: 2.0
+agent:
+  model: glm-4.6
+  base_url: https://api.z.ai/api/paas/v4
+  repeats: 3
+  temperature: 0
+modal:
+  gpu: A100

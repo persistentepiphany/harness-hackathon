@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -70,6 +71,14 @@ def _resolve(run_dir: Path, artifact: Artifact) -> Path:
     return p if p.is_absolute() else run_dir / p
 
 
+def render_stem(a: Artifact) -> str:
+    """File stem for an artifact's renders: the pose id for predictions (several executors write
+    every pose as `complex.pdb`), otherwise the file stem."""
+    if a.kind is ArtifactKind.PREDICTION_STRUCTURE and a.label:
+        return re.sub(r"[^A-Za-z0-9_.-]+", "_", a.label).strip("_")
+    return Path(a.path).stem
+
+
 def render_structures(
     record: RunRecord, run_dir: Path, renderer: Renderer | None = None
 ) -> list[RenderResult]:
@@ -84,7 +93,7 @@ def render_structures(
         if a.kind not in RENDERED_KINDS:
             continue
         overlay = ligands if a.kind is ArtifactKind.PREDICTION_STRUCTURE else []
-        stem = out_dir / Path(a.path).stem
+        stem = out_dir / render_stem(a)
         try:
             raw = renderer.render(_resolve(run_dir, a), overlay, stem)
             pngs = raw.get("pngs", {})
@@ -126,7 +135,7 @@ def figure_entries(results: list[RenderResult], rel_to: Path) -> list[FigureEntr
             organic = f"; organic components {', '.join(r.organic)}" if r.organic else ""
             entries.append(
                 FigureEntry(
-                    id=f"render_{Path(r.structure.path).stem}_{view}",
+                    id=f"render_{render_stem(r.structure)}_{view}",
                     kind="render",
                     path=str(png.relative_to(rel_to)),
                     caption=(

@@ -626,6 +626,95 @@ class UnsatisfiedPolars(Check):
         }
 
 
+NONPOLAR = {"C", "S", "Cl", "Br", "I"}
+
+
+@register
+class HydrophobicComplementarity(Check):
+    id = "l4.interactions.hydrophobic"
+    layer = Layer.VALIDITY
+    title = "Hydrophobic complementarity of buried ligand surface"
+    requires_modules = ("freesasa", "gemmi", "rdkit")
+
+    def applies(self, ctx: CheckContext) -> str | None:
+        return _ligand_outputs(ctx)
+
+    def run(self, ctx: CheckContext) -> Finding:
+        th = (
+            outputs.configured(self.id, "fraction"),
+            outputs.configured("l4.interactions.unsatisfied_polars", "relative_sasa"),
+        )
+        rows = [self._pose(p, float(th[1].value)) for p in _poses(ctx)]
+        rep = _rep_id(ctx)
+        rr = next((r for r in rows if r["pose"] == rep), rows[0])
+        m = {
+            "poses": len(rows),
+            "complementarity": rr["complementarity"],
+            "buried_nonpolar": rr["buried_nonpolar"],
+        }
+        ev = {
+            "representative": rep,
+            "poses": rows,
+            "method": "buried ligand C, S and halogen atoms (relative SASA below 0.1) whose "
+            "nearest protein heavy atom within 4.5 Å is C or S",
+        }
+        frac = rr["complementarity"]
+        if frac is None:
+            return self.finding(
+                Gate.PASS,
+                f"no buried nonpolar ligand atoms in {rep} (reported)",
+                measurements=m,
+                thresholds=th,
+                evidence=ev,
+            )
+        gate = Gate.WARN if frac < float(th[0].value) else Gate.PASS
+        return self.finding(
+            gate,
+            f"{rr['matched']} of {rr['buried_nonpolar']} buried nonpolar "
+            f"ligand atoms face nonpolar protein atoms in {rep} ({frac})",
+            measurements=m,
+            thresholds=th,
+            evidence=ev,
+            tool=ToolRef(name="freesasa"),
+        )
+
+    def _pose(self, pose: Any, sasa_cut: float) -> dict[str, Any]:
+        import freesasa
+        import gemmi
+        import numpy as np
+
+        mol = outputs.heavy(outputs.pose_mol(pose))
+        lig = np.array(mol.GetConformer().GetPositions())
+        st = outputs.read_structure(outputs.receptor_of(pose))
+        prot = [
+            (a.pos.tolist(), a.element.name, a.element.vdw_r) for ch in st[0] for r in ch for a in r
+        ]
+        radii = [gemmi.Element(a.GetSymbol()).vdw_r for a in mol.GetAtoms()]
+        flat = [x for c, _, _ in prot for x in c] + [x for c in lig.tolist() for x in c]
+        bound = freesasa.calcCoord(flat, [r for _, _, r in prot] + radii)
+        free = freesasa.calcCoord([x for c in lig.tolist() for x in c], radii)
+        pxyz = np.array([c for c, _, _ in prot])
+        pel = [e for _, e, _ in prot]
+        buried = matched = 0
+        for i, atom in enumerate(mol.GetAtoms()):
+            if atom.GetSymbol() not in NONPOLAR:
+                continue
+            a_free = free.atomArea(i)
+            if a_free <= 0 or bound.atomArea(len(prot) + i) / a_free >= sasa_cut:
+                continue
+            buried += 1
+            d = np.linalg.norm(pxyz - lig[i], axis=1)
+            j = int(np.argmin(d))
+            if d[j] <= 4.5 and pel[j] in {"C", "S"}:
+                matched += 1
+        return {
+            "pose": pose.id,
+            "buried_nonpolar": buried,
+            "matched": matched,
+            "complementarity": round(matched / buried, 3) if buried else None,
+        }
+
+
 def _worker_python() -> Path | None:
     prefix = os.environ.get("PAH_CONDA_PREFIX") or ".tools/conda-env"
     py = Path(prefix) / "bin" / "python"
