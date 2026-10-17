@@ -4,6 +4,8 @@ import type { NextConfig } from 'next';
 // app/api/harness/[...path]/route.ts, which reads HARNESS_API_URL per request (a next.config
 // rewrite would fix the destination at build time). See docs/UI.md.
 const nextConfig: NextConfig = {
+  // No dev overlay badge: it covers screenshots and recordings.
+  devIndicators: false,
   // Separate build directories let several dev servers run side by side.
   distDir: process.env.NEXT_DIST_DIR || '.next',
   // Vercel: default output. Modal (deploy/modal/web_app.py): NEXT_OUTPUT=standalone.

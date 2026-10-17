@@ -384,7 +384,8 @@ def test_log_sse_replays_resumes_and_json(client: TestClient, runs: dict[str, Pa
     assert len(as_json) == n and as_json[-1]["seq"] == n
     assert client.get("/ui/jobs/nope/log", params={"format": "json"}).status_code == 404
     missing = _sse(client, "/ui/jobs/not-started/log", params={"wait": 0})
-    assert missing == [("end", "0", {"reason": "missing", "lastSeq": 0})]
+    # nothing sent yet: -1, so a reconnect still receives a seq-0 line
+    assert missing == [("end", "-1", {"reason": "missing", "lastSeq": -1})]
 
 
 def test_sse_streams_a_run_that_is_still_being_written(
@@ -544,3 +545,32 @@ def test_load_state_of_empty_run_dir_is_queued(tmp_path: Path) -> None:
     job = to_job(run, state=state)
     assert job["name"] == "queued job" and job["layerIdx"] == 0 and job["verdict"] is None
     assert to_ui_record(run)["layers"][0]["status"] == "pending"
+
+
+def test_log_includes_seq_zero_line(client: TestClient, offline_profile: Profile) -> None:
+    run_dir = Path(offline_profile.runs_dir) / "seq0-01"
+    run_dir.mkdir(parents=True)
+    rows = [
+        {"run_id": "seq0-01", "seq": 0, "kind": "log", "stage": "job", "message": "executors "
+         "not run (checks only): boltz2", "ts": "2026-10-17T10:00:00Z", "data": {}},
+        {"run_id": "seq0-01", "seq": 1, "kind": "run_start", "stage": "run", "message": "start",
+         "ts": "2026-10-17T10:00:01Z", "data": {}},
+    ]  # fmt: skip
+    events = run_dir / "events.jsonl"
+    events.write_text("".join(json.dumps(r) + "\n" for r in rows))
+    old = time.time() - 60
+    os.utime(events, (old, old))
+    lines = client.get("/ui/jobs/seq0-01/log", params={"format": "json"}).json()
+    assert [line["seq"] for line in lines] == [0, 1]
+    after = client.get("/ui/jobs/seq0-01/log", params={"format": "json", "after": 0}).json()
+    assert [line["seq"] for line in after] == [1]
+
+
+def test_tasks_carry_inputs_and_kind(client: TestClient) -> None:
+    from pah.webui.routes_read import task_kind
+
+    assert task_kind(["target", "partner", "seeds"]) == "complex"
+    assert task_kind(["target", "series", "ph"]) == "ligand"
+    assert task_kind(["target", "seeds"]) == "monomer"
+    tasks = {t["id"]: t for t in client.get("/ui/tasks").json()}
+    assert tasks["ligand_pose"]["kind"] == "ligand" and "ligand" in tasks["ligand_pose"]["inputs"]

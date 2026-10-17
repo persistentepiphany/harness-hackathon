@@ -28,7 +28,9 @@ const servers: { name: string; command: string; port: number; env: Record<string
 ].filter((s) => !project || s.name === project);
 
 export default defineConfig({
-  testDir: './tests/e2e',
+  // tests/e2e: smoke tests per mode; e2e/: screen specs, which skip themselves in the other mode.
+  testDir: '.',
+  testIgnore: ['**/node_modules/**', '**/.next*/**'],
   timeout: 60_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,
@@ -40,8 +42,8 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: [
-    { name: 'mock', testMatch: /.*\.mock\.spec\.ts/, use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 }, baseURL: `http://127.0.0.1:${MOCK_PORT}`, launchOptions } },
-    { name: 'live', testMatch: /.*\.live\.spec\.ts/, use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 }, baseURL: `http://127.0.0.1:${LIVE_PORT}`, launchOptions } },
+    { name: 'mock', testMatch: [/tests\/e2e\/.*\.mock\.spec\.ts$/, /\/web\/e2e\/[^/]+\.spec\.ts$/], use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 }, baseURL: `http://127.0.0.1:${MOCK_PORT}`, launchOptions } },
+    { name: 'live', testMatch: [/tests\/e2e\/.*\.live\.spec\.ts$/, /\/web\/e2e\/[^/]+\.spec\.ts$/], use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 }, baseURL: `http://127.0.0.1:${LIVE_PORT}`, launchOptions } },
   ],
   webServer: servers.map((s) => ({
     command: s.command,

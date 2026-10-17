@@ -45,12 +45,23 @@ def _ping() -> ServerSentEvent:
 
 
 def _after(last_event_id: str | None, after: int | None) -> int:
+    """Lines with seq greater than this are sent. -1 sends everything: a run started from
+    the UI logs its executor note at seq 0, before the engine's own events."""
     if after is not None:
-        return max(0, after)
+        return max(-1, after)
     try:
-        return max(0, int(last_event_id)) if last_event_id else 0
+        return max(-1, int(last_event_id)) if last_event_id else -1
     except ValueError:
-        return 0
+        return -1
+
+
+def task_kind(inputs: list[str]) -> str:
+    """Which inputs, figures and stat cards a task shows (prototype TASKS.kind)."""
+    if "partner" in inputs:
+        return "complex"
+    if "ligand" in inputs or "series" in inputs:
+        return "ligand"
+    return "monomer"
 
 
 def ui_tasks() -> list[dict[str, Any]]:
@@ -63,16 +74,19 @@ def ui_tasks() -> list[dict[str, Any]]:
         from pah.webui.catalog import load_catalog
 
         catalog = load_catalog()
-        entries = [(t.id, t.pah, t.name, t.long, list(t.default_tools)) for t in catalog.tasks]
+        entries = [
+            (t.id, t.pah, t.name, t.long, list(t.default_tools), list(t.inputs))
+            for t in catalog.tasks
+        ]
         families = {t.id: t.family for t in catalog.tools}
     except Exception as exc:  # no catalog: one entry per task spec
         log.info("catalog not loadable, tasks from specs only: %s", exc)
         entries = [
-            (ui_task_id(r["id"]), r["id"], r["title"], r["title"], []) for r in rows.values()
+            (ui_task_id(r["id"]), r["id"], r["title"], r["title"], [], []) for r in rows.values()
         ]
         families = {}
     out: list[dict[str, Any]] = []
-    for uid, pah_id, name, long, default_tools in entries:
+    for uid, pah_id, name, long, default_tools, inputs in entries:
         row = rows.get(pah_id)
         spec = task_spec(pah_id)
         if row is None or spec is None:
@@ -91,6 +105,8 @@ def ui_tasks() -> list[dict[str, Any]]:
                 "group": group or (spec_families[0] if spec_families else None),
                 "families": spec_families,
                 "defaultTools": default_tools,
+                "inputs": inputs,
+                "kind": task_kind(inputs) if inputs else None,
                 "claim": row.get("claim"),
                 "status": row.get("status"),
                 "controls": list(spec.controls),
