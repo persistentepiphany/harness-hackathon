@@ -290,6 +290,41 @@ def schema(
 
 
 @app.command()
+def mcp(
+    profile: ProfileOpt = "local",
+    http: Annotated[bool, typer.Option(help="Serve streamable HTTP instead of stdio")] = False,
+    host: Annotated[str, typer.Option(help="HTTP bind address")] = "127.0.0.1",
+    port: Annotated[int, typer.Option(help="HTTP port")] = 8766,
+) -> None:
+    """Serve the harness as an MCP server (stdio by default)."""
+    from pah.interfaces.mcp_server import build_server
+
+    server = build_server(_profile(profile, OutputFormat.console))
+    if http:
+        server.run("streamable-http", host=host, port=port)
+    else:
+        server.run("stdio")
+
+
+@app.command()
+def serve(
+    profile: ProfileOpt = "local",
+    host: Annotated[str, typer.Option(help="Bind address")] = "127.0.0.1",
+    port: Annotated[int, typer.Option(help="Port")] = 8765,
+    cors: Annotated[
+        list[str] | None, typer.Option(help="Allowed CORS origin (repeatable), for a frontend")
+    ] = None,
+) -> None:
+    """Serve the HTTP API (FastAPI, SSE event streams, OpenAPI at /docs)."""
+    import uvicorn
+
+    from pah.interfaces.api import create_app
+
+    app_ = create_app(_profile(profile, OutputFormat.console), allow_origins=cors or ())
+    uvicorn.run(app_, host=host, port=port, log_level="info")
+
+
+@app.command()
 def tasks(fmt: FormatOpt = OutputFormat.console) -> None:
     """List task specifications and how many of their checks are implemented."""
     from pah.service import task_rows
