@@ -10,7 +10,8 @@ the publisher PDFs were not opened.
 1. Buttenschoen M, Morris GM, Deane CM. PoseBusters: AI-based docking methods fail to generate
    physically valid poses or generalise to novel sequences. Chem Sci. 2024;15(9):3130-3139.
    doi:10.1039/d3sc04185a. arXiv:2308.05777. PMC10901501.
-   - Supports (scene 1 card and caption): five deep-learning docking methods (DeepDock, DiffDock,
+   - Supports (citation card): the title, authors, journal and DOI, and the line "RMSD alone misses
+     physically implausible poses". The abstract also states: five deep-learning docking methods (DeepDock, DiffDock,
      EquiBind, TankBind, Uni-Mol) compared with AutoDock Vina and CCDC Gold; RMSD to the native pose
      is not sufficient; deep-learning methods often produce physically implausible structures; no
      deep-learning method yet outperforms classical docking on physical plausibility and
@@ -19,13 +20,16 @@ the publisher PDFs were not opened.
      the Europe PMC record and abstract. The arXiv identifier is from the task brief and was not
      opened (arxiv.org unreachable).
 
+The current cut (v11) shows only reference 1 on screen. References 2 and 3 were on screen in the
+previous cut (v9) and are kept here with their verification status.
+
 2. Kim J, Correy GJ, Hall BW, Rachman MM, Mailhot O, Togo T, Gonciarz RL, Jaishankar P, Neitz RJ,
    Hantz ER, Doruk YU, Stevens MGV, Diolaiti ME, Reid R, Gopalkrishnan S, Krogan NJ, Renslo AR,
    Ashworth A, Shoichet BK, Fraser JS. Large-scale prospective evaluation of co-folding across
    hundreds of Mac1-ligand complexes and three virtual screens. eLife. 2026;15:RP110475 (reviewed
    preprint). doi:10.7554/eLife.110475. Preprint: bioRxiv doi:10.64898/2025.12.25.696505
    (version 2 titled "... across 557 Mac1-ligand complexes ..."), PMC12776374.
-   - Supports (scene 1 card and caption): 557 Mac1 ligands determined after the models' training
+   - Supported in v9 (not in v11): 557 Mac1 ligands determined after the models' training
      cutoffs; ROC analysis of poses within 2 Å, best AUC 0.76 for AF3 ligand pLDDT and 0.73 for
      Chai-1 ipTM; AF3 predicted 4 of 19 twisted and 0 of 20 open states correctly and made 8
      false-positive twisted predictions.
@@ -42,21 +46,16 @@ the publisher PDFs were not opened.
 3. Škrinjar P, Eberhardt J, Studer G, Tauriello G, Schwede T, Durairaj J. Evaluating generalization
    in protein-ligand cofolding methods. Nat Struct Mol Biol. 2026;33(5):782-794.
    doi:10.1038/s41594-026-01797-5. PMID 42103936.
-   - Supports (scene 1 card and caption): Runs N' Poses, 2,600 protein-ligand systems released
+   - Supported in v9 (not in v11): Runs N' Poses, 2,600 protein-ligand systems released
      after the training cutoff; four co-folding methods largely memorise ligand poses from their
      training data.
    - Verified: metadata and both statements against the Europe PMC record and abstract.
 
-## Project sources (numbers on screen)
+## Project sources (numbers on screen, v11)
 
 | Scene | Values | Source |
 | --- | --- | --- |
-| Cold open | 12 structures, ipTM, pocket pLDDT, contacts recovered, buried unsatisfied polars, PoseBusters, torsion strain, arm A and arm B verdicts | `bench/runs/*/facts/<sys>_pert_boltz2.json`, `results/decisions.csv`, `results/truth.csv`, medoid seed from `harness/<sys>_pert_boltz2/run/record.json`; listed per image in `media/figures/twelve/README.md` |
-| 2 The old way | confidence_score 0.877, ptm 0.932, iptm 0.925, ligand_iptm 0.925, complex_plddt 0.865, complex_iplddt 0.724 | `bench/runs/2026-10-17T1859Z-849c856/predictions/cdk2_pert/boltz2/seed_8/boltz_results_cdk2_pert/predictions/cdk2_pert/confidence_cdk2_pert_model_0.json` |
-| 2 The old way | 13 residues cut to glycine; contacts 1 of 9; 4 buried polar atoms unpaired | `prep/cdk2_pert/meta.json`, `facts/cdk2_pert_boltz2.json` (run 3) |
-| 3 With the harness | 70 registered checks; check groups and tools | `README.md` (check tables, Tools used), `src/pah/checks/` |
-| 3 With the harness | CDK2 verdict stop, 14 pass, 8 warn, 2 stop, 1 incomplete, 1 not applicable; issue messages | `bench/runs/2026-10-17T1859Z-849c856/harness/cdk2_pert_boltz2/run/record.json` |
-| Models | tool list, A100 or CPU, output checks only | `README.md` Tools used, live UI tools menu |
-| 4 Input and output | run ligand_pose-249098d10007: 7 tools, 164 structures, verdict Refused, issues, medoid sha256, A100 timings, ensemble values, artifacts, thresholds | live UI at https://persistentepiphany--pah-web.us-east.modal.run, captured 2026-10-18 |
-| 5 The AI agent result | balanced accuracy 0.50 and 0.75, 95% CI 0.50 to 1.0, McNemar exact p 0.125, 16 predictions, 3 of 6 valid poses rejected | `bench/runs/2026-10-17T1859Z-849c856/results/stats.json`, `report.md` |
-| 5 The AI agent result | 12 of 12 vs 0 of 12 perturbed Boltz-2 poses rejected | `results/decisions.csv` of the three runs |
+| Before | CDK2 + ATP, ipTM 0.93 (0.925), pLDDT 82 (pocket pLDDT 82.3), 1 of 9 contacts | `bench/runs/2026-10-17T1859Z-849c856/facts/cdk2_pert_boltz2.json`; render `media/figures/twelve/cdk2_run3.png` |
+| With the harness | check labels; verdict stop | `README.md` check tables; `bench/runs/2026-10-17T1859Z-849c856/harness/cdk2_pert_boltz2/run/record.json` |
+| The result | 12 structures, contacts recovered or PoseBusters per tile, called valid / rejected, 0/12 and 12/12 | `bench/runs/*/facts/<sys>_pert_boltz2.json`, `results/decisions.csv` (majority of 3 repeats), `results/truth.csv`; per image in `media/figures/twelve/README.md` |
+| Product | run ligand_pose-249098d10007: 7 tools, 164 structures, verdict, issues, medoid, A100 times, ensemble values, artifacts, thresholds, document | live UI at https://persistentepiphany--pah-web.us-east.modal.run, recorded 2026-10-18 |

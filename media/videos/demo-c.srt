@@ -1,120 +1,116 @@
 1
-00:00:00,400 --> 00:00:05,450
-12 perturbed Boltz-2 predictions: four systems, three runs each, every pocket broken on purpose.
+00:00:07,000 --> 00:00:11,900
+PoseBusters showed it in 2024.
 
 2
-00:00:05,600 --> 00:00:09,900
-Shown only ipTM and pLDDT, an LLM agent called all 12 valid.
+00:00:12,300 --> 00:00:13,900
+Before: an input,
 
 3
-00:00:10,600 --> 00:00:14,050
-Given the harness fact file, the same agent rejected all 12.
+00:00:14,100 --> 00:00:15,600
+a model,
 
 4
-00:00:14,200 --> 00:00:18,850
-The facts: crystal contacts lost, buried polar atoms unpaired, a failed PoseBusters test.
+00:00:15,800 --> 00:00:17,500
+a confident score,
 
 5
-00:00:19,000 --> 00:00:21,800
-None of it shows in the confidence score.
+00:00:17,900 --> 00:00:21,200
+and the wrong pose. The score stays high.
 
 6
-00:00:22,400 --> 00:00:27,950
-PoseBusters: deep-learning docking often returns physically implausible poses, and RMSD does not catch it.
+00:00:21,700 --> 00:00:23,500
+With the harness:
 
 7
-00:00:28,100 --> 00:00:33,550
-On 557 Mac1 complexes, the best confidence score reached ROC AUC 0.76 for poses within 2 Å.
+00:00:23,800 --> 00:00:26,800
+it checks the inputs, the physics and the chemistry,
 
 8
-00:00:33,700 --> 00:00:37,300
-Runs N' Poses: co-folding methods largely memorise ligand poses.
+00:00:27,100 --> 00:00:30,500
+and returns a verdict with its evidence.
 
 9
-00:00:37,800 --> 00:00:42,500
-The old way: CDK2 and ATP into Boltz-2. Back come a structure and ipTM 0.925.
+00:00:31,100 --> 00:00:35,450
+Our benchmark: 12 Boltz-2 poses with the pocket broken.
 
 10
-00:00:42,900 --> 00:00:47,000
-The score stays high. Nothing flags the failure.
+00:00:35,600 --> 00:00:39,900
+On the score alone, the agent called all 12 valid.
 
 11
-00:00:47,500 --> 00:00:51,550
-With the harness, the same input runs through 70 checks in six layers.
+00:00:40,600 --> 00:00:45,050
+With the harness fact file, it rejected all 12.
 
 12
-00:00:51,700 --> 00:00:56,350
-Each group names the tool that measures it: SIFTS, RDKit, PoseBusters, PLIP, OpenMM, spyrmsd.
+00:00:45,200 --> 00:00:50,250
+The reason is in the facts: lost contacts, a failed PoseBusters test.
 
 13
-00:00:56,500 --> 00:00:59,500
-Each check returns a value, a threshold and its origin.
+00:00:50,400 --> 00:00:53,300
+The score never showed it.
 
 14
-00:01:00,000 --> 00:01:03,350
-Same CDK2 input: verdict stop, each issue with its measured value.
+00:00:54,096 --> 00:00:58,669
+New run: pick from the menus.
 
 15
-00:01:03,500 --> 00:01:07,200
-Both stops are missing inputs: the Mg ion and a redocking control.
+00:00:58,819 --> 00:01:03,537
+Each pick is looked up live.
 
 16
-00:01:07,700 --> 00:01:11,650
-Boltz, Chai-1, Protenix, ColabFold, OpenFold3, DiffDock-L and Gnina run on Modal A100.
+00:01:03,687 --> 00:01:14,411
+Four tools, five seeds.
 
 17
-00:01:11,800 --> 00:01:15,100
-Vina runs on CPU. AlphaFold3, HADDOCK3 and pyDock outputs are checked.
+00:01:14,561 --> 00:01:18,650
+Start run is not pressed here.
 
 18
-00:01:15,896 --> 00:01:20,469
-New run. Target, ligand, tools and seeds are picked from the menus.
+00:01:19,446 --> 00:01:21,499
+Finished run: seven tools, 164 structures.
 
 19
-00:01:20,619 --> 00:01:25,337
-Each pick is looked up live: UniProt, RCSB PDB, AlphaFold DB, PubChem, PDB CCD.
+00:01:21,649 --> 00:01:25,425
+Verdict and issues, each with its value.
 
 20
-00:01:25,487 --> 00:01:36,211
-Tools: Boltz-2, Chai-1, DiffDock-L and AutoDock Vina, five seeds each.
+00:01:25,575 --> 00:01:31,129
+The Boltz-2 medoid, rendered with PyMOL.
 
 21
-00:01:36,361 --> 00:01:40,450
-Start run is not pressed. Next: a finished trypsin run with seven tools.
+00:01:31,279 --> 00:01:41,157
+GPU time per seed on Modal A100.
 
 22
-00:01:40,950 --> 00:01:47,350
-The finished run: request and 3PTB crystal beside the verdict, its issues and the Boltz-2 medoid.
+00:01:41,955 --> 00:01:53,557
+Ensemble: 164 structures, each with its values.
 
 23
-00:01:47,850 --> 00:01:51,750
-Six tools ran on Modal A100, timed per seed. Vina ran on CPU.
+00:01:54,352 --> 00:02:04,581
+Every verdict carries its evidence.
 
 24
-00:01:51,900 --> 00:01:54,950
-The Ensemble lists each structure with pLDDT, confidence and PoseBusters.
+00:02:05,375 --> 00:02:07,626
+The document: one printable report per run.
 
 25
-00:01:55,745 --> 00:02:05,974
-Every verdict carries its evidence: sources, files, thresholds and their origin.
+00:02:07,776 --> 00:02:15,827
+Downloads: run record, report and provenance graph.
 
 26
-00:02:06,768 --> 00:02:11,821
-Agents call it through MCP and the HTTP API. Their steps appear in the Agent view.
+00:02:15,977 --> 00:02:20,247
+Key numbers, then the structure.
 
 27
-00:02:12,321 --> 00:02:16,971
-Run 3: balanced accuracy 0.50 vs 0.75 with the fact file, McNemar p 0.125.
+00:02:20,397 --> 00:02:29,683
+Figures: seed spread, check outcomes, PoseBusters.
 
 28
-00:02:17,121 --> 00:02:21,371
-Over three runs: 12 of 12 perturbed Boltz-2 poses rejected, against 0 of 12.
+00:02:29,833 --> 00:02:37,263
+Error map, provenance graph, interactions.
 
 29
-00:02:21,521 --> 00:02:23,721
-It also rejected valid DiffDock-L poses.
-
-30
-00:02:24,221 --> 00:02:31,221
-Every run writes report.html, a provenance graph with sha256 checksums, PyMOL renders and figures.
+00:02:38,057 --> 00:02:40,463
+Agents call the same API.
 

@@ -48,11 +48,19 @@ def hold(s: str) -> float:
 
 shots = json.loads((WORK / "shots.json").read_text())
 # UI segments: recording dir, end of the part used (s, recording time), cuts inside it
-UISEG = {s["name"]: (WORK / ("r3_" + s["name"].split("_", 1)[1].lower()), None, []) for s in shots
+UISEG = {s["name"]: (WORK / ("r3_" + s["name"].split("_", 1)[1].lower()), s.get("end"), []) for s in shots
          if s.get("kind") == "ui"}
-CAP_FIX: dict[str, str] = {'Each pick is looked up live in UniProt, RCSB PDB, AlphaFold DB, PubChem and the PDB CCD.': 'Each pick is looked up live: UniProt, RCSB PDB, AlphaFold DB, PubChem, PDB CCD.',
-    'Start run is not pressed here. Next, a finished run on the same target with seven tools.': 'Start run is not pressed. Next: a finished trypsin run with seven tools.',
-    'Agents call the harness through MCP and the HTTP API. Their steps appear in the Agent view.': 'Agents call it through MCP and the HTTP API. Their steps appear in the Agent view.'}  # takes recorded before the record3.js caption edit
+CAP_FIX: dict[str, str] = {  # shorter on-screen captions for the recorded takes
+    'New run. Target, ligand, tools and seeds are picked from the menus.': 'New run: pick from the menus.',
+    'Each pick is looked up live in UniProt, RCSB PDB, AlphaFold DB, PubChem and the PDB CCD.': 'Each pick is looked up live.',
+    'Tools: Boltz-2, Chai-1, DiffDock-L and AutoDock Vina, five seeds each.': 'Four tools, five seeds.',
+    'Start run is not pressed here. Next, a finished run on the same target with seven tools.': 'Start run is not pressed here.',
+    'Execution: GPU and time per seed on Modal A100.': 'GPU time per seed on Modal A100.',
+    'Ensemble: every structure, with pLDDT, confidence and PoseBusters.': 'Ensemble: 164 structures, each with its values.',
+    'Every verdict carries its evidence: sources, files, thresholds and their origin.': 'Every verdict carries its evidence.',
+    'Agents call the harness through MCP and the HTTP API. Their steps appear in the Agent view.': 'Agents call the same API.',
+    'The finished run: seven tools, 164 structures.': 'Finished run: seven tools, 164 structures.',
+}
 
 
 def apply_cuts(rec: Path, cuts: list, end: float | None) -> Path:
