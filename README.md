@@ -157,7 +157,7 @@ warning carrying that reason, and a different first block still stops.
 Every record fetched for a run goes through a content-addressed cache (`cache/` by default, set by
 the profile). Each payload is stored under its sha256 and indexed by request, with source,
 accession, release, URL, size and retrieval time. A cached object that fails its checksum is
-treated as missing. With `--offline`, or `offline: true` in the profile as on CSF3 compute nodes,
+treated as missing. With `--offline`, or `offline: true` in the profile,
 a cache miss is a stop finding in `l0.sources.resolved`; the run does not fall back to the network.
 
 ### Layers 2 to 5
@@ -380,17 +380,17 @@ records its scores in `bench/scores.csv`.
 In run 2026-10-17T1859Z-849c856, cutting 7 FtsE contacts to glycine moves the ATP medoid 16 Å
 (Boltz-2) and 18 Å (DiffDock-L) from the deposited position, and contact recovery falls from 9
 and 10 of 16 to 1 and 1. In perturbed CDK2 the medoid still sits 2.2 Å from the deposited ATP but
-recovers 1 of 9 contacts instead of 6. Confidence and PoseBusters stay clean on both.
+recovers 1 of 9 contacts instead of 6. Confidence and PoseBusters stay clean on both. The FtsE
+distances come from runs made before the superposition fix (commit de35af7), which aligned the
+homodimer reference across both chains; rerun the checks before quoting them.
 
 In every run the score-only arm called each Boltz-2 prediction valid, the perturbed ones included,
 and the fact-file arm rejected every perturbed Boltz-2 pose. The fact-file arm also rejected
 between three and five of the six valid poses per run. Most of those false negatives are
 DiffDock-L poses with sub-Å geometry and high estimated torsion strain, which points to a limit of
 the strain method. Every interval overlaps 0.5 and no McNemar test reaches significance. Eight systems per executor are a demonstration and do not support a
-statistical claim. Each report opens with the per-system cases, gives the agent's stated reason
-for each misclassification, and keeps the pooled accuracy in a later section. Each run also writes
-`results/deck.pptx`, reviewed against its own rendered slides and bound to them by a hash receipt,
-and `results/walkthrough.mp4`.
+statistical claim. Each run writes `report.md`,
+`results/deck.pptx` and `results/walkthrough.mp4`.
 
 ## Deployment
 
@@ -430,30 +430,11 @@ tool runs and the reason is recorded in `runtime_record.json` and a `runtime.acc
 pah runtimes list
 pah runtimes hardware                         # GPUs here and the route each executor would take
 pah runtimes kits fetch                       # kits at the commit pinned in configs/accel.yaml
-pah runtimes build boltz2 --target apptainer  # kit image; it also runs stock as mode off
+pah runtimes build boltz2 --target docker     # kit image; it also runs stock as mode off
 pah runtimes run boltz2 -p input=x.yaml --out runs/b2
 ```
 
-Routes, launchers (host, Docker, Apptainer), the CSF3 and Modal entry points and what was verified
-without a GPU are in [docs/RUNTIMES.md](docs/RUNTIMES.md).
-
-### CSF3
-
-```bash
-# login node
-git clone --recurse-submodules https://github.com/persistentepiphany/harness-hackathon ~/harness-hackathon
-cd ~/harness-hackathon && scripts/setup_env.sh ~/scratch/pah csf3
-source deploy/csf3/env.sh
-pah doctor --profile csf3
-
-# compute node
-sbatch deploy/csf3/doctor.sbatch
-```
-
-Compare the two reports. Sources that the login node reaches and the compute node does not have
-to be fetched into the cache on the login node before a run. The partition and module names in
-`configs/profiles/csf3.yaml` and `deploy/csf3/` have not been checked against CSF3 yet; confirm
-them with `sinfo -s` and `module avail`.
+Routes, launchers and what was verified without a GPU are in [docs/RUNTIMES.md](docs/RUNTIMES.md).
 
 ### Fetch
 
@@ -468,44 +449,18 @@ authenticated buckets on the end user's host, as declared in
 .venv/bin/pah fetch --dry-run --all      # list targets and sizes
 ```
 
-| Asset | Source | Default | Note |
-| --- | --- | --- | --- |
-| `p2rank` | GitHub release `rdk/p2rank` | yes | Links `prank` into `.tools/bin` |
-| `p2rank_source` | `git clone` and Gradle build | fallback | Runs only when the `p2rank` release download fails; needs Java 17+ |
-| `mmseqs` | mmseqs.com static build | yes | Links `mmseqs` |
-| `foldseek` | mmseqs.com static build | yes | Links `foldseek` |
-| `plinder_index`, `pinder_index` | `gs://plinder`, `gs://pinder` | yes | Needs `gcloud auth login`; skipped when gcloud is absent |
-| `gnina` | GitHub release `gnina/gnina` | no | Executor hosts |
-| `protenix_weights` | Protenix checkpoint host | no | Executor hosts, about 1.4 GB |
-| `colabfold_databases` | ColabFold `setup_databases.sh` | no | About 1 TB uncompressed |
-| `alphafold3_weights`, `pydock`, `phenix` | By request or licence | manual | Set `PAH_AF3_WEIGHTS`, `PAH_PYDOCK_HOME`, `PAH_PHENIX_HOME` |
-
-Downloads go to a `.part` file and are renamed only when complete, with the sha256 recorded in
-`.tools/externals.lock.json`. Archives are checked for paths that leave the target directory
-before extraction. Assets already present are skipped unless `--force` is given. Fetched binaries
-get small wrapper scripts in `.tools/bin`, which the doctor searches.
+Downloads are atomic, with the sha256 recorded in `.tools/externals.lock.json`; assets already
+present are skipped unless `--force` is given.
 
 ### Doctor
 
 `pah doctor` probes sources, tools, weights and skills (`--only sources` for one category,
-`--format jsonl` for one JSON event per line, `--profile csf3 --dry-run` to validate a profile).
+`--format jsonl` for one JSON event per line, `--dry-run` to validate a profile).
 Each probe prints a line as soon as it finishes, and each category ends with a count line. The
 report goes to `runs/<run-id>/` as `doctor_report.json`, `doctor_report.md` and `events.jsonl`.
 A failed probe, download or registry entry is recorded with its cause and the others continue. A
 bad profile name or an unwritable report directory stops the command with exit code 2.
 `--strict` exits with code 1 if any probe is not `ok`.
-
-A probe reports `ok` (reachable, importable or present), `blocked` (the network proxy refused the
-host), `unreachable` (DNS failure, connection failure or timeout), `http_error` (unexpected HTTP
-code, with a body excerpt in the detail), `missing` (module, binary, variable or file not found),
-`manual` (needs a licence or a by-request download; set the environment variable named in the
-detail) or `error` (the probe itself failed).
-
-On 2026-10-17, after `pah fetch`, `pah doctor --profile local` in the development sandbox gave 101
-probes: 95 ok, 3 http_error, 1 missing, 2 manual. PLINDER and PINDER need `gcloud auth login`,
-the gnina release download was outside the session's GitHub scope, MolProbity needs Phenix, and
-AlphaFold3 weights and pyDock need `PAH_AF3_WEIGHTS` and `PAH_PYDOCK_HOME`. The P2Rank release
-download was refused there, so the `p2rank_source` fallback built it from source.
 
 ## Layout
 
@@ -525,7 +480,7 @@ download was refused there, so the `p2rank_source` fallback built it from source
 | `configs/` | Sources, tools, executors, externals, task specifications and deployment profiles as YAML |
 | `bench/` | Perturbation benchmark: design, Modal app, scoring and per-run results ([README](bench/README.md)) |
 | `examples/` | Run manifests |
-| `deploy/csf3/`, `deploy/modal/` | Slurm and Modal entry points |
+| `deploy/modal/` | Modal apps: API, web UI, GPU executors, doctor |
 | `environment/conda.yml` | Conda-only tools |
 | `third_party/skills/` | Pinned writing, figure and documentation skills ([sources](third_party/skills/SOURCES.md)) |
 | `docs/` | Specification, architecture, executor contracts, runtimes, interfaces, web UI contract |
@@ -545,7 +500,6 @@ Open work:
 | Item | Scope |
 | --- | --- |
 | Read side | The native routes (`pah.api.adapter`, `runs/<id>/ui_record.json`) and the `/ui` routes (`pah.webui`) build the UI record separately; merge them into one implementation |
-| Modal API image | Add the OpenMM and OpenFF conda environment, so `l4.minimisation_drift` runs on Modal instead of skipping with `tool_missing` |
 | Access | Add authentication to the deployed API and web UI |
 | Docking poses | Persist per-pose scores for every docking mode, not only mode 0 of each seed |
 | Co-folding models | Copy model files into `runs/<id>/predictions/` so every ensemble member has a structure file in the run |
