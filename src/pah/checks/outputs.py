@@ -411,13 +411,17 @@ def receptor_of(ctx: CheckContext, pose: Any) -> Path:
 # Superposition and the pose ensemble
 
 
-def _ca_trace(st: Any) -> tuple[str, list[Any], list[tuple[str, int, str]]]:
+def _ca_trace(
+    st: Any, chain: str | None = None
+) -> tuple[str, list[Any], list[tuple[str, int, str]]]:
     import gemmi
 
     seq: list[str] = []
     pos: list[Any] = []
     keys: list[tuple[str, int, str]] = []
     for ch in st[0]:
+        if chain is not None and ch.name != chain:
+            continue
         for res in ch:
             info = gemmi.find_tabulated_residue(res.name)
             if not info or not info.is_amino_acid():
@@ -429,6 +433,20 @@ def _ca_trace(st: Any) -> tuple[str, list[Any], list[tuple[str, int, str]]]:
             pos.append(ca.pos)
             keys.append((ch.name, res.seqid.num, res.seqid.icode))
     return "".join(seq), pos, keys
+
+
+def _polymer_chains(st: Any) -> list[str]:
+    """Names of chains that hold an amino-acid CA trace, in file order."""
+    import gemmi
+
+    names = []
+    for ch in st[0]:
+        for res in ch:
+            info = gemmi.find_tabulated_residue(res.name)
+            if info and info.is_amino_acid() and res.find_atom("CA", "*") is not None:
+                names.append(ch.name)
+                break
+    return names
 
 
 @dataclass(frozen=True)
@@ -445,15 +463,15 @@ class Superposition:
         return np.asarray(xyz) @ self.rot.T + self.tran
 
 
-def superposition(mobile: Any, target: Any) -> Superposition:
-    """Places structure `mobile` on `target` by CA atoms paired through a sequence alignment."""
+def _superpose_traces(
+    trace_a: tuple[str, list[Any], list[tuple[str, int, str]]],
+    trace_b: tuple[str, list[Any], list[tuple[str, int, str]]],
+) -> Superposition:
     import gemmi
     import numpy as np
 
-    sa, pa, ka = _ca_trace(mobile)
-    sb, pb, kb = _ca_trace(target)
-    if not sa or not sb:
-        raise OutputUnavailableError("no CA atoms to superpose")
+    sa, pa, ka = trace_a
+    sb, pb, kb = trace_b
     aln = gemmi.align_string_sequences(list(sa), list(sb), [])
     i = j = 0
     pairs: list[tuple[int, int]] = []
@@ -477,6 +495,36 @@ def superposition(mobile: Any, target: Any) -> Superposition:
         pairs=len(pairs),
         residue_map={ka[a]: kb[b] for a, b in pairs},
     )
+
+
+def superposition(mobile: Any, target: Any) -> Superposition:
+    """Places structure `mobile` on `target` by CA atoms paired through a sequence alignment.
+
+    The target is paired one chain at a time. Aligning against every chain at once lets the
+    alignment run across a chain boundary, which on a homodimer pairs one copy of the mobile
+    chain with residues taken from both copies of the target and fits neither.
+    """
+
+    trace_a = _ca_trace(mobile)
+    if not trace_a[0]:
+        raise OutputUnavailableError("no CA atoms to superpose")
+    chains = _polymer_chains(target)
+    if not chains:
+        raise OutputUnavailableError("no CA atoms to superpose")
+    best: Superposition | None = None
+    errors: list[str] = []
+    for name in chains:
+        try:
+            sup = _superpose_traces(trace_a, _ca_trace(target, name))
+        except OutputUnavailableError as exc:
+            errors.append(f"{name}: {exc}")
+            continue
+        # Most residues paired wins; a tie goes to the closer fit.
+        if best is None or (sup.pairs, -sup.rmsd) > (best.pairs, -best.rmsd):
+            best = sup
+    if best is None:
+        raise OutputUnavailableError("; ".join(errors) or "no chain could be superposed")
+    return best
 
 
 def superpose(mobile: Path, target: Path) -> tuple[Any, Any, float, int]:
