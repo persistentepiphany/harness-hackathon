@@ -241,6 +241,37 @@ def run(
 
 
 @app.command()
+def dock(
+    manifest: Annotated[Path, typer.Argument(help="Run manifest with receptor and ligand")],
+    out: Annotated[Path, typer.Option(help="Output directory; manifest.yaml is written here")],
+    profile: ProfileOpt = "local",
+    seeds: Annotated[str, typer.Option(help="Comma-separated Vina seeds")] = "0,1,2,3,4",
+    exhaustiveness: Annotated[int, typer.Option(help="Vina exhaustiveness")] = 8,
+    redock: Annotated[
+        bool, typer.Option("--redock/--no-redock", help="Redock the crystal ligand as control")
+    ] = True,
+    fmt: FormatOpt = OutputFormat.console,
+) -> None:
+    """Dock the manifest ligand with local AutoDock Vina and write a manifest of the outputs."""
+    from pah.service import InputError, dock_manifest
+
+    prof = _profile(profile, fmt)
+    try:
+        path = dock_manifest(
+            manifest,
+            prof,
+            out,
+            seeds=[int(s) for s in seeds.split(",") if s.strip()],
+            exhaustiveness=exhaustiveness,
+            redock=redock,
+            sinks=[_sink(fmt)],
+        )
+    except InputError as exc:
+        raise _fail(f"{manifest}: {exc}", fmt) from exc
+    typer.echo(str(path))
+
+
+@app.command()
 def batch(
     spec: Annotated[Path, typer.Argument(help="Batch spec YAML (targets: [manifest paths])")],
     profile: ProfileOpt = "local",
@@ -276,6 +307,23 @@ def report(
         regenerate_report(path, [_sink(fmt)])
     except InputError as exc:
         raise _fail(str(exc), fmt) from exc
+
+
+@app.command()
+def lint(
+    files: Annotated[list[Path], typer.Argument(help="Markdown or text files to check")],
+) -> None:
+    """Check prose against the humanizer rules applied to generated reports."""
+    from pah.report.style import lint as lint_text
+
+    bad = 0
+    for path in files:
+        for issue in lint_text(path.read_text()):
+            bad += 1
+            typer.echo(f"{path}:{issue.line}: {issue.rule}: {issue.text}")
+    if bad:
+        raise typer.Exit(code=1)
+    typer.echo(f"{len(files)} files, no issues")
 
 
 @app.command()
@@ -319,8 +367,10 @@ def serve(
     import uvicorn
 
     from pah.interfaces.api import create_app
+    from pah.webui.settings import DEFAULT_CORS_ORIGINS, add_cors
 
-    app_ = create_app(_profile(profile, OutputFormat.console), allow_origins=cors or ())
+    app_ = create_app(_profile(profile, OutputFormat.console))
+    add_cors(app_, cors or DEFAULT_CORS_ORIGINS)  # exact origins and `*` patterns
     uvicorn.run(app_, host=host, port=port, log_level="info")
 
 
@@ -359,6 +409,10 @@ def _register_subcommands() -> None:
     from pah.interfaces.cli_runtimes import app as runtimes_app
 
     app.add_typer(runtimes_app, name="runtimes")
+
+    from pah.interfaces import cli_agent
+
+    cli_agent.register(app)
 
 
 _register_subcommands()

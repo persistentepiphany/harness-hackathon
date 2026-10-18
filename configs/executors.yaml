@@ -7,9 +7,26 @@ executors:
   - id: boltz2
     name: Boltz-2
     family: cofolding
+    checkpoint: boltz2_conf.ckpt  # default declared for runs started from the UI; file named by the boltz2.checkpoint probe
     mvp: true
     licence: MIT
     repo: https://github.com/jwohlwend/boltz
+    role: Executor and affinity
+    outputs:
+      - {key: confidence_score, label: Confidence score, kind: confidence, scope: global, higherIsBetter: true, note: "0.8 x complex_plddt + 0.2 x iptm, ptm for single chains (docs/prediction.md:201); models ranked by it"}
+      - {key: ptm, label: pTM, kind: confidence, scope: global, higherIsBetter: true}
+      - {key: iptm, label: ipTM, kind: interface, scope: interface, higherIsBetter: true}
+      - {key: ligand_iptm, label: Ligand ipTM, kind: interface, scope: ligand, higherIsBetter: true}
+      - {key: protein_iptm, label: Protein ipTM, kind: interface, scope: interface, higherIsBetter: true}
+      - {key: chains_ptm, label: Chain pTM, kind: confidence, scope: global, higherIsBetter: true, note: "per chain {chain index: value} (writer.py:190-212); parsed as chains_ptm.<index>"}
+      - {key: complex_plddt, label: Complex pLDDT, kind: plddt, scope: global, range: [0, 1], higherIsBetter: true, note: "0-1 scale; Protenix, AF3 and ColabFold report 0-100"}
+      - {key: complex_iplddt, label: Interface pLDDT, kind: plddt, scope: interface, higherIsBetter: true}
+      - {key: complex_pde, label: Complex PDE, unit: Å, kind: pae, scope: global, higherIsBetter: false, note: predicted distance error}
+      - {key: complex_ipde, label: Interface PDE, unit: Å, kind: pae, scope: interface, higherIsBetter: false, note: predicted distance error}
+      - {key: plddt, label: Per-token pLDDT, kind: plddt, scope: residue, higherIsBetter: true, note: "plddt_<name>_model_<k>.npz, key plddt, shape [N_tokens]"}
+      - {key: pae, label: PAE matrix, kind: pae, scope: residue, higherIsBetter: false, note: "pae_<name>_model_<k>.npz, only with --write_full_pae; unit not stated in writer.py (UNVERIFIED)"}
+      - {key: affinity_pred_value, label: Boltz-2 affinity, unit: log10(µM), kind: affinity, scope: ligand, higherIsBetter: false, rankingOnly: true, note: "log10(IC50 in µM); lower is a stronger binder; kcal/mol = (6 - y) x 1.364 (docs/prediction.md:249); only with properties.affinity"}
+      - {key: affinity_probability_binary, label: Binder probability, kind: affinity, scope: ligand, range: [0, 1], higherIsBetter: true, rankingOnly: true, note: only with properties.affinity}
     probes:
       - {id: boltz2.code, kind: git, url: "https://github.com/jwohlwend/boltz"}
       - {id: boltz2.weights, kind: http, url: "https://huggingface.co/api/models/boltz-community/boltz-2"}
@@ -20,14 +37,39 @@ executors:
     mvp: false
     licence: MIT
     repo: https://github.com/jwohlwend/boltz
+    role: Executor
+    outputs:
+      - {key: confidence_score, label: Confidence score, kind: confidence, scope: global, higherIsBetter: true, note: "0.8 x complex_plddt + 0.2 x iptm, ptm for single chains (docs/prediction.md:201); models ranked by it"}
+      - {key: ptm, label: pTM, kind: confidence, scope: global, higherIsBetter: true}
+      - {key: iptm, label: ipTM, kind: interface, scope: interface, higherIsBetter: true}
+      - {key: ligand_iptm, label: Ligand ipTM, kind: interface, scope: ligand, higherIsBetter: true}
+      - {key: protein_iptm, label: Protein ipTM, kind: interface, scope: interface, higherIsBetter: true}
+      - {key: chains_ptm, label: Chain pTM, kind: confidence, scope: global, higherIsBetter: true, note: "per chain {chain index: value} (writer.py:190-212); parsed as chains_ptm.<index>"}
+      - {key: complex_plddt, label: Complex pLDDT, kind: plddt, scope: global, range: [0, 1], higherIsBetter: true, note: "0-1 scale; Protenix, AF3 and ColabFold report 0-100"}
+      - {key: complex_iplddt, label: Interface pLDDT, kind: plddt, scope: interface, higherIsBetter: true}
+      - {key: complex_pde, label: Complex PDE, unit: Å, kind: pae, scope: global, higherIsBetter: false, note: predicted distance error}
+      - {key: complex_ipde, label: Interface PDE, unit: Å, kind: pae, scope: interface, higherIsBetter: false, note: predicted distance error}
+      - {key: plddt, label: Per-token pLDDT, kind: plddt, scope: residue, higherIsBetter: true, note: "plddt_<name>_model_<k>.npz, key plddt, shape [N_tokens]"}
+      - {key: pae, label: PAE matrix, kind: pae, scope: residue, higherIsBetter: false, note: "pae_<name>_model_<k>.npz, only with --write_full_pae; unit not stated in writer.py (UNVERIFIED)"}
     probes:
       - {id: boltz1.weights, kind: http, url: "https://huggingface.co/api/models/boltz-community/boltz-1"}
   - id: protenix
     name: Protenix
     family: cofolding
+    checkpoint: protenix_base_default_v1.0.0.pt  # default declared for runs started from the UI; file named by the protenix.weights probe
     mvp: false
     licence: Apache-2.0
     repo: https://github.com/bytedance/Protenix
+    role: Executor
+    outputs:
+      - {key: ranking_score, label: Ranking score, kind: confidence, scope: global, higherIsBetter: true, note: "0.8 x iptm + 0.2 x ptm + 0.5 x disorder - 100 x has_clash (sample_confidence.py:172-176); disorder is always 0"}
+      - {key: plddt, label: pLDDT, kind: plddt, scope: global, range: [0, 100], higherIsBetter: true, note: "0-100 scale, mean atom pLDDT x 100"}
+      - {key: ptm, label: pTM, kind: confidence, scope: global, higherIsBetter: true}
+      - {key: iptm, label: ipTM, kind: interface, scope: interface, higherIsBetter: true}
+      - {key: gpde, label: Global PDE, kind: pae, scope: global, higherIsBetter: false, note: "predicted distance error; unit not stated in the cited source"}
+      - {key: chain_pair_pae_min, label: Chain-pair PAE (min), kind: pae, scope: interface, higherIsBetter: false, note: "[N_chain, N_chain]"}
+      - {key: has_clash, label: Clash flag, kind: other, scope: global, higherIsBetter: false}
+      - {key: pb_ranking_score, label: PoseBusters ranking score, kind: score, scope: ligand, higherIsBetter: true, note: only when an interested-ligand mask is set (sample_confidence.py:178-205)}
     probes:
       - {id: protenix.code, kind: git, url: "https://github.com/bytedance/Protenix"}
       - {id: protenix.weights, kind: http, url: "https://protenix.tos-cn-beijing.volces.com/checkpoint/protenix_base_default_v1.0.0.pt"}
@@ -38,6 +80,16 @@ executors:
     mvp: false
     licence: Apache-2.0 (code); weights under separate terms, by request
     repo: https://github.com/google-deepmind/alphafold3
+    role: Executor
+    outputs:
+      - {key: ranking_score, label: Ranking score, kind: confidence, scope: global, higherIsBetter: true, note: "0.8 x ipTM + 0.2 x pTM + 0.5 x disorder - 100 x has_clash (docs/output.md:172-175)"}
+      - {key: ptm, label: pTM, kind: confidence, scope: global, higherIsBetter: true}
+      - {key: iptm, label: ipTM, kind: interface, scope: interface, higherIsBetter: true}
+      - {key: fraction_disordered, label: Fraction disordered, kind: other, scope: global, higherIsBetter: false}
+      - {key: has_clash, label: Clash flag, kind: other, scope: global, higherIsBetter: false, note: "0 or 1"}
+      - {key: chain_pair_pae_min, label: Chain-pair PAE (min), kind: pae, scope: interface, higherIsBetter: false, note: "[C, C]"}
+      - {key: atom_plddts, label: Atom pLDDT, kind: plddt, scope: residue, range: [0, 100], higherIsBetter: true, note: "*_confidences.json, per atom"}
+      - {key: pae, label: PAE matrix, kind: pae, scope: residue, higherIsBetter: false, note: "*_confidences.json, [T, T]; unit not stated in the cited source"}
     probes:
       - {id: alphafold3.code, kind: git, url: "https://github.com/google-deepmind/alphafold3"}
       - {id: alphafold3.weights, kind: manual, detail: "Weights issued by request; set PAH_AF3_WEIGHTS to the local path"}
@@ -47,6 +99,13 @@ executors:
     mvp: false
     licence: Apache-2.0 (code and weights)
     repo: https://github.com/chaidiscovery/chai-lab
+    role: Executor
+    outputs:
+      - {key: aggregate_score, label: Aggregate score, kind: confidence, scope: global, higherIsBetter: true, note: "0.2 x ptm + 0.8 x iptm - 100 x has_inter_chain_clashes (rank.py:95-99); sample files are not sorted"}
+      - {key: ptm, label: pTM, kind: confidence, scope: global, higherIsBetter: true}
+      - {key: iptm, label: ipTM, kind: interface, scope: interface, higherIsBetter: true}
+      - {key: has_inter_chain_clashes, label: Inter-chain clash flag, kind: other, scope: interface, higherIsBetter: false}
+      - {key: plddt, label: pLDDT (CIF B-factor), kind: plddt, scope: residue, range: [0, 100], higherIsBetter: true, note: "not in the npz; read from CIF B-factors (100 x pLDDT)"}
     probes:
       - {id: chai1.code, kind: git, url: "https://github.com/chaidiscovery/chai-lab"}
       - {id: chai1.weights, kind: http, url: "https://chaiassets.com/chai1-inference-depencencies/models_v2/trunk.pt"}
@@ -56,6 +115,17 @@ executors:
     mvp: false
     licence: MIT (code); AlphaFold2 weights CC-BY-4.0
     repo: https://github.com/sokrypton/ColabFold
+    role: Executor (AF2, AF2-multimer)
+    outputs:
+      - {key: plddt, label: pLDDT, kind: plddt, scope: residue, range: [0, 100], higherIsBetter: true, note: "list of length L"}
+      - {key: ptm, label: pTM, kind: confidence, scope: global, higherIsBetter: true, note: when PAE exists}
+      - {key: iptm, label: ipTM, kind: interface, scope: interface, higherIsBetter: true, note: "complexes only; removed for monomers (batch.py:553)"}
+      - {key: max_pae, label: Max PAE, kind: pae, scope: global, higherIsBetter: false, note: when PAE exists}
+      - {key: actifptm, label: actifpTM, kind: interface, scope: interface, higherIsBetter: true, note: "only with --calc-extra-ptm (extra_ptm.py:270,288)"}
+      - {key: pae, label: PAE matrix, kind: pae, scope: residue, higherIsBetter: false, note: "[L, L], when PAE exists; unit not stated in the cited source"}
+      - {key: ipsae, label: ipSAE, kind: interface, scope: interface, note: "per chain pair {\"A-B\": float}; complexes only"}
+      - {key: pdockq, label: pDockQ, kind: interface, scope: interface, note: "per chain pair; complexes only"}
+      - {key: pdockq2, label: pDockQ2, kind: interface, scope: interface, note: "per chain pair; complexes only"}
     probes:
       - {id: colabfold.code, kind: git, url: "https://github.com/sokrypton/ColabFold"}
       - {id: colabfold.msa_server, kind: http, url: "https://api.colabfold.com/queue"}
@@ -65,6 +135,19 @@ executors:
     mvp: true
     licence: Apache-2.0
     repo: https://github.com/ccsb-scripps/AutoDock-Vina
+    role: Executor
+    outputs:
+      - {key: vina_affinity, label: Vina score, unit: kcal/mol, kind: score, scope: pose, higherIsBetter: false, rankingOnly: true, note: "REMARK VINA RESULT, first value (vina.cpp:535-555); poses sorted best first"}
+      - {key: rmsd_lb, label: RMSD lower bound, unit: Å, kind: rmsd, scope: pose, higherIsBetter: false, note: "REMARK VINA RESULT, second value; relative to the best mode, not to a reference"}
+      - {key: rmsd_ub, label: RMSD upper bound, unit: Å, kind: rmsd, scope: pose, higherIsBetter: false, note: "REMARK VINA RESULT, third value; relative to the best mode, not to a reference"}
+    dockingParams:
+      - {key: center, label: "Box centre (x, y, z)", unit: Å}
+      - {key: size, label: "Box size (x, y, z)", unit: Å}
+      - {key: exhaustiveness, label: Exhaustiveness, default: "8"}
+      - {key: num_modes, label: Poses per run, default: "9"}
+      - {key: energy_range, label: Energy range, unit: kcal/mol, default: "3.0"}
+      - {key: scoring, label: Scoring function, default: vina}
+      - {key: seed, label: Seed}
     probes:
       - {id: vina.code, kind: git, url: "https://github.com/ccsb-scripps/AutoDock-Vina"}
       - {id: vina.python, kind: python, module: vina, dist: vina}
@@ -74,6 +157,22 @@ executors:
     mvp: true
     licence: GPL-2.0 / Apache-2.0
     repo: https://github.com/gnina/gnina
+    role: Executor, CNN rescoring
+    outputs:
+      - {key: CNNscore, label: CNN pose score, kind: score, scope: pose, range: [0, 1], higherIsBetter: true, note: pose probability; default pose sort order (main.cpp:967)}
+      - {key: CNNaffinity, label: CNN affinity, unit: pK, kind: affinity, scope: pose, higherIsBetter: true, rankingOnly: true, note: "pK units per the gnina papers (UNVERIFIED in source); present if not 0"}
+      - {key: minimizedAffinity, label: Vina-style affinity, unit: kcal/mol, kind: affinity, scope: pose, higherIsBetter: false, rankingOnly: true, note: always present}
+      - {key: CNN_VS, label: CNN VS score, kind: score, scope: pose, higherIsBetter: true, rankingOnly: true, note: "CNNscore x CNNaffinity (result_info.cpp:141-142)"}
+      - {key: minimizedRMSD, label: RMSD after minimisation, kind: rmsd, scope: pose, higherIsBetter: false, note: only if computed}
+      - {key: CNNaffinity_variance, label: CNN affinity variance, kind: other, scope: pose, rankingOnly: true, note: "CNN ensemble only (result_info.cpp:122-151)"}
+    dockingParams:
+      - {key: autobox_ligand, label: Box from reference ligand}
+      - {key: autobox_add, label: Box padding, unit: Å, default: "4"}
+      - {key: size, label: "Box size (x, y, z)", unit: Å}
+      - {key: exhaustiveness, label: Exhaustiveness, default: "8"}
+      - {key: num_modes, label: Poses per run, default: "9"}
+      - {key: cnn_scoring, label: CNN scoring mode, default: rescore}
+      - {key: seed, label: Seed}
     probes:
       - {id: gnina.code, kind: git, url: "https://github.com/gnina/gnina"}
       - {id: gnina.release, kind: http, url: "https://github.com/gnina/gnina/releases/latest"}
@@ -84,6 +183,13 @@ executors:
     mvp: false
     licence: MIT
     repo: https://github.com/gcorso/DiffDock
+    role: Learned docking
+    outputs:
+      - {key: diffdock_confidence, label: Confidence, kind: confidence, scope: pose, higherIsBetter: true, note: "raw confidence-model output, from the file name rank<k>_confidence<c>.sdf only; can be negative"}
+      - {key: rank, label: Rank, kind: other, scope: pose, higherIsBetter: false, note: "1 is the highest confidence"}
+    dockingParams:
+      - {key: samples_per_complex, label: Samples per complex, default: "10"}
+      - {key: inference_steps, label: Inference steps, default: "20"}
     probes:
       - {id: diffdock.code, kind: git, url: "https://github.com/gcorso/DiffDock"}
       - {id: diffdock.esm_weights, kind: http, url: "https://dl.fbaipublicfiles.com/fair-esm/models/esm2_t33_650M_UR50D.pt"}
@@ -93,6 +199,12 @@ executors:
     mvp: false
     licence: Apache-2.0
     repo: https://github.com/haddocking/haddock3
+    role: Protein-protein docking
+    outputs:
+      - {key: score, label: HADDOCK score, kind: score, scope: pose, higherIsBetter: false, rankingOnly: true, note: "capri_ss.tsv; rows sorted ascending by score (caprieval/defaults.yaml:127-150)"}
+      - {key: irmsd, label: Interface RMSD, kind: rmsd, scope: interface, higherIsBetter: false, note: against the caprieval reference}
+      - {key: fnat, label: Fraction of native contacts, kind: interface, scope: interface, higherIsBetter: true, note: against the caprieval reference}
+      - {key: dockq, label: DockQ, kind: interface, scope: interface, higherIsBetter: true, note: against the caprieval reference}
     probes:
       - {id: haddock3.code, kind: git, url: "https://github.com/haddocking/haddock3"}
   - id: pydock
@@ -101,6 +213,9 @@ executors:
     mvp: false
     licence: academic licence
     repo: null
+    role: Protein-protein docking
+    outputs: []
+    outputs_note: "UNVERIFIED: pyDock is not on GitHub and no output contract was read (docs/EXECUTORS.md, section 10)"
     probes:
       - {id: pydock.licence, kind: manual, detail: "Academic licence; set PAH_PYDOCK_HOME to the install path"}
 

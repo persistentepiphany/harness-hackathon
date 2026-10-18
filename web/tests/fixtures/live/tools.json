@@ -1,0 +1,983 @@
+[
+    {
+        "id": "boltz2",
+        "name": "Boltz-2",
+        "version": "2.2.1",
+        "role": "Executor and affinity",
+        "outputs": [
+            {
+                "key": "confidence_score",
+                "label": "Confidence score",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true,
+                "note": "0.8 x complex_plddt + 0.2 x iptm, ptm for single chains (docs/prediction.md:201); models ranked by it"
+            },
+            {
+                "key": "ptm",
+                "label": "pTM",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true
+            },
+            {
+                "key": "iptm",
+                "label": "ipTM",
+                "kind": "interface",
+                "scope": "interface",
+                "higherIsBetter": true
+            },
+            {
+                "key": "ligand_iptm",
+                "label": "Ligand ipTM",
+                "kind": "interface",
+                "scope": "ligand",
+                "higherIsBetter": true
+            },
+            {
+                "key": "protein_iptm",
+                "label": "Protein ipTM",
+                "kind": "interface",
+                "scope": "interface",
+                "higherIsBetter": true
+            },
+            {
+                "key": "chains_ptm",
+                "label": "Chain pTM",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true,
+                "note": "per chain {chain index: value} (writer.py:190-212); parsed as chains_ptm.<index>"
+            },
+            {
+                "key": "complex_plddt",
+                "label": "Complex pLDDT",
+                "kind": "plddt",
+                "scope": "global",
+                "range": [
+                    0.0,
+                    1.0
+                ],
+                "higherIsBetter": true,
+                "note": "0-1 scale; Protenix, AF3 and ColabFold report 0-100"
+            },
+            {
+                "key": "complex_iplddt",
+                "label": "Interface pLDDT",
+                "kind": "plddt",
+                "scope": "interface",
+                "higherIsBetter": true
+            },
+            {
+                "key": "complex_pde",
+                "label": "Complex PDE",
+                "unit": "\u00c5",
+                "kind": "pae",
+                "scope": "global",
+                "higherIsBetter": false,
+                "note": "predicted distance error"
+            },
+            {
+                "key": "complex_ipde",
+                "label": "Interface PDE",
+                "unit": "\u00c5",
+                "kind": "pae",
+                "scope": "interface",
+                "higherIsBetter": false,
+                "note": "predicted distance error"
+            },
+            {
+                "key": "plddt",
+                "label": "Per-token pLDDT",
+                "kind": "plddt",
+                "scope": "residue",
+                "higherIsBetter": true,
+                "note": "plddt_<name>_model_<k>.npz, key plddt, shape [N_tokens]"
+            },
+            {
+                "key": "pae",
+                "label": "PAE matrix",
+                "kind": "pae",
+                "scope": "residue",
+                "higherIsBetter": false,
+                "note": "pae_<name>_model_<k>.npz, only with --write_full_pae; unit not stated in writer.py (UNVERIFIED)"
+            },
+            {
+                "key": "affinity_pred_value",
+                "label": "Boltz-2 affinity",
+                "unit": "log10(\u00b5M)",
+                "kind": "affinity",
+                "scope": "ligand",
+                "higherIsBetter": false,
+                "rankingOnly": true,
+                "note": "log10(IC50 in \u00b5M); lower is a stronger binder; kcal/mol = (6 - y) x 1.364 (docs/prediction.md:249); only with properties.affinity"
+            },
+            {
+                "key": "affinity_probability_binary",
+                "label": "Binder probability",
+                "kind": "affinity",
+                "scope": "ligand",
+                "range": [
+                    0.0,
+                    1.0
+                ],
+                "higherIsBetter": true,
+                "rankingOnly": true,
+                "note": "only with properties.affinity"
+            }
+        ],
+        "family": "co-folding",
+        "available": false,
+        "note": "not installed on this host: boltz not in /home/user/harness-hackathon/.tools/executors/boltz2/bin or on PATH (pah runtimes install boltz2)",
+        "licence": "MIT",
+        "repo": "https://github.com/jwohlwend/boltz",
+        "mvp": true,
+        "runtime": {
+            "profiles": [
+                "csf3",
+                "local",
+                "modal"
+            ],
+            "accel": true,
+            "gpu": "required",
+            "accelConfigs": [
+                "a100",
+                "h100",
+                "h200"
+            ],
+            "nativeVersion": "2.2.1",
+            "verified": [
+                "pins",
+                "reachable"
+            ]
+        }
+    },
+    {
+        "id": "boltz1",
+        "name": "Boltz-1",
+        "version": "2.2.1",
+        "role": "Executor",
+        "outputs": [
+            {
+                "key": "confidence_score",
+                "label": "Confidence score",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true,
+                "note": "0.8 x complex_plddt + 0.2 x iptm, ptm for single chains (docs/prediction.md:201); models ranked by it"
+            },
+            {
+                "key": "ptm",
+                "label": "pTM",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true
+            },
+            {
+                "key": "iptm",
+                "label": "ipTM",
+                "kind": "interface",
+                "scope": "interface",
+                "higherIsBetter": true
+            },
+            {
+                "key": "ligand_iptm",
+                "label": "Ligand ipTM",
+                "kind": "interface",
+                "scope": "ligand",
+                "higherIsBetter": true
+            },
+            {
+                "key": "protein_iptm",
+                "label": "Protein ipTM",
+                "kind": "interface",
+                "scope": "interface",
+                "higherIsBetter": true
+            },
+            {
+                "key": "chains_ptm",
+                "label": "Chain pTM",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true,
+                "note": "per chain {chain index: value} (writer.py:190-212); parsed as chains_ptm.<index>"
+            },
+            {
+                "key": "complex_plddt",
+                "label": "Complex pLDDT",
+                "kind": "plddt",
+                "scope": "global",
+                "range": [
+                    0.0,
+                    1.0
+                ],
+                "higherIsBetter": true,
+                "note": "0-1 scale; Protenix, AF3 and ColabFold report 0-100"
+            },
+            {
+                "key": "complex_iplddt",
+                "label": "Interface pLDDT",
+                "kind": "plddt",
+                "scope": "interface",
+                "higherIsBetter": true
+            },
+            {
+                "key": "complex_pde",
+                "label": "Complex PDE",
+                "unit": "\u00c5",
+                "kind": "pae",
+                "scope": "global",
+                "higherIsBetter": false,
+                "note": "predicted distance error"
+            },
+            {
+                "key": "complex_ipde",
+                "label": "Interface PDE",
+                "unit": "\u00c5",
+                "kind": "pae",
+                "scope": "interface",
+                "higherIsBetter": false,
+                "note": "predicted distance error"
+            },
+            {
+                "key": "plddt",
+                "label": "Per-token pLDDT",
+                "kind": "plddt",
+                "scope": "residue",
+                "higherIsBetter": true,
+                "note": "plddt_<name>_model_<k>.npz, key plddt, shape [N_tokens]"
+            },
+            {
+                "key": "pae",
+                "label": "PAE matrix",
+                "kind": "pae",
+                "scope": "residue",
+                "higherIsBetter": false,
+                "note": "pae_<name>_model_<k>.npz, only with --write_full_pae; unit not stated in writer.py (UNVERIFIED)"
+            }
+        ],
+        "family": "co-folding",
+        "available": false,
+        "note": "not installed on this host: boltz not in /home/user/harness-hackathon/.tools/executors/boltz1/bin or on PATH (pah runtimes install boltz1)",
+        "licence": "MIT",
+        "repo": "https://github.com/jwohlwend/boltz",
+        "mvp": false,
+        "runtime": {
+            "profiles": [
+                "csf3",
+                "local",
+                "modal"
+            ],
+            "accel": false,
+            "gpu": "required",
+            "nativeVersion": "2.2.1",
+            "verified": [
+                "pins"
+            ]
+        }
+    },
+    {
+        "id": "protenix",
+        "name": "Protenix",
+        "version": "1.1.0",
+        "role": "Executor",
+        "outputs": [
+            {
+                "key": "ranking_score",
+                "label": "Ranking score",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true,
+                "note": "0.8 x iptm + 0.2 x ptm + 0.5 x disorder - 100 x has_clash (sample_confidence.py:172-176); disorder is always 0"
+            },
+            {
+                "key": "plddt",
+                "label": "pLDDT",
+                "kind": "plddt",
+                "scope": "global",
+                "range": [
+                    0.0,
+                    100.0
+                ],
+                "higherIsBetter": true,
+                "note": "0-100 scale, mean atom pLDDT x 100"
+            },
+            {
+                "key": "ptm",
+                "label": "pTM",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true
+            },
+            {
+                "key": "iptm",
+                "label": "ipTM",
+                "kind": "interface",
+                "scope": "interface",
+                "higherIsBetter": true
+            },
+            {
+                "key": "gpde",
+                "label": "Global PDE",
+                "kind": "pae",
+                "scope": "global",
+                "higherIsBetter": false,
+                "note": "predicted distance error; unit not stated in the cited source"
+            },
+            {
+                "key": "chain_pair_pae_min",
+                "label": "Chain-pair PAE (min)",
+                "kind": "pae",
+                "scope": "interface",
+                "higherIsBetter": false,
+                "note": "[N_chain, N_chain]"
+            },
+            {
+                "key": "has_clash",
+                "label": "Clash flag",
+                "kind": "other",
+                "scope": "global",
+                "higherIsBetter": false
+            },
+            {
+                "key": "pb_ranking_score",
+                "label": "PoseBusters ranking score",
+                "kind": "score",
+                "scope": "ligand",
+                "higherIsBetter": true,
+                "note": "only when an interested-ligand mask is set (sample_confidence.py:178-205)"
+            }
+        ],
+        "family": "co-folding",
+        "available": false,
+        "note": "not installed on this host: protenix not in /home/user/harness-hackathon/.tools/executors/protenix/bin or on PATH (pah runtimes install protenix)",
+        "licence": "Apache-2.0",
+        "repo": "https://github.com/bytedance/Protenix",
+        "mvp": false,
+        "runtime": {
+            "profiles": [
+                "csf3",
+                "local",
+                "modal"
+            ],
+            "accel": true,
+            "gpu": "required",
+            "accelConfigs": [
+                "a100",
+                "h100",
+                "h200"
+            ],
+            "nativeVersion": "1.1.0",
+            "verified": [
+                "pins"
+            ]
+        }
+    },
+    {
+        "id": "alphafold3",
+        "name": "AlphaFold3",
+        "version": "03f4f48867748c164ae6d5144ae0529477df02e3",
+        "role": "Executor",
+        "outputs": [
+            {
+                "key": "ranking_score",
+                "label": "Ranking score",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true,
+                "note": "0.8 x ipTM + 0.2 x pTM + 0.5 x disorder - 100 x has_clash (docs/output.md:172-175)"
+            },
+            {
+                "key": "ptm",
+                "label": "pTM",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true
+            },
+            {
+                "key": "iptm",
+                "label": "ipTM",
+                "kind": "interface",
+                "scope": "interface",
+                "higherIsBetter": true
+            },
+            {
+                "key": "fraction_disordered",
+                "label": "Fraction disordered",
+                "kind": "other",
+                "scope": "global",
+                "higherIsBetter": false
+            },
+            {
+                "key": "has_clash",
+                "label": "Clash flag",
+                "kind": "other",
+                "scope": "global",
+                "higherIsBetter": false,
+                "note": "0 or 1"
+            },
+            {
+                "key": "chain_pair_pae_min",
+                "label": "Chain-pair PAE (min)",
+                "kind": "pae",
+                "scope": "interface",
+                "higherIsBetter": false,
+                "note": "[C, C]"
+            },
+            {
+                "key": "atom_plddts",
+                "label": "Atom pLDDT",
+                "kind": "plddt",
+                "scope": "residue",
+                "range": [
+                    0.0,
+                    100.0
+                ],
+                "higherIsBetter": true,
+                "note": "*_confidences.json, per atom"
+            },
+            {
+                "key": "pae",
+                "label": "PAE matrix",
+                "kind": "pae",
+                "scope": "residue",
+                "higherIsBetter": false,
+                "note": "*_confidences.json, [T, T]; unit not stated in the cited source"
+            }
+        ],
+        "family": "co-folding",
+        "available": false,
+        "note": "not installed on this host: /app/alphafold/run_alphafold.py missing; this route runs inside its image",
+        "licence": "Apache-2.0 (code); weights under separate terms, by request",
+        "repo": "https://github.com/google-deepmind/alphafold3",
+        "mvp": false,
+        "runtime": {
+            "profiles": [
+                "csf3",
+                "local",
+                "modal"
+            ],
+            "accel": false,
+            "gpu": "required",
+            "nativeVersion": "03f4f48867748c164ae6d5144ae0529477df02e3",
+            "verified": [
+                "pins"
+            ]
+        },
+        "aliases": [
+            "af3"
+        ]
+    },
+    {
+        "id": "chai1",
+        "name": "Chai-1",
+        "version": "0.6.1",
+        "role": "Executor",
+        "outputs": [
+            {
+                "key": "aggregate_score",
+                "label": "Aggregate score",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true,
+                "note": "0.2 x ptm + 0.8 x iptm - 100 x has_inter_chain_clashes (rank.py:95-99); sample files are not sorted"
+            },
+            {
+                "key": "ptm",
+                "label": "pTM",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true
+            },
+            {
+                "key": "iptm",
+                "label": "ipTM",
+                "kind": "interface",
+                "scope": "interface",
+                "higherIsBetter": true
+            },
+            {
+                "key": "has_inter_chain_clashes",
+                "label": "Inter-chain clash flag",
+                "kind": "other",
+                "scope": "interface",
+                "higherIsBetter": false
+            },
+            {
+                "key": "plddt",
+                "label": "pLDDT (CIF B-factor)",
+                "kind": "plddt",
+                "scope": "residue",
+                "range": [
+                    0.0,
+                    100.0
+                ],
+                "higherIsBetter": true,
+                "note": "not in the npz; read from CIF B-factors (100 x pLDDT)"
+            }
+        ],
+        "family": "co-folding",
+        "available": false,
+        "note": "not installed on this host: chai-lab not in /home/user/harness-hackathon/.tools/executors/chai1/bin or on PATH (pah runtimes install chai1)",
+        "licence": "Apache-2.0 (code and weights)",
+        "repo": "https://github.com/chaidiscovery/chai-lab",
+        "mvp": false,
+        "runtime": {
+            "profiles": [
+                "csf3",
+                "local",
+                "modal"
+            ],
+            "accel": true,
+            "gpu": "required",
+            "accelConfigs": [
+                "a100",
+                "h100",
+                "h200"
+            ],
+            "nativeVersion": "0.6.1",
+            "verified": [
+                "pins",
+                "reachable"
+            ]
+        }
+    },
+    {
+        "id": "colabfold",
+        "name": "ColabFold (AlphaFold2 / AF2-multimer)",
+        "version": "1.6.1",
+        "role": "Executor (AF2, AF2-multimer)",
+        "outputs": [
+            {
+                "key": "plddt",
+                "label": "pLDDT",
+                "kind": "plddt",
+                "scope": "residue",
+                "range": [
+                    0.0,
+                    100.0
+                ],
+                "higherIsBetter": true,
+                "note": "list of length L"
+            },
+            {
+                "key": "ptm",
+                "label": "pTM",
+                "kind": "confidence",
+                "scope": "global",
+                "higherIsBetter": true,
+                "note": "when PAE exists"
+            },
+            {
+                "key": "iptm",
+                "label": "ipTM",
+                "kind": "interface",
+                "scope": "interface",
+                "higherIsBetter": true,
+                "note": "complexes only; removed for monomers (batch.py:553)"
+            },
+            {
+                "key": "max_pae",
+                "label": "Max PAE",
+                "kind": "pae",
+                "scope": "global",
+                "higherIsBetter": false,
+                "note": "when PAE exists"
+            },
+            {
+                "key": "actifptm",
+                "label": "actifpTM",
+                "kind": "interface",
+                "scope": "interface",
+                "higherIsBetter": true,
+                "note": "only with --calc-extra-ptm (extra_ptm.py:270,288)"
+            },
+            {
+                "key": "pae",
+                "label": "PAE matrix",
+                "kind": "pae",
+                "scope": "residue",
+                "higherIsBetter": false,
+                "note": "[L, L], when PAE exists; unit not stated in the cited source"
+            },
+            {
+                "key": "ipsae",
+                "label": "ipSAE",
+                "kind": "interface",
+                "scope": "interface",
+                "note": "per chain pair {\"A-B\": float}; complexes only"
+            },
+            {
+                "key": "pdockq",
+                "label": "pDockQ",
+                "kind": "interface",
+                "scope": "interface",
+                "note": "per chain pair; complexes only"
+            },
+            {
+                "key": "pdockq2",
+                "label": "pDockQ2",
+                "kind": "interface",
+                "scope": "interface",
+                "note": "per chain pair; complexes only"
+            }
+        ],
+        "family": "co-folding",
+        "available": false,
+        "note": "not installed on this host: colabfold_batch not in /home/user/harness-hackathon/.tools/executors/colabfold/bin or on PATH (pah runtimes install colabfold)",
+        "licence": "MIT (code); AlphaFold2 weights CC-BY-4.0",
+        "repo": "https://github.com/sokrypton/ColabFold",
+        "mvp": false,
+        "runtime": {
+            "profiles": [
+                "csf3",
+                "local",
+                "modal"
+            ],
+            "accel": true,
+            "gpu": "required",
+            "accelConfigs": [
+                "a100",
+                "h100",
+                "h200"
+            ],
+            "nativeVersion": "1.6.1",
+            "verified": [
+                "pins",
+                "reachable"
+            ]
+        }
+    },
+    {
+        "id": "vina",
+        "name": "AutoDock Vina",
+        "version": "1.2.5",
+        "role": "Executor",
+        "outputs": [
+            {
+                "key": "vina_affinity",
+                "label": "Vina score",
+                "unit": "kcal/mol",
+                "kind": "score",
+                "scope": "pose",
+                "higherIsBetter": false,
+                "rankingOnly": true,
+                "note": "REMARK VINA RESULT, first value (vina.cpp:535-555); poses sorted best first"
+            },
+            {
+                "key": "rmsd_lb",
+                "label": "RMSD lower bound",
+                "unit": "\u00c5",
+                "kind": "rmsd",
+                "scope": "pose",
+                "higherIsBetter": false,
+                "note": "REMARK VINA RESULT, second value; relative to the best mode, not to a reference"
+            },
+            {
+                "key": "rmsd_ub",
+                "label": "RMSD upper bound",
+                "unit": "\u00c5",
+                "kind": "rmsd",
+                "scope": "pose",
+                "higherIsBetter": false,
+                "note": "REMARK VINA RESULT, third value; relative to the best mode, not to a reference"
+            }
+        ],
+        "family": "docking",
+        "dockingParams": [
+            {
+                "key": "center",
+                "label": "Box centre (x, y, z)",
+                "unit": "\u00c5"
+            },
+            {
+                "key": "size",
+                "label": "Box size (x, y, z)",
+                "unit": "\u00c5"
+            },
+            {
+                "key": "exhaustiveness",
+                "label": "Exhaustiveness",
+                "default": "8"
+            },
+            {
+                "key": "num_modes",
+                "label": "Poses per run",
+                "default": "9"
+            },
+            {
+                "key": "energy_range",
+                "label": "Energy range",
+                "unit": "kcal/mol",
+                "default": "3.0"
+            },
+            {
+                "key": "scoring",
+                "label": "Scoring function",
+                "default": "vina"
+            },
+            {
+                "key": "seed",
+                "label": "Seed"
+            }
+        ],
+        "available": false,
+        "note": "not installed on this host: vina not in /home/user/harness-hackathon/.tools/executors/vina/bin or on PATH (pah runtimes install vina)",
+        "licence": "Apache-2.0",
+        "repo": "https://github.com/ccsb-scripps/AutoDock-Vina",
+        "mvp": true,
+        "runtime": {
+            "profiles": [
+                "csf3",
+                "local",
+                "modal"
+            ],
+            "accel": false,
+            "nativeVersion": "1.2.5",
+            "verified": [
+                "reachable",
+                "installed"
+            ]
+        }
+    },
+    {
+        "id": "gnina",
+        "name": "Gnina",
+        "version": "1.3",
+        "role": "Executor, CNN rescoring",
+        "outputs": [
+            {
+                "key": "CNNscore",
+                "label": "CNN pose score",
+                "kind": "score",
+                "scope": "pose",
+                "range": [
+                    0.0,
+                    1.0
+                ],
+                "higherIsBetter": true,
+                "note": "pose probability; default pose sort order (main.cpp:967)"
+            },
+            {
+                "key": "CNNaffinity",
+                "label": "CNN affinity",
+                "unit": "pK",
+                "kind": "affinity",
+                "scope": "pose",
+                "higherIsBetter": true,
+                "rankingOnly": true,
+                "note": "pK units per the gnina papers (UNVERIFIED in source); present if not 0"
+            },
+            {
+                "key": "minimizedAffinity",
+                "label": "Vina-style affinity",
+                "unit": "kcal/mol",
+                "kind": "affinity",
+                "scope": "pose",
+                "higherIsBetter": false,
+                "rankingOnly": true,
+                "note": "always present"
+            },
+            {
+                "key": "CNN_VS",
+                "label": "CNN VS score",
+                "kind": "score",
+                "scope": "pose",
+                "higherIsBetter": true,
+                "rankingOnly": true,
+                "note": "CNNscore x CNNaffinity (result_info.cpp:141-142)"
+            },
+            {
+                "key": "minimizedRMSD",
+                "label": "RMSD after minimisation",
+                "kind": "rmsd",
+                "scope": "pose",
+                "higherIsBetter": false,
+                "note": "only if computed"
+            },
+            {
+                "key": "CNNaffinity_variance",
+                "label": "CNN affinity variance",
+                "kind": "other",
+                "scope": "pose",
+                "rankingOnly": true,
+                "note": "CNN ensemble only (result_info.cpp:122-151)"
+            }
+        ],
+        "family": "docking",
+        "dockingParams": [
+            {
+                "key": "autobox_ligand",
+                "label": "Box from reference ligand"
+            },
+            {
+                "key": "autobox_add",
+                "label": "Box padding",
+                "unit": "\u00c5",
+                "default": "4"
+            },
+            {
+                "key": "size",
+                "label": "Box size (x, y, z)",
+                "unit": "\u00c5"
+            },
+            {
+                "key": "exhaustiveness",
+                "label": "Exhaustiveness",
+                "default": "8"
+            },
+            {
+                "key": "num_modes",
+                "label": "Poses per run",
+                "default": "9"
+            },
+            {
+                "key": "cnn_scoring",
+                "label": "CNN scoring mode",
+                "default": "rescore"
+            },
+            {
+                "key": "seed",
+                "label": "Seed"
+            }
+        ],
+        "available": false,
+        "note": "not installed on this host: gnina not in /home/user/harness-hackathon/.tools/executors/gnina/bin or on PATH (pah runtimes install gnina)",
+        "licence": "GPL-2.0 / Apache-2.0",
+        "repo": "https://github.com/gnina/gnina",
+        "mvp": true,
+        "runtime": {
+            "profiles": [
+                "csf3",
+                "local",
+                "modal"
+            ],
+            "accel": false,
+            "gpu": "required",
+            "nativeVersion": "1.3",
+            "verified": [
+                "reachable",
+                "installed"
+            ]
+        }
+    },
+    {
+        "id": "diffdock",
+        "name": "DiffDock-L",
+        "version": "v1.1.3",
+        "role": "Learned docking",
+        "outputs": [
+            {
+                "key": "diffdock_confidence",
+                "label": "Confidence",
+                "kind": "confidence",
+                "scope": "pose",
+                "higherIsBetter": true,
+                "note": "raw confidence-model output, from the file name rank<k>_confidence<c>.sdf only; can be negative"
+            },
+            {
+                "key": "rank",
+                "label": "Rank",
+                "kind": "other",
+                "scope": "pose",
+                "higherIsBetter": false,
+                "note": "1 is the highest confidence"
+            }
+        ],
+        "family": "docking",
+        "dockingParams": [
+            {
+                "key": "samples_per_complex",
+                "label": "Samples per complex",
+                "default": "10"
+            },
+            {
+                "key": "inference_steps",
+                "label": "Inference steps",
+                "default": "20"
+            }
+        ],
+        "available": false,
+        "note": "not installed on this host: /home/appuser/DiffDock/inference.py missing; this route runs inside its image",
+        "licence": "MIT",
+        "repo": "https://github.com/gcorso/DiffDock",
+        "mvp": false,
+        "runtime": {
+            "profiles": [
+                "csf3",
+                "local",
+                "modal"
+            ],
+            "accel": false,
+            "gpu": "required",
+            "nativeVersion": "v1.1.3",
+            "verified": [
+                "pins",
+                "reachable"
+            ]
+        }
+    },
+    {
+        "id": "haddock3",
+        "name": "HADDOCK3",
+        "version": null,
+        "role": "Protein-protein docking",
+        "outputs": [
+            {
+                "key": "score",
+                "label": "HADDOCK score",
+                "kind": "score",
+                "scope": "pose",
+                "higherIsBetter": false,
+                "rankingOnly": true,
+                "note": "capri_ss.tsv; rows sorted ascending by score (caprieval/defaults.yaml:127-150)"
+            },
+            {
+                "key": "irmsd",
+                "label": "Interface RMSD",
+                "kind": "rmsd",
+                "scope": "interface",
+                "higherIsBetter": false,
+                "note": "against the caprieval reference"
+            },
+            {
+                "key": "fnat",
+                "label": "Fraction of native contacts",
+                "kind": "interface",
+                "scope": "interface",
+                "higherIsBetter": true,
+                "note": "against the caprieval reference"
+            },
+            {
+                "key": "dockq",
+                "label": "DockQ",
+                "kind": "interface",
+                "scope": "interface",
+                "higherIsBetter": true,
+                "note": "against the caprieval reference"
+            }
+        ],
+        "family": "docking",
+        "available": false,
+        "note": "not installed on this host: no entry in configs/runtimes.yaml",
+        "licence": "Apache-2.0",
+        "repo": "https://github.com/haddocking/haddock3",
+        "mvp": false,
+        "aliases": [
+            "haddock"
+        ]
+    },
+    {
+        "id": "pydock",
+        "name": "pyDock",
+        "version": null,
+        "role": "Protein-protein docking",
+        "outputs": [],
+        "family": "docking",
+        "outputsNote": "UNVERIFIED: pyDock is not on GitHub and no output contract was read (docs/EXECUTORS.md, section 10)",
+        "available": false,
+        "note": "not installed on this host: no entry in configs/runtimes.yaml",
+        "licence": "academic licence",
+        "mvp": false
+    }
+]

@@ -51,7 +51,7 @@ def test_run_lifecycle_over_http(offline_profile: Profile) -> None:
     body = _wait(client, run_id)
     assert body["summary"]["verdict"] == "pass_with_warnings"
     md = client.get(f"/runs/{run_id}/report?format=md")
-    assert md.status_code == 200 and "## Summary" in md.text
+    assert md.status_code == 200 and "## Layers" in md.text
     report = client.get(f"/runs/{run_id}/report?format=json").json()
     assert report["schema_version"] == "1"
     warn = client.get(f"/runs/{run_id}/findings", params={"gate": "warn"}).json()

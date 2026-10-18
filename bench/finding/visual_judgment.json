@@ -1,0 +1,45 @@
+{
+  "schema_version": "visual_judgment_v1",
+  "reviewer": {
+    "type": "model",
+    "name": "automated visual review of rendered slides"
+  },
+  "verdict": "pass",
+  "reviewed_at": "2026-10-17T23:47:32+00:00",
+  "review_context": {
+    "renders": "bench/finding/qa/renders/slide-01..08.jpg",
+    "method": "each slide inspected at full resolution; table values checked against facts/ and results/truth.csv"
+  },
+  "findings": [
+    {
+      "slide": 3,
+      "severity": "info",
+      "message": "CDK2 panels share one camera; ligand visible in both, red cut residues legible."
+    },
+    {
+      "slide": 4,
+      "severity": "info",
+      "message": "MEK1 panels render on the same layout as CDK2."
+    },
+    {
+      "slide": 5,
+      "severity": "info",
+      "message": "Confidence table reads 0.975/0.947, 0.988/0.97, 0.99/0.983; matches the run-1 fact files."
+    },
+    {
+      "slide": 6,
+      "severity": "info",
+      "message": "Harness table reads contact recovery 5of9/1of9, 2of3/0of3, 4of6/3of6; matches the fact files."
+    },
+    {
+      "slide": 7,
+      "severity": "info",
+      "message": "Flip figure legible at full width; 9 columns labelled by target and run."
+    },
+    {
+      "slide": 8,
+      "severity": "info",
+      "message": "Two cards, one-line bullets, empty band below."
+    }
+  ]
+}

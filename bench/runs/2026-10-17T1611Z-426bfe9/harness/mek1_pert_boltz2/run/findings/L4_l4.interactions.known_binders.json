@@ -1,0 +1,122 @@
+{
+  "check_id": "l4.interactions.known_binders",
+  "layer": 4,
+  "gate": "warn",
+  "message": "boltz2/seed2/sample0 reproduces none of 3 FZC interactions",
+  "measurements": [
+    {
+      "name": "key_interactions",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "reproduced",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "poses_reproducing_all",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "reproduced",
+      "value": 1,
+      "comparator": ">=",
+      "origin": "Specification layer 4: warn when no key interaction is reproduced",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "reference": "7XLP_FZC_complex.pdb",
+    "reference_interactions": [
+      {
+        "type": "hbond",
+        "residue": "MET146A",
+        "distance_A": 2.9
+      },
+      {
+        "type": "hbond",
+        "residue": "SER194A",
+        "distance_A": 2.64
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "ALA95A",
+        "distance_A": 3.71
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "LYS97A",
+        "distance_A": 3.48
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "LYS97A",
+        "distance_A": 3.79
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "LEU118A",
+        "distance_A": 3.85
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "ILE141A",
+        "distance_A": 3.73
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "LEU197A",
+        "distance_A": 3.46
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "PHE209A",
+        "distance_A": 3.53
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "VAL82A",
+        "distance_A": 3.67
+      },
+      {
+        "type": "halogen",
+        "residue": "ALA95A",
+        "distance_A": 3.13
+      }
+    ],
+    "reproduced": [],
+    "missing": [
+      "halogen ALA95A",
+      "hbond MET146A",
+      "hbond SER194A"
+    ],
+    "poses": [
+      {
+        "pose": "boltz2/seed1/sample0",
+        "reproduced": 0,
+        "of": 3
+      },
+      {
+        "pose": "boltz2/seed2/sample0",
+        "reproduced": 0,
+        "of": 3
+      },
+      {
+        "pose": "boltz2/seed3/sample0",
+        "reproduced": 0,
+        "of": 3
+      }
+    ],
+    "representative": "boltz2/seed2/sample0"
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "plip",
+    "version": "3.0.1"
+  },
+  "duration_s": 0.322
+}

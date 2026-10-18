@@ -1,0 +1,67 @@
+{
+  "check_id": "l2.docking.box",
+  "layer": 2,
+  "gate": "warn",
+  "message": "no box declared; derived box encloses 11 contact residues and the BGC ligand with 2.0 Å margin",
+  "measurements": [
+    {
+      "name": "volume_A3",
+      "value": 1808.5,
+      "unit": null
+    },
+    {
+      "name": "ligand_atoms_inside_margin",
+      "value": 12,
+      "unit": null
+    },
+    {
+      "name": "ligand_atoms",
+      "value": 12,
+      "unit": null
+    },
+    {
+      "name": "contact_residues",
+      "value": 11,
+      "unit": null
+    },
+    {
+      "name": "contact_residues_outside",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "margin",
+      "value": 2.0,
+      "comparator": ">=",
+      "origin": "Harness rule: every pocket heavy atom lies at least 2 Å inside the box; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    },
+    {
+      "name": "contact_distance",
+      "value": 4.0,
+      "comparator": "<=",
+      "origin": "Harness rule: contact residues (heavy atom within 4 Å of the reference ligand) must have an atom inside the box; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "center": [
+      9.319,
+      36.788,
+      18.307
+    ],
+    "size": [
+      11.671,
+      12.814,
+      12.093
+    ],
+    "origin": "derived from BGC (+4 Å)",
+    "derived": true,
+    "contacts_outside": []
+  },
+  "artifacts": [],
+  "tool": null,
+  "duration_s": 0.01
+}

@@ -1,0 +1,220 @@
+{
+  "gpu": "A100",
+  "boltz_image": "pip boltz[cuda]==2.2.1",
+  "diffdock_image": "rbgcsail/diffdock:v1.1.3@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0",
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "jobs": [
+    {
+      "system": "cdk2_pert",
+      "executor": "diffdock",
+      "version": "v1.1.3",
+      "image": "rbgcsail/diffdock:v1.1.3@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0",
+      "gpu": "NVIDIA A100-SXM4-40GB, 610.57.04, 40960 MiB",
+      "env": {
+        "MODAL_IMAGE_ID": "im-x9zfDmm5IJzmQ6ydao7RUw",
+        "MODAL_TASK_ID": "ta-01M55BNYE8T0J0AM7JH0HQJM0R",
+        "MODAL_REGION": "us-west"
+      },
+      "volume_file": {
+        "path": "/results/cdk2_pert_diffdock.tar.gz",
+        "bytes": 59493
+      },
+      "rc": [
+        0,
+        0,
+        0
+      ],
+      "seconds": [
+        74.1,
+        70.8,
+        70.0
+      ]
+    },
+    {
+      "system": "cdk2_wt",
+      "executor": "diffdock",
+      "version": "v1.1.3",
+      "image": "rbgcsail/diffdock:v1.1.3@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0",
+      "gpu": "NVIDIA A100-SXM4-40GB, 610.57.04, 40960 MiB",
+      "env": {
+        "MODAL_IMAGE_ID": "im-x9zfDmm5IJzmQ6ydao7RUw",
+        "MODAL_TASK_ID": "ta-01M55BNYE0GAJEE71Y5FF64WPR",
+        "MODAL_REGION": "us-west"
+      },
+      "volume_file": {
+        "path": "/results/cdk2_wt_diffdock.tar.gz",
+        "bytes": 60688
+      },
+      "rc": [
+        0,
+        0,
+        0
+      ],
+      "seconds": [
+        68.7,
+        63.4,
+        64.6
+      ]
+    },
+    {
+      "system": "ftse_pert",
+      "executor": "diffdock",
+      "version": "v1.1.3",
+      "image": "rbgcsail/diffdock:v1.1.3@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0",
+      "gpu": "NVIDIA A100-SXM4-40GB, 610.57.04, 40960 MiB",
+      "env": {
+        "MODAL_IMAGE_ID": "im-x9zfDmm5IJzmQ6ydao7RUw",
+        "MODAL_TASK_ID": "ta-01M55BNYE0KW2M6MGB0YE7H2AR",
+        "MODAL_REGION": "us-west"
+      },
+      "volume_file": {
+        "path": "/results/ftse_pert_diffdock.tar.gz",
+        "bytes": 46889
+      },
+      "rc": [
+        0,
+        0,
+        0
+      ],
+      "seconds": [
+        69.0,
+        66.3,
+        65.1
+      ]
+    },
+    {
+      "system": "ftse_wt",
+      "executor": "diffdock",
+      "version": "v1.1.3",
+      "image": "rbgcsail/diffdock:v1.1.3@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0",
+      "gpu": "NVIDIA A100-SXM4-40GB, 610.57.04, 40960 MiB",
+      "env": {
+        "MODAL_IMAGE_ID": "im-x9zfDmm5IJzmQ6ydao7RUw",
+        "MODAL_TASK_ID": "ta-01M55BNYE8BGGFGNF2RJ284QER",
+        "MODAL_REGION": "eu-west"
+      },
+      "volume_file": {
+        "path": "/results/ftse_wt_diffdock.tar.gz",
+        "bytes": 47371
+      },
+      "rc": [
+        0,
+        0,
+        0
+      ],
+      "seconds": [
+        84.1,
+        76.4,
+        78.4
+      ]
+    },
+    {
+      "system": "glc_pert",
+      "executor": "diffdock",
+      "version": "v1.1.3",
+      "image": "rbgcsail/diffdock:v1.1.3@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0",
+      "gpu": "NVIDIA A100-SXM4-40GB, 610.57.04, 40960 MiB",
+      "env": {
+        "MODAL_IMAGE_ID": "im-x9zfDmm5IJzmQ6ydao7RUw",
+        "MODAL_TASK_ID": "ta-01M55BPSTM8J3057FQH1BJ508R",
+        "MODAL_REGION": "us-west"
+      },
+      "volume_file": {
+        "path": "/results/glc_pert_diffdock.tar.gz",
+        "bytes": 62969
+      },
+      "rc": [
+        0,
+        0,
+        0
+      ],
+      "seconds": [
+        62.8,
+        57.2,
+        57.3
+      ]
+    },
+    {
+      "system": "glc_wt",
+      "executor": "diffdock",
+      "version": "v1.1.3",
+      "image": "rbgcsail/diffdock:v1.1.3@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0",
+      "gpu": "NVIDIA A100-SXM4-40GB, 610.57.04, 40960 MiB",
+      "env": {
+        "MODAL_IMAGE_ID": "im-x9zfDmm5IJzmQ6ydao7RUw",
+        "MODAL_TASK_ID": "ta-01M55BQN173MCFCFWP6KGCFAXR",
+        "MODAL_REGION": "us-west"
+      },
+      "volume_file": {
+        "path": "/results/glc_wt_diffdock.tar.gz",
+        "bytes": 61832
+      },
+      "rc": [
+        0,
+        0,
+        0
+      ],
+      "seconds": [
+        68.9,
+        63.2,
+        63.0
+      ]
+    },
+    {
+      "system": "mek1_pert",
+      "executor": "diffdock",
+      "version": "v1.1.3",
+      "image": "rbgcsail/diffdock:v1.1.3@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0",
+      "gpu": "NVIDIA A100-SXM4-40GB, 610.57.04, 40960 MiB",
+      "env": {
+        "MODAL_IMAGE_ID": "im-x9zfDmm5IJzmQ6ydao7RUw",
+        "MODAL_TASK_ID": "ta-01M55BRFB631YAW31AN47JKF9R",
+        "MODAL_REGION": "eu-west"
+      },
+      "volume_file": {
+        "path": "/results/mek1_pert_diffdock.tar.gz",
+        "bytes": 111937
+      },
+      "rc": [
+        0,
+        0,
+        0
+      ],
+      "seconds": [
+        86.4,
+        87.7,
+        81.5
+      ]
+    },
+    {
+      "system": "mek1_wt",
+      "executor": "diffdock",
+      "version": "v1.1.3",
+      "image": "rbgcsail/diffdock:v1.1.3@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0",
+      "gpu": "NVIDIA A100-SXM4-40GB, 610.57.04, 40960 MiB",
+      "env": {
+        "MODAL_IMAGE_ID": "im-x9zfDmm5IJzmQ6ydao7RUw",
+        "MODAL_TASK_ID": "ta-01M55BRFB5P5M2PK6ES8A0RNMR",
+        "MODAL_REGION": "eu-west"
+      },
+      "volume_file": {
+        "path": "/results/mek1_wt_diffdock.tar.gz",
+        "bytes": 113870
+      },
+      "rc": [
+        0,
+        0,
+        0
+      ],
+      "seconds": [
+        86.7,
+        86.8,
+        80.4
+      ]
+    }
+  ]
+}

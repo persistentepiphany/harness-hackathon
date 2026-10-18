@@ -38,9 +38,9 @@ def render(req: dict[str, Any]) -> dict[str, Any]:
         cmd.show("sticks", "input_ligand_*")
         util.cbam("input_ligand_*")
     cmd.bg_color("white")
-    for key, value in (("ray_opaque_background", 1), ("antialias", 2), ("ray_shadows", 0)):
+    for key, value in (("ray_opaque_background", 1), ("antialias", 1), ("ray_shadows", 0)):
         cmd.set(key, value)
-    width, height = int(req.get("width", 1200)), int(req.get("height", 900))
+    width, height = int(req.get("width", 960)), int(req.get("height", 720))
     names: set[str] = set()
     cmd.iterate(organic, "names.add(resn)", space={"names": names})
     chains = sorted(cmd.get_chains("target"))

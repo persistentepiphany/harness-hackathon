@@ -1,11 +1,25 @@
 # Tools not distributed on PyPI. Installed with micromamba into a separate prefix
 # (local: .tools/conda-env, CSF3: $PAH_ROOT/conda-env, Modal: /opt/conda).
+# Versions are pinned to the solve recorded on 2026-10-17 (micromamba 2.9.0, linux-64).
 name: pah-conda
 channels:
   - conda-forge
+  - bioconda
 dependencies:
   - python=3.12
-  - openff-toolkit-base
-  - fpocket
+  # l4.minimisation_drift worker (src/pah/checks/minimise_worker.py)
+  - openmm=8.6.1
+  - pdbfixer=1.12
+  - openmmforcefields=0.16.0
+  - openff-toolkit-base=0.19.0
+  - rdkit=2026.03.1
+  # l4.protein.geometry: MolProbity validation from cctbx/mmtbx (BSD-3-Clause-LBNL), with
+  # the Top8000 rotamer and Ramachandran contours in chem_data/rotarama_data, plus the
+  # Richardson lab reduce (hydrogens) and probe (all-atom contacts) binaries
+  - cctbx-base=2026.1
+  - reduce=4.15
+  - probe=2.18
+  # pocket detection, P2Rank runtime, electrostatics
+  - fpocket=4.2.3
   - openjdk=17
-  - apbs
+  - apbs=3.4.1

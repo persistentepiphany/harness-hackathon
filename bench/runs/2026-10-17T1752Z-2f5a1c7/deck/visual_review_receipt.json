@@ -1,0 +1,99 @@
+{
+  "schema_version": "visual_review_receipt_v1",
+  "review_schema_version": "visual_judgment_v1",
+  "deck": {
+    "filename": "deck.pptx",
+    "sha256": "5de6f482c66c25d40101ed7a537eec35cf615f5cda3bfcb6bb47391c391d91e6",
+    "normalized_office_sha256": "5d5a71f39e907a56540aaa218f8e40e6afea5f7484e459bdc0ba2259c4b3f25f"
+  },
+  "renders": [
+    {
+      "name": "slide-01.jpg",
+      "sha256": "6c038ab0d499b48479cc21c5cdc54d00728372e4fc2af177acd96a43fd22b742",
+      "size_bytes": 78970
+    },
+    {
+      "name": "slide-02.jpg",
+      "sha256": "b9133102c4977402dcbc536bea140507eccef60d38f84113f27f2b55e632b75b",
+      "size_bytes": 132130
+    },
+    {
+      "name": "slide-03.jpg",
+      "sha256": "6a84bf7f7db8db627899f9a02534959e0fd07f903f3716f89b0b223469f3ea47",
+      "size_bytes": 154731
+    },
+    {
+      "name": "slide-04.jpg",
+      "sha256": "199496d096409a7c7d386db9c124f007edd5d3d87d2bfad86a277828a793aa46",
+      "size_bytes": 140271
+    },
+    {
+      "name": "slide-05.jpg",
+      "sha256": "94a5b259572e36b7477f44914940978a4c67baf780840be0b06048c90372dfc0",
+      "size_bytes": 162079
+    },
+    {
+      "name": "slide-06.jpg",
+      "sha256": "8c95965ada674b3ef483e13a52d45151c4ccef11b48372ecf5247d5c2aafa024",
+      "size_bytes": 117911
+    },
+    {
+      "name": "slide-07.jpg",
+      "sha256": "59a612fe48fd260702d69dd6f68274fa36724ef2d7f5734f612ad59df67537c4",
+      "size_bytes": 124359
+    },
+    {
+      "name": "slide-08.jpg",
+      "sha256": "052eb2fbbc1f158d2f566b52089fadc2c4ef4c8a2808fa13482c53d6d20206ca",
+      "size_bytes": 122162
+    }
+  ],
+  "render_count": 8,
+  "reviewer": {
+    "type": "model",
+    "name": "automated visual review of rendered slides"
+  },
+  "verdict": "pass",
+  "findings": [
+    {
+      "slide": 2,
+      "severity": "info",
+      "message": "Table index strip repeats the column headers; template accessibility metadata."
+    },
+    {
+      "slide": 3,
+      "severity": "info",
+      "message": "Confidence value wraps inside the left card; fully legible, lower third empty."
+    },
+    {
+      "slide": 4,
+      "severity": "info",
+      "message": "Two PyMOL panels with subfigure labels A and B; caption states each panel is oriented on its own ligand."
+    },
+    {
+      "slide": 5,
+      "severity": "info",
+      "message": "Named per-system table renders four rows; CDK2 Boltz-2 reads 5 of 9 wild type against 1 perturbed; FtsE perturbed medoids 15.919 and 17.699 A, matching the fact files."
+    },
+    {
+      "slide": 6,
+      "severity": "info",
+      "message": "Decision grid legible at panel size; row labels and prediction names readable."
+    },
+    {
+      "slide": 7,
+      "severity": "info",
+      "message": "Aggregate chart with legend above the axes; three sidebar sections fit the rail; counts moved to the caption."
+    },
+    {
+      "slide": 8,
+      "severity": "info",
+      "message": "Two cards with headings aligned and one-line bullets; empty band below."
+    }
+  ],
+  "reviewed_at": "2026-10-17T20:41:09+00:00",
+  "review_context": {
+    "renders": "bench/runs/2026-10-17T1752Z-2f5a1c7/deck/qa/renders/slide-01..08.jpg",
+    "method": "each slide image inspected at full resolution for clipping, overlap, alignment and legibility; slide 5 and slide 7 values checked against facts/ and results/stats.json"
+  }
+}

@@ -27,6 +27,7 @@ from pah.core.models import (
     utcnow,
 )
 from pah.core.policy import Verdict, decide
+from pah.core.standing import StandingTable, apply_policy
 from pah.core.task import PRE_RUN_LAYERS
 
 LAYER_NAMES = {
@@ -82,10 +83,21 @@ def _missing_modules(modules: tuple[str, ...]) -> list[str]:
 
 
 class Engine:
-    def __init__(self, bus: EventBus, ctx: CheckContext, *, halt_on_stop: bool = True) -> None:
+    """`standing` is the gate-policy table (configs/standing.yaml when None): a stop from a check
+    that may not decide is recorded as a narrowing warning (pah.core.standing.apply_policy)."""
+
+    def __init__(
+        self,
+        bus: EventBus,
+        ctx: CheckContext,
+        *,
+        halt_on_stop: bool = True,
+        standing: StandingTable | None = None,
+    ) -> None:
         self._bus = bus
         self._ctx = ctx
         self._halt_on_stop = halt_on_stop
+        self._standing = standing
 
     def run(self, layers: tuple[int, ...]) -> RunRecord:
         ctx = self._ctx
@@ -105,6 +117,8 @@ class Engine:
             f"task={task.id} layers={','.join(map(str, layers))} claim={claim!r}",
             task=task.id,
             layers=list(layers),
+            claim=claim,
+            manifest=record.manifest,
         )
         self._register_inputs()
         halted_by: str | None = None
@@ -112,7 +126,9 @@ class Engine:
             ids = task.layers.get(layer, ())
             name = LAYER_NAMES.get(Layer(layer), str(layer))
             stage = f"L{layer}"
-            self._bus.emit(EventKind.STAGE_START, stage, f"{name}: {len(ids)} checks")
+            self._bus.emit(
+                EventKind.STAGE_START, stage, f"{name}: {len(ids)} checks", checks=list(ids)
+            )
             layer_findings: list[Finding] = []
             for cid in ids:
                 if halted_by:
@@ -121,7 +137,7 @@ class Engine:
                     )
                 else:
                     finding = self._run_check(cid, layer)
-                finding = self._escalate(finding)
+                finding = apply_policy(self._escalate(finding), self._standing)
                 layer_findings.append(finding)
                 record.findings.append(finding)
                 self._write(finding)

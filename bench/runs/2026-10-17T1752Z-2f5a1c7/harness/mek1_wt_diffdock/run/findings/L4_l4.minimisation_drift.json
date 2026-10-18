@@ -1,0 +1,81 @@
+{
+  "check_id": "l4.minimisation_drift",
+  "layer": 4,
+  "gate": "pass",
+  "message": "diffdock/seed4/mode0 moves 1.045 Å under restrained minimisation; 1 of 3 poses above 2.0 Å",
+  "measurements": [
+    {
+      "name": "poses",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "drift_A",
+      "value": 1.045,
+      "unit": null
+    },
+    {
+      "name": "max_drift_A",
+      "value": 2.001,
+      "unit": null
+    },
+    {
+      "name": "poses_over",
+      "value": 1,
+      "unit": null
+    },
+    {
+      "name": "failed",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "drift",
+      "value": 2.0,
+      "comparator": "<=",
+      "origin": "Specification layer 4: warn when the pose moves beyond 2 Å under restrained minimisation",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "representative": "diffdock/seed4/mode0",
+    "poses": [
+      {
+        "pose": "diffdock/seed4/mode0",
+        "drift_A": 1.045,
+        "energy_before_kJ": 1229171.4,
+        "energy_after_kJ": 8883.9,
+        "converged": true,
+        "openmm": "8.6.1",
+        "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
+      },
+      {
+        "pose": "diffdock/seed5/mode0",
+        "drift_A": 2.001,
+        "energy_before_kJ": 5782110.4,
+        "energy_after_kJ": 9943.3,
+        "converged": true,
+        "openmm": "8.6.1",
+        "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
+      },
+      {
+        "pose": "diffdock/seed6/mode0",
+        "drift_A": 0.871,
+        "energy_before_kJ": 5347466.0,
+        "energy_after_kJ": 9787.6,
+        "converged": true,
+        "openmm": "8.6.1",
+        "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
+      }
+    ],
+    "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "openmm",
+    "version": "8.6.1"
+  },
+  "duration_s": 126.668
+}

@@ -16,6 +16,7 @@ from pah.sources.clients import (
     PubChemCompound,
     SiftsMapping,
     SiftsSegment,
+    UniProtAnnotations,
     UniProtEntry,
 )
 
@@ -31,8 +32,15 @@ CANONICAL = frozenset("ACDEFGHIKLMNPQRSTVWY")
 
 
 def threshold(
-    name: str, value: Any, comparator: str, origin: str, level: str = "uncalibrated"
+    name: str,
+    value: Any,
+    comparator: str,
+    origin: str,
+    level: str = "uncalibrated",
+    *,
+    measurement: str | None = None,
 ) -> Threshold:
+    """A threshold with its origin; `measurement` names the measurement it is compared with."""
     return Threshold.model_validate(
         {
             "name": name,
@@ -40,6 +48,7 @@ def threshold(
             "comparator": comparator,
             "origin": origin,
             "evidence_level": level,
+            "measurement": measurement,
         }
     )
 
@@ -55,6 +64,12 @@ def _memo(ctx: CheckContext, key: str, fetch: Any) -> Any:
 
 def uniprot(ctx: CheckContext, accession: str) -> UniProtEntry:
     return _memo(ctx, f"uniprot:{accession}", lambda: ctx.sources.uniprot.entry(accession))
+
+
+def uniprot_annotations(ctx: CheckContext, accession: str) -> UniProtAnnotations:
+    return _memo(
+        ctx, f"uniprot_ann:{accession}", lambda: ctx.sources.uniprot.annotations(accession)
+    )
 
 
 def pdb_entry(ctx: CheckContext, pdb_id: str) -> PdbEntry:
@@ -295,3 +310,32 @@ def reference_inchikeys(ctx: CheckContext, lig: LigandInput) -> dict[str, str]:
     if lig.pubchem_cid:
         refs[f"PubChem {lig.pubchem_cid}"] = pubchem(ctx, lig.pubchem_cid).inchikey
     return refs
+
+
+def read_a3m(path: Path) -> list[tuple[str, str]]:
+    """Records of an A3M file, or of a Boltz MSA CSV (`key,sequence`; key -1 means unpaired,
+    other keys pair rows across chains and become the header `key=<k>`)."""
+    if path.suffix.lower() == ".csv":
+        import csv
+
+        with path.open(newline="") as fh:
+            return [
+                (f"key={row['key']}", row["sequence"].strip())
+                for row in csv.DictReader(fh)
+                if row.get("sequence")
+            ]
+    records: list[tuple[str, str]] = []
+    header: str | None = None
+    parts: list[str] = []
+    for line in path.read_text().splitlines():
+        if line.startswith("#"):
+            continue
+        if line.startswith(">"):
+            if header is not None:
+                records.append((header, "".join(parts)))
+            header, parts = line[1:].strip(), []
+        elif header is not None:
+            parts.append(line.strip())
+    if header is not None:
+        records.append((header, "".join(parts)))
+    return records

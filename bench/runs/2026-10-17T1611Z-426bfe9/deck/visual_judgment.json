@@ -1,0 +1,50 @@
+{
+  "schema_version": "visual_judgment_v1",
+  "reviewer": {
+    "type": "model",
+    "name": "automated visual review of rendered slides"
+  },
+  "verdict": "pass",
+  "reviewed_at": "2026-10-17T20:41:09+00:00",
+  "review_context": {
+    "renders": "bench/runs/2026-10-17T1611Z-426bfe9/deck/qa/renders/slide-01..08.jpg",
+    "method": "each slide image inspected at full resolution for clipping, overlap, alignment and legibility; slide 5 and slide 7 values checked against facts/ and results/stats.json"
+  },
+  "findings": [
+    {
+      "slide": 2,
+      "severity": "info",
+      "message": "Table index strip repeats the column headers; template accessibility metadata."
+    },
+    {
+      "slide": 3,
+      "severity": "info",
+      "message": "Confidence value wraps inside the left card; fully legible, lower third empty."
+    },
+    {
+      "slide": 4,
+      "severity": "info",
+      "message": "Two PyMOL panels with subfigure labels A and B; caption states each panel is oriented on its own ligand."
+    },
+    {
+      "slide": 5,
+      "severity": "info",
+      "message": "Named per-system table renders four rows; CDK2 Boltz-2 reads 5 of 9 wild type against 1 perturbed; FtsE perturbed medoids 15.415 and 17.74 A, matching the fact files."
+    },
+    {
+      "slide": 6,
+      "severity": "info",
+      "message": "Decision grid legible at panel size; row labels and prediction names readable."
+    },
+    {
+      "slide": 7,
+      "severity": "info",
+      "message": "Aggregate chart with legend above the axes; three sidebar sections fit the rail; counts moved to the caption."
+    },
+    {
+      "slide": 8,
+      "severity": "info",
+      "message": "Two cards with headings aligned and one-line bullets; empty band below."
+    }
+  ]
+}

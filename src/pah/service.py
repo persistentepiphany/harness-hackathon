@@ -69,6 +69,7 @@ class RunResult:
             "run_dir": str(self.run_dir),
             "report_md": str(self.run_dir / "report.md") if self.report_files else None,
             "report_json": str(self.run_dir / "report.json") if self.report_files else None,
+            "report_html": str(self.run_dir / "report.html") if self.report_files else None,
             "report_error": self.report_error,
         }
 
@@ -111,6 +112,7 @@ def run_manifest(
     run_id: str | None = None,
     run_dir: Path | None = None,
     base_dir: Path | None = None,
+    seq_start: int = 0,
 ) -> RunResult:
     import pah.checks  # noqa: F401 - registers the check library
     from pah.core.check import CheckContext
@@ -133,7 +135,7 @@ def run_manifest(
     style: list[str] = []
     with (
         httpx.Client(follow_redirects=True, timeout=options.timeout) as client,
-        EventBus(run_id, [*sinks, JsonlSink(run_dir / "events.jsonl")]) as bus,
+        EventBus(run_id, [*sinks, JsonlSink(run_dir / "events.jsonl")], seq_start) as bus,
     ):
         sources = Sources(CachedHttp(client, cache, offline=offline, refresh=options.refresh))
         ctx = CheckContext(manifest, task, sources, run_dir)
@@ -267,3 +269,140 @@ class EventLog:
 
     events: list[dict[str, Any]] = field(default_factory=list)
     done: bool = False
+
+
+def dock_manifest(
+    source: Path,
+    profile: Profile,
+    out_dir: Path,
+    *,
+    seeds: Sequence[int] = (0, 1, 2, 3, 4),
+    exhaustiveness: int = 8,
+    redock: bool = True,
+    offline: bool | None = None,
+    sinks: Sequence[Sink] = (),
+) -> Path:
+    """Docks the manifest ligand with local Vina and writes `<out_dir>/manifest.yaml` with the
+    outputs declared as predictions (and, with `redock`, the crystal ligand redocked as the
+    redocking control). Returns the path of the new manifest."""
+    import os
+
+    import yaml
+
+    from pah.checks import outputs
+    from pah.core.check import CheckContext
+    from pah.core.task import load_task
+    from pah.executors.vina_local import box_from_reference, run_vina
+    from pah.sources import CachedHttp, ContentCache, Sources
+
+    manifest = manifest_from(source)
+    out_dir = out_dir.resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    cache = ContentCache(resolve_path(profile.cache_dir))
+    is_offline = profile.offline if offline is None else offline
+    with (
+        httpx.Client(follow_redirects=True, timeout=30.0) as client,
+        EventBus(f"dock-{out_dir.name}", [*sinks, JsonlSink(out_dir / "events.jsonl")]) as bus,
+    ):
+        ctx = CheckContext(
+            manifest,
+            load_task(manifest.task),
+            Sources(CachedHttp(client, cache, offline=is_offline)),
+            out_dir,
+        )
+        receptor = outputs.receptor_path(ctx)
+        if receptor is None:
+            raise InputError("dock: no receptor file or reference entry in the manifest")
+        ref = outputs.reference_ligand(ctx)
+        if manifest.docking_box:
+            center, size = list(manifest.docking_box.center), list(manifest.docking_box.size)
+            origin = manifest.docking_box.origin
+        elif ref is not None:
+            center, size = box_from_reference(ref.coords)
+            origin = f"{ref.code} in {ref.source} extent + 4 Å"
+        else:
+            raise InputError("dock: no docking box and no reference ligand to derive one")
+
+        def log(msg: str) -> None:
+            bus.emit(EventKind.LOG, "dock", msg)
+
+        bus.emit(EventKind.STAGE_START, "dock", f"vina, {len(seeds)} seeds, box {origin}")
+        run = run_vina(
+            manifest,
+            receptor,
+            out_dir / "pose",
+            center=center,
+            size=size,
+            box_origin=origin,
+            seeds=seeds,
+            exhaustiveness=exhaustiveness,
+            log=log,
+        )
+        control = None
+        if redock and ref is not None:
+            cc = ctx.sources.rcsb.chemcomp(ref.code)
+            smiles = cc.smiles_stereo or cc.smiles
+            if smiles:
+                control = run_vina(
+                    manifest,
+                    receptor,
+                    out_dir / "redock",
+                    smiles=smiles,
+                    center=center,
+                    size=size,
+                    box_origin=origin,
+                    seeds=seeds[:1],
+                    exhaustiveness=exhaustiveness,
+                    log=log,
+                )
+        bus.emit(EventKind.STAGE_END, "dock", f"{len(run.outputs)} pose files", status="ok")
+
+    def rel(p: Path) -> str:
+        return os.path.relpath(manifest.path(p) if not p.is_absolute() else p, out_dir)
+
+    data = manifest.model_dump(mode="json", exclude_none=True)
+    for lig in data.get("ligands", []):
+        if "file" in lig:
+            lig["file"] = rel(Path(lig["file"]))
+    for prot in data.get("proteins", []):
+        if "msa" in prot:
+            prot["msa"] = rel(Path(prot["msa"]))
+    if data.get("receptor", {}).get("file"):
+        data["receptor"]["file"] = rel(Path(data["receptor"]["file"]))
+    data["model"] = {
+        "executor": "vina",
+        "version": run.vina_version or "unknown",
+        "seeds": list(seeds),
+    }
+    data["docking_box"] = {"center": run.center, "size": run.size, "origin": origin}
+    data["predictions"] = [
+        {
+            "executor": "vina",
+            "path": "pose",
+            "role": "primary",
+            "version": run.vina_version,
+            "receptor": "pose/receptor_H.pdb",
+            "seeds": list(seeds),
+            "settings": run.settings(),
+        }
+    ]
+    if control is not None:
+        data.setdefault("controls", {})["redocking"] = {
+            "executor": "vina",
+            "path": "redock",
+            "role": "control",
+            "receptor": "redock/receptor_H.pdb",
+            "seeds": list(seeds[:1]),
+            "settings": control.settings(),
+        }
+        data.setdefault(
+            "reference",
+            {"pdb_id": outputs.reference_ids(ctx)[0], "ligand": ref.code if ref else None},
+        )
+    path = out_dir / "manifest.yaml"
+    header = (
+        f"# Written by `pah dock` from {source}. Vina {run.vina_version}, "
+        f"exhaustiveness {exhaustiveness}, seeds {list(seeds)}.\n"
+    )
+    path.write_text(header + yaml.safe_dump(data, sort_keys=False, allow_unicode=True))
+    return path

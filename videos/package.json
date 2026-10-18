@@ -1,0 +1,33 @@
+{
+  "name": "harness-videos",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Product films for the Harness web UI, built with Remotion. Separate workspace: it never resolves the web app's Tailwind.",
+  "scripts": {
+    "setup": "bash scripts/setup-assets.sh",
+    "studio": "remotion studio src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "audio": "uv run --no-project --with numpy --with imageio-ffmpeg python3 scripts/music.py && uv run --no-project --with numpy --with imageio-ffmpeg python3 scripts/sfx.py",
+    "beats": "mkdir -p out && uv run --no-project --with numpy --with imageio-ffmpeg python3 scripts/beats.py --drums public/audio/demo-b/stems/drums.wav --out out/beats-tempo.json && uv run --no-project --with numpy --with imageio-ffmpeg python3 scripts/beats.py --drums public/audio/demo-b/stems/kick.wav --bpm 99.999 --stem hats=public/audio/demo-b/stems/hats.wav --stem pad=public/audio/demo-b/stems/pad.wav --stem pluck=public/audio/demo-b/stems/pluck.wav --stem bass=public/audio/demo-b/stems/bass.wav --out src/videos/demo-b/beats.json",
+    "render": "bun scripts/render.ts DemoB demo-b --duration 120 --poster 114 --subframes 1 --jpeg",
+    "data": "python3 scripts/extract-data.py",
+    "verify": "uv run --no-project --with numpy --with imageio-ffmpeg python3 scripts/verify.py out/demo-b --duration 120 --bg 247,247,244 --no-seam",
+    "srt": "bun scripts/srt.ts",
+    "stills": "bun scripts/stills.ts out/review 600 2400 4800 --composition DemoB"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.531",
+    "@remotion/cli": "4.0.531",
+    "@remotion/fonts": "4.0.531",
+    "@remotion/renderer": "4.0.531",
+    "geist": "1.8.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.531"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/node": "22.20.5",
+    "typescript": "5.9.3"
+  }
+}

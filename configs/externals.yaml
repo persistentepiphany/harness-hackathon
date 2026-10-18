@@ -119,9 +119,71 @@ assets:
     env_var: PAH_PYDOCK_HOME
     instructions: Academic licence from the pyDock authors; set PAH_PYDOCK_HOME to the install path.
 
+  - id: molprobity_data
+    kind: command
+    description: MolProbity reference data (Top8000 rotamer, Ramachandran and CaBLAM contours, Top8000 Rama-Z table, CCP4 and GeoStd monomer libraries) and the cctbx registration of reduce and probe
+    required_for: [layer4.molprobity]
+    requires: [git, curl, sha256sum, molprobity.molprobity, reduce, probe]
+    dest: data/chem_data
+    size_hint: ~2.3 GB (GeoStd 1.9 GB, CaBLAM contours 0.2 GB)
+    source: cctbx_project libtbx/auto_build/bootstrap.py (chem_data, geostd modules); gitlab.com/phenix_project/chem_data 7b10568d; github.com/phenix-project/geostd f4d21cc5
+    instructions: Needs the conda prefix from environment/conda.yml (cctbx-base, reduce, probe) on PATH or in PAH_CONDA_PREFIX.
+    command:
+      - bash
+      - -c
+      - |
+        set -eu
+        # MolProbity reference data and cctbx registration of reduce and probe, into the conda prefix
+        # that holds cctbx-base, reduce and probe (environment/conda.yml). Run from the asset directory.
+        PREFIX="${PAH_CONDA_PREFIX:-$(dirname "$(dirname "$(command -v molprobity.molprobity)")")}"
+        CHEM_DATA=7b10568d6c4f0f91d35e04d3846cbf421763d792
+        GEOSTD=f4d21cc5f4dbf84f55cc972fb6b287354300ab2d
+        RAMA_Z=6205a5b4648b03ad2398336faddacf5633553399ce162e456bb0fbc66a55f6b6
+        HERE="$(pwd)"
+        rm -rf src rotarama_data cablam_data mon_lib rama_z geostd
+        git init -q src
+        git -C src remote add origin https://gitlab.com/phenix_project/chem_data.git
+        git -C src sparse-checkout set --no-cone /rotarama_data/ /cablam_data/ /mon_lib/
+        GIT_LFS_SKIP_SMUDGE=1 git -C src fetch -q --depth 1 origin "$CHEM_DATA"
+        GIT_LFS_SKIP_SMUDGE=1 git -C src -c advice.detachedHead=false checkout -q FETCH_HEAD
+        mv src/rotarama_data src/cablam_data src/mon_lib . && rm -rf src
+        mkdir -p rama_z
+        curl -fsSL -o rama_z/top8000_rama_z_dict.pkl \
+          "https://gitlab.com/phenix_project/chem_data.git/gitlab-lfs/objects/$RAMA_Z"
+        echo "$RAMA_Z  rama_z/top8000_rama_z_dict.pkl" | sha256sum -c -
+        git init -q geostd
+        git -C geostd remote add origin https://github.com/phenix-project/geostd.git
+        git -C geostd fetch -q --depth 1 origin "$GEOSTD"
+        git -C geostd -c advice.detachedHead=false checkout -q FETCH_HEAD
+        rm -rf geostd/.git
+        printf 'chem_data %s\ngeostd %s\nrama_z sha256 %s\n' "$CHEM_DATA" "$GEOSTD" "$RAMA_Z" > SOURCES.txt
+        ln -sfn "$HERE" "$PREFIX/chem_data"
+        "$PREFIX/bin/mmtbx.rebuild_rotarama_cache" > /dev/null
+        "$PREFIX/bin/mmtbx.rebuild_cablam_cache" > /dev/null
+        # cctbx calls reduce as molprobity.reduce and probe from <build>/probe/exe/probe, and only when
+        # both are registered modules of the libtbx environment.
+        BUILD="$PREFIX/share/cctbx"
+        mkdir -p "$BUILD/probe/exe" "$BUILD/reduce/exe"
+        ln -sfn "$PREFIX/bin/probe" "$BUILD/probe/exe/probe"
+        ln -sfn "$PREFIX/bin/reduce" "$BUILD/reduce/exe/reduce"
+        # reduce 4.15 returns 255 (ret = -1 in reduce_src/main.cpp) whenever no optimisation runs, as
+        # for -trim; cctbx reads that as a crash. The wrapper maps that one code to 0.
+        printf '%s\n' '#!/bin/sh' '"$(dirname "$0")/reduce" "$@"' 'rc=$?' \
+          '[ "$rc" -eq 255 ] && exit 0' 'exit "$rc"' > "$PREFIX/bin/molprobity.reduce"
+        chmod +x "$PREFIX/bin/molprobity.reduce"
+        "$PREFIX/bin/python" -I -c '
+        import libtbx.load_env, libtbx
+        env = libtbx.env
+        for name in ("reduce", "probe"):
+            env.module_dist_paths[name] = env.as_relocatable_path(str(abs(env.build_path)) + "/" + name)
+        env.pickle()
+        '
+        "$PREFIX/bin/molprobity.molprobity" --help 2>&1 | grep -q "Usage:"
+
   - id: phenix
     kind: manual
-    description: Phenix (MolProbity validation)
+    description: Phenix (alternative MolProbity install; the default is cctbx-base from environment/conda.yml)
     required_for: [layer4.molprobity]
+    default: false
     env_var: PAH_PHENIX_HOME
     instructions: Academic licence from phenix-online.org; set PAH_PHENIX_HOME and put phenix.molprobity on PATH.

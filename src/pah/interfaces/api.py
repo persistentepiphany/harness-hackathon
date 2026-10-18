@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import threading
 from collections.abc import AsyncIterator, Callable, Sequence
 from concurrent.futures import ThreadPoolExecutor
@@ -19,12 +20,13 @@ from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
 from pah import __version__
-from pah.config import Profile
+from pah.api.routes import ui_router
+from pah.config import Profile, resolve_path
 from pah.core.events import CallbackSink, Sink, new_run_id
 from pah.core.models import Event
 from pah.service import (
@@ -84,12 +86,15 @@ class Job:
                 "events": f"/runs/{self.id}/events",
                 "report_md": f"/runs/{self.id}/report?format=md",
                 "report_json": f"/runs/{self.id}/report?format=json",
+                "report_html": f"/runs/{self.id}/report?format=html",
+                "record": f"/runs/{self.id}/record",
+                "log": f"/jobs/{self.id}/log",
             },
         }
 
 
 class JobStore:
-    def __init__(self, workers: int = 2) -> None:
+    def __init__(self, workers: int = 4) -> None:
         self._jobs: dict[str, Job] = {}
         self._lock = threading.Lock()
         self._pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="pah-job")
@@ -113,7 +118,9 @@ class JobStore:
         self._pool.submit(run)
 
 
-def create_app(profile: Profile, allow_origins: Sequence[str] = ()) -> FastAPI:
+def create_app(
+    profile: Profile, allow_origins: Sequence[str] = (), *, log_idle_s: float = 600.0
+) -> FastAPI:
     app = FastAPI(
         title="Prediction assurance harness",
         version=__version__,
@@ -127,16 +134,32 @@ def create_app(profile: Profile, allow_origins: Sequence[str] = ()) -> FastAPI:
             allow_headers=["*"],
         )
     jobs = JobStore()
+    app.include_router(ui_router(profile, log_idle_s=log_idle_s))
+    try:  # web UI routes under /ui (docs/UI.md); native routes serve without them
+        from pah.webui import install_ui
+    except ImportError as exc:
+        logging.getLogger(__name__).warning("ui routes not mounted: %s", exc)
+    else:
+        install_ui(app, profile, jobs)
 
     def _run_dir(job_id: str) -> Path:
+        if job_id == "uploads":  # every client's uploaded files: not a run, not served
+            raise HTTPException(404, f"no run {job_id!r}")
         try:
             return run_dir_for(profile, job_id)
         except InputError as exc:
             raise HTTPException(400, str(exc)) from exc
 
     @app.get("/health")
-    def health() -> dict[str, str]:
-        return {"status": "ok", "version": __version__, "profile": profile.name}
+    def health() -> dict[str, Any]:
+        return {
+            "status": "ok",
+            "ok": True,
+            "version": __version__,
+            "profile": profile.name,
+            "runs_dir": str(resolve_path(profile.runs_dir)),
+            "mode": "live",
+        }
 
     @app.get("/tasks")
     def tasks() -> list[dict[str, Any]]:
@@ -222,12 +245,14 @@ def create_app(profile: Profile, allow_origins: Sequence[str] = ()) -> FastAPI:
 
     @app.get("/runs/{job_id}/report", response_model=None)
     def report(
-        job_id: str, format: Literal["md", "json"] = "md"
-    ) -> PlainTextResponse | JSONResponse:
+        job_id: str, format: Literal["md", "json", "html"] = "md"
+    ) -> PlainTextResponse | JSONResponse | HTMLResponse:
         d = _run_dir(job_id)
         for name in (f"report.{format}", f"batch_report.{format}"):
             if (d / name).is_file():
                 text = (d / name).read_text()
+                if format == "html":
+                    return HTMLResponse(text)
                 if format == "json":
                     return JSONResponse(json.loads(text))
                 return PlainTextResponse(text, media_type="text/markdown")
@@ -249,11 +274,14 @@ def create_app(profile: Profile, allow_origins: Sequence[str] = ()) -> FastAPI:
 
     @app.get("/runs/{job_id}/files/{rel:path}")
     def files(job_id: str, rel: str) -> FileResponse:
-        root = _run_dir(job_id).resolve()
-        target = (root / rel).resolve()
-        if not target.is_relative_to(root) or not target.is_file():
-            raise HTTPException(404, "file not found in run directory")
-        return FileResponse(target)
+        from pah.webui.store import RunStore, file_headers, media_type
+
+        root = _run_dir(job_id)  # 400 for an invalid run id
+        try:  # no `..`, absolute paths or symlinks that leave the run directory
+            target = RunStore(root.parent).resolve_file(job_id, rel)
+        except (ValueError, LookupError, OSError) as exc:
+            raise HTTPException(404, "file not found in run directory") from exc
+        return FileResponse(target, media_type=media_type(target), headers=file_headers(target))
 
     return app
 

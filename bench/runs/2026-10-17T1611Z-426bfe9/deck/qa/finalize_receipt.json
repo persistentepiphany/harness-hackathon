@@ -1,0 +1,126 @@
+{
+  "contact_sheet": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/deck/qa/visual_review/contact_sheet.jpg",
+  "failed_stage": "",
+  "failure_category": "passed",
+  "generated_at": "2026-10-17T20:40:09.106581+00:00",
+  "next_action": "Inspect the rendered slides, repair any visual defects in source, and record the visual judgment before delivery.",
+  "outline": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/deck/outline.json",
+  "outline_sha256": "6916acf51faa3f511b41f42f70f93f4dd03a6a2f364ed2f3d81b64ea1eacbc89",
+  "output": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/results/deck.pptx",
+  "output_exists": true,
+  "output_sha256": "349f8b463be5c32b437d2b70dbb815251f0cbcc94dbc8326c23966c6884e3799",
+  "passed": true,
+  "qa_counts": {
+    "accessibility_error_count": 0,
+    "accessibility_warning_count": 0,
+    "design_error_count": 0,
+    "design_warning_count": 0,
+    "geometry_error_count": 0,
+    "geometry_warning_count": 0,
+    "overflow_count": 0,
+    "overlap_count": 0,
+    "source_fidelity_error_count": 0,
+    "source_fidelity_warning_count": 0,
+    "visual_review_warning_count": 0,
+    "visual_warning_count": 0,
+    "whitespace_warning_count": 0
+  },
+  "qa_dir": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/deck/qa",
+  "qa_report": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/deck/qa/qa_report.json",
+  "readability": {
+    "min_body_pt": 16.0,
+    "min_metadata_pt": 9.0,
+    "min_support_pt": 13.0
+  },
+  "render_cache": {
+    "directory": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/deck/qa/.render-cache",
+    "key": "998e2461cddc04ae3fcaffb026c0fce3cd75a92f795fbd9ac0de4f244cb1643c",
+    "reason": "absent_or_invalid",
+    "status": "miss"
+  },
+  "render_status": "passed",
+  "repair_packet": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/deck/qa/repair_packet.json",
+  "schema_version": "quick-deck-finalization/v1",
+  "stages": [
+    {
+      "accepted": true,
+      "accepted_returncodes": [
+        0,
+        1
+      ],
+      "command": [
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/.venv/bin/python",
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/scripts/preflight.py",
+        "--outline",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/deck/outline.json"
+      ],
+      "duration_seconds": 0.366,
+      "returncode": 0,
+      "stage": "preflight"
+    },
+    {
+      "accepted": true,
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "/opt/node22/bin/node",
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/scripts/build_deck_pptxgenjs.js",
+        "--outline",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/deck/outline.json",
+        "--output",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/results/deck.pptx",
+        "--style-preset",
+        "lab-report"
+      ],
+      "duration_seconds": 4.311,
+      "output_sha256_after_restore": "349f8b463be5c32b437d2b70dbb815251f0cbcc94dbc8326c23966c6884e3799",
+      "previous_output_bytes_restored": false,
+      "returncode": 0,
+      "stage": "build"
+    },
+    {
+      "accepted": true,
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/.venv/bin/python",
+        "/home/user/harness-hackathon/.claude/skills/presentation-skill/scripts/qa_gate.py",
+        "--input",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/results/deck.pptx",
+        "--outline",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/deck/outline.json",
+        "--outdir",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/deck/qa",
+        "--style-preset",
+        "lab-report",
+        "--strict-geometry",
+        "--fail-on-geometry-warnings",
+        "--fail-on-whitespace-warnings",
+        "--run-visual-review",
+        "--fail-on-visual-review-warnings",
+        "--fail-on-design-warnings",
+        "--accessibility",
+        "--strict-accessibility",
+        "--accessibility-min-body-pt",
+        "16.0",
+        "--accessibility-min-support-pt",
+        "13.0",
+        "--accessibility-min-metadata-pt",
+        "9.0",
+        "--skip-manual-review",
+        "--render-cache-dir",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/deck/qa/.render-cache"
+      ],
+      "duration_seconds": 13.691,
+      "returncode": 0,
+      "stage": "qa"
+    }
+  ],
+  "style_preset": "lab-report",
+  "style_resolution_basis": "outline_design_choice",
+  "timing_scope": "Pipeline only; excludes model authoring and visual judgment.",
+  "total_duration_seconds": 18.368,
+  "visual_inspection_status": "not_recorded"
+}

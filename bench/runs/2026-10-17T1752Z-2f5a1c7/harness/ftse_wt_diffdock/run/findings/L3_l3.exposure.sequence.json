@@ -1,0 +1,57 @@
+{
+  "check_id": "l3.exposure.sequence",
+  "layer": 3,
+  "gate": "pass",
+  "message": "protein: 0 entries at 95 percent identity, 6 at 40 percent, released before 2019-01-01 (reported, not gating)",
+  "measurements": [
+    {
+      "name": "cutoff",
+      "value": "2019-01-01",
+      "unit": null
+    },
+    {
+      "name": "entries_95",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "entries_40",
+      "value": 6,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "identity",
+      "value": 0.4,
+      "comparator": "<",
+      "origin": "Specification layer 3: conventional 40 percent identity leakage threshold, reported as a secondary measure only",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "proteins": [
+      {
+        "protein": "protein",
+        "entries_95": 0,
+        "examples_95": [],
+        "entries_40": 6,
+        "examples_40": [
+          "3TUI",
+          "3TUJ",
+          "3TUZ",
+          "6CVL",
+          "3DHW"
+        ]
+      }
+    ],
+    "model": "diffdock",
+    "gating": false
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "RCSB search (sequence, MMseqs2)",
+    "version": null
+  },
+  "duration_s": 0.0
+}

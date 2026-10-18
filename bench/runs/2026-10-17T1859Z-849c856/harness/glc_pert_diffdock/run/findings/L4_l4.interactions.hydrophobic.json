@@ -1,0 +1,66 @@
+{
+  "check_id": "l4.interactions.hydrophobic",
+  "layer": 4,
+  "gate": "pass",
+  "message": "nonpolar fraction of protein contacts around 3 buried nonpolar ligand atoms in diffdock/seed7/mode0: 0.537",
+  "measurements": [
+    {
+      "name": "poses",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "complementarity",
+      "value": 0.537,
+      "unit": null
+    },
+    {
+      "name": "buried_nonpolar",
+      "value": 3,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "fraction",
+      "value": 0.35,
+      "comparator": ">=",
+      "origin": "Harness default anchored on 3PTB: the crystal benzamidine scores 0.51, Vina and Boltz-2 poses within 0.5 Å of it score 0.45 and 0.49; not calibrated on the benchmark",
+      "evidence_level": "uncalibrated"
+    },
+    {
+      "name": "relative_sasa",
+      "value": 0.1,
+      "comparator": "<",
+      "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "representative": "diffdock/seed7/mode0",
+    "poses": [
+      {
+        "pose": "diffdock/seed7/mode0",
+        "buried_nonpolar": 3,
+        "complementarity": 0.537
+      },
+      {
+        "pose": "diffdock/seed8/mode0",
+        "buried_nonpolar": 5,
+        "complementarity": 0.681
+      },
+      {
+        "pose": "diffdock/seed9/mode0",
+        "buried_nonpolar": 6,
+        "complementarity": 0.593
+      }
+    ],
+    "method": "mean, over buried ligand C, S and halogen atoms (relative SASA below 0.1), of the fraction of protein heavy atoms within 4.5 Å that are C or S"
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "freesasa",
+    "version": null
+  },
+  "duration_s": 0.323
+}

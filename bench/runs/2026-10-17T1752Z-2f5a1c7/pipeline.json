@@ -1,0 +1,121 @@
+{
+  "run_id": "2026-10-17T1752Z-2f5a1c7",
+  "stages": [
+    {
+      "stage": "prep",
+      "cmd": [
+        "bench/prep/fetch_and_perturb.py",
+        "--config",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/config/targets.yaml",
+        "--out",
+        "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/prep"
+      ],
+      "rc": 0,
+      "seconds": 1.5
+    },
+    {
+      "stage": "predict",
+      "cmd": [
+        "run",
+        "bench/modal/perturbation_app.py::predict_all",
+        "--run-id",
+        "2026-10-17T1752Z-2f5a1c7"
+      ],
+      "rc": 0,
+      "seconds": 766.7
+    },
+    {
+      "stage": "predict",
+      "cmd": [
+        "run",
+        "bench/modal/perturbation_app.py::fetch_all",
+        "--run-id",
+        "2026-10-17T1752Z-2f5a1c7"
+      ],
+      "rc": 0,
+      "seconds": 50.7
+    },
+    {
+      "stage": "checks",
+      "cmd": [
+        "bench/checks/run_checks.py",
+        "--run-id",
+        "2026-10-17T1752Z-2f5a1c7",
+        "--jobs",
+        "3"
+      ],
+      "rc": 0,
+      "seconds": 1456.3
+    },
+    {
+      "stage": "agent",
+      "cmd": [
+        "bench/agent/decide.py",
+        "--run-id",
+        "2026-10-17T1752Z-2f5a1c7"
+      ],
+      "rc": 0,
+      "seconds": 652.7
+    },
+    {
+      "stage": "score",
+      "cmd": [
+        "bench/analysis/score.py",
+        "--run-id",
+        "2026-10-17T1752Z-2f5a1c7"
+      ],
+      "rc": 0,
+      "seconds": 2.0
+    },
+    {
+      "stage": "report",
+      "cmd": [
+        "bench/analysis/report.py",
+        "--run-id",
+        "2026-10-17T1752Z-2f5a1c7"
+      ],
+      "rc": 0,
+      "seconds": 0.5
+    },
+    {
+      "stage": "deck",
+      "cmd": [
+        "bench/analysis/deck.py",
+        "--run-id",
+        "2026-10-17T1752Z-2f5a1c7"
+      ],
+      "rc": 0,
+      "seconds": 5.9
+    },
+    {
+      "stage": "score",
+      "cmd": [
+        "bench/analysis/score.py",
+        "--run-id",
+        "2026-10-17T1752Z-2f5a1c7"
+      ],
+      "rc": 0,
+      "seconds": 1.9
+    },
+    {
+      "stage": "report",
+      "cmd": [
+        "bench/analysis/report.py",
+        "--run-id",
+        "2026-10-17T1752Z-2f5a1c7"
+      ],
+      "rc": 0,
+      "seconds": 0.5
+    },
+    {
+      "stage": "deck",
+      "cmd": [
+        "bench/analysis/deck.py",
+        "--run-id",
+        "2026-10-17T1752Z-2f5a1c7"
+      ],
+      "rc": 0,
+      "seconds": 3.5
+    }
+  ]
+}

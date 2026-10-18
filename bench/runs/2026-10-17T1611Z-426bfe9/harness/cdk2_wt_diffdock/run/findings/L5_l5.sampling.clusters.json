@@ -1,0 +1,132 @@
+{
+  "check_id": "l5.sampling.clusters",
+  "layer": 5,
+  "gate": "pass",
+  "message": "medoid diffdock/seed3/mode0; 1 clusters, largest 3 of 3; pairwise RMSD median 1.01 Å (IQR 0.76 to 1.02); 3 of 3 poses within 4.0 Å of the site (ATP in 1B38); 3 of 3 poses within 2.0 Å of the medoid",
+  "measurements": [
+    {
+      "name": "poses",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "clusters",
+      "value": 1,
+      "unit": null
+    },
+    {
+      "name": "largest_cluster",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "pairwise_rmsd_median_A",
+      "value": 1.006,
+      "unit": null
+    },
+    {
+      "name": "within_medoid",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "in_site",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "best_sampled_rmsd_to_reference_A",
+      "value": 0.631,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "cluster_rmsd",
+      "value": 2.0,
+      "comparator": "<=",
+      "origin": "Specification layer 5: 2 Å symmetry-aware ligand RMSD (spyrmsd) separates pose clusters",
+      "evidence_level": "published"
+    },
+    {
+      "name": "site_distance",
+      "value": 4.0,
+      "comparator": "<=",
+      "origin": "Harness rule: a ligand centroid within 4 Å of the reference site centroid is placed in the site; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    },
+    {
+      "name": "largest_fraction",
+      "value": 0.5,
+      "comparator": ">=",
+      "origin": "Harness rule: the largest cluster holds at least half of the poses; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "poses": [
+      {
+        "pose": "diffdock/seed1/mode0",
+        "executor": "diffdock",
+        "seed": 1,
+        "sample": 0,
+        "cluster": 1,
+        "rmsd_to_medoid_A": 0.511,
+        "confidence": -0.27,
+        "site_distance_A": 0.16
+      },
+      {
+        "pose": "diffdock/seed2/mode0",
+        "executor": "diffdock",
+        "seed": 2,
+        "sample": 0,
+        "cluster": 1,
+        "rmsd_to_medoid_A": 1.006,
+        "confidence": -0.31,
+        "site_distance_A": 0.14
+      },
+      {
+        "pose": "diffdock/seed3/mode0",
+        "executor": "diffdock",
+        "seed": 3,
+        "sample": 0,
+        "cluster": 1,
+        "rmsd_to_medoid_A": 0.0,
+        "confidence": -0.34,
+        "site_distance_A": 0.05
+      }
+    ],
+    "medoid": "diffdock/seed3/mode0",
+    "frame": "1B38.cif",
+    "clusters": [
+      {
+        "id": 1,
+        "size": 3,
+        "medoid": "diffdock/seed3/mode0"
+      }
+    ],
+    "pairwise_rmsd_A": {
+      "median": 1.006,
+      "q1": 0.758,
+      "q3": 1.022,
+      "n": 3
+    },
+    "site_placement": "3 of 3 poses within 4.0 Å of the site (ATP in 1B38)",
+    "pose_accuracy": "3 of 3 poses within 2.0 Å of the medoid",
+    "sampling": {
+      "best_sampled_rmsd_to_reference_A": 0.631,
+      "pose": "diffdock/seed2/mode2"
+    },
+    "frame_ca_rmsd_A": {
+      "diffdock/seed1/mode0": 0.0,
+      "diffdock/seed2/mode0": 0.0,
+      "diffdock/seed3/mode0": 0.0
+    }
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "spyrmsd",
+    "version": "0.9.0"
+  },
+  "duration_s": 0.33
+}

@@ -1,0 +1,222 @@
+# Entity catalog: names the rule-based interpreter (pah.service.interpret) and the entity
+# resolver (GET /entities) recognise, plus the UI vocabulary for tools and tasks.
+#
+# Origin of the values:
+# - Ported from ENTITIES, TOOLS and TASKS in web/design/prototype/data/runs.js, in the same order,
+#   because the interpreter takes the first match in list order.
+# - Identity fields (accession, entry, organism, length, pdb, resolution, ccd, cid, chembl, formula,
+#   mw, inchikey, smiles, stereo, afPlddt) were checked against UniProt release 2026_03,
+#   RCSB PDB, PDBe SIFTS, AlphaFold DB v6, PubChem, the PDB CCD and ChEMBL on 2026-10-17.
+#   Where the prototype value disagreed, the public value is used and the line says so.
+# - Lines marked "prototype mock" keep a prototype value that was not checked against a source.
+#   GET /entities never reads them; it fetches every value it shows.
+# - stereo: tetrahedral stereocentres counted by RDKit 2026.09 on the SMILES given here.
+# - afPlddt: AlphaFold DB globalMetricValue of the latest model.
+version: 1
+
+defaults:
+  # Used by the interpreter when the request names no target, partner, ligand or reference.
+  target: P00519
+  partner: P04049
+  ligand: imatinib
+  reference: 2HYY            # prototype used 1IEP; SIFTS maps 1IEP to mouse Abl (P00520)
+
+proteins:
+  - names: [abl1, abl, bcr-abl, p00519]
+    accession: P00519
+    entry: ABL1_HUMAN
+    label: ABL1 kinase
+    organism: Homo sapiens
+    length: 1130
+    pdb: 2HYY                # human Abl kinase domain with imatinib, SIFTS P00519 chains A-D;
+                             # the prototype used 1IEP, which SIFTS maps to mouse Abl (P00520)
+    resolution: 2.40 Å
+    afPlddt: 63.38           # prototype mock was 88
+    holo: 14                 # prototype mock
+    sites: 3                 # prototype mock
+    domains: SH3 · SH2 · Protein kinase                  # prototype mock
+    disorder: 12% (N-terminal cap, C-terminal tail)      # prototype mock
+    cofactors: Mg²⁺ · ATP site                           # prototype mock
+  - names: [mac1, nsp3, macrodomain, p0dtd1]
+    accession: P0DTD1
+    entry: R1AB_SARS2
+    label: SARS-CoV-2 Mac1
+    organism: Severe acute respiratory syndrome coronavirus 2   # prototype: SARS-CoV-2
+    length: 7096
+    pdb: 7KQO                # SIFTS P0DTD1 residues 1025-1191, chains A, B
+    resolution: 0.85 Å       # prototype mock was 1.05 Å
+    holo: 234                # prototype mock
+    sites: 1                 # prototype mock
+    domains: Macro domain    # prototype mock
+    disorder: 4%             # prototype mock
+    cofactors: none annotated   # prototype mock
+  - names: [kras, p01116]
+    accession: P01116
+    entry: RASK_HUMAN
+    label: KRAS
+    organism: Homo sapiens
+    length: 189
+    pdb: 6VJJ                # KRAS4b with RAF1 RBD; SIFTS P01116 chain A, P04049 chain B
+    resolution: 1.40 Å       # prototype mock was 1.90 Å
+    afPlddt: 91.5            # prototype mock was 93
+    holo: 312                # prototype mock
+    sites: 2                 # prototype mock
+    domains: Small GTPase    # prototype mock
+    disorder: 8% (HVR)       # prototype mock
+    cofactors: GDP · Mg²⁺    # prototype mock; 6VJJ itself contains GNP and MG
+  - names: [raf1, craf, raf, p04049]
+    accession: P04049
+    entry: RAF1_HUMAN
+    label: RAF1 RBD
+    organism: Homo sapiens
+    length: 648
+    pdb: 6VJJ                # SIFTS P04049 residues 52-131, chain B
+    resolution: 1.40 Å       # prototype mock was 1.90 Å
+    afPlddt: 67.5            # prototype mock was 74
+    holo: 21                 # prototype mock
+    sites: 1                 # prototype mock
+    domains: RBD · C1 · Protein kinase   # prototype mock
+    disorder: 31%            # prototype mock
+    cofactors: none annotated   # prototype mock
+  - names: [egfr, p00533]
+    accession: P00533
+    entry: EGFR_HUMAN
+    label: EGFR kinase
+    organism: Homo sapiens
+    length: 1210
+    pdb: 1M17                # EGFR kinase domain with erlotinib, SIFTS P00533 chain A
+    resolution: 2.60 Å
+    afPlddt: 75.94           # prototype mock was 86
+    holo: 198                # prototype mock
+    sites: 2                 # prototype mock
+    domains: Receptor L · Furin-like · Protein kinase   # prototype mock
+    disorder: 15%            # prototype mock
+    cofactors: Mg²⁺ · ATP site   # prototype mock
+  - names: [hsp90, p07900]
+    accession: P07900
+    entry: HS90A_HUMAN
+    label: HSP90α
+    organism: Homo sapiens
+    length: 732
+    pdb: 2VCI                # SIFTS P07900 residues 1-236, chain A
+    resolution: 2.00 Å       # prototype mock was 1.90 Å
+    afPlddt: 85.19           # prototype mock was 85
+    holo: 356                # prototype mock
+    sites: 1                 # prototype mock
+    domains: HATPase_c · HSP90   # prototype mock
+    disorder: 11% (charged linker)   # prototype mock
+    cofactors: ATP · Mg²⁺    # prototype mock
+  # Added for examples/3ptb_*: bovine cationic trypsin with benzamidine.
+  - names: [trypsin, p00760]
+    accession: P00760
+    entry: TRY1_BOVIN
+    label: Trypsin
+    organism: Bos taurus
+    length: 246
+    pdb: 3PTB                # SIFTS P00760 residues 24-246, chain A
+    resolution: 1.70 Å
+    afPlddt: 93.12
+
+ligands:
+  - names: [imatinib, gleevec, sti-571, sti571]
+    smiles: Cc1ccc(NC(=O)c2ccc(CN3CCN(C)CC3)cc2)cc1Nc1nccc(-c2cccnc2)n1
+    ccd: STI
+    cid: '5291'
+    chembl: CHEMBL941
+    formula: C29H31N7O
+    mw: 493.6
+    inchikey: KTUFNOKKBVMGRW-UHFFFAOYSA-N
+    stereo: 0
+    activities: 1842         # prototype mock
+    pka: piperazine 7.7      # prototype mock
+  - names: [erlotinib]
+    smiles: COCCOc1cc2ncnc(Nc3cccc(C#C)c3)c2cc1OCCOC
+    ccd: AQ4
+    cid: '176870'
+    chembl: CHEMBL553
+    formula: C22H23N3O4
+    mw: 393.4
+    inchikey: AAKJLRGGTJKAMG-UHFFFAOYSA-N
+    stereo: 0
+    activities: 1203         # prototype mock
+    pka: quinazoline 5.4     # prototype mock
+  - names: [adp-ribose, adpr]
+    # PubChem 445794, InChIKey equal to CCD APR. The prototype gave a SMILES without stereo
+    # and CID 32014, which PubChem resolves to 8-bromo-cAMP.
+    smiles: C1=NC(=C2C(=N1)N(C=N2)[C@H]3[C@@H]([C@@H]([C@H](O3)COP(=O)(O)OP(=O)(O)OC[C@@H]4[C@H]([C@H]([C@@H](O4)O)O)O)O)O)N
+    ccd: APR
+    cid: '445794'
+    chembl: null             # no ChEMBL molecule found by InChIKey
+    formula: C15H23N5O14P2
+    mw: 559.3
+    inchikey: SRNWOUGRCWSEMX-KEOHHSTQSA-N
+    stereo: 8
+    activities: 0            # prototype mock
+    pka: phosphates 1.5, 6.4   # prototype mock
+  # Added for examples/3ptb_*.
+  - names: [benzamidine]
+    smiles: NC(=N)c1ccccc1
+    ccd: BEN
+    cid: '2332'
+    chembl: CHEMBL20936
+    formula: C7H8N2
+    mw: 120.15
+    inchikey: PXXJHWLDUBFPOL-UHFFFAOYSA-N
+    stereo: 0
+
+# UI tool ids, as in runs.js TOOLS, mapped to executor ids in configs/executors.yaml and
+# configs/runtimes.yaml (null: not an executor). Versions are not kept here; the pinned
+# versions are in configs/runtimes.yaml.
+tools:
+  - {id: boltz2, name: Boltz-2, family: co-folding, executor: boltz2}
+  - {id: protenix, name: Protenix, family: co-folding, executor: protenix}
+  - {id: af3, name: AlphaFold3, family: co-folding, executor: alphafold3}
+  - {id: chai1, name: Chai-1, family: co-folding, executor: chai1}
+  - {id: afdb, name: AlphaFold DB, family: co-folding, executor: null}
+  - {id: gnina, name: Gnina, family: docking, executor: gnina}
+  - {id: vina, name: AutoDock Vina, family: docking, executor: vina}
+  - {id: diffdock, name: DiffDock-L, family: docking, executor: diffdock}
+  - {id: pydock, name: pyDock, family: docking, executor: pydock}
+  - {id: haddock, name: HADDOCK, family: docking, executor: haddock3}
+
+# UI task ids, as in runs.js TASKS, mapped to task specifications in configs/tasks/.
+# The claim of each task is read from its specification, not from here. `inputs` are the run
+# settings the task takes (runs.js TASKS); `series` takes the ligand field as one series member.
+# `quickSetup: true` marks the tasks Quick setup and the interpreter offer, grouped by `group`
+# (co-folding, docking, protein-protein). The others stay reachable through manual setup.
+# Every `defaultTools` entry has the task endpoint (configs/models.yaml task_endpoints) among
+# its configs/models.yaml endpoints; tests/test_webui_honesty.py checks this.
+tasks:
+  # co-folding (Boltz-2, Protenix, Chai-1, ColabFold)
+  - {id: known_complex, pah: known_complex_assembly, name: Complex structure, long: Complex structure (known complex assembly), group: co-folding, quickSetup: true, defaultTools: [boltz2, protenix], inputs: [target, partner, reference, seeds]}
+  - {id: ligand_pose, pah: ligand_pose, name: Ligand pose, long: Co-folded ligand pose, group: co-folding, quickSetup: true, defaultTools: [boltz2, protenix], inputs: [target, ligand, reference, ph, seeds]}
+  - {id: monomer, pah: monomer_structure, name: Monomer structure, long: Monomer structure, group: co-folding, quickSetup: true, defaultTools: [boltz2, protenix], inputs: [target, seeds]}
+  # docking (Vina, Gnina, DiffDock)
+  - {id: pose_known_pocket, pah: ligand_pose, name: Docked pose, long: Ligand pose in a known pocket, group: docking, quickSetup: true, defaultTools: [vina, gnina], inputs: [target, ligand, reference, ph, seeds]}
+  - {id: redocking, pah: redocking, name: Redocking, long: Redocking control of the crystal ligand, group: docking, quickSetup: true, defaultTools: [vina, gnina], inputs: [target, ligand, reference, ph, seeds]}
+  - {id: series_scoring, pah: series_scoring, name: Series ranking, long: Series ranking with docking scores, group: docking, quickSetup: true, defaultTools: [vina, gnina], inputs: [target, series, reference, ph, seeds]}
+  - {id: virtual_screening, pah: virtual_screening, name: Virtual screening, long: Virtual screening with docking scores, group: docking, quickSetup: true, defaultTools: [vina, gnina], inputs: [target, series, reference, ph, seeds]}
+  # protein-protein docking (pyDock, HADDOCK3)
+  - {id: protein_protein_docking, pah: protein_protein_docking, name: Protein–protein docking, long: Protein–protein docking, group: protein-protein, quickSetup: true, defaultTools: [pydock, haddock], inputs: [target, partner, reference, seeds]}
+  # manual setup only
+  - {id: interaction_discovery, pah: interaction_discovery, name: Interaction discovery, long: Interaction discovery, group: co-folding, quickSetup: false, defaultTools: [boltz2, protenix], inputs: [target, partner, reference, seeds]}
+  - {id: binding_site, pah: binding_site_identification, name: Binding site, long: Binding site identification, group: co-folding, quickSetup: false, defaultTools: [boltz2, protenix], inputs: [target, ligand, seeds]}
+  # Boltz-2 is the only model in configs/models.yaml whose endpoints include affinity_series;
+  # the prototype paired it with Gnina, which l3.metric.endpoint stops (pose, score_within_run).
+  - {id: affinity_ranking, pah: affinity_ranking, name: Affinity ranking, long: Affinity ranking within a congeneric series, group: co-folding, quickSetup: false, defaultTools: [boltz2], inputs: [target, series, reference, ph, seeds]}
+  - {id: variant_effect, pah: variant_effect, name: Variant effect, long: Variant effect, group: co-folding, quickSetup: false, defaultTools: [boltz2, chai1], inputs: [target, ligand, reference, seeds]}
+  - {id: design_validation, pah: design_validation, name: Design validation, long: Design validation, group: co-folding, quickSetup: false, defaultTools: [boltz2, protenix], inputs: [target, partner, seeds]}
+  - {id: blind_docking, pah: blind_docking, name: Blind docking, long: Blind docking, group: docking, quickSetup: false, defaultTools: [diffdock, gnina], inputs: [target, ligand, seeds]}
+
+# Sample requests for the New-run box. Each one is checked by tests/test_webui_honesty.py: the
+# interpreter must pick tools whose configs/models.yaml endpoints include the task endpoint.
+# They map onto the Quick setup tasks above. The prototype's prompts named DiffDock-L for
+# screening (no score_within_run endpoint), Gnina for affinity ranking (no affinity_series
+# endpoint) and "decoy partners", which the screening rule took for a decoy library.
+prompts:
+  - Co-fold imatinib with the ABL1 kinase using Boltz-2 and Protenix, 5 seeds at pH 7.4, compare against 2HYY
+  - Predict the KRAS and RAF1 complex structure with Boltz-2 and Protenix, compare against 6VJJ
+  - Dock benzamidine into the trypsin pocket with Vina and Gnina, 5 seeds, compare against 3PTB
+  - Redock the benzamidine crystal ligand of 3PTB with Vina and Gnina
+  - Rank the imatinib congeneric series against ABL1 with Vina and Gnina docking scores, 8 seeds
+  - Protein–protein dock KRAS with RAF1 using pyDock and HADDOCK, compare against 6VJJ

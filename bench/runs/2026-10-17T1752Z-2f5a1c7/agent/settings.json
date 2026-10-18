@@ -1,0 +1,16 @@
+{
+  "model": "glm-4.6",
+  "base_url": "https://api.z.ai/api/paas/v4",
+  "temperature": 0,
+  "repeats": 3,
+  "order_seed": 20261017,
+  "workers": 4,
+  "calls": 96,
+  "system_prompt": "You are assessing whether a predicted protein-ligand pose should be\ntrusted as evidence that this ligand binds this protein in this\norientation.\n\nAnswer with JSON only:\n{\"verdict\": \"valid\" | \"invalid\", \"confidence\": 0.0-1.0, \"reason\": \"<one sentence>\"}\n\n\"valid\" means the pose is credible evidence of binding.\n\"invalid\" means it is not, whether because the pose is implausible or\nbecause the evidence does not support the claim.\n\nDo not hedge. Choose one verdict.",
+  "retries": [
+    {
+      "calls": 2,
+      "workers": 2
+    }
+  ]
+}

@@ -1,0 +1,2934 @@
+{
+  "id": "ligand_pose-0e1c8b8670f6",
+  "task": "ligand_pose",
+  "taskName": "Ligand pose in a known pocket",
+  "claim": "Predicted pose of BGC in glucose dehydrogenase (glucose-binding) is valid",
+  "tools": [
+    {
+      "id": "boltz2",
+      "name": "Boltz-2",
+      "version": "2.2.1",
+      "family": "co-folding"
+    },
+    {
+      "id": "diffdock",
+      "name": "DiffDock-L",
+      "family": "docking"
+    }
+  ],
+  "inputs": {
+    "target": "protein",
+    "ligand": "C([C@@H]1[C@H]([C@@H]([C@H]([C@@H](O1)O)O)O)O)O",
+    "reference": "2VWH",
+    "ph": 7.4,
+    "seeds": 3
+  },
+  "sources": [
+    {
+      "source": "rcsb_files",
+      "accession": "2VWH",
+      "release": "n/a",
+      "sha256": "563276ca06d2a22a26489f8883964e231561e4b81a9643ca262facf2f314b93c",
+      "retrievedAt": "2026-10-17T16:59:50.088326Z",
+      "cached": true,
+      "url": "https://files.rcsb.org/download/2VWH.cif",
+      "sizeBytes": 364136
+    },
+    {
+      "source": "ccd",
+      "accession": "BGC",
+      "release": "2026-01-27",
+      "sha256": "faaa9f919f4c97acc9d55624ef74f26489dd7842f1754b63a8d3c137a09b770e",
+      "retrievedAt": "2026-10-17T16:59:50.477362Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/BGC",
+      "sizeBytes": 30741
+    },
+    {
+      "source": "rcsb",
+      "accession": "2VWH",
+      "release": "1.5",
+      "sha256": "5a990581b1c208f1a26a70ace9fa4c515f4da8a199364ff884669140b49c2e88",
+      "retrievedAt": "2026-10-17T16:59:51.620518Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/entry/2VWH",
+      "sizeBytes": 22370
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "chem:C([C@@H]1[C@H]([C@@H]([C@H]([C@@H](O1)O)O)O)O)O",
+      "release": "n/a",
+      "sha256": "0d5756d1e58bdee1a9f1cb839bc78dd3690d073f7d6427be63f3275be4bb275f",
+      "retrievedAt": "2026-10-17T16:59:54.137044Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22parameters%22%3A+%7B%22descriptor_type%22%3A+%22SMILES%22%2C+%22match_type%22%3A+%22fingerprint-similarity%22%2C+%22type%22%3A+%22descriptor%22%2C+%22value%22%3A+%22C%28%5BC%40%40H%5D1%5BC%40H%5D%28%5BC%40%40H%5D%28%5BC%40H%5D%28%5BC%40%40H%5D%28O1%29O%29O%29O%29O%29O%22%7D%2C+%22service%22%3A+%22chemical%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+50%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22mol_definition%22%7D",
+      "sizeBytes": 1413
+    },
+    {
+      "source": "ccd",
+      "accession": "3MK",
+      "release": "2020-07-17",
+      "sha256": "d97d4b552654f6768ac776f5c57c265369eee22975b72cf07e278e63089e54d9",
+      "retrievedAt": "2026-10-17T16:59:54.731357Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/3MK",
+      "sizeBytes": 6432
+    },
+    {
+      "source": "ccd",
+      "accession": "4GL",
+      "release": "2020-07-17",
+      "sha256": "54e556dfe7fd4eff1e3c74900218512b0ab6ef0f178719bfc5249a7154d70501",
+      "retrievedAt": "2026-10-17T16:59:54.781753Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/4GL",
+      "sizeBytes": 6325
+    },
+    {
+      "source": "ccd",
+      "accession": "4N2",
+      "release": "2024-09-27",
+      "sha256": "f79b180963234226b4e3662375dee4ee65d61533ae7b555dda78ccb42350f813",
+      "retrievedAt": "2026-10-17T16:59:54.839543Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/4N2",
+      "sizeBytes": 6840
+    },
+    {
+      "source": "ccd",
+      "accession": "A1EKO",
+      "release": "2025-05-23",
+      "sha256": "ad979697d06a8a1810b0944334cb636efff69980e7ba67cb61befdd307d372d6",
+      "retrievedAt": "2026-10-17T16:59:54.890732Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/A1EKO",
+      "sizeBytes": 3352
+    },
+    {
+      "source": "ccd",
+      "accession": "AFD",
+      "release": "2020-07-17",
+      "sha256": "187112f21ade72834b82ce03c991b2efa6bdb77a66ee0780694f4138bd8c563f",
+      "retrievedAt": "2026-10-17T16:59:54.938648Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/AFD",
+      "sizeBytes": 6206
+    },
+    {
+      "source": "ccd",
+      "accession": "ALL",
+      "release": "2020-07-17",
+      "sha256": "598282a36137f9f092003b2b98ce7fd9646f586f71dd6b193f973a06a0477b65",
+      "retrievedAt": "2026-10-17T16:59:54.987764Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/ALL",
+      "sizeBytes": 7344
+    },
+    {
+      "source": "ccd",
+      "accession": "BMA",
+      "release": "2024-09-27",
+      "sha256": "7e30cba9c3f2c73b5e31d7f398a3b05b9254063e57cdd07356bb0461a5876591",
+      "retrievedAt": "2026-10-17T16:59:55.041918Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/BMA",
+      "sizeBytes": 10486
+    },
+    {
+      "source": "ccd",
+      "accession": "GIV",
+      "release": "2020-07-17",
+      "sha256": "4569744b581cc9afa64d48cba04657c97cef1f621307992b3811db2b7938051c",
+      "retrievedAt": "2026-10-17T16:59:55.091194Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/GIV",
+      "sizeBytes": 6584
+    },
+    {
+      "source": "ccd",
+      "accession": "GL0",
+      "release": "2020-07-17",
+      "sha256": "bbebd0ca21bb5d14d1e952526f743c5c4004dc4315c12379e0d3f3a591a0c785",
+      "retrievedAt": "2026-10-17T16:59:55.137987Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/GL0",
+      "sizeBytes": 6595
+    },
+    {
+      "source": "ccd",
+      "accession": "GLA",
+      "release": "2024-09-27",
+      "sha256": "7a00d8420d569b25e4e27480aa4e6b961c12689ffd624a1d0af4f80a4d41486c",
+      "retrievedAt": "2026-10-17T16:59:55.189654Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/GLA",
+      "sizeBytes": 7618
+    },
+    {
+      "source": "ccd",
+      "accession": "GLC",
+      "release": "2024-09-27",
+      "sha256": "254da3afcadc3c064a7f414757bd5d2e04dfb89e30cc4cd9e7e979df2c2d2ef5",
+      "retrievedAt": "2026-10-17T16:59:55.236620Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/GLC",
+      "sizeBytes": 13396
+    },
+    {
+      "source": "ccd",
+      "accession": "GUP",
+      "release": "2020-07-17",
+      "sha256": "f89db705d64237229349aba0947462ecc768fe7de8f436125169db35ae86b2db",
+      "retrievedAt": "2026-10-17T16:59:55.285583Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/GUP",
+      "sizeBytes": 6234
+    },
+    {
+      "source": "ccd",
+      "accession": "GXL",
+      "release": "2020-07-17",
+      "sha256": "b767fcdfce950a4a00829f26bb5b3a9d29d2c9ba758661fe80f880ccaa27e8e4",
+      "retrievedAt": "2026-10-17T16:59:55.333562Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/GXL",
+      "sizeBytes": 6457
+    },
+    {
+      "source": "ccd",
+      "accession": "MAN",
+      "release": "2024-09-27",
+      "sha256": "7152473b81edae3b3fc29ee4458b67c93ec9984f64be62de40c6c2da1d97c4eb",
+      "retrievedAt": "2026-10-17T16:59:55.389177Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/MAN",
+      "sizeBytes": 12288
+    },
+    {
+      "source": "ccd",
+      "accession": "SDY",
+      "release": "2020-07-17",
+      "sha256": "5d1e5b6ff718a30fe50003d54ec3f0a955c010051336f45202a9b62b0e5d0fcf",
+      "retrievedAt": "2026-10-17T16:59:55.462930Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/SDY",
+      "sizeBytes": 5813
+    },
+    {
+      "source": "ccd",
+      "accession": "SHD",
+      "release": "2020-07-17",
+      "sha256": "f6d17409069dd5e0a6a4dc3a5bf1047e4e92996426682268a176fd0526589ccf",
+      "retrievedAt": "2026-10-17T16:59:55.511224Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/SHD",
+      "sizeBytes": 6081
+    },
+    {
+      "source": "ccd",
+      "accession": "WOO",
+      "release": "2020-07-17",
+      "sha256": "9a8678927d9487f3c39c38d1783a7e0db43656308cc6e1248d0e9efdf4a81ed9",
+      "retrievedAt": "2026-10-17T16:59:55.558988Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/WOO",
+      "sizeBytes": 6363
+    },
+    {
+      "source": "ccd",
+      "accession": "Z0F",
+      "release": "2020-07-17",
+      "sha256": "c5570664592220d808af91bcbfa81c1af177a23655578eb375fe60564529cc4c",
+      "retrievedAt": "2026-10-17T16:59:55.606455Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/Z0F",
+      "sizeBytes": 6421
+    },
+    {
+      "source": "ccd",
+      "accession": "Z2D",
+      "release": "2020-07-17",
+      "sha256": "689a6bb068026b6137f3ebaf78668fe93c44c6428944e7022d70f9914c1dfc87",
+      "retrievedAt": "2026-10-17T16:59:55.655667Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/Z2D",
+      "sizeBytes": 6434
+    },
+    {
+      "source": "ccd",
+      "accession": "Z6H",
+      "release": "2020-07-17",
+      "sha256": "5a83d4f3e7675ac7e7320e7bd29fb6b94bf9b636b8759102148708c7e0a70667",
+      "retrievedAt": "2026-10-17T16:59:55.705513Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/Z6H",
+      "sizeBytes": 5982
+    },
+    {
+      "source": "ccd",
+      "accession": "Z8H",
+      "release": "2020-07-17",
+      "sha256": "2610342cf9e7da69e1403738bc948b8c0681a0d757afccc4515790231aa9b8f9",
+      "retrievedAt": "2026-10-17T16:59:55.750992Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/Z8H",
+      "sizeBytes": 6321
+    },
+    {
+      "source": "ccd",
+      "accession": "Z8T",
+      "release": "2020-07-17",
+      "sha256": "379bdd55493698ada16ef69496e208cf735aa63b278f9c75807502b97bbfc66a",
+      "retrievedAt": "2026-10-17T16:59:55.798806Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/Z8T",
+      "sizeBytes": 6328
+    },
+    {
+      "source": "ccd",
+      "accession": "ZCD",
+      "release": "2020-07-17",
+      "sha256": "0db91c424e6398ef2ccbbc80a3acbc472baa9a479a8a1e26dd6329e8d88aae38",
+      "retrievedAt": "2026-10-17T16:59:55.850388Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/ZCD",
+      "sizeBytes": 6421
+    },
+    {
+      "source": "ccd",
+      "accession": "ZEE",
+      "release": "2020-07-17",
+      "sha256": "68a25c060a01004d2e693afed7f4a750016bc4be40674c078c8c1982394698ff",
+      "retrievedAt": "2026-10-17T16:59:55.903717Z",
+      "cached": true,
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/ZEE",
+      "sizeBytes": 6839
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:3MK:2019-01-01",
+      "release": "n/a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retrievedAt": "2026-10-17T16:59:55.959162Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%223MK%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 0
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:4GL:2019-01-01",
+      "release": "n/a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retrievedAt": "2026-10-17T16:59:56.008972Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%224GL%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 0
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:4N2:2019-01-01",
+      "release": "n/a",
+      "sha256": "1a398c0b2118ba85cf51f0f4526573be6eecafd4b68c3c45246adbe4b30afcdc",
+      "retrievedAt": "2026-10-17T16:59:56.059207Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%224N2%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 178
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:A1EKO:2019-01-01",
+      "release": "n/a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retrievedAt": "2026-10-17T16:59:56.111561Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22A1EKO%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 0
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:AFD:2019-01-01",
+      "release": "n/a",
+      "sha256": "1b753220c03ef85b48f2d303b286506a639f4a3733f242a8680ef99e1462c57f",
+      "retrievedAt": "2026-10-17T16:59:56.171757Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22AFD%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 178
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:ALL:2019-01-01",
+      "release": "n/a",
+      "sha256": "aa7eed16d6984f8eeed9dd2c569e5260228d91f2b7c0a2c5a2c7fa6f7a62f097",
+      "retrievedAt": "2026-10-17T16:59:56.219680Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22ALL%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 282
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:BGC:2019-01-01",
+      "release": "n/a",
+      "sha256": "39279015c7802edc849240804d436c612d9e493c4d2ea48e121b45c510e463dc",
+      "retrievedAt": "2026-10-17T16:59:56.271266Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22BGC%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 16456
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:BMA:2019-01-01",
+      "release": "n/a",
+      "sha256": "8abdb19b69b65a8a40a420ae201a66944b86503a5a420cf884d48d6b33763b30",
+      "retrievedAt": "2026-10-17T16:59:56.327693Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22BMA%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 5223
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:GIV:2019-01-01",
+      "release": "n/a",
+      "sha256": "1809586548426d9dc2fa80a6508db6e10e1a53a2484372343aa63faa75db8b50",
+      "retrievedAt": "2026-10-17T16:59:56.385350Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22GIV%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 230
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:GL0:2019-01-01",
+      "release": "n/a",
+      "sha256": "9b62fec3623e08bf594bef148e8787c42085c3fc7fac25732e53e7bd517aed28",
+      "retrievedAt": "2026-10-17T16:59:56.438036Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22GL0%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 230
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:GLA:2019-01-01",
+      "release": "n/a",
+      "sha256": "02cfe2e610aeeb380f0a6122acb01df247c2e423a4263d999f446496a0d06519",
+      "retrievedAt": "2026-10-17T16:59:56.490029Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22GLA%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 3039
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:GLC:2019-01-01",
+      "release": "n/a",
+      "sha256": "5e0520a8a72ad9ba2d522b44d21df6de9a614ffd146d46b79bef13aae376c23c",
+      "retrievedAt": "2026-10-17T16:59:56.581350Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22GLC%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 14064
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:GUP:2019-01-01",
+      "release": "n/a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retrievedAt": "2026-10-17T16:59:56.628484Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22GUP%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 0
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:GXL:2019-01-01",
+      "release": "n/a",
+      "sha256": "76ee6d0d9de4a196c96e190133b3e688f4664a5c923eb388fe7bab0438476504",
+      "retrievedAt": "2026-10-17T16:59:56.681121Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22GXL%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 230
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:MAN:2019-01-01",
+      "release": "n/a",
+      "sha256": "03c4da7e978a6479524476175b9d8d4e529bb332b3f0cd2d5ee6eee85e951f94",
+      "retrievedAt": "2026-10-17T16:59:56.729934Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22MAN%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 17340
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:SDY:2019-01-01",
+      "release": "n/a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retrievedAt": "2026-10-17T16:59:56.778921Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22SDY%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 0
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:SHD:2019-01-01",
+      "release": "n/a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retrievedAt": "2026-10-17T16:59:56.827559Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22SHD%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 0
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:WOO:2019-01-01",
+      "release": "n/a",
+      "sha256": "c2bb176d61ff4803c2af557b75d8dcae7a919f14e930af9eb319bda4eab7dea5",
+      "retrievedAt": "2026-10-17T16:59:56.880972Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22WOO%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 178
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:Z0F:2019-01-01",
+      "release": "n/a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retrievedAt": "2026-10-17T16:59:56.925446Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22Z0F%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 0
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:Z2D:2019-01-01",
+      "release": "n/a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retrievedAt": "2026-10-17T16:59:56.971876Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22Z2D%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 0
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:Z6H:2019-01-01",
+      "release": "n/a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retrievedAt": "2026-10-17T16:59:57.021969Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22Z6H%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 0
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:Z8H:2019-01-01",
+      "release": "n/a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retrievedAt": "2026-10-17T16:59:57.071118Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22Z8H%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 0
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:Z8T:2019-01-01",
+      "release": "n/a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retrievedAt": "2026-10-17T16:59:57.132893Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22Z8T%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 0
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:ZCD:2019-01-01",
+      "release": "n/a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retrievedAt": "2026-10-17T16:59:57.179381Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22ZCD%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 0
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "comp:ZEE:2019-01-01",
+      "release": "n/a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retrievedAt": "2026-10-17T16:59:57.225907Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22ZEE%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 0
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "seq0.9:2019-01-01:357",
+      "release": "n/a",
+      "sha256": "5cf9c6d3e615a8e7b83638f11925573066abb6a69a3b830da57465b2e1a8ba17",
+      "retrievedAt": "2026-10-17T16:59:54.639326Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.9%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22MKAIAVKRGEDRPVVIEKPRPEPESGEALVRTLRVGVDGTDHEVIAGGHGGFPEGEDHLVLGHEAVGVVVDPNDTELEEGDIVVPTVRRPPASGTNEYFERDQPDMAPDGMYFERGIVGAHGYMSEFFTSPEKYLVRIPRSQAELGFLIEPISITEKALEHAYASRSAFDWDPSSAFVLGNGSLGLLTLAMLKVDDKGYENLYCLGRRDRPDPTIDIIEELDATYVDSRQTPVEDVPDVYEQMDFIYEATGFPKHAIQSVQALAPNGVGALLGVPSDWAFEVDAGAFHREMVLHNKALVGSVNSHVEHFEAATVTFTKLPKWFLEDLVTGVHPLSEFEAAFDDDDTTIKTAIEFSTV%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+200%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 438
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "seq0.95:2019-01-01:357",
+      "release": "n/a",
+      "sha256": "2ded139e03eab9e42346e4b29e109e68bfd3bcd263342e67c812261c4380bcb4",
+      "retrievedAt": "2026-10-17T16:59:55.380880Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.95%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22MKAIAVKRGEDRPVVIEKPRPEPESGEALVRTLRVGVDGTDHEVIAGGHGGFPEGEDHLVLGHEAVGVVVDPNDTELEEGDIVVPTVRRPPASGTNEYFERDQPDMAPDGMYFERGIVGAHGYMSEFFTSPEKYLVRIPRSQAELGFLIEPISITEKALEHAYASRSAFDWDPSSAFVLGNGSLGLLTLAMLKVDDKGYENLYCLGRRDRPDPTIDIIEELDATYVDSRQTPVEDVPDVYEQMDFIYEATGFPKHAIQSVQALAPNGVGALLGVPSDWAFEVDAGAFHREMVLHNKALVGSVNSHVEHFEAATVTFTKLPKWFLEDLVTGVHPLSEFEAAFDDDDTTIKTAIEFSTV%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+5%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 386
+    },
+    {
+      "source": "rcsb_search",
+      "accession": "seq0.4:2019-01-01:357",
+      "release": "n/a",
+      "sha256": "d1c1f4adb44be165921ee4a05d02d38602c0e8b8b07b256b34b0f5f422c82192",
+      "retrievedAt": "2026-10-17T16:59:55.839139Z",
+      "cached": true,
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.4%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22MKAIAVKRGEDRPVVIEKPRPEPESGEALVRTLRVGVDGTDHEVIAGGHGGFPEGEDHLVLGHEAVGVVVDPNDTELEEGDIVVPTVRRPPASGTNEYFERDQPDMAPDGMYFERGIVGAHGYMSEFFTSPEKYLVRIPRSQAELGFLIEPISITEKALEHAYASRSAFDWDPSSAFVLGNGSLGLLTLAMLKVDDKGYENLYCLGRRDRPDPTIDIIEELDATYVDSRQTPVEDVPDVYEQMDFIYEATGFPKHAIQSVQALAPNGVGALLGVPSDWAFEVDAGAFHREMVLHNKALVGSVNSHVEHFEAATVTFTKLPKWFLEDLVTGVHPLSEFEAAFDDDDTTIKTAIEFSTV%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+5%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "sizeBytes": 386
+    }
+  ],
+  "layers": [
+    {
+      "i": 0,
+      "key": "provenance",
+      "name": "Provenance",
+      "question": "Where did every input come from?",
+      "status": "not_run",
+      "counts": {},
+      "checks": []
+    },
+    {
+      "i": 1,
+      "key": "integrity",
+      "name": "Input integrity",
+      "question": "Did the run receive exactly what was declared?",
+      "status": "not_run",
+      "counts": {},
+      "checks": []
+    },
+    {
+      "i": 2,
+      "key": "adequacy",
+      "name": "Input adequacy",
+      "question": "Does the input carry enough information?",
+      "status": "done",
+      "counts": {
+        "pass": 4,
+        "warn": 2,
+        "stop": 1,
+        "skip": 1
+      },
+      "checks": [
+        {
+          "id": "l2.msa.depth",
+          "name": "Alignment depth, distinct sequences, Neff and gap fraction",
+          "gate": "Stop",
+          "result": "skip",
+          "message": "no MSA declared for a co-folding model",
+          "evidence": "no MSA declared for a co-folding model",
+          "skipReason": "not_applicable"
+        },
+        {
+          "id": "l2.context.cofactors",
+          "name": "Required cofactors, ions and partners present",
+          "gate": "Stop",
+          "result": "stop",
+          "message": "components within 8.0 \u00c5 of BGC in 2VWH not supplied: NAP, ZN",
+          "evidence": "components within 8.0 \u00c5 of BGC in 2VWH not supplied: NAP, ZN \u00b7 near_site=2, missing=2, uniprot_cofactors=0",
+          "ms": 184,
+          "threshold": {
+            "value": "<= 8",
+            "origin": "Harness rule: a component of the reference entry within 8 \u00c5 of the declared ligand is required context; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "pocket_distance",
+              "value": 8.0,
+              "comparator": "<=",
+              "origin": "Harness rule: a component of the reference entry within 8 \u00c5 of the declared ligand is required context; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "near_site",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "missing",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "uniprot_cofactors",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l2.pocket.resolved",
+          "name": "Pocket residues resolved, no missing loops lining the pocket",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "19 pocket residues complete in 2VWH.cif",
+          "tool": "gemmi",
+          "evidence": "19 pocket residues complete in 2VWH.cif \u00b7 pocket_residues=19, incomplete=0, sequence_gaps=0",
+          "ms": 8,
+          "threshold": {
+            "value": "<= 6",
+            "origin": "Harness rule: pocket residues have a heavy atom within 6 \u00c5 of the ligand; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "pocket_distance",
+              "value": 6.0,
+              "comparator": "<=",
+              "origin": "Harness rule: pocket residues have a heavy atom within 6 \u00c5 of the ligand; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            },
+            {
+              "name": "missing_pocket_residues",
+              "value": 0,
+              "comparator": "==",
+              "origin": "Specification layer 2: stop when the pocket is incomplete",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "pocket_residues",
+              "value": 19,
+              "unit": null
+            },
+            {
+              "name": "incomplete",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "sequence_gaps",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l2.receptor.state",
+          "name": "Receptor state apo or holo",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "2VWH.cif holo: BGC, NAP in the site",
+          "evidence": "2VWH.cif holo: BGC, NAP in the site \u00b7 state=holo, site_ligands=2",
+          "ms": 9,
+          "measurements": [
+            {
+              "name": "state",
+              "value": "holo",
+              "unit": null
+            },
+            {
+              "name": "site_ligands",
+              "value": 2,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l2.receptor.protonation",
+          "name": "Receptor protonation at the stated pH",
+          "gate": "Stop",
+          "result": "warn",
+          "message": "receptor has no hydrogens (protonation not assigned); pKa within 1.0 of pH 7.4: GLU64A pKa 6.96, GLU150A pKa 8.39",
+          "tool": "propka 3.5.1",
+          "evidence": "receptor has no hydrogens (protonation not assigned); pKa within 1.0 of pH 7.4: GLU64A pKa 6.96, GLU150A pKa 8.39 \u00b7 hydrogens_present=False, ph=7.4, pocket_titratable=13",
+          "ms": 586,
+          "threshold": {
+            "value": "> 1",
+            "origin": "Harness rule: a titratable pocket residue with PROPKA pKa within 1 unit of the stated pH has an ambiguous state; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "pka_margin",
+              "value": 1.0,
+              "comparator": ">",
+              "origin": "Harness rule: a titratable pocket residue with PROPKA pKa within 1 unit of the stated pH has an ambiguous state; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "hydrogens_present",
+              "value": false,
+              "unit": null
+            },
+            {
+              "name": "ph",
+              "value": 7.4,
+              "unit": null
+            },
+            {
+              "name": "pocket_titratable",
+              "value": 13,
+              "unit": null
+            },
+            {
+              "name": "ambiguous",
+              "value": 2,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l2.ligand.protonation",
+          "name": "Ligand protonation and tautomers enumerated at the stated pH",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "one state at pH 7.4 for every ligand",
+          "tool": "dimorphite_dl 2.1.0",
+          "evidence": "one state at pH 7.4 for every ligand \u00b7 ph=7.4, max_states=1, declared_not_enumerated=0",
+          "ms": 48,
+          "threshold": {
+            "value": "== 1",
+            "origin": "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "ph_window",
+              "value": 1.0,
+              "comparator": "==",
+              "origin": "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            },
+            {
+              "name": "states",
+              "value": 1,
+              "comparator": "==",
+              "origin": "Specification layer 2: warn when more than one plausible state",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "ph",
+              "value": 7.4,
+              "unit": null
+            },
+            {
+              "name": "max_states",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "declared_not_enumerated",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "max_tautomers",
+              "value": 1,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l2.ligand.conformers",
+          "name": "Ligand conformers generated and minimised",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "10 ETKDG conformers per ligand, MMFF minimised",
+          "tool": "rdkit",
+          "evidence": "10 ETKDG conformers per ligand, MMFF minimised \u00b7 ligands=1, failed=0, min_embedded=10",
+          "ms": 575,
+          "threshold": {
+            "value": ">= 10",
+            "origin": "Harness default number of ETKDG conformers; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "conformers",
+              "value": 10,
+              "comparator": ">=",
+              "origin": "Harness default number of ETKDG conformers; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "ligands",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "failed",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "min_embedded",
+              "value": 10,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l2.docking.box",
+          "name": "Docking box encloses the pocket with margin",
+          "gate": "Stop",
+          "result": "warn",
+          "message": "no box declared; derived box encloses 11 contact residues and the BGC ligand with 2.0 \u00c5 margin",
+          "evidence": "no box declared; derived box encloses 11 contact residues and the BGC ligand with 2.0 \u00c5 margin \u00b7 volume_A3=1808.5, ligand_atoms_inside_margin=12, ligand_atoms=12",
+          "ms": 9,
+          "threshold": {
+            "value": ">= 2",
+            "origin": "Harness rule: every pocket heavy atom lies at least 2 \u00c5 inside the box; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "margin",
+              "value": 2.0,
+              "comparator": ">=",
+              "origin": "Harness rule: every pocket heavy atom lies at least 2 \u00c5 inside the box; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            },
+            {
+              "name": "contact_distance",
+              "value": 4.0,
+              "comparator": "<=",
+              "origin": "Harness rule: contact residues (heavy atom within 4 \u00c5 of the reference ligand) must have an atom inside the box; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "volume_A3",
+              "value": 1808.5,
+              "unit": null
+            },
+            {
+              "name": "ligand_atoms_inside_margin",
+              "value": 12,
+              "unit": null
+            },
+            {
+              "name": "ligand_atoms",
+              "value": 12,
+              "unit": null
+            },
+            {
+              "name": "contact_residues",
+              "value": 11,
+              "unit": null
+            },
+            {
+              "name": "contact_residues_outside",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        }
+      ],
+      "durationMs": 1437,
+      "figures": [
+        [
+          "near site",
+          "2"
+        ],
+        [
+          "missing",
+          "2"
+        ],
+        [
+          "uniprot cofactors",
+          "0"
+        ],
+        [
+          "pocket residues",
+          "19"
+        ],
+        [
+          "incomplete",
+          "0"
+        ],
+        [
+          "sequence gaps",
+          "0"
+        ],
+        [
+          "state",
+          "holo"
+        ],
+        [
+          "site ligands",
+          "2"
+        ]
+      ]
+    },
+    {
+      "i": 3,
+      "key": "applicability",
+      "name": "Applicability",
+      "question": "Is the tool inside its validated regime?",
+      "status": "done",
+      "counts": {
+        "pass": 4,
+        "warn": 2,
+        "stop": 0,
+        "skip": 0
+      },
+      "checks": [
+        {
+          "id": "l3.model.training_cutoff",
+          "name": "Model training cutoff recorded",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "boltz2 2023-06-01; diffdock 2019-01-01; reference 2VWH released 2009-01-13, before the cutoff of boltz2, diffdock",
+          "evidence": "boltz2 2023-06-01; diffdock 2019-01-01; reference 2VWH released 2009-01-13, before the cutoff of boltz2, diffdock \u00b7 executors=2, unknown=0, reference_released=2009-01-13",
+          "ms": 1,
+          "threshold": {
+            "value": "== recorded",
+            "origin": "Specification, Layer 3 (applicability): stop when unknown",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "training_cutoff",
+              "value": "recorded",
+              "comparator": "==",
+              "origin": "Specification, Layer 3 (applicability): stop when unknown",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "executors",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "unknown",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "reference_released",
+              "value": "2009-01-13",
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l3.exposure.pocket",
+          "name": "Pocket similarity to pre-cutoff complexes (SuCOS times pocket coverage)",
+          "gate": "Stop",
+          "result": "warn",
+          "message": "max similarity 88.2 to 2VWH (BGC, SuCOS 0.933, coverage 0.944), released before 2019-01-01",
+          "evidence": "max similarity 88.2 to 2VWH (BGC, SuCOS 0.933, coverage 0.944), released before 2019-01-01 \u00b7 cutoff=2019-01-01, entries_compared=1, max_similarity=88.2",
+          "ms": 431,
+          "threshold": {
+            "value": "<= 50",
+            "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "similarity",
+              "value": 50,
+              "comparator": "<=",
+              "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
+              "evidenceLevel": "published"
+            },
+            {
+              "name": "entries",
+              "value": 5,
+              "comparator": "<=",
+              "origin": "Harness budget: pre-cutoff holo entries compared per run",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "cutoff",
+              "value": "2019-01-01",
+              "unit": null
+            },
+            {
+              "name": "entries_compared",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "max_similarity",
+              "value": 88.2,
+              "unit": null
+            },
+            {
+              "name": "pocket_residues",
+              "value": 18,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l3.exposure.ligand_prevalence",
+          "name": "Ligand analogues in pre-cutoff training systems",
+          "gate": "Stop",
+          "result": "warn",
+          "message": "1079 PDB entries released before 2019-01-01 (diffdock cutoff) contain analogues of ligand above Tanimoto 0.9: 3MK, 4GL, 4N2, A1EKO, AFD, ALL",
+          "tool": "RCSB search (chemical) + RDKit topological fingerprint",
+          "evidence": "1079 PDB entries released before 2019-01-01 (diffdock cutoff) contain analogues of ligand above Tanimoto 0.9: 3MK, 4GL, 4N2, A1EKO, AFD, ALL \u00b7 cutoff=2019-01-01, systems=1079, analogue_components=25",
+          "ms": 0,
+          "threshold": {
+            "value": "> 0.9",
+            "origin": "Specification layer 3: analogues above 0.9 Tanimoto (RDKit topological fingerprint)",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "tanimoto",
+              "value": 0.9,
+              "comparator": ">",
+              "origin": "Specification layer 3: analogues above 0.9 Tanimoto (RDKit topological fingerprint)",
+              "evidenceLevel": "published"
+            },
+            {
+              "name": "systems",
+              "value": 100,
+              "comparator": "<=",
+              "origin": "Specification layer 3: prevalent when analogues occur in more than 100 training systems",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "cutoff",
+              "value": "2019-01-01",
+              "unit": null
+            },
+            {
+              "name": "systems",
+              "value": 1079,
+              "unit": null
+            },
+            {
+              "name": "analogue_components",
+              "value": 25,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l3.exposure.sequence",
+          "name": "Chain sequence identity to pre-cutoff entries (secondary measure)",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "protein: 6 entries at 95 percent identity, 6 at 40 percent, released before 2019-01-01 (reported, not gating)",
+          "tool": "RCSB search (sequence, MMseqs2)",
+          "evidence": "protein: 6 entries at 95 percent identity, 6 at 40 percent, released before 2019-01-01 (reported, not gating) \u00b7 cutoff=2019-01-01, entries_95=6, entries_40=6",
+          "ms": 1,
+          "threshold": {
+            "value": "< 0.4",
+            "origin": "Specification layer 3: conventional 40 percent identity leakage threshold, reported as a secondary measure only",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "identity",
+              "value": 0.4,
+              "comparator": "<",
+              "origin": "Specification layer 3: conventional 40 percent identity leakage threshold, reported as a secondary measure only",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "cutoff",
+              "value": "2019-01-01",
+              "unit": null
+            },
+            {
+              "name": "entries_95",
+              "value": 6,
+              "unit": null
+            },
+            {
+              "name": "entries_40",
+              "value": 6,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l3.regime.modality",
+          "name": "Modality inside the validated set; token count against the training crop",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "modalities protein, protein_ligand inside the validated set; 369 tokens",
+          "evidence": "modalities protein, protein_ligand inside the validated set; 369 tokens \u00b7 modalities=2, tokens=369, outside=0",
+          "ms": 10,
+          "measurements": [
+            {
+              "name": "modalities",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "tokens",
+              "value": 369,
+              "unit": null
+            },
+            {
+              "name": "outside",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l3.metric.endpoint",
+          "name": "Endpoint fits the tool",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "endpoint pose produced by boltz2, diffdock",
+          "evidence": "endpoint pose produced by boltz2, diffdock \u00b7 endpoint=pose, executors=2, not_fitting=0",
+          "ms": 0,
+          "threshold": {
+            "value": "in pose",
+            "origin": "Specification, Layer 3 (applicability): no affinity from interface confidence, no protein-protein affinity from Boltz-2",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "endpoint",
+              "value": "pose",
+              "comparator": "in",
+              "origin": "Specification, Layer 3 (applicability): no affinity from interface confidence, no protein-protein affinity from Boltz-2",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "endpoint",
+              "value": "pose",
+              "unit": null
+            },
+            {
+              "name": "executors",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "not_fitting",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        }
+      ],
+      "durationMs": 450,
+      "figures": [
+        [
+          "executors",
+          "2"
+        ],
+        [
+          "unknown",
+          "0"
+        ],
+        [
+          "reference released",
+          "2009-01-13"
+        ],
+        [
+          "cutoff",
+          "2019-01-01"
+        ],
+        [
+          "entries compared",
+          "1"
+        ],
+        [
+          "max similarity",
+          "88.2"
+        ],
+        [
+          "pocket residues",
+          "18"
+        ],
+        [
+          "systems",
+          "1079"
+        ]
+      ]
+    },
+    {
+      "i": 4,
+      "key": "validity",
+      "name": "Output validity",
+      "question": "Is the result physically and chemically sensible?",
+      "status": "done",
+      "counts": {
+        "pass": 7,
+        "warn": 0,
+        "stop": 0,
+        "skip": 0
+      },
+      "checks": [
+        {
+          "id": "l4.posebusters",
+          "name": "PoseBusters geometry, stereochemistry, clashes and protein contact",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "20 of 20 tests pass for boltz2/seed4/sample0; 3 of 3 poses pass all",
+          "tool": "posebusters 0.6.5",
+          "evidence": "20 of 20 tests pass for boltz2/seed4/sample0; 3 of 3 poses pass all \u00b7 poses=3, passed=20, total=20",
+          "ms": 1177,
+          "threshold": {
+            "value": "== 0",
+            "origin": "Specification, Layer 4 (output validity): stop on failure",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "tests_failed",
+              "value": 0,
+              "comparator": "==",
+              "origin": "Specification, Layer 4 (output validity): stop on failure",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "passed",
+              "value": 20,
+              "unit": null
+            },
+            {
+              "name": "total",
+              "value": 20,
+              "unit": null
+            },
+            {
+              "name": "poses_all_pass",
+              "value": 3,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l4.torsion_strain",
+          "name": "Torsional strain of the ligand pose",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "0 of 6 torsions above 2.5 kcal/mol in boltz2/seed4/sample0; strain 1.28 kcal/mol",
+          "tool": "rdkit MMFF94",
+          "evidence": "0 of 6 torsions above 2.5 kcal/mol in boltz2/seed4/sample0; strain 1.28 kcal/mol \u00b7 poses=3, unlikely_torsions=0, torsions=6",
+          "ms": 459,
+          "threshold": {
+            "value": "<= 2.5",
+            "origin": "Harness rule: a rotatable torsion whose MMFF energy lies more than 2.5 kcal/mol above the minimum of its rigid scan is unlikely; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "torsion_energy",
+              "value": 2.5,
+              "comparator": "<=",
+              "origin": "Harness rule: a rotatable torsion whose MMFF energy lies more than 2.5 kcal/mol above the minimum of its rigid scan is unlikely; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "unlikely_torsions",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "torsions",
+              "value": 6,
+              "unit": null
+            },
+            {
+              "name": "strain_kcal",
+              "value": 1.28,
+              "unit": null
+            },
+            {
+              "name": "poses_with_unlikely",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l4.interactions.fingerprint",
+          "name": "Interaction fingerprint (PLIP)",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "25 interactions in boltz2/seed4/sample0 (hbond, hydrophobic, metal, pi_cation, salt_bridge); 24 distinct across 3 poses (reported)",
+          "tool": "plip 3.0.1",
+          "evidence": "25 interactions in boltz2/seed4/sample0 (hbond, hydrophobic, metal, pi_cation, salt_bridge); 24 distinct across 3 poses (reported) \u00b7 poses=3, interactions_representative=25, distinct=24",
+          "ms": 2242,
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "interactions_representative",
+              "value": 25,
+              "unit": null
+            },
+            {
+              "name": "distinct",
+              "value": 24,
+              "unit": null
+            },
+            {
+              "name": "hbonds_representative",
+              "value": 16,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l4.interactions.unsatisfied_polars",
+          "name": "Buried ligand polar atoms without a hydrogen-bond partner",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "5 buried polar ligand atoms, all with a partner within 3.5 \u00c5 in boltz2/seed4/sample0",
+          "tool": "freesasa 2.2.1",
+          "evidence": "5 buried polar ligand atoms, all with a partner within 3.5 \u00c5 in boltz2/seed4/sample0 \u00b7 poses=3, unsatisfied=0, buried_charged=0",
+          "ms": 371,
+          "threshold": {
+            "value": "< 0.1",
+            "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "relative_sasa",
+              "value": 0.1,
+              "comparator": "<",
+              "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            },
+            {
+              "name": "hbond_distance",
+              "value": 3.5,
+              "comparator": "<=",
+              "origin": "PLIP hydrogen bond distance cut-off (donor-acceptor 4.1 \u00c5; harness uses 3.5 \u00c5 heavy-atom distance)",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "unsatisfied",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "buried_charged",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "buried_polar",
+              "value": 5,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l4.interactions.hydrophobic",
+          "name": "Hydrophobic complementarity of buried ligand surface",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "nonpolar fraction of protein contacts around 3 buried nonpolar ligand atoms in boltz2/seed4/sample0: 0.498",
+          "tool": "freesasa",
+          "evidence": "nonpolar fraction of protein contacts around 3 buried nonpolar ligand atoms in boltz2/seed4/sample0: 0.498 \u00b7 poses=3, complementarity=0.498, buried_nonpolar=3",
+          "ms": 325,
+          "threshold": {
+            "value": ">= 0.35",
+            "origin": "Harness default anchored on 3PTB: the crystal benzamidine scores 0.51, Vina and Boltz-2 poses within 0.5 \u00c5 of it score 0.45 and 0.49; not calibrated on the benchmark",
+            "evidenceLevel": "uncalibrated"
+          },
+          "thresholds": [
+            {
+              "name": "fraction",
+              "value": 0.35,
+              "comparator": ">=",
+              "origin": "Harness default anchored on 3PTB: the crystal benzamidine scores 0.51, Vina and Boltz-2 poses within 0.5 \u00c5 of it score 0.45 and 0.49; not calibrated on the benchmark",
+              "evidenceLevel": "uncalibrated"
+            },
+            {
+              "name": "relative_sasa",
+              "value": 0.1,
+              "comparator": "<",
+              "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "complementarity",
+              "value": 0.498,
+              "unit": null
+            },
+            {
+              "name": "buried_nonpolar",
+              "value": 3,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l4.interactions.known_binders",
+          "name": "Interactions of the crystal ligand reproduced by the pose",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "boltz2/seed4/sample0 reproduces 4 of 6 BGC interactions: hbond ASN303A, hbond GLU150A, hbond THR40A, salt_bridge HIS63A",
+          "tool": "plip 3.0.1",
+          "evidence": "boltz2/seed4/sample0 reproduces 4 of 6 BGC interactions: hbond ASN303A, hbond GLU150A, hbond THR40A, salt_bridge HIS63A \u00b7 key_interactions=6, reproduced=4, poses_reproducing_all=0",
+          "ms": 241,
+          "threshold": {
+            "value": ">= 1",
+            "origin": "Specification layer 4: warn when no key interaction is reproduced",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "reproduced",
+              "value": 1,
+              "comparator": ">=",
+              "origin": "Specification layer 4: warn when no key interaction is reproduced",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "key_interactions",
+              "value": 6,
+              "unit": null
+            },
+            {
+              "name": "reproduced",
+              "value": 4,
+              "unit": null
+            },
+            {
+              "name": "poses_reproducing_all",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l4.minimisation_drift",
+          "name": "Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF)",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "boltz2/seed4/sample0 moves 0.588 \u00c5 under restrained minimisation; 0 of 3 poses above 2.0 \u00c5",
+          "tool": "openmm 8.6.1",
+          "evidence": "boltz2/seed4/sample0 moves 0.588 \u00c5 under restrained minimisation; 0 of 3 poses above 2.0 \u00c5 \u00b7 poses=3, drift_A=0.588, max_drift_A=0.588",
+          "ms": 69225,
+          "threshold": {
+            "value": "<= 2",
+            "origin": "Specification layer 4: warn when the pose moves beyond 2 \u00c5 under restrained minimisation",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "drift",
+              "value": 2.0,
+              "comparator": "<=",
+              "origin": "Specification layer 4: warn when the pose moves beyond 2 \u00c5 under restrained minimisation",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "drift_A",
+              "value": 0.588,
+              "unit": null
+            },
+            {
+              "name": "max_drift_A",
+              "value": 0.588,
+              "unit": null
+            },
+            {
+              "name": "poses_over",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "failed",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        }
+      ],
+      "durationMs": 74052,
+      "figures": [
+        [
+          "poses",
+          "3"
+        ],
+        [
+          "passed",
+          "20"
+        ],
+        [
+          "total",
+          "20"
+        ],
+        [
+          "poses all pass",
+          "3"
+        ],
+        [
+          "unlikely torsions",
+          "0"
+        ],
+        [
+          "torsions",
+          "6"
+        ],
+        [
+          "strain kcal",
+          "1.28"
+        ],
+        [
+          "poses with unlikely",
+          "0"
+        ]
+      ]
+    },
+    {
+      "i": 5,
+      "key": "support",
+      "name": "Output support",
+      "question": "Is a valid result corroborated?",
+      "status": "done",
+      "counts": {
+        "pass": 2,
+        "warn": 2,
+        "stop": 1,
+        "skip": 0
+      },
+      "checks": [
+        {
+          "id": "l5.confidence.local",
+          "name": "Confidence restricted to the pocket; per-model thresholds",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "boltz2/seed4/sample0: pocket_plddt 97.5",
+          "evidence": "boltz2/seed4/sample0: pocket_plddt 97.5 \u00b7 poses=3, pocket_plddt=97.5, global_plddt=97.6",
+          "ms": 19,
+          "threshold": {
+            "value": ">= 70",
+            "origin": "AlphaFold DB pLDDT bands (70 and above: confident backbone), applied to pocket residues; not calibrated for ligand pose",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "boltz2.pocket_plddt",
+              "value": 70,
+              "comparator": ">=",
+              "origin": "AlphaFold DB pLDDT bands (70 and above: confident backbone), applied to pocket residues; not calibrated for ligand pose",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "pocket_plddt",
+              "value": 97.5,
+              "unit": null
+            },
+            {
+              "name": "global_plddt",
+              "value": 97.6,
+              "unit": null
+            },
+            {
+              "name": "iptm",
+              "value": 0.991,
+              "unit": null
+            },
+            {
+              "name": "ptm",
+              "value": 0.988,
+              "unit": null
+            },
+            {
+              "name": "confidence_score",
+              "value": 0.978,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l5.sampling.seeds",
+          "name": "Independent seeds counted separately from samples; duplicates flagged",
+          "gate": "Stop",
+          "result": "warn",
+          "message": "3 independent seeds (3 poses); task default 5",
+          "evidence": "3 independent seeds (3 poses); task default 5 \u00b7 independent_seeds=3, samples=3, duplicated_outputs=0",
+          "ms": 0,
+          "threshold": {
+            "value": ">= 5",
+            "origin": "Specification layer 5: default of five seeds per co-folding prediction",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "seeds_cofolding",
+              "value": 5,
+              "comparator": ">=",
+              "origin": "Specification layer 5: default of five seeds per co-folding prediction",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "independent_seeds",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "samples",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "duplicated_outputs",
+              "value": 0,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l5.sampling.clusters",
+          "name": "Medoid of the largest cluster, populations, pairwise spread, site and pose accuracy",
+          "gate": "Stop",
+          "result": "pass",
+          "message": "medoid boltz2/seed4/sample0; 1 clusters, largest 3 of 3; pairwise RMSD median 0.08 \u00c5 (IQR 0.07 to 0.09); 3 of 3 poses within 4.0 \u00c5 of the site (BGC in 2VWH); 3 of 3 poses within 2.0 \u00c5 of the medoid",
+          "tool": "spyrmsd 0.9.0",
+          "evidence": "medoid boltz2/seed4/sample0; 1 clusters, largest 3 of 3; pairwise RMSD median 0.08 \u00c5 (IQR 0.07 to 0.09); 3 of 3 poses within 4.0 \u00c5 of the site (BGC in 2VWH); 3 of 3 poses within 2.0 \u00c5 of the medoid \u00b7 poses=3, clusters=1, largest_cluster=3",
+          "ms": 44,
+          "threshold": {
+            "value": "<= 2",
+            "origin": "Specification layer 5: 2 \u00c5 symmetry-aware ligand RMSD (spyrmsd) separates pose clusters",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "cluster_rmsd",
+              "value": 2.0,
+              "comparator": "<=",
+              "origin": "Specification layer 5: 2 \u00c5 symmetry-aware ligand RMSD (spyrmsd) separates pose clusters",
+              "evidenceLevel": "published"
+            },
+            {
+              "name": "site_distance",
+              "value": 4.0,
+              "comparator": "<=",
+              "origin": "Harness rule: a ligand centroid within 4 \u00c5 of the reference site centroid is placed in the site; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            },
+            {
+              "name": "largest_fraction",
+              "value": 0.5,
+              "comparator": ">=",
+              "origin": "Harness rule: the largest cluster holds at least half of the poses; not yet calibrated",
+              "evidenceLevel": "uncalibrated"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "clusters",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "largest_cluster",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "pairwise_rmsd_median_A",
+              "value": 0.079,
+              "unit": null
+            },
+            {
+              "name": "within_medoid",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "in_site",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "best_sampled_rmsd_to_reference_A",
+              "value": 0.229,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l5.agreement.cross_family",
+          "name": "Agreement between methods, weighted by independence",
+          "gate": "Stop",
+          "result": "warn",
+          "message": "boltz2 vs diffdock 12.963 \u00c5 (high); boltz2 vs crystal 2VWH 0.265 \u00c5 (decisive); diffdock vs crystal 2VWH 12.745 \u00c5 (decisive)",
+          "tool": "spyrmsd",
+          "evidence": "boltz2 vs diffdock 12.963 \u00c5 (high); boltz2 vs crystal 2VWH 0.265 \u00c5 (decisive); diffdock vs crystal 2VWH 12.745 \u00c5 (decisive) \u00b7 methods=2, comparisons=3, disagreeing=2",
+          "ms": 125,
+          "threshold": {
+            "value": "<= 2",
+            "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 \u00c5",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "rmsd",
+              "value": 2.0,
+              "comparator": "<=",
+              "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 \u00c5",
+              "evidenceLevel": "published"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "methods",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "comparisons",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "disagreeing",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "rmsd_to_crystal_A",
+              "value": 0.265,
+              "unit": null
+            }
+          ]
+        },
+        {
+          "id": "l5.controls.redocking",
+          "name": "Redocking control reproduces the crystal pose",
+          "gate": "Stop",
+          "result": "stop",
+          "message": "redocking control required by the task and not supplied (controls.redocking)",
+          "evidence": "redocking control required by the task and not supplied (controls.redocking)",
+          "ms": 0,
+          "threshold": {
+            "value": "<= 2",
+            "origin": "Specification layer 5: redocking must reproduce the crystal pose (2 \u00c5 ligand RMSD)",
+            "evidenceLevel": "published"
+          },
+          "thresholds": [
+            {
+              "name": "rmsd",
+              "value": 2.0,
+              "comparator": "<=",
+              "origin": "Specification layer 5: redocking must reproduce the crystal pose (2 \u00c5 ligand RMSD)",
+              "evidenceLevel": "published"
+            }
+          ]
+        }
+      ],
+      "durationMs": 193,
+      "figures": [
+        [
+          "poses",
+          "3"
+        ],
+        [
+          "pocket plddt",
+          "97.5"
+        ],
+        [
+          "global plddt",
+          "97.6"
+        ],
+        [
+          "iptm",
+          "0.991"
+        ],
+        [
+          "ptm",
+          "0.988"
+        ],
+        [
+          "confidence score",
+          "0.978"
+        ],
+        [
+          "independent seeds",
+          "3"
+        ],
+        [
+          "samples",
+          "3"
+        ]
+      ]
+    }
+  ],
+  "stats": {
+    "docking": {
+      "rows": [
+        [
+          "center",
+          "9.319, 36.788, 18.307\u2009\u00c5"
+        ],
+        [
+          "size",
+          "11.671 \u00d7 12.814 \u00d7 12.093\u2009\u00c5"
+        ],
+        [
+          "origin",
+          "derived from BGC (+4 \u00c5)"
+        ]
+      ]
+    },
+    "posebusters": [
+      {
+        "test": "sanitization",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "inchi_convertible",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "all_atoms_connected",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "no_radicals",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "bond_lengths",
+        "pass": true,
+        "value": "0 long outliers"
+      },
+      {
+        "test": "bond_angles",
+        "pass": true,
+        "value": "0 outliers"
+      },
+      {
+        "test": "internal_steric_clash",
+        "pass": true,
+        "value": "0"
+      },
+      {
+        "test": "aromatic_ring_flatness",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "non-aromatic_ring_non-flatness",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "double_bond_flatness",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "internal_energy",
+        "pass": true,
+        "value": "0.8 times the ensemble mean"
+      },
+      {
+        "test": "protein-ligand_maximum_distance",
+        "pass": true,
+        "value": "2.55 \u00c5"
+      },
+      {
+        "test": "minimum_distance_to_protein",
+        "pass": true,
+        "value": "2.55 \u00c5"
+      },
+      {
+        "test": "minimum_distance_to_organic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "minimum_distance_to_inorganic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "minimum_distance_to_waters",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "volume_overlap_with_protein",
+        "pass": true,
+        "value": "0.031"
+      },
+      {
+        "test": "volume_overlap_with_organic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "volume_overlap_with_inorganic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "volume_overlap_with_waters",
+        "pass": true,
+        "value": "pass"
+      }
+    ],
+    "interactions": [
+      {
+        "residue": "ARG208A",
+        "type": "hbond",
+        "distance": 3.41,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "ASN181A",
+        "type": "hbond",
+        "distance": 4.04,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "ASN303A",
+        "type": "hbond",
+        "distance": 2.82,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "GLY182A",
+        "type": "hbond",
+        "distance": 3.86,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "GLY39A",
+        "type": "hbond",
+        "distance": 2.81,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "LEU184A",
+        "type": "hbond",
+        "distance": 3.09,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "LEU272A",
+        "type": "hbond",
+        "distance": 2.99,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "SER183A",
+        "type": "hbond",
+        "distance": 3.53,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "SER228A",
+        "type": "hbond",
+        "distance": 2.8,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "THR40A",
+        "type": "hbond",
+        "distance": 2.77,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "VAL274A",
+        "type": "hbond",
+        "distance": 3.22,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "ILE154A",
+        "type": "hydrophobic",
+        "distance": 3.63,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "LEU184A",
+        "type": "hydrophobic",
+        "distance": 3.63,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "ASP38A",
+        "type": "metal",
+        "distance": 2.04,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "GLU64A",
+        "type": "metal",
+        "distance": 2.36,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "HIS63A",
+        "type": "metal",
+        "distance": 2.06,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "ARG207A",
+        "type": "pi_cation",
+        "distance": 3.66,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "ARG207A",
+        "type": "salt_bridge",
+        "distance": 4.41,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "ARG208A",
+        "type": "salt_bridge",
+        "distance": 4.07,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "HIS63A",
+        "type": "salt_bridge",
+        "distance": 4.35,
+        "poses": 3,
+        "of": 3
+      },
+      {
+        "residue": "GLU150A",
+        "type": "hbond",
+        "distance": 2.76,
+        "poses": 2,
+        "of": 3
+      },
+      {
+        "residue": "GLU114A",
+        "type": "hbond",
+        "distance": 3.5,
+        "poses": 1,
+        "of": 3
+      },
+      {
+        "residue": "GLY185A",
+        "type": "hbond",
+        "distance": 4.08,
+        "poses": 1,
+        "of": 3
+      },
+      {
+        "residue": "HIS49A",
+        "type": "hbond",
+        "distance": 2.91,
+        "poses": 1,
+        "of": 3
+      }
+    ],
+    "interactionsPose": "boltz2/seed4/sample0",
+    "metrics": [
+      {
+        "name": "affinity_pred_value",
+        "value": 1.7487400770187378,
+        "read": "ranking within a series, never pose quality",
+        "tool": "boltz2",
+        "separate": true
+      },
+      {
+        "name": "affinity_probability_binary",
+        "value": 0.4758610725402832,
+        "read": "ranking within a series, never pose quality",
+        "tool": "boltz2",
+        "separate": true
+      },
+      {
+        "name": "affinity_pred_value",
+        "value": 1.7170801162719727,
+        "read": "ranking within a series, never pose quality",
+        "tool": "boltz2",
+        "separate": true
+      },
+      {
+        "name": "affinity_probability_binary",
+        "value": 0.486339271068573,
+        "read": "ranking within a series, never pose quality",
+        "tool": "boltz2",
+        "separate": true
+      },
+      {
+        "name": "affinity_pred_value",
+        "value": 1.7969970703125,
+        "read": "ranking within a series, never pose quality",
+        "tool": "boltz2",
+        "separate": true
+      },
+      {
+        "name": "affinity_probability_binary",
+        "value": 0.4815135598182678,
+        "read": "ranking within a series, never pose quality",
+        "tool": "boltz2",
+        "separate": true
+      }
+    ],
+    "pae": {
+      "pose": "boltz2/seed4/sample0",
+      "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/harness/glc_wt_boltz2/run/predictions/00_boltz2/boltz2/seed4/sample0/pae.npy"
+    },
+    "seeds": [
+      {
+        "seed": 4,
+        "rmsdToMedoid": 0.0,
+        "cluster": 1,
+        "confidence": 0.978,
+        "pose": "boltz2/seed4/sample0"
+      },
+      {
+        "seed": 5,
+        "rmsdToMedoid": 0.079,
+        "cluster": 1,
+        "confidence": 0.982,
+        "pose": "boltz2/seed5/sample0"
+      },
+      {
+        "seed": 6,
+        "rmsdToMedoid": 0.07,
+        "cluster": 1,
+        "confidence": 0.977,
+        "pose": "boltz2/seed6/sample0"
+      }
+    ],
+    "clusters": [
+      {
+        "id": 1,
+        "size": 3,
+        "medoid": "boltz2/seed4/sample0"
+      }
+    ],
+    "medoid": "boltz2/seed4/sample0",
+    "pairwise": {
+      "median": 0.079,
+      "n": 3,
+      "iqr": [
+        0.074,
+        0.091
+      ]
+    },
+    "sitePlacement": "3 of 3 poses within 4.0 \u00c5 of the site (BGC in 2VWH)",
+    "poseAccuracy": "3 of 3 poses within 2.0 \u00c5 of the medoid",
+    "agreement": [
+      {
+        "method": "boltz2",
+        "cells": [
+          {
+            "vs": "diffdock",
+            "value": 12.963,
+            "unit": "\u00c5",
+            "weight": "high"
+          },
+          {
+            "vs": "crystal 2VWH",
+            "value": 0.265,
+            "unit": "\u00c5",
+            "weight": "decisive"
+          }
+        ]
+      },
+      {
+        "method": "diffdock",
+        "cells": [
+          {
+            "vs": "crystal 2VWH",
+            "value": 12.745,
+            "unit": "\u00c5",
+            "weight": "decisive"
+          }
+        ]
+      }
+    ],
+    "physics": [
+      {
+        "pose": "boltz2/seed4/sample0",
+        "pbPassed": 20,
+        "pbTotal": 20,
+        "pbFailed": [],
+        "torsions": 0,
+        "torsionsTotal": 6,
+        "unsatisfied": 0,
+        "buriedCharged": 0,
+        "drift": 0.588,
+        "converged": true,
+        "seed": 4
+      },
+      {
+        "pose": "boltz2/seed5/sample0",
+        "pbPassed": 20,
+        "pbTotal": 20,
+        "pbFailed": [],
+        "torsions": 0,
+        "torsionsTotal": 6,
+        "unsatisfied": 0,
+        "buriedCharged": 0,
+        "drift": 0.317,
+        "converged": true,
+        "seed": 5
+      },
+      {
+        "pose": "boltz2/seed6/sample0",
+        "pbPassed": 20,
+        "pbTotal": 20,
+        "pbFailed": [],
+        "torsions": 0,
+        "torsionsTotal": 6,
+        "unsatisfied": 0,
+        "buriedCharged": 0,
+        "drift": 0.34,
+        "converged": true,
+        "seed": 6
+      }
+    ],
+    "ensemble": [
+      {
+        "id": "boltz2/seed4/sample0",
+        "label": "boltz2/seed4/sample0",
+        "kind": "medoid",
+        "source": "boltz2",
+        "rmsdToMedoid": 0.0,
+        "cluster": 1,
+        "pocketPlddt": 97.5,
+        "iptm": 0.991
+      },
+      {
+        "id": "boltz2/seed5/sample0",
+        "label": "boltz2/seed5/sample0",
+        "kind": "seed",
+        "source": "boltz2",
+        "rmsdToMedoid": 0.079,
+        "cluster": 1,
+        "pocketPlddt": 97.4,
+        "iptm": 0.991
+      },
+      {
+        "id": "boltz2/seed6/sample0",
+        "label": "boltz2/seed6/sample0",
+        "kind": "seed",
+        "source": "boltz2",
+        "rmsdToMedoid": 0.07,
+        "cluster": 1,
+        "pocketPlddt": 97.3,
+        "iptm": 0.991
+      }
+    ]
+  },
+  "narrative": [],
+  "controls": [
+    {
+      "name": "redocking",
+      "status": "incomplete",
+      "note": "redocking control required by the task and not supplied (controls.redocking)"
+    }
+  ],
+  "outputs": [
+    "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/predictions/glc_wt/boltz2/seed_4/boltz_results_glc_wt/predictions/glc_wt/glc_wt_model_0.cif",
+    "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/predictions/glc_wt/boltz2/seed_5/boltz_results_glc_wt/predictions/glc_wt/glc_wt_model_0.cif",
+    "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/predictions/glc_wt/boltz2/seed_6/boltz_results_glc_wt/predictions/glc_wt/glc_wt_model_0.cif",
+    "predictions/01_diffdock/diffdock/seed4/mode0/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed4/mode1/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed4/mode2/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed4/mode3/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed4/mode4/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed4/mode5/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed4/mode6/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed4/mode7/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed4/mode8/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed4/mode9/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed5/mode0/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed5/mode1/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed5/mode2/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed5/mode3/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed5/mode4/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed5/mode5/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed5/mode6/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed5/mode7/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed5/mode8/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed5/mode9/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed6/mode0/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed6/mode1/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed6/mode2/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed6/mode3/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed6/mode4/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed6/mode5/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed6/mode6/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed6/mode7/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed6/mode8/complex.pdb",
+    "predictions/01_diffdock/diffdock/seed6/mode9/complex.pdb",
+    "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/predictions/glc_wt/boltz2",
+    "/home/user/harness-hackathon/bench/runs/2026-10-17T1752Z-2f5a1c7/predictions/glc_wt/diffdock"
+  ],
+  "record": {
+    "pahVersion": "0.1.0",
+    "toolVersions": {
+      "numpy": "1.26.4",
+      "gemmi": "0.7.5",
+      "propka": "3.5.1",
+      "rdkit": "2026.9.1",
+      "dimorphite_dl": "2.1.0",
+      "posebusters": "0.6.5",
+      "plip": "3.0.1",
+      "openbabel": "3.2.1",
+      "freesasa": "2.2.1",
+      "openmm": "8.6.1",
+      "spyrmsd": "0.9.0",
+      "scipy": "1.17.1"
+    },
+    "seeds": [
+      4,
+      5,
+      6
+    ]
+  },
+  "structures": [
+    {
+      "id": "artifacts/sources/2VWH.cif",
+      "label": "2VWH mmCIF",
+      "kind": "crystal",
+      "url": "/runs/run/files/artifacts/sources/2VWH.cif",
+      "format": "mmcif"
+    },
+    {
+      "id": "artifacts/work/2VWH_BGC_complex.pdb",
+      "label": "2VWH_BGC_complex.pdb",
+      "kind": "model",
+      "url": "/runs/run/files/artifacts/work/2VWH_BGC_complex.pdb",
+      "format": "pdb"
+    },
+    {
+      "id": "artifacts/work/rec_propka.pdb",
+      "label": "rec_propka.pdb",
+      "kind": "model",
+      "url": "/runs/run/files/artifacts/work/rec_propka.pdb",
+      "format": "pdb"
+    }
+  ],
+  "renders": [
+    {
+      "structure": "2VWH",
+      "png": "/runs/run/files/renders/2VWH_overview.png",
+      "pse": "/runs/run/files/renders/2VWH.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "2VWH",
+      "png": "/runs/run/files/renders/2VWH_pocket.png",
+      "pse": "/runs/run/files/renders/2VWH.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "boltz2_seed4_sample0",
+      "png": "/runs/run/files/renders/boltz2_seed4_sample0_overview.png",
+      "pse": "/runs/run/files/renders/boltz2_seed4_sample0.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "boltz2_seed4_sample0",
+      "png": "/runs/run/files/renders/boltz2_seed4_sample0_pocket.png",
+      "pse": "/runs/run/files/renders/boltz2_seed4_sample0.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "boltz2_seed5_sample0",
+      "png": "/runs/run/files/renders/boltz2_seed5_sample0_overview.png",
+      "pse": "/runs/run/files/renders/boltz2_seed5_sample0.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "boltz2_seed5_sample0",
+      "png": "/runs/run/files/renders/boltz2_seed5_sample0_pocket.png",
+      "pse": "/runs/run/files/renders/boltz2_seed5_sample0.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "boltz2_seed6_sample0",
+      "png": "/runs/run/files/renders/boltz2_seed6_sample0_overview.png",
+      "pse": "/runs/run/files/renders/boltz2_seed6_sample0.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "boltz2_seed6_sample0",
+      "png": "/runs/run/files/renders/boltz2_seed6_sample0_pocket.png",
+      "pse": "/runs/run/files/renders/boltz2_seed6_sample0.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode0",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode0_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode0.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode0",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode0_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode0.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode1",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode1_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode1.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode1",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode1_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode1.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode2",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode2_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode2.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode2",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode2_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode2.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode3",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode3_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode3.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode3",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode3_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode3.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode4",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode4_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode4.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode4",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode4_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode4.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode5",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode5_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode5.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode5",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode5_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode5.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode6",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode6_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode6.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode6",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode6_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode6.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode7",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode7_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode7.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode7",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode7_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode7.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode8",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode8_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode8.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode8",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode8_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode8.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed4_mode9",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode9_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode9.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed4_mode9",
+      "png": "/runs/run/files/renders/diffdock_seed4_mode9_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed4_mode9.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode0",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode0_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode0.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode0",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode0_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode0.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode1",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode1_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode1.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode1",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode1_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode1.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode2",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode2_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode2.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode2",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode2_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode2.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode3",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode3_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode3.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode3",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode3_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode3.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode4",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode4_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode4.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode4",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode4_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode4.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode5",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode5_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode5.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode5",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode5_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode5.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode6",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode6_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode6.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode6",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode6_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode6.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode7",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode7_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode7.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode7",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode7_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode7.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode8",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode8_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode8.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode8",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode8_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode8.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed5_mode9",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode9_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode9.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed5_mode9",
+      "png": "/runs/run/files/renders/diffdock_seed5_mode9_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed5_mode9.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode0",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode0_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode0.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode0",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode0_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode0.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode1",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode1_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode1.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode1",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode1_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode1.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode2",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode2_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode2.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode2",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode2_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode2.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode3",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode3_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode3.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode3",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode3_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode3.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode4",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode4_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode4.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode4",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode4_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode4.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode5",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode5_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode5.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode5",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode5_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode5.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode6",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode6_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode6.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode6",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode6_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode6.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode7",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode7_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode7.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode7",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode7_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode7.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode8",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode8_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode8.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode8",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode8_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode8.pse",
+      "view": "pocket"
+    },
+    {
+      "structure": "diffdock_seed6_mode9",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode9_overview.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode9.pse",
+      "view": "overview"
+    },
+    {
+      "structure": "diffdock_seed6_mode9",
+      "png": "/runs/run/files/renders/diffdock_seed6_mode9_pocket.png",
+      "pse": "/runs/run/files/renders/diffdock_seed6_mode9.pse",
+      "view": "pocket"
+    }
+  ],
+  "source": "pah",
+  "createdAt": "2026-10-17T18:16:51.024756Z",
+  "verdict": {
+    "claim": "Predicted pose of BGC in glucose dehydrogenase (glucose-binding) is valid",
+    "outcome": "refused",
+    "statement": "Refused over layers 2,3,4,5: 17 pass, 6 warn, 2 stop, 1 skip. Stopped by l2.context.cofactors, l5.controls.redocking. Warnings from l2.receptor.protonation, l2.docking.box, l3.exposure.pocket, l3.exposure.ligand_prevalence, l5.sampling.seeds, l5.agreement.cross_family.",
+    "stops": [
+      "l2.context.cofactors",
+      "l5.controls.redocking"
+    ],
+    "warnings": [
+      "l2.receptor.protonation",
+      "l2.docking.box",
+      "l3.exposure.pocket",
+      "l3.exposure.ligand_prevalence",
+      "l5.sampling.seeds",
+      "l5.agreement.cross_family"
+    ],
+    "incomplete": []
+  }
+}

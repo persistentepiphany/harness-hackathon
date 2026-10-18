@@ -1,0 +1,4425 @@
+{
+  "schema_version": "1",
+  "run_id": "ligand_pose-6ae519949c0f",
+  "task": "ligand_pose",
+  "task_title": "Ligand pose in a known pocket",
+  "claim": "Predicted pose of ATP in CDK2 is valid",
+  "layers": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "layers_not_run": [
+    0,
+    1
+  ],
+  "started_at": "2026-10-17T16:48:07.994431Z",
+  "finished_at": "2026-10-17T16:50:30.745780Z",
+  "pah_version": "0.1.0",
+  "verdict": {
+    "claim": "Predicted pose of ATP in CDK2 is valid",
+    "scope": "layers 2,3,4,5",
+    "outcome": "stop",
+    "stops": [
+      "l2.context.cofactors",
+      "l4.posebusters",
+      "l5.controls.redocking"
+    ],
+    "warnings": [
+      "l2.receptor.protonation",
+      "l2.ligand.protonation",
+      "l2.docking.box",
+      "l3.exposure.ligand_prevalence",
+      "l4.torsion_strain",
+      "l4.interactions.known_binders",
+      "l4.minimisation_drift",
+      "l5.agreement.cross_family"
+    ],
+    "incomplete": [],
+    "not_applicable": [
+      "l2.msa.depth"
+    ]
+  },
+  "counts": {
+    "pass": 14,
+    "warn": 8,
+    "stop": 3,
+    "skip": 1
+  },
+  "inputs": {
+    "proteins": [
+      {
+        "id": "protein",
+        "copies": 1,
+        "sequence_length": 299
+      }
+    ],
+    "ligands": [
+      {
+        "id": "ligand",
+        "smiles": "c1nc(c2c(n1)n(cn2)[C@H]3[C@@H]([C@@H]([C@H](O3)CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)O)O)N",
+        "copies": 1
+      }
+    ],
+    "receptor": {
+      "file": null,
+      "pdb_id": "1B38",
+      "chains": [
+        "A"
+      ],
+      "altloc_policy": null
+    },
+    "model": {
+      "executor": "diffdock",
+      "version": "v1.1.3",
+      "checkpoint": "diffdock-l",
+      "database_snapshot": null,
+      "seeds": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  "sections": [
+    {
+      "layer": 2,
+      "name": "input adequacy",
+      "counts": {
+        "pass": 3,
+        "warn": 3,
+        "stop": 1,
+        "skip": 1
+      },
+      "findings": [
+        {
+          "check_id": "l2.msa.depth",
+          "title": "Alignment depth, distinct sequences, Neff and gap fraction",
+          "layer": 2,
+          "gate": "skip",
+          "message": "no MSA declared for a co-folding model",
+          "measurements": [],
+          "thresholds": [],
+          "skip_reason": "not_applicable",
+          "duration_s": null,
+          "tool": null,
+          "sources_used": []
+        },
+        {
+          "check_id": "l2.context.cofactors",
+          "title": "Required cofactors, ions and partners present",
+          "layer": 2,
+          "gate": "stop",
+          "message": "components within 8.0 Å of ATP in 1B38 not supplied: MG",
+          "measurements": [
+            {
+              "name": "near_site",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "missing",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "uniprot_cofactors",
+              "value": 0,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "pocket_distance",
+              "value": 8.0,
+              "comparator": "<=",
+              "origin": "Harness rule: a component of the reference entry within 8 Å of the declared ligand is required context; not yet calibrated",
+              "evidence_level": "uncalibrated"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.195,
+          "tool": null,
+          "sources_used": [
+            "rcsb_files:1B38:b851c5e8a986",
+            "ccd:ATP:a7dfd66192d9"
+          ]
+        },
+        {
+          "check_id": "l2.pocket.resolved",
+          "title": "Pocket residues resolved, no missing loops lining the pocket",
+          "layer": 2,
+          "gate": "pass",
+          "message": "30 pocket residues complete in 1B38.cif",
+          "measurements": [
+            {
+              "name": "pocket_residues",
+              "value": 30,
+              "unit": null
+            },
+            {
+              "name": "incomplete",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "sequence_gaps",
+              "value": 0,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "pocket_distance",
+              "value": 6.0,
+              "comparator": "<=",
+              "origin": "Harness rule: pocket residues have a heavy atom within 6 Å of the ligand; not yet calibrated",
+              "evidence_level": "uncalibrated"
+            },
+            {
+              "name": "missing_pocket_residues",
+              "value": 0,
+              "comparator": "==",
+              "origin": "Specification layer 2: stop when the pocket is incomplete",
+              "evidence_level": "published"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.008,
+          "tool": {
+            "name": "gemmi",
+            "version": null
+          },
+          "sources_used": [
+            "rcsb_files:1B38:b851c5e8a986"
+          ]
+        },
+        {
+          "check_id": "l2.receptor.state",
+          "title": "Receptor state apo or holo",
+          "layer": 2,
+          "gate": "pass",
+          "message": "1B38.cif holo: ATP in the site",
+          "measurements": [
+            {
+              "name": "state",
+              "value": "holo",
+              "unit": null
+            },
+            {
+              "name": "site_ligands",
+              "value": 1,
+              "unit": null
+            }
+          ],
+          "thresholds": [],
+          "skip_reason": null,
+          "duration_s": 0.011,
+          "tool": null,
+          "sources_used": [
+            "rcsb_files:1B38:b851c5e8a986"
+          ]
+        },
+        {
+          "check_id": "l2.receptor.protonation",
+          "title": "Receptor protonation at the stated pH",
+          "layer": 2,
+          "gate": "warn",
+          "message": "receptor has no hydrogens (protonation not assigned)",
+          "measurements": [
+            {
+              "name": "hydrogens_present",
+              "value": false,
+              "unit": null
+            },
+            {
+              "name": "ph",
+              "value": 7.4,
+              "unit": null
+            },
+            {
+              "name": "pocket_titratable",
+              "value": 14,
+              "unit": null
+            },
+            {
+              "name": "ambiguous",
+              "value": 0,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "pka_margin",
+              "value": 1.0,
+              "comparator": ">",
+              "origin": "Harness rule: a titratable pocket residue with PROPKA pKa within 1 unit of the stated pH has an ambiguous state; not yet calibrated",
+              "evidence_level": "uncalibrated"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.34,
+          "tool": {
+            "name": "propka",
+            "version": "3.5.1"
+          },
+          "sources_used": []
+        },
+        {
+          "check_id": "l2.ligand.protonation",
+          "title": "Ligand protonation and tautomers enumerated at the stated pH",
+          "layer": 2,
+          "gate": "warn",
+          "message": "ligand: 2 states; ligand: declared form Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)[C@@H](O)[C@H]1O differs from enumerated Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)([O-])O[P@](=O)([O-])OP(=O)([O-])O)[C@@H](O)[C@H]1O, Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)([O-])O[P@](=O)([O-])OP(=O)([O-])[O-])[C@@H](O)[C@H]1O",
+          "measurements": [
+            {
+              "name": "ph",
+              "value": 7.4,
+              "unit": null
+            },
+            {
+              "name": "max_states",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "declared_not_enumerated",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "max_tautomers",
+              "value": 3,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "ph_window",
+              "value": 1.0,
+              "comparator": "==",
+              "origin": "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated",
+              "evidence_level": "uncalibrated"
+            },
+            {
+              "name": "states",
+              "value": 1,
+              "comparator": "==",
+              "origin": "Specification layer 2: warn when more than one plausible state",
+              "evidence_level": "published"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.058,
+          "tool": {
+            "name": "dimorphite_dl",
+            "version": "2.1.0"
+          },
+          "sources_used": []
+        },
+        {
+          "check_id": "l2.ligand.conformers",
+          "title": "Ligand conformers generated and minimised",
+          "layer": 2,
+          "gate": "pass",
+          "message": "10 ETKDG conformers per ligand, MMFF minimised",
+          "measurements": [
+            {
+              "name": "ligands",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "failed",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "min_embedded",
+              "value": 10,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "conformers",
+              "value": 10,
+              "comparator": ">=",
+              "origin": "Harness default number of ETKDG conformers; not yet calibrated",
+              "evidence_level": "uncalibrated"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 1.539,
+          "tool": {
+            "name": "rdkit",
+            "version": null
+          },
+          "sources_used": []
+        },
+        {
+          "check_id": "l2.docking.box",
+          "title": "Docking box encloses the pocket with margin",
+          "layer": 2,
+          "gate": "warn",
+          "message": "no box declared; derived box encloses 22 contact residues and the ATP ligand with 2.0 Å margin",
+          "measurements": [
+            {
+              "name": "volume_A3",
+              "value": 4879.6,
+              "unit": null
+            },
+            {
+              "name": "ligand_atoms_inside_margin",
+              "value": 31,
+              "unit": null
+            },
+            {
+              "name": "ligand_atoms",
+              "value": 31,
+              "unit": null
+            },
+            {
+              "name": "contact_residues",
+              "value": 22,
+              "unit": null
+            },
+            {
+              "name": "contact_residues_outside",
+              "value": 0,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "margin",
+              "value": 2.0,
+              "comparator": ">=",
+              "origin": "Harness rule: every pocket heavy atom lies at least 2 Å inside the box; not yet calibrated",
+              "evidence_level": "uncalibrated"
+            },
+            {
+              "name": "contact_distance",
+              "value": 4.0,
+              "comparator": "<=",
+              "origin": "Harness rule: contact residues (heavy atom within 4 Å of the reference ligand) must have an atom inside the box; not yet calibrated",
+              "evidence_level": "uncalibrated"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.012,
+          "tool": null,
+          "sources_used": [
+            "rcsb_files:1B38:b851c5e8a986"
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 3,
+      "name": "applicability",
+      "counts": {
+        "pass": 5,
+        "warn": 1,
+        "stop": 0,
+        "skip": 0
+      },
+      "findings": [
+        {
+          "check_id": "l3.model.training_cutoff",
+          "title": "Model training cutoff recorded",
+          "layer": 3,
+          "gate": "pass",
+          "message": "diffdock 2019-01-01; boltz2 2023-06-01; reference 1B38 released 1998-12-23, before the cutoff of diffdock, boltz2",
+          "measurements": [
+            {
+              "name": "executors",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "unknown",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "reference_released",
+              "value": "1998-12-23",
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "training_cutoff",
+              "value": "recorded",
+              "comparator": "==",
+              "origin": "Specification, Layer 3 (applicability): stop when unknown",
+              "evidence_level": "published"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.001,
+          "tool": null,
+          "sources_used": [
+            "rcsb:1B38:64dd65fa1b0d"
+          ]
+        },
+        {
+          "check_id": "l3.exposure.pocket",
+          "title": "Pocket similarity to pre-cutoff complexes (SuCOS times pocket coverage)",
+          "layer": 3,
+          "gate": "pass",
+          "message": "max similarity 36.1 to 1B39 (ATP, SuCOS 0.565, coverage 0.64), released before 2019-01-01",
+          "measurements": [
+            {
+              "name": "cutoff",
+              "value": "2019-01-01",
+              "unit": null
+            },
+            {
+              "name": "entries_compared",
+              "value": 5,
+              "unit": null
+            },
+            {
+              "name": "max_similarity",
+              "value": 36.1,
+              "unit": null
+            },
+            {
+              "name": "pocket_residues",
+              "value": 25,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "similarity",
+              "value": 50,
+              "comparator": "<=",
+              "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
+              "evidence_level": "published"
+            },
+            {
+              "name": "entries",
+              "value": 5,
+              "comparator": "<=",
+              "origin": "Harness budget: pre-cutoff holo entries compared per run",
+              "evidence_level": "uncalibrated"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 2.057,
+          "tool": null,
+          "sources_used": [
+            "rcsb_files:1B38:b851c5e8a986",
+            "rcsb_search:chem:c1nc(c2c(n1)n(cn2)[C@H]3[C@@H]([C@@H]([C@H](O3)CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)O)O)N:c9ecdf87b8e2",
+            "ccd:5FA:141da43b1fd4",
+            "ccd:ADP:9ebf239d6ded",
+            "ccd:AQP:d1f31df6170c",
+            "ccd:ATP:a7dfd66192d9",
+            "ccd:HEJ:3793d61303f5",
+            "ccd:LA8:3c66f53baf33",
+            "ccd:ZF9:b48f6ea5a0a0",
+            "ccd:ZSF:dde5989ea661",
+            "ccd:50T:6be53fbf78af",
+            "ccd:AD9:c8798e579e0a",
+            "ccd:AOV:300b793745cf",
+            "ccd:CX0:fbc78ded25cd",
+            "ccd:CXC:d89a7023bd05",
+            "ccd:0A:7f0b456f42e0",
+            "ccd:3AN:a3d4d17a4a3e",
+            "ccd:7DD:2265ea597be9",
+            "ccd:7DT:c346b8a79ec0",
+            "ccd:AAM:ade365fd93cd",
+            "ccd:PAP:1a6bb6874f6f",
+            "ccd:XNY:7cb26ca44908",
+            "ccd:AP5:43e554f584b7",
+            "ccd:T99:68a3d15f3b6f",
+            "ccd:TAT:55287be9857e",
+            "ccd:A1L15:57864c05fab0",
+            "ccd:AGS:dcdd428b77e4",
+            "rcsb_search:comp:5FA:2019-01-01:c60bf45b266d",
+            "rcsb_search:comp:ADP:2019-01-01:d0ea634975e9",
+            "rcsb_search:comp:AQP:2019-01-01:94a619102faa",
+            "rcsb_search:comp:ATP:2019-01-01:88190701e349",
+            "rcsb_search:comp:HEJ:2019-01-01:494129c6512c",
+            "rcsb_search:comp:LA8:2019-01-01:185329a63a40",
+            "rcsb_search:comp:ZF9:2019-01-01:e3b0c44298fc",
+            "rcsb_search:comp:ZSF:2019-01-01:e3b0c44298fc",
+            "rcsb_search:comp:50T:2019-01-01:927f39839b9d",
+            "rcsb_search:comp:AD9:2019-01-01:ac65056f9aef",
+            "rcsb_search:comp:AOV:2019-01-01:d8dd9b5a5778",
+            "rcsb_search:comp:CX0:2019-01-01:e3b0c44298fc",
+            "rcsb_search:comp:CXC:2019-01-01:e3b0c44298fc",
+            "rcsb_search:comp:0A:2019-01-01:e3b0c44298fc",
+            "rcsb_search:comp:PAP:2019-01-01:ded69bf4bbb0",
+            "rcsb_search:comp:AP5:2019-01-01:ab39d336ec91",
+            "rcsb_search:comp:T99:2019-01-01:690266055a03",
+            "rcsb_search:comp:TAT:2019-01-01:84486689d32b",
+            "rcsb_search:comp:AGS:2019-01-01:aef54bf1fe1d",
+            "rcsb_search:seq0.9:2019-01-01:299:56d53a50e2e6",
+            "rcsb_files:1B39:43b7b7417024",
+            "rcsb_files:1FIN:dfe5da37b2e2",
+            "rcsb_files:1FQ1:f86aad4d11e2",
+            "rcsb_files:1GY3:fb1e8e095ae9"
+          ]
+        },
+        {
+          "check_id": "l3.exposure.ligand_prevalence",
+          "title": "Ligand analogues in pre-cutoff training systems",
+          "layer": 3,
+          "gate": "warn",
+          "message": "3474 PDB entries released before 2019-01-01 (diffdock cutoff) contain analogues of ligand above Tanimoto 0.9: 5FA, ADP, AQP, ATP, HEJ, LA8",
+          "measurements": [
+            {
+              "name": "cutoff",
+              "value": "2019-01-01",
+              "unit": null
+            },
+            {
+              "name": "systems",
+              "value": 3474,
+              "unit": null
+            },
+            {
+              "name": "analogue_components",
+              "value": 19,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "tanimoto",
+              "value": 0.9,
+              "comparator": ">",
+              "origin": "Specification layer 3: analogues above 0.9 Tanimoto (RDKit topological fingerprint)",
+              "evidence_level": "published"
+            },
+            {
+              "name": "systems",
+              "value": 100,
+              "comparator": "<=",
+              "origin": "Specification layer 3: prevalent when analogues occur in more than 100 training systems",
+              "evidence_level": "published"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.0,
+          "tool": {
+            "name": "RCSB search (chemical) + RDKit topological fingerprint",
+            "version": null
+          },
+          "sources_used": []
+        },
+        {
+          "check_id": "l3.exposure.sequence",
+          "title": "Chain sequence identity to pre-cutoff entries (secondary measure)",
+          "layer": 3,
+          "gate": "pass",
+          "message": "protein: 379 entries at 95 percent identity, 453 at 40 percent, released before 2019-01-01 (reported, not gating)",
+          "measurements": [
+            {
+              "name": "cutoff",
+              "value": "2019-01-01",
+              "unit": null
+            },
+            {
+              "name": "entries_95",
+              "value": 379,
+              "unit": null
+            },
+            {
+              "name": "entries_40",
+              "value": 453,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "identity",
+              "value": 0.4,
+              "comparator": "<",
+              "origin": "Specification layer 3: conventional 40 percent identity leakage threshold, reported as a secondary measure only",
+              "evidence_level": "published"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 1.066,
+          "tool": {
+            "name": "RCSB search (sequence, MMseqs2)",
+            "version": null
+          },
+          "sources_used": [
+            "rcsb_search:seq0.95:2019-01-01:299:182310d05170",
+            "rcsb_search:seq0.4:2019-01-01:299:c845d5825be0"
+          ]
+        },
+        {
+          "check_id": "l3.regime.modality",
+          "title": "Modality inside the validated set; token count against the training crop",
+          "layer": 3,
+          "gate": "pass",
+          "message": "modalities protein, protein_ligand inside the validated set; 330 tokens",
+          "measurements": [
+            {
+              "name": "modalities",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "tokens",
+              "value": 330,
+              "unit": null
+            },
+            {
+              "name": "outside",
+              "value": 0,
+              "unit": null
+            }
+          ],
+          "thresholds": [],
+          "skip_reason": null,
+          "duration_s": 0.017,
+          "tool": null,
+          "sources_used": [
+            "rcsb_files:1B38:b851c5e8a986"
+          ]
+        },
+        {
+          "check_id": "l3.metric.endpoint",
+          "title": "Endpoint fits the tool",
+          "layer": 3,
+          "gate": "pass",
+          "message": "endpoint pose produced by diffdock, boltz2",
+          "measurements": [
+            {
+              "name": "endpoint",
+              "value": "pose",
+              "unit": null
+            },
+            {
+              "name": "executors",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "not_fitting",
+              "value": 0,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "endpoint",
+              "value": "pose",
+              "comparator": "in",
+              "origin": "Specification, Layer 3 (applicability): no affinity from interface confidence, no protein-protein affinity from Boltz-2",
+              "evidence_level": "published"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.0,
+          "tool": null,
+          "sources_used": []
+        }
+      ]
+    },
+    {
+      "layer": 4,
+      "name": "output validity",
+      "counts": {
+        "pass": 3,
+        "warn": 3,
+        "stop": 1,
+        "skip": 0
+      },
+      "findings": [
+        {
+          "check_id": "l4.posebusters",
+          "title": "PoseBusters geometry, stereochemistry, clashes and protein contact",
+          "layer": 4,
+          "gate": "stop",
+          "message": "representative pose diffdock/seed1/mode0 fails minimum_distance_to_protein",
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "passed",
+              "value": 19,
+              "unit": null
+            },
+            {
+              "name": "total",
+              "value": 20,
+              "unit": null
+            },
+            {
+              "name": "poses_all_pass",
+              "value": 2,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "tests_failed",
+              "value": 0,
+              "comparator": "==",
+              "origin": "Specification, Layer 4 (output validity): stop on failure",
+              "evidence_level": "published"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 4.064,
+          "tool": {
+            "name": "posebusters",
+            "version": "0.6.5"
+          },
+          "sources_used": []
+        },
+        {
+          "check_id": "l4.torsion_strain",
+          "title": "Torsional strain of the ligand pose",
+          "layer": 4,
+          "gate": "warn",
+          "message": "1 of 14 torsions above 2.5 kcal/mol in diffdock/seed1/mode0",
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "unlikely_torsions",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "torsions",
+              "value": 14,
+              "unit": null
+            },
+            {
+              "name": "strain_kcal",
+              "value": 26.1,
+              "unit": null
+            },
+            {
+              "name": "poses_with_unlikely",
+              "value": 2,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "torsion_energy",
+              "value": 2.5,
+              "comparator": "<=",
+              "origin": "Harness rule: a rotatable torsion whose MMFF energy lies more than 2.5 kcal/mol above the minimum of its rigid scan is unlikely; not yet calibrated",
+              "evidence_level": "uncalibrated"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 7.877,
+          "tool": {
+            "name": "rdkit MMFF94",
+            "version": null
+          },
+          "sources_used": []
+        },
+        {
+          "check_id": "l4.interactions.fingerprint",
+          "title": "Interaction fingerprint (PLIP)",
+          "layer": 4,
+          "gate": "pass",
+          "message": "5 interactions in diffdock/seed1/mode0 (hbond); 8 distinct across 3 poses (reported)",
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "interactions_representative",
+              "value": 5,
+              "unit": null
+            },
+            {
+              "name": "distinct",
+              "value": 8,
+              "unit": null
+            },
+            {
+              "name": "hbonds_representative",
+              "value": 5,
+              "unit": null
+            }
+          ],
+          "thresholds": [],
+          "skip_reason": null,
+          "duration_s": 1.351,
+          "tool": {
+            "name": "plip",
+            "version": "3.0.1"
+          },
+          "sources_used": [
+            "rcsb_files:1B38:b851c5e8a986"
+          ]
+        },
+        {
+          "check_id": "l4.interactions.unsatisfied_polars",
+          "title": "Buried ligand polar atoms without a hydrogen-bond partner",
+          "layer": 4,
+          "gate": "pass",
+          "message": "3 buried polar ligand atoms, all with a partner within 3.5 Å in diffdock/seed1/mode0",
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "unsatisfied",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "buried_charged",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "buried_polar",
+              "value": 3,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "relative_sasa",
+              "value": 0.1,
+              "comparator": "<",
+              "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+              "evidence_level": "uncalibrated"
+            },
+            {
+              "name": "hbond_distance",
+              "value": 3.5,
+              "comparator": "<=",
+              "origin": "PLIP hydrogen bond distance cut-off (donor-acceptor 4.1 Å; harness uses 3.5 Å heavy-atom distance)",
+              "evidence_level": "published"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.396,
+          "tool": {
+            "name": "freesasa",
+            "version": "2.2.1"
+          },
+          "sources_used": []
+        },
+        {
+          "check_id": "l4.interactions.hydrophobic",
+          "title": "Hydrophobic complementarity of buried ligand surface",
+          "layer": 4,
+          "gate": "pass",
+          "message": "nonpolar fraction of protein contacts around 3 buried nonpolar ligand atoms in diffdock/seed1/mode0: 0.433",
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "complementarity",
+              "value": 0.433,
+              "unit": null
+            },
+            {
+              "name": "buried_nonpolar",
+              "value": 3,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "fraction",
+              "value": 0.35,
+              "comparator": ">=",
+              "origin": "Harness default anchored on 3PTB: the crystal benzamidine scores 0.51, Vina and Boltz-2 poses within 0.5 Å of it score 0.45 and 0.49; not calibrated on the benchmark",
+              "evidence_level": "uncalibrated"
+            },
+            {
+              "name": "relative_sasa",
+              "value": 0.1,
+              "comparator": "<",
+              "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+              "evidence_level": "uncalibrated"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.393,
+          "tool": {
+            "name": "freesasa",
+            "version": null
+          },
+          "sources_used": []
+        },
+        {
+          "check_id": "l4.interactions.known_binders",
+          "title": "Interactions of the crystal ligand reproduced by the pose",
+          "layer": 4,
+          "gate": "warn",
+          "message": "diffdock/seed1/mode0 reproduces none of 9 ATP interactions",
+          "measurements": [
+            {
+              "name": "key_interactions",
+              "value": 9,
+              "unit": null
+            },
+            {
+              "name": "reproduced",
+              "value": 0,
+              "unit": null
+            },
+            {
+              "name": "poses_reproducing_all",
+              "value": 0,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "reproduced",
+              "value": 1,
+              "comparator": ">=",
+              "origin": "Specification layer 4: warn when no key interaction is reproduced",
+              "evidence_level": "published"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.613,
+          "tool": {
+            "name": "plip",
+            "version": "3.0.1"
+          },
+          "sources_used": [
+            "rcsb_files:1B38:b851c5e8a986"
+          ]
+        },
+        {
+          "check_id": "l4.minimisation_drift",
+          "title": "Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF)",
+          "layer": 4,
+          "gate": "warn",
+          "message": "diffdock/seed1/mode0 moves 2.278 Å under restrained minimisation",
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "drift_A",
+              "value": 2.278,
+              "unit": null
+            },
+            {
+              "name": "max_drift_A",
+              "value": 2.278,
+              "unit": null
+            },
+            {
+              "name": "poses_over",
+              "value": 1,
+              "unit": null
+            },
+            {
+              "name": "failed",
+              "value": 0,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "drift",
+              "value": 2.0,
+              "comparator": "<=",
+              "origin": "Specification layer 4: warn when the pose moves beyond 2 Å under restrained minimisation",
+              "evidence_level": "published"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 122.319,
+          "tool": {
+            "name": "openmm",
+            "version": "8.6.1"
+          },
+          "sources_used": []
+        }
+      ]
+    },
+    {
+      "layer": 5,
+      "name": "output support",
+      "counts": {
+        "pass": 3,
+        "warn": 1,
+        "stop": 1,
+        "skip": 0
+      },
+      "findings": [
+        {
+          "check_id": "l5.confidence.local",
+          "title": "Confidence restricted to the pocket; per-model thresholds",
+          "layer": 5,
+          "gate": "pass",
+          "message": "diffdock/seed1/mode0: diffdock_confidence -2.73; no per-model confidence threshold registered for diffdock (reported)",
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "diffdock_confidence",
+              "value": -2.73,
+              "unit": null
+            }
+          ],
+          "thresholds": [],
+          "skip_reason": null,
+          "duration_s": 0.0,
+          "tool": null,
+          "sources_used": []
+        },
+        {
+          "check_id": "l5.sampling.seeds",
+          "title": "Independent seeds counted separately from samples; duplicates flagged",
+          "layer": 5,
+          "gate": "pass",
+          "message": "3 independent seeds, 29 poses, no duplicates",
+          "measurements": [
+            {
+              "name": "independent_seeds",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "samples",
+              "value": 29,
+              "unit": null
+            },
+            {
+              "name": "duplicated_outputs",
+              "value": 0,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "seeds_docking",
+              "value": 3,
+              "comparator": ">=",
+              "origin": "Harness default for independent docking seeds; not yet calibrated",
+              "evidence_level": "uncalibrated"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.0,
+          "tool": null,
+          "sources_used": []
+        },
+        {
+          "check_id": "l5.sampling.clusters",
+          "title": "Medoid of the largest cluster, populations, pairwise spread, site and pose accuracy",
+          "layer": 5,
+          "gate": "pass",
+          "message": "medoid diffdock/seed1/mode0; 2 clusters, largest 2 of 3; pairwise RMSD median 2.14 Å (IQR 1.38 to 2.15); 3 of 3 poses within 4.0 Å of the site (ATP in 1B38); 2 of 3 poses within 2.0 Å of the medoid",
+          "measurements": [
+            {
+              "name": "poses",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "clusters",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "largest_cluster",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "pairwise_rmsd_median_A",
+              "value": 2.139,
+              "unit": null
+            },
+            {
+              "name": "within_medoid",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "in_site",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "best_sampled_rmsd_to_reference_A",
+              "value": 0.792,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "cluster_rmsd",
+              "value": 2.0,
+              "comparator": "<=",
+              "origin": "Specification layer 5: 2 Å symmetry-aware ligand RMSD (spyrmsd) separates pose clusters",
+              "evidence_level": "published"
+            },
+            {
+              "name": "site_distance",
+              "value": 4.0,
+              "comparator": "<=",
+              "origin": "Harness rule: a ligand centroid within 4 Å of the reference site centroid is placed in the site; not yet calibrated",
+              "evidence_level": "uncalibrated"
+            },
+            {
+              "name": "largest_fraction",
+              "value": 0.5,
+              "comparator": ">=",
+              "origin": "Harness rule: the largest cluster holds at least half of the poses; not yet calibrated",
+              "evidence_level": "uncalibrated"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.256,
+          "tool": {
+            "name": "spyrmsd",
+            "version": "0.9.0"
+          },
+          "sources_used": [
+            "rcsb_files:1B38:b851c5e8a986"
+          ]
+        },
+        {
+          "check_id": "l5.agreement.cross_family",
+          "title": "Agreement between methods, weighted by independence",
+          "layer": 5,
+          "gate": "warn",
+          "message": "diffdock vs boltz2 2.656 Å (high); diffdock vs crystal 1B38 0.918 Å (decisive); boltz2 vs crystal 1B38 2.392 Å (decisive)",
+          "measurements": [
+            {
+              "name": "methods",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "comparisons",
+              "value": 3,
+              "unit": null
+            },
+            {
+              "name": "disagreeing",
+              "value": 2,
+              "unit": null
+            },
+            {
+              "name": "rmsd_to_crystal_A",
+              "value": 0.918,
+              "unit": null
+            }
+          ],
+          "thresholds": [
+            {
+              "name": "rmsd",
+              "value": 2.0,
+              "comparator": "<=",
+              "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 Å",
+              "evidence_level": "published"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.091,
+          "tool": {
+            "name": "spyrmsd",
+            "version": null
+          },
+          "sources_used": [
+            "rcsb_files:1B38:b851c5e8a986"
+          ]
+        },
+        {
+          "check_id": "l5.controls.redocking",
+          "title": "Redocking control reproduces the crystal pose",
+          "layer": 5,
+          "gate": "stop",
+          "message": "redocking control required by the task and not supplied (controls.redocking)",
+          "measurements": [],
+          "thresholds": [
+            {
+              "name": "rmsd",
+              "value": 2.0,
+              "comparator": "<=",
+              "origin": "Specification layer 5: redocking must reproduce the crystal pose (2 Å ligand RMSD)",
+              "evidence_level": "published"
+            }
+          ],
+          "skip_reason": null,
+          "duration_s": 0.0,
+          "tool": null,
+          "sources_used": []
+        }
+      ]
+    }
+  ],
+  "provenance": [
+    {
+      "id": "rcsb_files:1B38:b851c5e8a986",
+      "source": "rcsb_files",
+      "accession": "1B38",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:54.674307Z",
+      "size_bytes": 333302,
+      "sha256": "b851c5e8a98632f858dedd26ab34b37ea2aa7ac945be702215003838805ed10f",
+      "url": "https://files.rcsb.org/download/1B38.cif",
+      "cache": "hit",
+      "used_by": [
+        "l2.context.cofactors",
+        "l2.pocket.resolved",
+        "l2.receptor.state",
+        "l2.docking.box",
+        "l3.exposure.pocket",
+        "l3.regime.modality",
+        "l4.interactions.fingerprint",
+        "l4.interactions.known_binders",
+        "l5.sampling.clusters",
+        "l5.agreement.cross_family"
+      ]
+    },
+    {
+      "id": "ccd:ATP:a7dfd66192d9",
+      "source": "ccd",
+      "accession": "ATP",
+      "release": "2011-06-04",
+      "retrieved_at": "2026-10-17T16:42:55.103746Z",
+      "size_bytes": 14836,
+      "sha256": "a7dfd66192d9f95b610cb7bd2417b5f4c4caadba7b13fb7c6cf3c4971ca6d55b",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/ATP",
+      "cache": "hit",
+      "used_by": [
+        "l2.context.cofactors",
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb:1B38:64dd65fa1b0d",
+      "source": "rcsb",
+      "accession": "1B38",
+      "release": "1.4",
+      "retrieved_at": "2026-10-17T16:42:56.715882Z",
+      "size_bytes": 16633,
+      "sha256": "64dd65fa1b0dec2dcbd1fc60921882becd467338b54968a0ad5e14ec6c9fd530",
+      "url": "https://data.rcsb.org/rest/v1/core/entry/1B38",
+      "cache": "hit",
+      "used_by": [
+        "l3.model.training_cutoff"
+      ]
+    },
+    {
+      "id": "rcsb_search:chem:c1nc(c2c(n1)n(cn2)[C@H]3[C@@H]([C@@H]([C@H](O3)CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)O)O)N:c9ecdf87b8e2",
+      "source": "rcsb_search",
+      "accession": "chem:c1nc(c2c(n1)n(cn2)[C@H]3[C@@H]([C@@H]([C@H](O3)CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)O)O)N",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:57.520257Z",
+      "size_bytes": 1797,
+      "sha256": "c9ecdf87b8e2036a7bd8ba5ee02c9b90846ce9c9d96d0c6a1c8c7fa9dba35d7b",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22parameters%22%3A+%7B%22descriptor_type%22%3A+%22SMILES%22%2C+%22match_type%22%3A+%22fingerprint-similarity%22%2C+%22type%22%3A+%22descriptor%22%2C+%22value%22%3A+%22c1nc%28c2c%28n1%29n%28cn2%29%5BC%40H%5D3%5BC%40%40H%5D%28%5BC%40%40H%5D%28%5BC%40H%5D%28O3%29CO%5BP%40%40%5D%28%3DO%29%28O%29O%5BP%40%5D%28%3DO%29%28O%29OP%28%3DO%29%28O%29O%29O%29O%29N%22%7D%2C+%22service%22%3A+%22chemical%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+50%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22mol_definition%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:5FA:141da43b1fd4",
+      "source": "ccd",
+      "accession": "5FA",
+      "release": "2011-06-04",
+      "retrieved_at": "2026-10-17T16:42:57.567236Z",
+      "size_bytes": 5208,
+      "sha256": "141da43b1fd40d972d90481d625d7880ee059784c3f32ab7c40cd05b7795ae22",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/5FA",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:ADP:9ebf239d6ded",
+      "source": "ccd",
+      "accession": "ADP",
+      "release": "2025-10-10",
+      "retrieved_at": "2026-10-17T16:42:57.619840Z",
+      "size_bytes": 5741,
+      "sha256": "9ebf239d6dedf10d3aaa86c12c6b629137fa0f7ea90cb335ff9eaa470e6d8ee3",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/ADP",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:AQP:d1f31df6170c",
+      "source": "ccd",
+      "accession": "AQP",
+      "release": "2011-06-04",
+      "retrieved_at": "2026-10-17T16:42:57.668705Z",
+      "size_bytes": 4700,
+      "sha256": "d1f31df6170ce5eba78784b9e230d2f6242cd8003c1a32f65b4dd22668da4b20",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/AQP",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:HEJ:3793d61303f5",
+      "source": "ccd",
+      "accession": "HEJ",
+      "release": "2021-03-01",
+      "retrieved_at": "2026-10-17T16:42:57.723051Z",
+      "size_bytes": 4603,
+      "sha256": "3793d61303f5f7323ea8a77ebb4915133d7fca372c6234cd7e71d826fc1ed045",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/HEJ",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:LA8:3c66f53baf33",
+      "source": "ccd",
+      "accession": "LA8",
+      "release": "2020-06-17",
+      "retrieved_at": "2026-10-17T16:42:57.774636Z",
+      "size_bytes": 4178,
+      "sha256": "3c66f53baf3390f3cdf8d44297ab2b103294f62bcb98e18ca2693417ca9a9f0f",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/LA8",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:ZF9:b48f6ea5a0a0",
+      "source": "ccd",
+      "accession": "ZF9",
+      "release": "2024-03-08",
+      "retrieved_at": "2026-10-17T16:42:57.824701Z",
+      "size_bytes": 4686,
+      "sha256": "b48f6ea5a0a069463c6293a7b070659f6ebb541395529ca8e90461d91683a755",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/ZF9",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:ZSF:dde5989ea661",
+      "source": "ccd",
+      "accession": "ZSF",
+      "release": "2024-03-29",
+      "retrieved_at": "2026-10-17T16:42:57.896802Z",
+      "size_bytes": 4903,
+      "sha256": "dde5989ea661dbfcc5f4d479044a2a54e36cdfeab618f0cb979964c0d52c495c",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/ZSF",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:50T:6be53fbf78af",
+      "source": "ccd",
+      "accession": "50T",
+      "release": "2026-09-16",
+      "retrieved_at": "2026-10-17T16:42:57.952589Z",
+      "size_bytes": 4275,
+      "sha256": "6be53fbf78af92ddfa4b9ee34da26da76fd6adff77a23edadea770541d2c0742",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/50T",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:AD9:c8798e579e0a",
+      "source": "ccd",
+      "accession": "AD9",
+      "release": "2026-09-16",
+      "retrieved_at": "2026-10-17T16:42:58.018473Z",
+      "size_bytes": 4205,
+      "sha256": "c8798e579e0a2693110d64a2cfaac516ff7698a11247fb637a3f14ed3d811d27",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/AD9",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:AOV:300b793745cf",
+      "source": "ccd",
+      "accession": "AOV",
+      "release": "2026-09-16",
+      "retrieved_at": "2026-10-17T16:42:58.102696Z",
+      "size_bytes": 4330,
+      "sha256": "300b793745cf0594acedc8846c95d3ecfd73179e24081b800db7b3e87d5ea724",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/AOV",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:CX0:fbc78ded25cd",
+      "source": "ccd",
+      "accession": "CX0",
+      "release": "2022-03-25",
+      "retrieved_at": "2026-10-17T16:42:58.151845Z",
+      "size_bytes": 3595,
+      "sha256": "fbc78ded25cdcf78a2ccbb53d5bf24eefb621c3786f8f50019a6805b0c8f8510",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/CX0",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:CXC:d89a7023bd05",
+      "source": "ccd",
+      "accession": "CXC",
+      "release": "2022-03-25",
+      "retrieved_at": "2026-10-17T16:42:58.203812Z",
+      "size_bytes": 3941,
+      "sha256": "d89a7023bd05a4e4ff53e02569b3a987fd85f53929e8c552a0b00034ca74205e",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/CXC",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:0A:7f0b456f42e0",
+      "source": "ccd",
+      "accession": "0A",
+      "release": "2015-04-24",
+      "retrieved_at": "2026-10-17T16:42:58.255370Z",
+      "size_bytes": 3972,
+      "sha256": "7f0b456f42e010860f50ade4b7b6c1bd84a0e246e7f499f95c04941120d5a59f",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/0A",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:3AN:a3d4d17a4a3e",
+      "source": "ccd",
+      "accession": "3AN",
+      "release": "2011-06-04",
+      "retrieved_at": "2026-10-17T16:42:58.312588Z",
+      "size_bytes": 4390,
+      "sha256": "a3d4d17a4a3edf2896ed1d0d985cb2d48b0be5bb57467f4a1c139d9b92f45dea",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/3AN",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:7DD:2265ea597be9",
+      "source": "ccd",
+      "accession": "7DD",
+      "release": "2016-06-10",
+      "retrieved_at": "2026-10-17T16:42:58.362678Z",
+      "size_bytes": 3425,
+      "sha256": "2265ea597be9a4467bdcfdd5ae590b2b6538753106b801f916b524c787d6fa36",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/7DD",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:7DT:c346b8a79ec0",
+      "source": "ccd",
+      "accession": "7DT",
+      "release": "2016-06-10",
+      "retrieved_at": "2026-10-17T16:42:58.416630Z",
+      "size_bytes": 3725,
+      "sha256": "c346b8a79ec054912fdcca9343265867a9e767dc2416cd3b8bd8b7ba634d108c",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/7DT",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:AAM:ade365fd93cd",
+      "source": "ccd",
+      "accession": "AAM",
+      "release": "2011-06-04",
+      "retrieved_at": "2026-10-17T16:42:58.468364Z",
+      "size_bytes": 4244,
+      "sha256": "ade365fd93cd170a592259c9066f7fc54d8aad61323c012e6e036bdcee839b85",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/AAM",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:PAP:1a6bb6874f6f",
+      "source": "ccd",
+      "accession": "PAP",
+      "release": "2011-06-04",
+      "retrieved_at": "2026-10-17T16:42:58.519520Z",
+      "size_bytes": 4734,
+      "sha256": "1a6bb6874f6ff5dcdac15c98aaa5b2e27e069d8efd2e918a1971a1340e4dd315",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/PAP",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:XNY:7cb26ca44908",
+      "source": "ccd",
+      "accession": "XNY",
+      "release": "2021-04-30",
+      "retrieved_at": "2026-10-17T16:42:58.572579Z",
+      "size_bytes": 3977,
+      "sha256": "7cb26ca44908b8e1752923facf869933cbbbc615efc16d71df2a03196b2aaa07",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/XNY",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:AP5:43e554f584b7",
+      "source": "ccd",
+      "accession": "AP5",
+      "release": "2011-06-04",
+      "retrieved_at": "2026-10-17T16:42:58.626324Z",
+      "size_bytes": 6473,
+      "sha256": "43e554f584b79b24aef8cdfa5e231420477ab2f83487b377c0226cf053be7201",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/AP5",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:T99:68a3d15f3b6f",
+      "source": "ccd",
+      "accession": "T99",
+      "release": "2018-06-01",
+      "retrieved_at": "2026-10-17T16:42:58.682050Z",
+      "size_bytes": 3399,
+      "sha256": "68a3d15f3b6fc4bbd3bd94103b9bafa6aadd7551915ae3a695d5e8f9cf559925",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/T99",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:TAT:55287be9857e",
+      "source": "ccd",
+      "accession": "TAT",
+      "release": "2012-01-25",
+      "retrieved_at": "2026-10-17T16:42:58.736110Z",
+      "size_bytes": 4858,
+      "sha256": "55287be9857e03585831ff87a047c6ea3e5e80d364b2e523724c1fc03ec17e0c",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/TAT",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:A1L15:57864c05fab0",
+      "source": "ccd",
+      "accession": "A1L15",
+      "release": "2025-01-24",
+      "retrieved_at": "2026-10-17T16:42:58.794338Z",
+      "size_bytes": 5608,
+      "sha256": "57864c05fab0e5a27dde709a717a3a7e63d81e436b779ec4bdb09487bc4b6954",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/A1L15",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "ccd:AGS:dcdd428b77e4",
+      "source": "ccd",
+      "accession": "AGS",
+      "release": "2020-06-17",
+      "retrieved_at": "2026-10-17T16:42:58.849064Z",
+      "size_bytes": 10128,
+      "sha256": "dcdd428b77e4672df80b6f1e589b54e43dbe32431dea4da6cae6520e4feb4559",
+      "url": "https://data.rcsb.org/rest/v1/core/chemcomp/AGS",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:5FA:2019-01-01:c60bf45b266d",
+      "source": "rcsb_search",
+      "accession": "comp:5FA:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:58.902223Z",
+      "size_bytes": 282,
+      "sha256": "c60bf45b266d95b37a5172e507a285d77523e8f2624c56ec28f264903033727e",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%225FA%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:ADP:2019-01-01:d0ea634975e9",
+      "source": "rcsb_search",
+      "accession": "comp:ADP:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:58.953847Z",
+      "size_bytes": 52129,
+      "sha256": "d0ea634975e94dc6c050bc3fafb0c5b18223fb3da6db7f4c34431d5da84e4abf",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22ADP%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:AQP:2019-01-01:94a619102faa",
+      "source": "rcsb_search",
+      "accession": "comp:AQP:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:58.999276Z",
+      "size_bytes": 230,
+      "sha256": "94a619102faaf20a9213f60d7d7dae921d65d5d02a111fc6682c6b5d55886317",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22AQP%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:ATP:2019-01-01:88190701e349",
+      "source": "rcsb_search",
+      "accession": "comp:ATP:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.050223Z",
+      "size_bytes": 52129,
+      "sha256": "88190701e349e1f88ddaab57c13efafb20657c32e9e0f17e4a3494590a29e4f4",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22ATP%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:HEJ:2019-01-01:494129c6512c",
+      "source": "rcsb_search",
+      "accession": "comp:HEJ:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.098424Z",
+      "size_bytes": 178,
+      "sha256": "494129c6512c38362e4810027040addcae3829f5aa4b2730f415ba9e5e23b368",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22HEJ%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:LA8:2019-01-01:185329a63a40",
+      "source": "rcsb_search",
+      "accession": "comp:LA8:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.143601Z",
+      "size_bytes": 230,
+      "sha256": "185329a63a408c1573c84adb25677ca4a5b887d3d5a68a24867f5d3817a1bd75",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22LA8%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:ZF9:2019-01-01:e3b0c44298fc",
+      "source": "rcsb_search",
+      "accession": "comp:ZF9:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.187900Z",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22ZF9%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:ZSF:2019-01-01:e3b0c44298fc",
+      "source": "rcsb_search",
+      "accession": "comp:ZSF:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.230500Z",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22ZSF%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:50T:2019-01-01:927f39839b9d",
+      "source": "rcsb_search",
+      "accession": "comp:50T:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.275190Z",
+      "size_bytes": 178,
+      "sha256": "927f39839b9d163bf3ea10e1f86e2eee22f4e46ce1fb9fe67c5095814adb3389",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%2250T%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:AD9:2019-01-01:ac65056f9aef",
+      "source": "rcsb_search",
+      "accession": "comp:AD9:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.319053Z",
+      "size_bytes": 490,
+      "sha256": "ac65056f9aef29f2d2b62f1b0b25e5e3d50346aa969bf7ebfbdc1d910ceb2baf",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22AD9%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:AOV:2019-01-01:d8dd9b5a5778",
+      "source": "rcsb_search",
+      "accession": "comp:AOV:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.364881Z",
+      "size_bytes": 334,
+      "sha256": "d8dd9b5a57781d3e87a97d325da3511cf1f43996afc5b437ec44cf5fd2e1d692",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22AOV%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:CX0:2019-01-01:e3b0c44298fc",
+      "source": "rcsb_search",
+      "accession": "comp:CX0:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.407422Z",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22CX0%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:CXC:2019-01-01:e3b0c44298fc",
+      "source": "rcsb_search",
+      "accession": "comp:CXC:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.450311Z",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22CXC%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:0A:2019-01-01:e3b0c44298fc",
+      "source": "rcsb_search",
+      "accession": "comp:0A:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.492914Z",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%220A%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:PAP:2019-01-01:ded69bf4bbb0",
+      "source": "rcsb_search",
+      "accession": "comp:PAP:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.539327Z",
+      "size_bytes": 542,
+      "sha256": "ded69bf4bbb07c5788903401589e0acc189ec7f48bf7f5597a2fdececf99e1aa",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22PAP%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:AP5:2019-01-01:ab39d336ec91",
+      "source": "rcsb_search",
+      "accession": "comp:AP5:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.586389Z",
+      "size_bytes": 3247,
+      "sha256": "ab39d336ec9181e9b4e0e95e11e02eb174bcb5ac72ed8a87ae92909f926f95b9",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22AP5%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:T99:2019-01-01:690266055a03",
+      "source": "rcsb_search",
+      "accession": "comp:T99:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.634169Z",
+      "size_bytes": 178,
+      "sha256": "690266055a033a0c24c46a14ad160b27c4499c48ae40feb6f2f8fd1d66c4bdfe",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22T99%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:TAT:2019-01-01:84486689d32b",
+      "source": "rcsb_search",
+      "accession": "comp:TAT:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.681396Z",
+      "size_bytes": 438,
+      "sha256": "84486689d32bb7bf3f49edc428d5a308fe2725bccfa2ec87e1e1a00f74af36fe",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22TAT%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:comp:AGS:2019-01-01:aef54bf1fe1d",
+      "source": "rcsb_search",
+      "accession": "comp:AGS:2019-01-01",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:42:59.730180Z",
+      "size_bytes": 8188,
+      "sha256": "aef54bf1fe1d31618ee0455a373005996f8990fd39279d8a2c591db4ef800467",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22AGS%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:seq0.9:2019-01-01:299:56d53a50e2e6",
+      "source": "rcsb_search",
+      "accession": "seq0.9:2019-01-01:299",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:48:11.936000Z",
+      "size_bytes": 10528,
+      "sha256": "56d53a50e2e67b911acc8e5cc8b7b954c8bfbfcfb9561ee973d8a1e9fa52b017",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.9%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22XMENFQKVEKGGEGGYGVGYKARNKLTGEVVGLGKIRLDTETEGVPSTAIREISLLKELNHPNIVKLLDVIHTENKLYLVFGFGHQGLKKFMDASALTGIPLPLIKSYLFQLLQGLAFCHSHRVLHRDLGPGGLGINTEGAIKLAGFGLARAFGVPVRTYTHEVVTLWYRAPEILLGCKYYSTAVDIWSLGCIFAEMVTRRALFPGDSEIDQLFRIFRTLGTPDEVVWPGVTSMPDYKPSFPKWARQDFSKVVPPLDEDGRSLLSQMLHYDPNKRISAKAALAHPFFQDVTKPVPHLRL%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+200%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "miss",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_files:1B39:43b7b7417024",
+      "source": "rcsb_files",
+      "accession": "1B39",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:43:01.849797Z",
+      "size_bytes": 327760,
+      "sha256": "43b7b7417024c3f48df86236a0518307593cf48dbe60e5a608aa53fa420cfa83",
+      "url": "https://files.rcsb.org/download/1B39.cif",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_files:1FIN:dfe5da37b2e2",
+      "source": "rcsb_files",
+      "accession": "1FIN",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:43:01.964283Z",
+      "size_bytes": 999052,
+      "sha256": "dfe5da37b2e28d3d74eefa0edee97d57ea127538beead9e68a8a42a5c363a1ac",
+      "url": "https://files.rcsb.org/download/1FIN.cif",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_files:1FQ1:f86aad4d11e2",
+      "source": "rcsb_files",
+      "accession": "1FQ1",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:43:02.237412Z",
+      "size_bytes": 464333,
+      "sha256": "f86aad4d11e29283f373d3da984102b17088e6879410b5d6c00426d499cdd861",
+      "url": "https://files.rcsb.org/download/1FQ1.cif",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_files:1GY3:fb1e8e095ae9",
+      "source": "rcsb_files",
+      "accession": "1GY3",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:43:02.333602Z",
+      "size_bytes": 1014441,
+      "sha256": "fb1e8e095ae9fe28f94443c35cd7eddf455e3e67e88c2a57b1a65bd7a6e135a8",
+      "url": "https://files.rcsb.org/download/1GY3.cif",
+      "cache": "hit",
+      "used_by": [
+        "l3.exposure.pocket"
+      ]
+    },
+    {
+      "id": "rcsb_search:seq0.95:2019-01-01:299:182310d05170",
+      "source": "rcsb_search",
+      "accession": "seq0.95:2019-01-01:299",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:48:12.814412Z",
+      "size_bytes": 388,
+      "sha256": "182310d05170ee73e3a603917bfe266b4965acfac1185734e8ef6fb49b756697",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.95%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22XMENFQKVEKGGEGGYGVGYKARNKLTGEVVGLGKIRLDTETEGVPSTAIREISLLKELNHPNIVKLLDVIHTENKLYLVFGFGHQGLKKFMDASALTGIPLPLIKSYLFQLLQGLAFCHSHRVLHRDLGPGGLGINTEGAIKLAGFGLARAFGVPVRTYTHEVVTLWYRAPEILLGCKYYSTAVDIWSLGCIFAEMVTRRALFPGDSEIDQLFRIFRTLGTPDEVVWPGVTSMPDYKPSFPKWARQDFSKVVPPLDEDGRSLLSQMLHYDPNKRISAKAALAHPFFQDVTKPVPHLRL%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+5%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "miss",
+      "used_by": [
+        "l3.exposure.sequence"
+      ]
+    },
+    {
+      "id": "rcsb_search:seq0.4:2019-01-01:299:c845d5825be0",
+      "source": "rcsb_search",
+      "accession": "seq0.4:2019-01-01:299",
+      "release": null,
+      "retrieved_at": "2026-10-17T16:48:13.299827Z",
+      "size_bytes": 388,
+      "sha256": "c845d5825be07a6db0339e94d29609af05f74f4762f52de8baa28c4094ce69e1",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.4%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22XMENFQKVEKGGEGGYGVGYKARNKLTGEVVGLGKIRLDTETEGVPSTAIREISLLKELNHPNIVKLLDVIHTENKLYLVFGFGHQGLKKFMDASALTGIPLPLIKSYLFQLLQGLAFCHSHRVLHRDLGPGGLGINTEGAIKLAGFGLARAFGVPVRTYTHEVVTLWYRAPEILLGCKYYSTAVDIWSLGCIFAEMVTRRALFPGDSEIDQLFRIFRTLGTPDEVVWPGVTSMPDYKPSFPKWARQDFSKVVPPLDEDGRSLLSQMLHYDPNKRISAKAALAHPFFQDVTKPVPHLRL%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222019-01-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+5%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+      "cache": "miss",
+      "used_by": [
+        "l3.exposure.sequence"
+      ]
+    }
+  ],
+  "tool_versions": {
+    "numpy": "1.26.4",
+    "gemmi": "0.7.5",
+    "propka": "3.5.1",
+    "rdkit": "2026.9.1",
+    "dimorphite_dl": "2.1.0",
+    "posebusters": "0.6.5",
+    "plip": "3.0.1",
+    "openbabel": "3.2.1",
+    "freesasa": "2.2.1",
+    "openmm": "8.6.1",
+    "spyrmsd": "0.9.0",
+    "scipy": "1.17.1"
+  },
+  "artifacts": [
+    {
+      "path": "artifacts/sources/1B38.cif",
+      "kind": "source_structure",
+      "sha256": "b851c5e8a98632f858dedd26ab34b37ea2aa7ac945be702215003838805ed10f",
+      "size_bytes": 333302,
+      "label": "1B38 mmCIF",
+      "derived_from": [
+        "rcsb_files:1B38:b851c5e8a986"
+      ]
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode0/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "e51a72080198c9e7fd312971496ec294e0d1ca0e778c5c4232be07348e05db35",
+      "size_bytes": 188163,
+      "label": "diffdock/seed1/mode0",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode0/ligand.sdf",
+      "kind": "data",
+      "sha256": "8d4a2df92ffdfb274a7495a4977ea9d8d430fc48c6075094985641050ecf54bf",
+      "size_bytes": 2682,
+      "label": "diffdock/seed1/mode0 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode1/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "6d8b8b37df4a5cbb33ff8691c941f0e8771fdd52c17b0517be6c3a655bf09d2b",
+      "size_bytes": 188163,
+      "label": "diffdock/seed1/mode1",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode1/ligand.sdf",
+      "kind": "data",
+      "sha256": "4aafa9a65a4d96fc5a6b3805dac74eeb2caa7e9ee9ec36084fddaea9891c5a5d",
+      "size_bytes": 2682,
+      "label": "diffdock/seed1/mode1 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode2/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "e858b71d045dfc31997164d3611661c3b7eea5be42bef115b5efda8df5eb9c9b",
+      "size_bytes": 188163,
+      "label": "diffdock/seed1/mode2",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode2/ligand.sdf",
+      "kind": "data",
+      "sha256": "ace63a95bb7fe42c64f42af32f95abc9696d4e71509d9585b557aa4a9168bc1f",
+      "size_bytes": 2682,
+      "label": "diffdock/seed1/mode2 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode3/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "3cff9da22a7b642dc88bace339ba49af00bbd02955c039f9aa56ee8bfe119b7a",
+      "size_bytes": 188163,
+      "label": "diffdock/seed1/mode3",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode3/ligand.sdf",
+      "kind": "data",
+      "sha256": "936490958c0c7a7f58a873d8556c5ddf3ee9b02785ac1233b426e3843443dfac",
+      "size_bytes": 2682,
+      "label": "diffdock/seed1/mode3 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode4/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "5cf044f308c732bdf02f05107057fec09ae58b24398cb6c14e92e68edb36fbe2",
+      "size_bytes": 188163,
+      "label": "diffdock/seed1/mode4",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode4/ligand.sdf",
+      "kind": "data",
+      "sha256": "08213f4c41c6e3eb5f77e5dc1e63229390649f561d91584f8d8b3284a752e262",
+      "size_bytes": 2682,
+      "label": "diffdock/seed1/mode4 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode5/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "cb253167c426125fe2312e0670c13a24e1935287a9122a5b8e4dc58ccf796a57",
+      "size_bytes": 188163,
+      "label": "diffdock/seed1/mode5",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode5/ligand.sdf",
+      "kind": "data",
+      "sha256": "56d072748c9611f38af6486598d5459d7982b299fa4fb4dcf783fbbe118bb6a5",
+      "size_bytes": 2682,
+      "label": "diffdock/seed1/mode5 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode6/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "da5894a8e17b4366f6e76c9cc5ce9993eaf03604fc2ddada63e58a52e30a357f",
+      "size_bytes": 188163,
+      "label": "diffdock/seed1/mode6",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode6/ligand.sdf",
+      "kind": "data",
+      "sha256": "4b671f000274b1ffb05d32ed1221ec789a41d033e86604964df11f584dd4ac7b",
+      "size_bytes": 2682,
+      "label": "diffdock/seed1/mode6 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode7/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "7b20a0d7488dd54b63bb6e729a0d785ec796198f782da30868604ba3b8a17b59",
+      "size_bytes": 188163,
+      "label": "diffdock/seed1/mode7",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode7/ligand.sdf",
+      "kind": "data",
+      "sha256": "f85c4c6eb1b9473a23db969e342c1e5962a17929a71f3170565dcb07922f249f",
+      "size_bytes": 2682,
+      "label": "diffdock/seed1/mode7 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode8/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "c85ecca37d7b329cf6bad114511afe0fc116b676dc59231f4bd023e87f53d6a6",
+      "size_bytes": 188163,
+      "label": "diffdock/seed1/mode8",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed1/mode8/ligand.sdf",
+      "kind": "data",
+      "sha256": "01d6308dfa02e5972af2809dee9e14ce12962cf87b43aeaec6ab39afdd2fefd4",
+      "size_bytes": 2682,
+      "label": "diffdock/seed1/mode8 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode0/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "c9a15a7c6f2e18631768a60260b405edb100cb7f29eb5a9046040ec4bc58441e",
+      "size_bytes": 188163,
+      "label": "diffdock/seed2/mode0",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode0/ligand.sdf",
+      "kind": "data",
+      "sha256": "b73205de7ed767bca766cbf7bcafc6bcfbe02e973ab093cf9c414b645efa0bd0",
+      "size_bytes": 2682,
+      "label": "diffdock/seed2/mode0 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode1/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "6a9ce13916898f075c9a2126fa2e0b3b04f3408265f7614ee3195eac7122590e",
+      "size_bytes": 188163,
+      "label": "diffdock/seed2/mode1",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode1/ligand.sdf",
+      "kind": "data",
+      "sha256": "52d3757dbbed1b7bc9b5291fdc0a24ef8b9dbec58fb7725a66895a5f69edd5a3",
+      "size_bytes": 2682,
+      "label": "diffdock/seed2/mode1 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode2/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "668037be7b882d5af80eeff8369a7a6ae8eb80118b59965127fd6ffd414c1596",
+      "size_bytes": 188163,
+      "label": "diffdock/seed2/mode2",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode2/ligand.sdf",
+      "kind": "data",
+      "sha256": "4100fefecb00a1c477f29215951517d9e895f6853bb7d1ac312437cfa68d12c7",
+      "size_bytes": 2682,
+      "label": "diffdock/seed2/mode2 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode3/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "2fe41f76f2f3f3827c2ea5997c2d6e4c1c90460d81af5bbecc836f7fe7262fcf",
+      "size_bytes": 188163,
+      "label": "diffdock/seed2/mode3",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode3/ligand.sdf",
+      "kind": "data",
+      "sha256": "f1a1a3c6f5b43480ca4a498a689d04a6318f7351bdb3a05d403bea7cf890ce45",
+      "size_bytes": 2682,
+      "label": "diffdock/seed2/mode3 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode4/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "03b9f0206111e3ca8ac4e0d0da28bc25be573a27c78518d0f72986eaed545e6d",
+      "size_bytes": 188163,
+      "label": "diffdock/seed2/mode4",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode4/ligand.sdf",
+      "kind": "data",
+      "sha256": "cdb07ab9618b5eb5dd63cb390251423e64ccc026803d114dd054c02e7883c978",
+      "size_bytes": 2682,
+      "label": "diffdock/seed2/mode4 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode5/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "dc44e3e07de44269f7567885a8d37beef5476d394bc89ee2efa6602bcef0f2a3",
+      "size_bytes": 188163,
+      "label": "diffdock/seed2/mode5",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode5/ligand.sdf",
+      "kind": "data",
+      "sha256": "55b5d7df3e984081b04d0306f46ed56fce452106a0871ae189b92076bed82043",
+      "size_bytes": 2682,
+      "label": "diffdock/seed2/mode5 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode6/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "9463ee6bef8f6078a53dc77003c97ae51a44252f54e44e555dfe8b3b54440a57",
+      "size_bytes": 188163,
+      "label": "diffdock/seed2/mode6",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode6/ligand.sdf",
+      "kind": "data",
+      "sha256": "2695f1252d2777c9c331a53ef9b799c8c89ae06ce82f23d60cdcadf5ca6ddacd",
+      "size_bytes": 2682,
+      "label": "diffdock/seed2/mode6 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode7/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "fce0a124bc9e5927ab867b88c2fefe3e1c484a2ce4fc87794c2b4e9883fb7f36",
+      "size_bytes": 188163,
+      "label": "diffdock/seed2/mode7",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode7/ligand.sdf",
+      "kind": "data",
+      "sha256": "4056b03fca21686f6f921dcf1f8a5ce5bcd7346777cbcae1d4544298a97bdd55",
+      "size_bytes": 2682,
+      "label": "diffdock/seed2/mode7 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode8/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "543ef8d03245c61b65f70bfc08148e61c44332e5514773cde26b0410cd979961",
+      "size_bytes": 188163,
+      "label": "diffdock/seed2/mode8",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode8/ligand.sdf",
+      "kind": "data",
+      "sha256": "5b69f688e958347a82231a1913111297c5f437f279b000beac9f5e55ff58a94f",
+      "size_bytes": 2682,
+      "label": "diffdock/seed2/mode8 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode9/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "45ce5194680fc9bf0e05308663ce54093a5a5912cd7d81f524df33a38a9287cb",
+      "size_bytes": 188163,
+      "label": "diffdock/seed2/mode9",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed2/mode9/ligand.sdf",
+      "kind": "data",
+      "sha256": "52b3adeface7c70cbe12fc546c10d759b53f8f6307f73442aba8254964320528",
+      "size_bytes": 2682,
+      "label": "diffdock/seed2/mode9 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode0/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "6c1c9a69e52aafa811b42fef7eec57a7185a07a5cbb1df4819922679ccc378af",
+      "size_bytes": 188163,
+      "label": "diffdock/seed3/mode0",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode0/ligand.sdf",
+      "kind": "data",
+      "sha256": "eeec90649146e7c700dd24b9e5913cb53642cb5badd5f717a29a7edf573d95d0",
+      "size_bytes": 2682,
+      "label": "diffdock/seed3/mode0 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode1/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "907e940fa5b7627add9b609872d4958e4862ade915125fa6bd083961e6615956",
+      "size_bytes": 188163,
+      "label": "diffdock/seed3/mode1",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode1/ligand.sdf",
+      "kind": "data",
+      "sha256": "8612bb5105e8f9a565bfc482ebcc155026819cc24b766946493866f121cdd22c",
+      "size_bytes": 2682,
+      "label": "diffdock/seed3/mode1 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode2/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "73f6f4684d46b3feb0020ecfe0dddb0bef5cdf24eb857d5c8898e13a88ae9a57",
+      "size_bytes": 188163,
+      "label": "diffdock/seed3/mode2",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode2/ligand.sdf",
+      "kind": "data",
+      "sha256": "dab9714e79d65cd2ed69b435f7d27366dc2bc93f34747741832ac2ce8140399e",
+      "size_bytes": 2682,
+      "label": "diffdock/seed3/mode2 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode3/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "243d70b8b5448e05390e0ac22a20ac491416e8fdfd03e942eed9d06856e9e660",
+      "size_bytes": 188163,
+      "label": "diffdock/seed3/mode3",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode3/ligand.sdf",
+      "kind": "data",
+      "sha256": "f675192462409bc5edd7c9dd44777aba4c348c16b8e05b23aaea41114d51c611",
+      "size_bytes": 2682,
+      "label": "diffdock/seed3/mode3 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode4/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "49570343c9e1617fdea3dc719f6a74fa75e138f78a54ac7c30de8b057b578181",
+      "size_bytes": 188163,
+      "label": "diffdock/seed3/mode4",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode4/ligand.sdf",
+      "kind": "data",
+      "sha256": "21b26c27d9a592db3fda0f58d7f14ec3d8677fbe00c5ffd4653fb46ac63bf235",
+      "size_bytes": 2682,
+      "label": "diffdock/seed3/mode4 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode5/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "c428407126a94c2a40675736b599062f1a6fca74736cbc721473f6170cd62bec",
+      "size_bytes": 188163,
+      "label": "diffdock/seed3/mode5",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode5/ligand.sdf",
+      "kind": "data",
+      "sha256": "8d70e01bf24c2d59ae24916d162acf93d2784f6bad890e32a3626ab206251edc",
+      "size_bytes": 2682,
+      "label": "diffdock/seed3/mode5 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode6/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "ef16307f5994d6a7c983ef9ad75dde06b1f8cd07bb2d702501c5653e7060308c",
+      "size_bytes": 188163,
+      "label": "diffdock/seed3/mode6",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode6/ligand.sdf",
+      "kind": "data",
+      "sha256": "4b537fe37e690f5f343a5ddd6c76a0ffe2bb2fb7240c09f068279f7a6947f8a2",
+      "size_bytes": 2682,
+      "label": "diffdock/seed3/mode6 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode7/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "1cf4bf8dcdf62d83c2986255d880cdba926b69e299a594bf0c644ae123b78bf2",
+      "size_bytes": 188163,
+      "label": "diffdock/seed3/mode7",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode7/ligand.sdf",
+      "kind": "data",
+      "sha256": "2e59af0279a8707f94e39909c72980894dd0ea879b791edcaae01719fa75acd3",
+      "size_bytes": 2682,
+      "label": "diffdock/seed3/mode7 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode8/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "fd5a408fa6d4be3712e583f2c7a02182b96c52188420d1adca3a3cd894613a6b",
+      "size_bytes": 188163,
+      "label": "diffdock/seed3/mode8",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode8/ligand.sdf",
+      "kind": "data",
+      "sha256": "ec21deabdbf340ae33acc6f4758e943cc7a3c2580351e0da3371d510569090ff",
+      "size_bytes": 2682,
+      "label": "diffdock/seed3/mode8 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode9/complex.pdb",
+      "kind": "prediction_structure",
+      "sha256": "95b8546068c8ccf6d621a793b31c7bb24b1979620705041eb943043abf565869",
+      "size_bytes": 188163,
+      "label": "diffdock/seed3/mode9",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/00_diffdock/diffdock/seed3/mode9/ligand.sdf",
+      "kind": "data",
+      "sha256": "0e8f370afa75321ca529cd27dfc7606df6e0b748d498c11dc1e68a23065b1689",
+      "size_bytes": 2682,
+      "label": "diffdock/seed3/mode9 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/predictions/cdk2_pert/boltz2/seed_1/boltz_results_cdk2_pert/predictions/cdk2_pert/cdk2_pert_model_0.cif",
+      "kind": "prediction_structure",
+      "sha256": "22980f3efbb623621fda36084fe3f965fce247fc450c6de90c14376c4c3ce79e",
+      "size_bytes": 210814,
+      "label": "boltz2/seed1/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/01_boltz2/boltz2/seed1/sample0/ligand.sdf",
+      "kind": "data",
+      "sha256": "bc33a6b00bedf4013727eb25ccf8da3c12c0a70c728794a764f71b14bd02ff91",
+      "size_bytes": 2682,
+      "label": "boltz2/seed1/sample0 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/predictions/cdk2_pert/boltz2/seed_2/boltz_results_cdk2_pert/predictions/cdk2_pert/cdk2_pert_model_0.cif",
+      "kind": "prediction_structure",
+      "sha256": "e2a6858f0b2770fcbc177476a4a120c8d63ff03a19e3e98b72898f6770cea54e",
+      "size_bytes": 210921,
+      "label": "boltz2/seed2/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/01_boltz2/boltz2/seed2/sample0/ligand.sdf",
+      "kind": "data",
+      "sha256": "f8828c0fd042687abee2cd481c7d275181d0c040f669c9cf304bd3e4a229007f",
+      "size_bytes": 2682,
+      "label": "boltz2/seed2/sample0 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/predictions/cdk2_pert/boltz2/seed_3/boltz_results_cdk2_pert/predictions/cdk2_pert/cdk2_pert_model_0.cif",
+      "kind": "prediction_structure",
+      "sha256": "c7f58a2c281a45efc32b84480f923cdf41cd8c2637ca76d620f287c5b03657df",
+      "size_bytes": 210976,
+      "label": "boltz2/seed3/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "predictions/01_boltz2/boltz2/seed3/sample0/ligand.sdf",
+      "kind": "data",
+      "sha256": "fea8d47620e2fa19f449f53fdb152dcbb0b5baf1c87e0eea12c32027a019e77b",
+      "size_bytes": 2682,
+      "label": "boltz2/seed3/sample0 ligand",
+      "derived_from": []
+    },
+    {
+      "path": "artifacts/sources/1B39.cif",
+      "kind": "source_structure",
+      "sha256": "43b7b7417024c3f48df86236a0518307593cf48dbe60e5a608aa53fa420cfa83",
+      "size_bytes": 327760,
+      "label": "1B39 mmCIF",
+      "derived_from": [
+        "rcsb_files:1B39:43b7b7417024"
+      ]
+    },
+    {
+      "path": "artifacts/sources/1FIN.cif",
+      "kind": "source_structure",
+      "sha256": "dfe5da37b2e28d3d74eefa0edee97d57ea127538beead9e68a8a42a5c363a1ac",
+      "size_bytes": 999052,
+      "label": "1FIN mmCIF",
+      "derived_from": [
+        "rcsb_files:1FIN:dfe5da37b2e2"
+      ]
+    },
+    {
+      "path": "artifacts/sources/1FQ1.cif",
+      "kind": "source_structure",
+      "sha256": "f86aad4d11e29283f373d3da984102b17088e6879410b5d6c00426d499cdd861",
+      "size_bytes": 464333,
+      "label": "1FQ1 mmCIF",
+      "derived_from": [
+        "rcsb_files:1FQ1:f86aad4d11e2"
+      ]
+    },
+    {
+      "path": "artifacts/sources/1GY3.cif",
+      "kind": "source_structure",
+      "sha256": "fb1e8e095ae9fe28f94443c35cd7eddf455e3e67e88c2a57b1a65bd7a6e135a8",
+      "size_bytes": 1014441,
+      "label": "1GY3 mmCIF",
+      "derived_from": [
+        "rcsb_files:1GY3:fb1e8e095ae9"
+      ]
+    },
+    {
+      "path": "renders/1B38_overview.png",
+      "kind": "render",
+      "sha256": "5a8622892a7aa071f4b15f5d4ca0499967bd44dba066247f4965cd316c249235",
+      "size_bytes": 312923,
+      "label": "1B38 mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "renders/1B38_pocket.png",
+      "kind": "render",
+      "sha256": "5b2325472a55df4e508b4a1f28aa9dafac624bf94da9e2d9444d31bda5c44e75",
+      "size_bytes": 605194,
+      "label": "1B38 mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "renders/1B38.pse",
+      "kind": "session",
+      "sha256": "e64fc0f42e6eef2f21f8922473f7c7a227c43fd37e797abd433cae1ab58d602e",
+      "size_bytes": 789668,
+      "label": "1B38 mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode0_overview.png",
+      "kind": "render",
+      "sha256": "3ff0e1c7b129a59a43ade11fa72767e3ae2b5748cf9963cfb7923926fce324f1",
+      "size_bytes": 304664,
+      "label": "diffdock/seed1/mode0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode0_pocket.png",
+      "kind": "render",
+      "sha256": "b1dfdfc29960ceeacdbc215c841242f03ac37b742aaab9beace7a49b4c042410",
+      "size_bytes": 485441,
+      "label": "diffdock/seed1/mode0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode0.pse",
+      "kind": "session",
+      "sha256": "c4eeecd5961f758ad870ca73f324a168acb221128ed5b2cc9e7e25760494b43d",
+      "size_bytes": 659780,
+      "label": "diffdock/seed1/mode0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode1_overview.png",
+      "kind": "render",
+      "sha256": "7a27a294a571257e7c74b208bdab9183cf18ea11e561c586487c27f568ec80bd",
+      "size_bytes": 304808,
+      "label": "diffdock/seed1/mode1",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode1_pocket.png",
+      "kind": "render",
+      "sha256": "71ca854899b995d98df9ad8f43e05a1a2ea6046b09b2a41366240b2fc54a7d39",
+      "size_bytes": 531881,
+      "label": "diffdock/seed1/mode1",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode1.pse",
+      "kind": "session",
+      "sha256": "7f2c4dd6b764f0fcc48e79624a501a812c1a2b951fdbbe6a25ce5cb9fd3058aa",
+      "size_bytes": 659792,
+      "label": "diffdock/seed1/mode1",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode2_overview.png",
+      "kind": "render",
+      "sha256": "53fc7950e85beb112966b5dca40447fd5027d1d48bdc4a7c7c27f14b7406c9b2",
+      "size_bytes": 303488,
+      "label": "diffdock/seed1/mode2",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode2_pocket.png",
+      "kind": "render",
+      "sha256": "e79db926a9217ff953d5585c197d3e666763869c6d3afa28597c0bb362c564a8",
+      "size_bytes": 519441,
+      "label": "diffdock/seed1/mode2",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode2.pse",
+      "kind": "session",
+      "sha256": "ef4aa245c8ec8d51d9fa371318b86c2f3e800d67853131df9ca2e3ae35e81d08",
+      "size_bytes": 659797,
+      "label": "diffdock/seed1/mode2",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode3_overview.png",
+      "kind": "render",
+      "sha256": "75ff1a1e35bb11a741d9d4fc5b4a975cdade271baf5aea77d6afeb6476cf3174",
+      "size_bytes": 304724,
+      "label": "diffdock/seed1/mode3",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode3_pocket.png",
+      "kind": "render",
+      "sha256": "b828351c57862bf558854bf758bf0d00417ceecba6c3306ff66f045d97a30258",
+      "size_bytes": 507362,
+      "label": "diffdock/seed1/mode3",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode3.pse",
+      "kind": "session",
+      "sha256": "2121cc43afcd8bd736a2698b59274660910f649ae3ed29294ec434315a8f7bc3",
+      "size_bytes": 659797,
+      "label": "diffdock/seed1/mode3",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode4_overview.png",
+      "kind": "render",
+      "sha256": "0e4a0a2e88dfa60e812232d3831c4942b5e0b0a5ed42bfc981ec1d36de9dc7c6",
+      "size_bytes": 305132,
+      "label": "diffdock/seed1/mode4",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode4_pocket.png",
+      "kind": "render",
+      "sha256": "2f5ae19e0913879e81db4047155674ab3028fcc0388e44aafd6b5c10621d169a",
+      "size_bytes": 507027,
+      "label": "diffdock/seed1/mode4",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode4.pse",
+      "kind": "session",
+      "sha256": "469250ef1320957353d2786cf62686e263c2b48553640b5925c6adec0d8d129f",
+      "size_bytes": 659802,
+      "label": "diffdock/seed1/mode4",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode5_overview.png",
+      "kind": "render",
+      "sha256": "eb90dbf3c14b42b07bc4fac30fd3aabe615a8ff49344dce908059cae33f59fbe",
+      "size_bytes": 305400,
+      "label": "diffdock/seed1/mode5",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode5_pocket.png",
+      "kind": "render",
+      "sha256": "2b2d27481438fc45aea0a8ac39550d6897b5ef8606ccb47715f5acbbc0ce6cdb",
+      "size_bytes": 502194,
+      "label": "diffdock/seed1/mode5",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode5.pse",
+      "kind": "session",
+      "sha256": "103506d5dd9abf6ef9fdb1ff9f7244423c94df17e5cc4db2dfce77340f59427e",
+      "size_bytes": 659795,
+      "label": "diffdock/seed1/mode5",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode6_overview.png",
+      "kind": "render",
+      "sha256": "6e84da4ad46eecce067c766653be6ba9454eda5c49ecdae827e0224fed218dcb",
+      "size_bytes": 305194,
+      "label": "diffdock/seed1/mode6",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode6_pocket.png",
+      "kind": "render",
+      "sha256": "bb6b3cf8db2fbf719a89c26515478a455e9bbb897ccda4b20fc7011c1ddc84d0",
+      "size_bytes": 511270,
+      "label": "diffdock/seed1/mode6",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode6.pse",
+      "kind": "session",
+      "sha256": "a7e081f516404fb18e9b5633a85ef3266327cd3fbd70776dc879f79f2d6fdcfb",
+      "size_bytes": 659803,
+      "label": "diffdock/seed1/mode6",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode7_overview.png",
+      "kind": "render",
+      "sha256": "a2d8b2cfd1e7ccf829c129f698521ac432a66f4876f451949971e5548cb6e3a3",
+      "size_bytes": 305546,
+      "label": "diffdock/seed1/mode7",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode7_pocket.png",
+      "kind": "render",
+      "sha256": "a418bd040d8a3274a84dba77d8e385d91dcb15e1736ee6d77a3921cb1519d820",
+      "size_bytes": 515329,
+      "label": "diffdock/seed1/mode7",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode7.pse",
+      "kind": "session",
+      "sha256": "416cb813964886c84fbfbde28986ef209526b374b732c1ebec39066aaf909230",
+      "size_bytes": 659803,
+      "label": "diffdock/seed1/mode7",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode8_overview.png",
+      "kind": "render",
+      "sha256": "1cd1134515077d3a7882d739fbafe7b6c243e4d3b9c9e4ef895f4f1c3f6d805b",
+      "size_bytes": 304626,
+      "label": "diffdock/seed1/mode8",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode8_pocket.png",
+      "kind": "render",
+      "sha256": "79f31b5a8129e625b1661cfe20294f87ee2b6026bde04596fcfa58a8bf1b1ce3",
+      "size_bytes": 522809,
+      "label": "diffdock/seed1/mode8",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed1_mode8.pse",
+      "kind": "session",
+      "sha256": "06777d7fe04a9cb94fab58bde3bf564322c2cfd4f099f4804074bb156a353147",
+      "size_bytes": 659798,
+      "label": "diffdock/seed1/mode8",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode0_overview.png",
+      "kind": "render",
+      "sha256": "7743f8b1cf70dafcbe2497267f9ffacdf586e320c813dbdd7349071463dbebf5",
+      "size_bytes": 304627,
+      "label": "diffdock/seed2/mode0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode0_pocket.png",
+      "kind": "render",
+      "sha256": "63bdc8cbd1beb9a5c8b40eadba8ebbc35693e8c60958037b4aa19908782bb746",
+      "size_bytes": 474748,
+      "label": "diffdock/seed2/mode0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode0.pse",
+      "kind": "session",
+      "sha256": "f4dc7dac13c9a2ac57a0414d35a76564e5e2392625fa9da4973c2c4d979b185b",
+      "size_bytes": 659795,
+      "label": "diffdock/seed2/mode0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode1_overview.png",
+      "kind": "render",
+      "sha256": "2214c738f256dae7f466cdab75700df1188d2ff990990220fe202c155cecc652",
+      "size_bytes": 305254,
+      "label": "diffdock/seed2/mode1",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode1_pocket.png",
+      "kind": "render",
+      "sha256": "34316d739826f724ed56e9ded103dcc9ad2ad67a30f1eb5d9c1beae47d44be2c",
+      "size_bytes": 484032,
+      "label": "diffdock/seed2/mode1",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode1.pse",
+      "kind": "session",
+      "sha256": "43f450fb25d91c05e47d077f3d2cccba5ba766e05e5e029fb86e4b1a3c7feae7",
+      "size_bytes": 659795,
+      "label": "diffdock/seed2/mode1",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode2_overview.png",
+      "kind": "render",
+      "sha256": "926354bad1fc954997f923461426ac417014018f763e10ac9c0b7b76513c23b9",
+      "size_bytes": 201541,
+      "label": "diffdock/seed2/mode2",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode2_pocket.png",
+      "kind": "render",
+      "sha256": "72988886348c2d1bfecb16c079bee02730d0aca6bfa5533d896504bd58de2122",
+      "size_bytes": 342069,
+      "label": "diffdock/seed2/mode2",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode2.pse",
+      "kind": "session",
+      "sha256": "bd1cf7c4d89e728a48ab459715497374bf700301a81020b1bec8f64493711c7c",
+      "size_bytes": 659784,
+      "label": "diffdock/seed2/mode2",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode3_overview.png",
+      "kind": "render",
+      "sha256": "1a7de44809dd2885dd4d995e4ac14469c94f3f2a6e53d86a24ecf46e9fe9806f",
+      "size_bytes": 201099,
+      "label": "diffdock/seed2/mode3",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode3_pocket.png",
+      "kind": "render",
+      "sha256": "b4b503aad03746cba02fdacec982d0e2ab5853b6986464bbcf017038070f3bff",
+      "size_bytes": 348569,
+      "label": "diffdock/seed2/mode3",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode3.pse",
+      "kind": "session",
+      "sha256": "76a8bd4b9ef5ea8f643b624f04b6bd3954eeee06d89d0907c48ceaf1f6c0527e",
+      "size_bytes": 659786,
+      "label": "diffdock/seed2/mode3",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode4_overview.png",
+      "kind": "render",
+      "sha256": "c0a2c22c265203e57fd3cc2d011d9e2d909a1be340faee34434f7bd5ea2f1e52",
+      "size_bytes": 200026,
+      "label": "diffdock/seed2/mode4",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode4_pocket.png",
+      "kind": "render",
+      "sha256": "9d81a20fd9475483a737022cffe5f8922a96646035eac55ae71f01035a7d474f",
+      "size_bytes": 349894,
+      "label": "diffdock/seed2/mode4",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode4.pse",
+      "kind": "session",
+      "sha256": "4e5a858236158d19f690fbc31b4e8925702a6d3f09caff07d0113855263085aa",
+      "size_bytes": 659794,
+      "label": "diffdock/seed2/mode4",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode5_overview.png",
+      "kind": "render",
+      "sha256": "da948eb862d9dc2e5f71bb643b5d566c118f2c55498fcea602b563dacd127d1c",
+      "size_bytes": 200433,
+      "label": "diffdock/seed2/mode5",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode5_pocket.png",
+      "kind": "render",
+      "sha256": "178c84bd60a694d4a98883e1a8202da5301dfc93a314412b1c1e46da32260405",
+      "size_bytes": 346457,
+      "label": "diffdock/seed2/mode5",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode5.pse",
+      "kind": "session",
+      "sha256": "a3525bbcc2afedff996a4ec1c1060df62e0dd3884955b03b5f4639b1dba1ea13",
+      "size_bytes": 659793,
+      "label": "diffdock/seed2/mode5",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode6_overview.png",
+      "kind": "render",
+      "sha256": "b4d779355ed6835752584d69b648c47d0c68b3eca83f8bb7f5597244e0b6e0d1",
+      "size_bytes": 200208,
+      "label": "diffdock/seed2/mode6",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode6_pocket.png",
+      "kind": "render",
+      "sha256": "da106d2bd8dbdced89330c15585e2add86481ec065e359f97f0577aaacc31333",
+      "size_bytes": 348284,
+      "label": "diffdock/seed2/mode6",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode6.pse",
+      "kind": "session",
+      "sha256": "ed9f6a8678ff1529ae746df8c90fb6070789a32bde58919c2b023f85ba06b5c0",
+      "size_bytes": 659799,
+      "label": "diffdock/seed2/mode6",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode7_overview.png",
+      "kind": "render",
+      "sha256": "79753cd826394122ea6b4651cdca059aa746e33ed5633fda0002957bf5a300eb",
+      "size_bytes": 200259,
+      "label": "diffdock/seed2/mode7",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode7_pocket.png",
+      "kind": "render",
+      "sha256": "23ebf9fc3ac2ee83cb6a78b7220a1eb646d9fcda2c5d41eb2b0ff5548959a5f4",
+      "size_bytes": 338726,
+      "label": "diffdock/seed2/mode7",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode7.pse",
+      "kind": "session",
+      "sha256": "4e71dccbc623963d13e9fdf32d2e4d702ff307a1d71afad20d854a4a75034930",
+      "size_bytes": 659790,
+      "label": "diffdock/seed2/mode7",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode8_overview.png",
+      "kind": "render",
+      "sha256": "417f0988931277f82d943a3c5b0d347f4c2b3aef3eba35988522e7cf7ef2906d",
+      "size_bytes": 199987,
+      "label": "diffdock/seed2/mode8",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode8_pocket.png",
+      "kind": "render",
+      "sha256": "aaaea8bbb3f4b976b10c3ed2b8f7228633d2938411dac7a67573f8662d9676d9",
+      "size_bytes": 339831,
+      "label": "diffdock/seed2/mode8",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode8.pse",
+      "kind": "session",
+      "sha256": "af6a2c76dea88eab22fbdde57ff99687c10a2640b5214c9da72e46291e626ed0",
+      "size_bytes": 659799,
+      "label": "diffdock/seed2/mode8",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode9_overview.png",
+      "kind": "render",
+      "sha256": "fa0adb5ba024dadc3a6de416509611840478fada459a5abb113ca1a5aca07c8e",
+      "size_bytes": 200533,
+      "label": "diffdock/seed2/mode9",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode9_pocket.png",
+      "kind": "render",
+      "sha256": "af6a863d8ae6747da5c2a54cd92ba756fe723a56d3395895155a8bc5f3c47efd",
+      "size_bytes": 337456,
+      "label": "diffdock/seed2/mode9",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed2_mode9.pse",
+      "kind": "session",
+      "sha256": "e19f6bc4890afb1461203982a4500341f9f828a879120c03357ac042d3fb4219",
+      "size_bytes": 659799,
+      "label": "diffdock/seed2/mode9",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode0_overview.png",
+      "kind": "render",
+      "sha256": "681f3eb55f871a956dc644c58016836da5a5b1ec4543d526701cff0925bd04cd",
+      "size_bytes": 200665,
+      "label": "diffdock/seed3/mode0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode0_pocket.png",
+      "kind": "render",
+      "sha256": "cbd05b509dd15790dea326f33fcf79169bb81d94b33a74c0249ab14095d8f86c",
+      "size_bytes": 318912,
+      "label": "diffdock/seed3/mode0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode0.pse",
+      "kind": "session",
+      "sha256": "cf8a275b3a0c68528742a67c49384fa07fce67683152583e8262c6ba2bfa5674",
+      "size_bytes": 659796,
+      "label": "diffdock/seed3/mode0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode1_overview.png",
+      "kind": "render",
+      "sha256": "10e0738f4e019f23105a5d464a6eaec5a73e0b4e497056c148e29283b9890160",
+      "size_bytes": 200539,
+      "label": "diffdock/seed3/mode1",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode1_pocket.png",
+      "kind": "render",
+      "sha256": "45783bede6b30cd044ee9b7fe17c9b384ac7d51336696ab1534e57393fb17fb6",
+      "size_bytes": 323881,
+      "label": "diffdock/seed3/mode1",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode1.pse",
+      "kind": "session",
+      "sha256": "d7b59e08f90b693d2b19b4bf3a1b97e1d0ed92d42eb17d3594846166cffc394c",
+      "size_bytes": 659783,
+      "label": "diffdock/seed3/mode1",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode2_overview.png",
+      "kind": "render",
+      "sha256": "c39bf320a46ae99cc7edaccef5ee4bee8639dc0094e1ee48d2eeae02720fc4c7",
+      "size_bytes": 200680,
+      "label": "diffdock/seed3/mode2",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode2_pocket.png",
+      "kind": "render",
+      "sha256": "6753291f4f1877efd225b8f3cecc902fe0072aaf8e7ea852c31d912aa5af42de",
+      "size_bytes": 351604,
+      "label": "diffdock/seed3/mode2",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode2.pse",
+      "kind": "session",
+      "sha256": "157330c15696202e0a9131b59cb22de550dfd39e9e05ea5afb7f8fc80f424675",
+      "size_bytes": 659779,
+      "label": "diffdock/seed3/mode2",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode3_overview.png",
+      "kind": "render",
+      "sha256": "8c64ea53a46ed787764a83e9e2d2ae3dab6759f27643f7eaee3b52355e3b98da",
+      "size_bytes": 201175,
+      "label": "diffdock/seed3/mode3",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode3_pocket.png",
+      "kind": "render",
+      "sha256": "9f0def7f9fcbc6e9399a6500706d9e32a17e88aa2fe75682cefeae2e3639dddf",
+      "size_bytes": 323923,
+      "label": "diffdock/seed3/mode3",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode3.pse",
+      "kind": "session",
+      "sha256": "eead03c5e8930b95962123db71facf3fff47ea2d62d3eb0604ef0d72fa592c55",
+      "size_bytes": 659796,
+      "label": "diffdock/seed3/mode3",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode4_overview.png",
+      "kind": "render",
+      "sha256": "ddf605b4990df14f047657c58d2453158c51144ff33f3785d31eadf981e8f9d9",
+      "size_bytes": 200130,
+      "label": "diffdock/seed3/mode4",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode4_pocket.png",
+      "kind": "render",
+      "sha256": "d2532567b8ee5ff5e832eb5a1a45b17ecb0171dc3ce5c475e0fcfc92fa11cea7",
+      "size_bytes": 330190,
+      "label": "diffdock/seed3/mode4",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode4.pse",
+      "kind": "session",
+      "sha256": "1d0d07fd3898b3519feea2ac071729a24e928173f2fedec40e59b5395b3f760b",
+      "size_bytes": 659789,
+      "label": "diffdock/seed3/mode4",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode5_overview.png",
+      "kind": "render",
+      "sha256": "07b34b06a0362fb6fc49f72ef7a64a1bf99ec1306dd3f86dfd792f59425e042d",
+      "size_bytes": 201161,
+      "label": "diffdock/seed3/mode5",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode5_pocket.png",
+      "kind": "render",
+      "sha256": "02a6c9ec631b22ddd9d0896cb548541833cc7b59aca62bcbd7f8f1f18811766c",
+      "size_bytes": 336476,
+      "label": "diffdock/seed3/mode5",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode5.pse",
+      "kind": "session",
+      "sha256": "0291b7b678f710f8ca8ac99306d661d2a6ab84b840186dded0fc664c5689176d",
+      "size_bytes": 659797,
+      "label": "diffdock/seed3/mode5",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode6_overview.png",
+      "kind": "render",
+      "sha256": "0e844a87173ffc862f475b59ea1eba850b6e0c14325e1d11e7617ed90e034722",
+      "size_bytes": 200144,
+      "label": "diffdock/seed3/mode6",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode6_pocket.png",
+      "kind": "render",
+      "sha256": "da7296748701438e4e16f74f0d81290d2a5578ed70fb3eab555bfd75992b89e4",
+      "size_bytes": 346755,
+      "label": "diffdock/seed3/mode6",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode6.pse",
+      "kind": "session",
+      "sha256": "9c1e8f459c3c2033ad2106eefbbe629d9f545e4472261c18650faec4c1935236",
+      "size_bytes": 659803,
+      "label": "diffdock/seed3/mode6",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode7_overview.png",
+      "kind": "render",
+      "sha256": "d9603f573d54f74346c2f1d2d6921a54bcfc1e7ceb6f2987afb9568d6bcb1981",
+      "size_bytes": 200133,
+      "label": "diffdock/seed3/mode7",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode7_pocket.png",
+      "kind": "render",
+      "sha256": "ba1b283ec6b4c1e14f628b8b6779302a92a0efc9b403f1e59420923cb6d04ef5",
+      "size_bytes": 343811,
+      "label": "diffdock/seed3/mode7",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode7.pse",
+      "kind": "session",
+      "sha256": "1ce2df86eb1f7be7654a27d7b8ba92aaf71f971dcd7f17799f58c4b0126f9ac1",
+      "size_bytes": 659794,
+      "label": "diffdock/seed3/mode7",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode8_overview.png",
+      "kind": "render",
+      "sha256": "962842056bc3cf7580d6acdb5ffa352607b84937e2060ba0aa82549924391037",
+      "size_bytes": 200733,
+      "label": "diffdock/seed3/mode8",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode8_pocket.png",
+      "kind": "render",
+      "sha256": "4bb6943c261740550eee734e6aa6334e0cfe84b7d3f67debe622fb0a722e7fb0",
+      "size_bytes": 342962,
+      "label": "diffdock/seed3/mode8",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode8.pse",
+      "kind": "session",
+      "sha256": "008562ddc2b14eb70fe9022d80e474b4ef653941313a6150fe5c9fbacd57ea9e",
+      "size_bytes": 659791,
+      "label": "diffdock/seed3/mode8",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode9_overview.png",
+      "kind": "render",
+      "sha256": "20ad32794269ea1976ac4f3f4203561bcec3c184fb83bb6ee8461a5a833d3904",
+      "size_bytes": 200638,
+      "label": "diffdock/seed3/mode9",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode9_pocket.png",
+      "kind": "render",
+      "sha256": "ecd3af9d14ff24e7a5c5e702f1a738d4804ae5e196aa14dbc34570b32bbf2054",
+      "size_bytes": 342862,
+      "label": "diffdock/seed3/mode9",
+      "derived_from": []
+    },
+    {
+      "path": "renders/diffdock_seed3_mode9.pse",
+      "kind": "session",
+      "sha256": "479d9200f505c6d3a5ac89cd476e3928b40c3a5393be59ebd7c6aaa4581d326a",
+      "size_bytes": 659805,
+      "label": "diffdock/seed3/mode9",
+      "derived_from": []
+    },
+    {
+      "path": "renders/boltz2_seed1_sample0_overview.png",
+      "kind": "render",
+      "sha256": "beb9c021f55b769a6b7b8f979fe1b0ade70a098e5af79c3e65cbf5c08382e43c",
+      "size_bytes": 233903,
+      "label": "boltz2/seed1/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/boltz2_seed1_sample0_pocket.png",
+      "kind": "render",
+      "sha256": "42f8b2eaac438035f006142bd38d0b0869e44bb30985d0979e37a336f135b863",
+      "size_bytes": 364945,
+      "label": "boltz2/seed1/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/boltz2_seed1_sample0.pse",
+      "kind": "session",
+      "sha256": "fe0e4aa76341bc83075f0e8799f9c3a8297fa2b7602cecf543fa597f7f58eb8d",
+      "size_bytes": 788830,
+      "label": "boltz2/seed1/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/boltz2_seed2_sample0_overview.png",
+      "kind": "render",
+      "sha256": "d9e3582da63368fd603684500d6663d7ecb1dc741ad1e817d438943a1ebf7367",
+      "size_bytes": 217874,
+      "label": "boltz2/seed2/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/boltz2_seed2_sample0_pocket.png",
+      "kind": "render",
+      "sha256": "4979d221a24648262f4342314fe06d65007783964948b01d84c8820ec4f108b2",
+      "size_bytes": 396744,
+      "label": "boltz2/seed2/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/boltz2_seed2_sample0.pse",
+      "kind": "session",
+      "sha256": "f9cfb7ccf5d617a6965338d422ca8a8ed4de26fee881ef19c607d1c826db1af2",
+      "size_bytes": 788829,
+      "label": "boltz2/seed2/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/boltz2_seed3_sample0_overview.png",
+      "kind": "render",
+      "sha256": "cf4d1ce7dc6f4abae13fc156e85bc37ecdac188fc9a35281eab31c9bdf8bc60d",
+      "size_bytes": 215427,
+      "label": "boltz2/seed3/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/boltz2_seed3_sample0_pocket.png",
+      "kind": "render",
+      "sha256": "b445f63046b986c0e54a1d566cb36f3e2ec9382ab796d8f4ad2240815044a2dd",
+      "size_bytes": 348428,
+      "label": "boltz2/seed3/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/boltz2_seed3_sample0.pse",
+      "kind": "session",
+      "sha256": "11e6ef1f5d0b766604c7e4ecebe3203305527ee05ee5d28b2c072ae0c50fbaa7",
+      "size_bytes": 788817,
+      "label": "boltz2/seed3/sample0",
+      "derived_from": []
+    },
+    {
+      "path": "renders/1B39_overview.png",
+      "kind": "render",
+      "sha256": "6a9266526b713ab9d27989b99403005d775167e88f9e7a96208bd1e63dacc691",
+      "size_bytes": 204833,
+      "label": "1B39 mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "renders/1B39_pocket.png",
+      "kind": "render",
+      "sha256": "7a5c6b96125c823c61a186f62a3a311242afb5075200a358341d1b0f46cb0de3",
+      "size_bytes": 392694,
+      "label": "1B39 mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "renders/1B39.pse",
+      "kind": "session",
+      "sha256": "1abd3362deeb4c712e4d93f99dacd1435f9b0d02f92d13d332730fb35a357245",
+      "size_bytes": 789740,
+      "label": "1B39 mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "renders/1FIN_overview.png",
+      "kind": "render",
+      "sha256": "44e3b62c1c6fa19e428d796555990e2e5980fc21979b3a6b6177adac12f29e69",
+      "size_bytes": 336196,
+      "label": "1FIN mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "renders/1FIN_pocket.png",
+      "kind": "render",
+      "sha256": "c3072dd011b157d7f5d3dcf6924559532fd72a7806bec4e8a3d78095fc3f93aa",
+      "size_bytes": 582815,
+      "label": "1FIN mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "renders/1FIN.pse",
+      "kind": "session",
+      "sha256": "1c43673a9ca9f68127cbfec1792fae8d41967da0e3bd64256ff02df40ec8a4e6",
+      "size_bytes": 3015799,
+      "label": "1FIN mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "renders/1FQ1_overview.png",
+      "kind": "render",
+      "sha256": "4b061886558ef00b85ea939cbf5a235d994b928c685d48559e6a49d0a87db538",
+      "size_bytes": 245023,
+      "label": "1FQ1 mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "renders/1FQ1_pocket.png",
+      "kind": "render",
+      "sha256": "dc7724dffd1cda6ae2df96a10fb402983d9ea622c8461b2f63707dc84220e5b9",
+      "size_bytes": 348687,
+      "label": "1FQ1 mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "renders/1FQ1.pse",
+      "kind": "session",
+      "sha256": "628cebde51427c16613f0ed948f8da5e0e15254bf6ba4c1e569f8aa292295330",
+      "size_bytes": 1288915,
+      "label": "1FQ1 mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "renders/1GY3_overview.png",
+      "kind": "render",
+      "sha256": "9d4aa99623e36a75ac54e63c3adc6c4887f59ee2eedfd4422a3e8a9ee1354bc4",
+      "size_bytes": 316800,
+      "label": "1GY3 mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "renders/1GY3_pocket.png",
+      "kind": "render",
+      "sha256": "0ea0cbf4378b42fb695bd9cb1cfa68de9526f659f609128dade1a2e79f5aaa3a",
+      "size_bytes": 630699,
+      "label": "1GY3 mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "renders/1GY3.pse",
+      "kind": "session",
+      "sha256": "77e1a984576a419f7ce74dd87630a571b62d12cb4f2d9312e5f9a9879eeaa487",
+      "size_bytes": 3039558,
+      "label": "1GY3 mmCIF",
+      "derived_from": []
+    },
+    {
+      "path": "figures/gates_by_layer.svg",
+      "kind": "figure",
+      "sha256": "26f10b05ca9e0a7b30ef961ef34748d329666e1c69d9698a627b8fa4d0bf4555",
+      "size_bytes": 89918,
+      "label": "gates_by_layer",
+      "derived_from": []
+    },
+    {
+      "path": "figures/gates_by_layer.csv",
+      "kind": "data",
+      "sha256": "6b837ffa0decacc356728987a23eb899c32948c59a670df40a1ab5cf0b63ce71",
+      "size_bytes": 135,
+      "label": "gates_by_layer",
+      "derived_from": []
+    },
+    {
+      "path": "figures/seed_spread.svg",
+      "kind": "figure",
+      "sha256": "0afb230ef172a77b27018d4211105ee0e10f516f1cf0c0c81bd0e3ceed3f3ed9",
+      "size_bytes": 11189,
+      "label": "seed_spread",
+      "derived_from": []
+    },
+    {
+      "path": "figures/seed_spread.csv",
+      "kind": "data",
+      "sha256": "8254fb8526c150e1ebfd7405d5d508409b598608f4e0838cc32a1823fa24f3ba",
+      "size_bytes": 158,
+      "label": "seed_spread",
+      "derived_from": []
+    },
+    {
+      "path": "figures/posebusters_grid.svg",
+      "kind": "figure",
+      "sha256": "39d37ea409948d9d7ee63db55891e4387785f415ac2d7f3b15d35a1c633354e1",
+      "size_bytes": 27090,
+      "label": "posebusters_grid",
+      "derived_from": []
+    },
+    {
+      "path": "figures/posebusters_grid.csv",
+      "kind": "data",
+      "sha256": "ca588776b4073a91c748db14513b42ae2476e58a10e16b9a559948c10405bcea",
+      "size_bytes": 888,
+      "label": "posebusters_grid",
+      "derived_from": []
+    },
+    {
+      "path": "figures/interactions.svg",
+      "kind": "figure",
+      "sha256": "beed7e3a1682655f76b199fb0d2c2aad57bdf4689e76922985a8eee7a25f8ad8",
+      "size_bytes": 15022,
+      "label": "interactions",
+      "derived_from": []
+    },
+    {
+      "path": "figures/interactions.csv",
+      "kind": "data",
+      "sha256": "257ea048726cd7341933ce89b44cd77e5093119ff49455acc0aaca0baba3b660",
+      "size_bytes": 218,
+      "label": "interactions",
+      "derived_from": []
+    },
+    {
+      "path": "figures/agreement.svg",
+      "kind": "figure",
+      "sha256": "29701a5f7e970c84e5f1c72f865e3264f65a8efc640504611764bdce91dbd9bc",
+      "size_bytes": 10410,
+      "label": "agreement",
+      "derived_from": []
+    },
+    {
+      "path": "figures/agreement.csv",
+      "kind": "data",
+      "sha256": "925c991dc85e03f77b2c4b257bfa0cc5abbbd7ceddccb6b81703b3470a28f3cf",
+      "size_bytes": 140,
+      "label": "agreement",
+      "derived_from": []
+    },
+    {
+      "path": "graph.json",
+      "kind": "graph",
+      "sha256": "67377ded3f992ecd938f9ce959c14e9f2c89a2a9651ee0e61a137ea408959ad4",
+      "size_bytes": 72084,
+      "label": "provenance graph",
+      "derived_from": []
+    },
+    {
+      "path": "graph.mmd",
+      "kind": "graph",
+      "sha256": "fbd0be8d222abe152a3f43b672ee2714bf85616a592fc4ecefcce30db3524422",
+      "size_bytes": 11241,
+      "label": "provenance graph",
+      "derived_from": []
+    },
+    {
+      "path": "graph.svg",
+      "kind": "graph",
+      "sha256": "8e806b64871dacef2ef1be417067a4e66090c245303fc12fccf96a46e3c59f8a",
+      "size_bytes": 158008,
+      "label": "provenance graph",
+      "derived_from": []
+    }
+  ],
+  "figures": [
+    {
+      "id": "gates_by_layer",
+      "kind": "figure",
+      "path": "figures/gates_by_layer.svg",
+      "caption": "Check outcomes per layer for run ligand_pose-6ae519949c0f. Totals: pass 14, warn 8, stop 3, skip 1.",
+      "alt": "Horizontal stacked bars per layer, split into pass, warn, stop and skip counts.",
+      "data_path": "figures/gates_by_layer.csv",
+      "session_path": null,
+      "layer": null
+    },
+    {
+      "id": "seed_spread",
+      "kind": "figure",
+      "path": "figures/seed_spread.svg",
+      "caption": "RMSD to the medoid for 3 poses, coloured by cluster (2 clusters). Dashed line: median 0.63 Å; range 0.00 to 2.14 Å.",
+      "alt": "Dot plot of RMSD to the medoid per pose, coloured by cluster, with a dashed median line.",
+      "data_path": "figures/seed_spread.csv",
+      "session_path": null,
+      "layer": 5
+    },
+    {
+      "id": "posebusters_grid",
+      "kind": "figure",
+      "path": "figures/posebusters_grid.svg",
+      "caption": "PoseBusters tests (20) by pose (3). Failed cells marked x: 1 of 60.",
+      "alt": "Grid of PoseBusters tests (rows) by poses (columns); failed cells red with an x.",
+      "data_path": "figures/posebusters_grid.csv",
+      "session_path": null,
+      "layer": 4
+    },
+    {
+      "id": "interactions",
+      "kind": "figure",
+      "path": "figures/interactions.svg",
+      "caption": "Interactions by residue (8) and type (1); cell label: poses with the interaction over poses assessed.",
+      "alt": "Heatmap of residues (rows) by interaction type (columns), shaded by pose count.",
+      "data_path": "figures/interactions.csv",
+      "session_path": null,
+      "layer": 4
+    },
+    {
+      "id": "agreement",
+      "kind": "figure",
+      "path": "figures/agreement.svg",
+      "caption": "Agreement between 2 methods and 2 comparators; range 0.918 to 2.656 Å.",
+      "alt": "Matrix of methods (rows) against comparators (columns), shaded by the difference.",
+      "data_path": "figures/agreement.csv",
+      "session_path": null,
+      "layer": 5
+    },
+    {
+      "id": "render_1B38_overview",
+      "kind": "render",
+      "path": "renders/1B38_overview.png",
+      "caption": "1B38 mmCIF (source_structure), whole structure. Chains A; organic components ACE, ATP. sha256 b851c5e8a98632f8.",
+      "alt": "PyMOL cartoon of 1B38 mmCIF coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/1B38.pse",
+      "layer": null
+    },
+    {
+      "id": "render_1B38_pocket",
+      "kind": "render",
+      "path": "renders/1B38_pocket.png",
+      "caption": "1B38 mmCIF (source_structure), ligand environment within 5 Å. Chains A; organic components ACE, ATP. sha256 b851c5e8a98632f8.",
+      "alt": "PyMOL cartoon of 1B38 mmCIF coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/1B38.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode0_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode0_overview.png",
+      "caption": "diffdock/seed1/mode0 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 e51a72080198c9e7.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode0 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode0.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode0_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode0_pocket.png",
+      "caption": "diffdock/seed1/mode0 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 e51a72080198c9e7.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode0 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode0.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode1_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode1_overview.png",
+      "caption": "diffdock/seed1/mode1 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 6d8b8b37df4a5cbb.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode1 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode1.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode1_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode1_pocket.png",
+      "caption": "diffdock/seed1/mode1 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 6d8b8b37df4a5cbb.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode1 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode1.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode2_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode2_overview.png",
+      "caption": "diffdock/seed1/mode2 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 e858b71d045dfc31.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode2 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode2.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode2_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode2_pocket.png",
+      "caption": "diffdock/seed1/mode2 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 e858b71d045dfc31.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode2 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode2.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode3_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode3_overview.png",
+      "caption": "diffdock/seed1/mode3 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 3cff9da22a7b642d.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode3 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode3.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode3_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode3_pocket.png",
+      "caption": "diffdock/seed1/mode3 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 3cff9da22a7b642d.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode3 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode3.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode4_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode4_overview.png",
+      "caption": "diffdock/seed1/mode4 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 5cf044f308c732bd.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode4 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode4.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode4_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode4_pocket.png",
+      "caption": "diffdock/seed1/mode4 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 5cf044f308c732bd.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode4 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode4.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode5_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode5_overview.png",
+      "caption": "diffdock/seed1/mode5 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 cb253167c426125f.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode5 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode5.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode5_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode5_pocket.png",
+      "caption": "diffdock/seed1/mode5 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 cb253167c426125f.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode5 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode5.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode6_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode6_overview.png",
+      "caption": "diffdock/seed1/mode6 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 da5894a8e17b4366.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode6 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode6.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode6_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode6_pocket.png",
+      "caption": "diffdock/seed1/mode6 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 da5894a8e17b4366.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode6 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode6.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode7_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode7_overview.png",
+      "caption": "diffdock/seed1/mode7 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 7b20a0d7488dd54b.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode7 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode7.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode7_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode7_pocket.png",
+      "caption": "diffdock/seed1/mode7 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 7b20a0d7488dd54b.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode7 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode7.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode8_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode8_overview.png",
+      "caption": "diffdock/seed1/mode8 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 c85ecca37d7b329c.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode8 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode8.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed1_mode8_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed1_mode8_pocket.png",
+      "caption": "diffdock/seed1/mode8 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 c85ecca37d7b329c.",
+      "alt": "PyMOL cartoon of diffdock/seed1/mode8 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed1_mode8.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode0_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode0_overview.png",
+      "caption": "diffdock/seed2/mode0 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 c9a15a7c6f2e1863.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode0 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode0.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode0_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode0_pocket.png",
+      "caption": "diffdock/seed2/mode0 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 c9a15a7c6f2e1863.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode0 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode0.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode1_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode1_overview.png",
+      "caption": "diffdock/seed2/mode1 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 6a9ce13916898f07.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode1 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode1.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode1_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode1_pocket.png",
+      "caption": "diffdock/seed2/mode1 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 6a9ce13916898f07.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode1 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode1.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode2_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode2_overview.png",
+      "caption": "diffdock/seed2/mode2 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 668037be7b882d5a.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode2 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode2.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode2_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode2_pocket.png",
+      "caption": "diffdock/seed2/mode2 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 668037be7b882d5a.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode2 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode2.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode3_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode3_overview.png",
+      "caption": "diffdock/seed2/mode3 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 2fe41f76f2f3f382.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode3 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode3.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode3_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode3_pocket.png",
+      "caption": "diffdock/seed2/mode3 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 2fe41f76f2f3f382.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode3 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode3.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode4_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode4_overview.png",
+      "caption": "diffdock/seed2/mode4 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 03b9f0206111e3ca.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode4 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode4.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode4_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode4_pocket.png",
+      "caption": "diffdock/seed2/mode4 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 03b9f0206111e3ca.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode4 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode4.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode5_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode5_overview.png",
+      "caption": "diffdock/seed2/mode5 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 dc44e3e07de44269.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode5 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode5.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode5_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode5_pocket.png",
+      "caption": "diffdock/seed2/mode5 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 dc44e3e07de44269.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode5 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode5.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode6_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode6_overview.png",
+      "caption": "diffdock/seed2/mode6 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 9463ee6bef8f6078.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode6 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode6.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode6_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode6_pocket.png",
+      "caption": "diffdock/seed2/mode6 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 9463ee6bef8f6078.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode6 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode6.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode7_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode7_overview.png",
+      "caption": "diffdock/seed2/mode7 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 fce0a124bc9e5927.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode7 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode7.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode7_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode7_pocket.png",
+      "caption": "diffdock/seed2/mode7 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 fce0a124bc9e5927.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode7 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode7.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode8_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode8_overview.png",
+      "caption": "diffdock/seed2/mode8 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 543ef8d03245c61b.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode8 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode8.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode8_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode8_pocket.png",
+      "caption": "diffdock/seed2/mode8 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 543ef8d03245c61b.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode8 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode8.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode9_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode9_overview.png",
+      "caption": "diffdock/seed2/mode9 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 45ce5194680fc9bf.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode9 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode9.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed2_mode9_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed2_mode9_pocket.png",
+      "caption": "diffdock/seed2/mode9 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 45ce5194680fc9bf.",
+      "alt": "PyMOL cartoon of diffdock/seed2/mode9 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed2_mode9.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode0_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode0_overview.png",
+      "caption": "diffdock/seed3/mode0 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 6c1c9a69e52aafa8.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode0 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode0.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode0_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode0_pocket.png",
+      "caption": "diffdock/seed3/mode0 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 6c1c9a69e52aafa8.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode0 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode0.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode1_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode1_overview.png",
+      "caption": "diffdock/seed3/mode1 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 907e940fa5b7627a.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode1 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode1.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode1_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode1_pocket.png",
+      "caption": "diffdock/seed3/mode1 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 907e940fa5b7627a.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode1 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode1.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode2_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode2_overview.png",
+      "caption": "diffdock/seed3/mode2 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 73f6f4684d46b3fe.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode2 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode2.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode2_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode2_pocket.png",
+      "caption": "diffdock/seed3/mode2 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 73f6f4684d46b3fe.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode2 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode2.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode3_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode3_overview.png",
+      "caption": "diffdock/seed3/mode3 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 243d70b8b5448e05.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode3 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode3.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode3_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode3_pocket.png",
+      "caption": "diffdock/seed3/mode3 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 243d70b8b5448e05.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode3 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode3.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode4_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode4_overview.png",
+      "caption": "diffdock/seed3/mode4 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 49570343c9e1617f.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode4 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode4.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode4_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode4_pocket.png",
+      "caption": "diffdock/seed3/mode4 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 49570343c9e1617f.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode4 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode4.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode5_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode5_overview.png",
+      "caption": "diffdock/seed3/mode5 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 c428407126a94c2a.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode5 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode5.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode5_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode5_pocket.png",
+      "caption": "diffdock/seed3/mode5 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 c428407126a94c2a.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode5 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode5.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode6_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode6_overview.png",
+      "caption": "diffdock/seed3/mode6 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 ef16307f5994d6a7.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode6 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode6.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode6_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode6_pocket.png",
+      "caption": "diffdock/seed3/mode6 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 ef16307f5994d6a7.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode6 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode6.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode7_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode7_overview.png",
+      "caption": "diffdock/seed3/mode7 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 1cf4bf8dcdf62d83.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode7 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode7.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode7_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode7_pocket.png",
+      "caption": "diffdock/seed3/mode7 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 1cf4bf8dcdf62d83.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode7 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode7.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode8_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode8_overview.png",
+      "caption": "diffdock/seed3/mode8 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 fd5a408fa6d4be37.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode8 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode8.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode8_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode8_pocket.png",
+      "caption": "diffdock/seed3/mode8 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 fd5a408fa6d4be37.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode8 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode8.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode9_overview",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode9_overview.png",
+      "caption": "diffdock/seed3/mode9 (prediction_structure), whole structure. Chains A, L; organic components LIG. sha256 95b8546068c8ccf6.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode9 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode9.pse",
+      "layer": null
+    },
+    {
+      "id": "render_diffdock_seed3_mode9_pocket",
+      "kind": "render",
+      "path": "renders/diffdock_seed3_mode9_pocket.png",
+      "caption": "diffdock/seed3/mode9 (prediction_structure), ligand environment within 5 Å. Chains A, L; organic components LIG. sha256 95b8546068c8ccf6.",
+      "alt": "PyMOL cartoon of diffdock/seed3/mode9 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/diffdock_seed3_mode9.pse",
+      "layer": null
+    },
+    {
+      "id": "render_boltz2_seed1_sample0_overview",
+      "kind": "render",
+      "path": "renders/boltz2_seed1_sample0_overview.png",
+      "caption": "boltz2/seed1/sample0 (prediction_structure), whole structure. Chains A, C1, L; organic components LIG1. sha256 22980f3efbb62362.",
+      "alt": "PyMOL cartoon of boltz2/seed1/sample0 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/boltz2_seed1_sample0.pse",
+      "layer": null
+    },
+    {
+      "id": "render_boltz2_seed1_sample0_pocket",
+      "kind": "render",
+      "path": "renders/boltz2_seed1_sample0_pocket.png",
+      "caption": "boltz2/seed1/sample0 (prediction_structure), ligand environment within 5 Å. Chains A, C1, L; organic components LIG1. sha256 22980f3efbb62362.",
+      "alt": "PyMOL cartoon of boltz2/seed1/sample0 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/boltz2_seed1_sample0.pse",
+      "layer": null
+    },
+    {
+      "id": "render_boltz2_seed2_sample0_overview",
+      "kind": "render",
+      "path": "renders/boltz2_seed2_sample0_overview.png",
+      "caption": "boltz2/seed2/sample0 (prediction_structure), whole structure. Chains A, C1, L; organic components LIG1. sha256 e2a6858f0b2770fc.",
+      "alt": "PyMOL cartoon of boltz2/seed2/sample0 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/boltz2_seed2_sample0.pse",
+      "layer": null
+    },
+    {
+      "id": "render_boltz2_seed2_sample0_pocket",
+      "kind": "render",
+      "path": "renders/boltz2_seed2_sample0_pocket.png",
+      "caption": "boltz2/seed2/sample0 (prediction_structure), ligand environment within 5 Å. Chains A, C1, L; organic components LIG1. sha256 e2a6858f0b2770fc.",
+      "alt": "PyMOL cartoon of boltz2/seed2/sample0 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/boltz2_seed2_sample0.pse",
+      "layer": null
+    },
+    {
+      "id": "render_boltz2_seed3_sample0_overview",
+      "kind": "render",
+      "path": "renders/boltz2_seed3_sample0_overview.png",
+      "caption": "boltz2/seed3/sample0 (prediction_structure), whole structure. Chains A, C1, L; organic components LIG1. sha256 c7f58a2c281a45ef.",
+      "alt": "PyMOL cartoon of boltz2/seed3/sample0 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/boltz2_seed3_sample0.pse",
+      "layer": null
+    },
+    {
+      "id": "render_boltz2_seed3_sample0_pocket",
+      "kind": "render",
+      "path": "renders/boltz2_seed3_sample0_pocket.png",
+      "caption": "boltz2/seed3/sample0 (prediction_structure), ligand environment within 5 Å. Chains A, C1, L; organic components LIG1. sha256 c7f58a2c281a45ef.",
+      "alt": "PyMOL cartoon of boltz2/seed3/sample0 coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/boltz2_seed3_sample0.pse",
+      "layer": null
+    },
+    {
+      "id": "render_1B39_overview",
+      "kind": "render",
+      "path": "renders/1B39_overview.png",
+      "caption": "1B39 mmCIF (source_structure), whole structure. Chains A; organic components ACE, ATP. sha256 43b7b7417024c3f4.",
+      "alt": "PyMOL cartoon of 1B39 mmCIF coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/1B39.pse",
+      "layer": null
+    },
+    {
+      "id": "render_1B39_pocket",
+      "kind": "render",
+      "path": "renders/1B39_pocket.png",
+      "caption": "1B39 mmCIF (source_structure), ligand environment within 5 Å. Chains A; organic components ACE, ATP. sha256 43b7b7417024c3f4.",
+      "alt": "PyMOL cartoon of 1B39 mmCIF coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/1B39.pse",
+      "layer": null
+    },
+    {
+      "id": "render_1FIN_overview",
+      "kind": "render",
+      "path": "renders/1FIN_overview.png",
+      "caption": "1FIN mmCIF (source_structure), whole structure. Chains A, B, C, D; organic components ATP. sha256 dfe5da37b2e28d3d.",
+      "alt": "PyMOL cartoon of 1FIN mmCIF coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/1FIN.pse",
+      "layer": null
+    },
+    {
+      "id": "render_1FIN_pocket",
+      "kind": "render",
+      "path": "renders/1FIN_pocket.png",
+      "caption": "1FIN mmCIF (source_structure), ligand environment within 5 Å. Chains A, B, C, D; organic components ATP. sha256 dfe5da37b2e28d3d.",
+      "alt": "PyMOL cartoon of 1FIN mmCIF coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/1FIN.pse",
+      "layer": null
+    },
+    {
+      "id": "render_1FQ1_overview",
+      "kind": "render",
+      "path": "renders/1FQ1_overview.png",
+      "caption": "1FQ1 mmCIF (source_structure), whole structure. Chains A, B; organic components ATP. sha256 f86aad4d11e29283.",
+      "alt": "PyMOL cartoon of 1FQ1 mmCIF coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/1FQ1.pse",
+      "layer": null
+    },
+    {
+      "id": "render_1FQ1_pocket",
+      "kind": "render",
+      "path": "renders/1FQ1_pocket.png",
+      "caption": "1FQ1 mmCIF (source_structure), ligand environment within 5 Å. Chains A, B; organic components ATP. sha256 f86aad4d11e29283.",
+      "alt": "PyMOL cartoon of 1FQ1 mmCIF coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/1FQ1.pse",
+      "layer": null
+    },
+    {
+      "id": "render_1GY3_overview",
+      "kind": "render",
+      "path": "renders/1GY3_overview.png",
+      "caption": "1GY3 mmCIF (source_structure), whole structure. Chains A, B, C, D, E, F; organic components ATP, GOL, TPO. sha256 fb1e8e095ae9fe28.",
+      "alt": "PyMOL cartoon of 1GY3 mmCIF coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/1GY3.pse",
+      "layer": null
+    },
+    {
+      "id": "render_1GY3_pocket",
+      "kind": "render",
+      "path": "renders/1GY3_pocket.png",
+      "caption": "1GY3 mmCIF (source_structure), ligand environment within 5 Å. Chains A, B, C, D, E, F; organic components ATP, GOL, TPO. sha256 fb1e8e095ae9fe28.",
+      "alt": "PyMOL cartoon of 1GY3 mmCIF coloured by chain, ligands as sticks.",
+      "data_path": null,
+      "session_path": "renders/1GY3.pse",
+      "layer": null
+    }
+  ],
+  "graph": {
+    "json": "graph.json",
+    "mmd": "graph.mmd",
+    "svg": "graph.svg"
+  },
+  "render_errors": [],
+  "limitations": [
+    "This report covers layers 2, 3, 4, 5. Layers not run: 0, 1.",
+    "The harness establishes when a result should not be trusted. Passing checks are not evidence that a prediction is correct.",
+    "Thresholds marked uncalibrated come from the specification or harness defaults and have not been recalibrated on the harness benchmark."
+  ]
+}

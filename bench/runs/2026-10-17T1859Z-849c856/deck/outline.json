@@ -1,0 +1,253 @@
+{
+  "title": "Perturbation benchmark",
+  "deck_style": {
+    "style_preset": "lab-report",
+    "composition_grammar": "scientific-evidence-plate",
+    "style_seed": "pah-perturbation-bench",
+    "header_variant": "auto",
+    "footer_mode": "source-line",
+    "footer_page_numbers": true,
+    "readability_contract": {
+      "min_title_pt": 28,
+      "min_body_pt": 16,
+      "min_support_pt": 13,
+      "min_caption_pt": 9,
+      "min_footer_pt": 9,
+      "min_metadata_pt": 9,
+      "max_title_lines": 2
+    }
+  },
+  "slides": [
+    {
+      "type": "title",
+      "role": "title",
+      "title": "Does the fact file help reject invalid poses?",
+      "subtitle": "Perturbation benchmark, run 2026-10-17T1859Z-849c856",
+      "notes": "Same agent, same predictions, two kinds of evidence: the model confidence score alone, or the harness fact file."
+    },
+    {
+      "type": "content",
+      "role": "table",
+      "variant": "table",
+      "title": "Four systems, each wild type and perturbed",
+      "subtitle": "Perturbed systems are invalid by construction",
+      "table": {
+        "headers": [
+          "System",
+          "Entry",
+          "Ligand",
+          "Perturbation"
+        ],
+        "rows": [
+          [
+            "CDK2",
+            "1B38",
+            "ATP",
+            "13 contacts to Gly"
+          ],
+          [
+            "FtsE",
+            "8X61",
+            "ATP",
+            "7 contacts to Gly"
+          ],
+          [
+            "glucose dehydrogenase",
+            "2VWH",
+            "BGC",
+            "3 hydroxyls methylated"
+          ],
+          [
+            "MEK1",
+            "7XLP",
+            "FZC",
+            "11 contacts to Gly"
+          ]
+        ]
+      },
+      "notes": "Each system is predicted by Boltz-2 and DiffDock-L with three seeds. A wild-type prediction is valid when its medoid lies within 2 \u00c5 of the deposited ligand.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856 (stats.json, facts, renders)"
+    },
+    {
+      "type": "content",
+      "role": "comparison",
+      "variant": "comparison-2col",
+      "title": "One perturbed prediction, two views",
+      "subtitle": "CDK2, Boltz-2, 13 contacts to glycine",
+      "left": {
+        "title": "Score only",
+        "bullets": [
+          "Confidence: ligand_iptm 0.925, pocket_plddt 82.3, confidence_score 0.877",
+          "Wild type: ligand_iptm 0.978, pocket_plddt 95.1, confidence_score 0.958"
+        ]
+      },
+      "right": {
+        "title": "Harness fact file",
+        "bullets": [
+          "PoseBusters 20 of 20",
+          "Deposited interactions recovered 1 of 9",
+          "Buried unsatisfied polars 4",
+          "Ensemble spread 1.3 \u00c5; cross-executor 2.31 \u00c5"
+        ]
+      },
+      "notes": "13 contact residues were cut to glycine. The confidence the model reports and the fact file for the same prediction.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856 (stats.json, facts, renders)"
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "scientific-figure",
+      "title": "Medoid poses, wild type and perturbed",
+      "subtitle": "CDK2, Boltz-2",
+      "figures": [
+        {
+          "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1859Z-849c856/harness/cdk2_wt_boltz2/run/renders/boltz2_seed8_sample0_pocket.png",
+          "label": "A",
+          "title": "wild type",
+          "caption": "Boltz-2 medoid pose"
+        },
+        {
+          "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1859Z-849c856/harness/cdk2_pert_boltz2/run/renders/boltz2_seed8_sample0_pocket.png",
+          "label": "B",
+          "title": "perturbed",
+          "caption": "Boltz-2 medoid pose"
+        }
+      ],
+      "figure_layout": "panel-grid",
+      "caption": "Each panel oriented on its ligand; grey: residues \u2264 5 \u00c5.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856 (stats.json, facts, renders)"
+    },
+    {
+      "type": "content",
+      "role": "table",
+      "variant": "table",
+      "title": "What the perturbation did, by system",
+      "subtitle": "Deposited contacts the medoid reproduces, wild type against perturbed",
+      "table": {
+        "headers": [
+          "System",
+          "Wild type contacts",
+          "Perturbed contacts",
+          "Perturbed medoid (\u00c5)"
+        ],
+        "rows": [
+          [
+            "CDK2",
+            "6 / 9 of 9",
+            "1 / 1 of 9",
+            "2.231 / 0.868"
+          ],
+          [
+            "FtsE",
+            "9 / 10 of 16",
+            "1 / 1 of 16",
+            "16.401 / 17.821"
+          ],
+          [
+            "glucose dehydrogenase",
+            "5 / 2 of 6",
+            "3 / 0 of 6",
+            "n/a / n/a"
+          ],
+          [
+            "MEK1",
+            "2 / 3 of 3",
+            "0 / 0 of 3",
+            "2.886 / 1.494"
+          ]
+        ]
+      },
+      "caption": "Each cell Boltz-2 / DiffDock-L. Medoid RMSD is to the deposited ligand; n/a where the perturbation modifies the ligand.",
+      "notes": "Contact recovery is the signal that separates the states. Confidence and PoseBusters stay clean on the perturbed poses.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856 (stats.json, facts, renders)"
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "scientific-figure",
+      "title": "Decision per prediction",
+      "figures": [
+        {
+          "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1859Z-849c856/results/figures/decisions.png",
+          "title": "Ground truth and majority verdict per prediction"
+        }
+      ],
+      "figure_layout": "panel-grid",
+      "caption": "B2 Boltz-2, DD DiffDock-L. V valid, I invalid.",
+      "notes": "Score only kept 5 of 10 invalid predictions; the fact file arm kept 3 of 6 valid.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856 (stats.json, facts, renders)"
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "image-sidebar",
+      "image_sidebar_mode": "analysis-rail",
+      "title": "Aggregate over this run",
+      "assets": {
+        "hero_image": "/home/user/harness-hackathon/bench/runs/2026-10-17T1859Z-849c856/results/figures/balanced_accuracy.png"
+      },
+      "sidebar_sections": [
+        {
+          "title": "Score only, pooled",
+          "body": "0.5 (0.236 to 0.767)"
+        },
+        {
+          "title": "Fact file, pooled",
+          "body": "0.75 (0.5 to 1.0)"
+        },
+        {
+          "title": "McNemar exact p",
+          "body": "0.125; discordant 6 and 1"
+        }
+      ],
+      "caption": "16 predictions; intervals are wide at this size. Invalid kept: score only 5 of 10, fact file 0 of 10. Dashed line at 0.5.",
+      "notes": "Boltz-2: score only 0.5 (0.5 to 0.5), fact file 0.833 (0.5 to 1.0). DiffDock-L: score only 0.5 (0.5 to 0.5), fact file 0.667 (0.5 to 1.0).",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856 (stats.json, facts, renders)"
+    },
+    {
+      "type": "content",
+      "role": "comparison",
+      "variant": "comparison-2col",
+      "title": "What this run does and does not establish",
+      "left": {
+        "title": "Measured",
+        "bullets": [
+          "16 predictions, 2 executors",
+          "Every prompt and response logged",
+          "Ground truth fixed in advance"
+        ]
+      },
+      "right": {
+        "title": "Not established",
+        "bullets": [
+          "A significant difference",
+          "Loss of binding (assumed)",
+          "Effect of prompt length"
+        ]
+      },
+      "notes": "Eight systems per executor support a demonstration, not a statistical claim. A length-matched control arm was not run.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856 (stats.json, facts, renders)"
+    }
+  ]
+}

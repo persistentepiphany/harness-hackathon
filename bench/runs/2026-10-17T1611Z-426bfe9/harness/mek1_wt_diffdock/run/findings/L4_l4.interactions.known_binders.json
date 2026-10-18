@@ -1,0 +1,123 @@
+{
+  "check_id": "l4.interactions.known_binders",
+  "layer": 4,
+  "gate": "pass",
+  "message": "diffdock/seed1/mode0 reproduces 2 of 3 FZC interactions: halogen ALA95A, hbond MET146A",
+  "measurements": [
+    {
+      "name": "key_interactions",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "reproduced",
+      "value": 2,
+      "unit": null
+    },
+    {
+      "name": "poses_reproducing_all",
+      "value": 1,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "reproduced",
+      "value": 1,
+      "comparator": ">=",
+      "origin": "Specification layer 4: warn when no key interaction is reproduced",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "reference": "7XLP_FZC_complex.pdb",
+    "reference_interactions": [
+      {
+        "type": "hbond",
+        "residue": "MET146A",
+        "distance_A": 2.9
+      },
+      {
+        "type": "hbond",
+        "residue": "SER194A",
+        "distance_A": 2.64
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "ALA95A",
+        "distance_A": 3.71
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "LYS97A",
+        "distance_A": 3.48
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "LYS97A",
+        "distance_A": 3.79
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "LEU118A",
+        "distance_A": 3.85
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "ILE141A",
+        "distance_A": 3.73
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "LEU197A",
+        "distance_A": 3.46
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "PHE209A",
+        "distance_A": 3.53
+      },
+      {
+        "type": "hydrophobic",
+        "residue": "VAL82A",
+        "distance_A": 3.67
+      },
+      {
+        "type": "halogen",
+        "residue": "ALA95A",
+        "distance_A": 3.13
+      }
+    ],
+    "reproduced": [
+      "halogen ALA95A",
+      "hbond MET146A"
+    ],
+    "missing": [
+      "hbond SER194A"
+    ],
+    "poses": [
+      {
+        "pose": "diffdock/seed1/mode0",
+        "reproduced": 2,
+        "of": 3
+      },
+      {
+        "pose": "diffdock/seed2/mode0",
+        "reproduced": 3,
+        "of": 3
+      },
+      {
+        "pose": "diffdock/seed3/mode0",
+        "reproduced": 1,
+        "of": 3
+      }
+    ],
+    "representative": "diffdock/seed1/mode0"
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "plip",
+    "version": "3.0.1"
+  },
+  "duration_s": 0.455
+}

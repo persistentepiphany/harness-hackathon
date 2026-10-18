@@ -1,0 +1,99 @@
+{
+  "system": "glc_wt",
+  "executor": "diffdock",
+  "version": "v1.1.3",
+  "image": "rbgcsail/diffdock:v1.1.3@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0",
+  "runs": [
+    {
+      "replicate": 7,
+      "argv": [
+        "/home/appuser/bin/micromamba",
+        "run",
+        "-n",
+        "diffdock",
+        "python",
+        "-m",
+        "inference",
+        "--config",
+        "default_inference_args.yaml",
+        "--protein_path",
+        "/tmp/diffdock/glc_wt/rec.pdb",
+        "--ligand_description",
+        "C([C@@H]1[C@H]([C@@H]([C@H]([C@@H](O1)O)O)O)O)O",
+        "--complex_name",
+        "glc_wt",
+        "--out_dir",
+        "/tmp/diffdock/glc_wt/seed_7",
+        "--samples_per_complex",
+        "10"
+      ],
+      "rc": 0,
+      "seconds": 79.2,
+      "tail": "Generating ESM language model embeddings\nProcessing 1 of 1 batches (1 sequences)\n/home/appuser/micromamba/envs/diffdock/lib/python3.9/site-packages/Bio/pairwise2.py:278: BiopythonDeprecationWarning: Bio.pairwise2 has been deprecated, and we intend to remove it in a future release of Biopython. As an alternative, please consider using Bio.Align.PairwiseAligner as a replacement, and contact the Biopython developers if you still need the Bio.pairwise2 module.\n  warnings.warn(\n\n0it [00:00, ?it/s]/home/appuser/DiffDock/datasets/parse_chi.py:91: RuntimeWarning: invalid value encountered in cast\n  Y = indices.astype(int)\n\n1it [00:33, 33.82s/it]\n1it [00:33, 33.82s/it]\n"
+    },
+    {
+      "replicate": 8,
+      "argv": [
+        "/home/appuser/bin/micromamba",
+        "run",
+        "-n",
+        "diffdock",
+        "python",
+        "-m",
+        "inference",
+        "--config",
+        "default_inference_args.yaml",
+        "--protein_path",
+        "/tmp/diffdock/glc_wt/rec.pdb",
+        "--ligand_description",
+        "C([C@@H]1[C@H]([C@@H]([C@H]([C@@H](O1)O)O)O)O)O",
+        "--complex_name",
+        "glc_wt",
+        "--out_dir",
+        "/tmp/diffdock/glc_wt/seed_8",
+        "--samples_per_complex",
+        "10"
+      ],
+      "rc": 0,
+      "seconds": 76.0,
+      "tail": "Generating ESM language model embeddings\nProcessing 1 of 1 batches (1 sequences)\n/home/appuser/micromamba/envs/diffdock/lib/python3.9/site-packages/Bio/pairwise2.py:278: BiopythonDeprecationWarning: Bio.pairwise2 has been deprecated, and we intend to remove it in a future release of Biopython. As an alternative, please consider using Bio.Align.PairwiseAligner as a replacement, and contact the Biopython developers if you still need the Bio.pairwise2 module.\n  warnings.warn(\n\n0it [00:00, ?it/s]/home/appuser/DiffDock/datasets/parse_chi.py:91: RuntimeWarning: invalid value encountered in cast\n  Y = indices.astype(int)\n\n1it [00:33, 33.17s/it]\n1it [00:33, 33.17s/it]\n"
+    },
+    {
+      "replicate": 9,
+      "argv": [
+        "/home/appuser/bin/micromamba",
+        "run",
+        "-n",
+        "diffdock",
+        "python",
+        "-m",
+        "inference",
+        "--config",
+        "default_inference_args.yaml",
+        "--protein_path",
+        "/tmp/diffdock/glc_wt/rec.pdb",
+        "--ligand_description",
+        "C([C@@H]1[C@H]([C@@H]([C@H]([C@@H](O1)O)O)O)O)O",
+        "--complex_name",
+        "glc_wt",
+        "--out_dir",
+        "/tmp/diffdock/glc_wt/seed_9",
+        "--samples_per_complex",
+        "10"
+      ],
+      "rc": 0,
+      "seconds": 78.8,
+      "tail": "Generating ESM language model embeddings\nProcessing 1 of 1 batches (1 sequences)\n/home/appuser/micromamba/envs/diffdock/lib/python3.9/site-packages/Bio/pairwise2.py:278: BiopythonDeprecationWarning: Bio.pairwise2 has been deprecated, and we intend to remove it in a future release of Biopython. As an alternative, please consider using Bio.Align.PairwiseAligner as a replacement, and contact the Biopython developers if you still need the Bio.pairwise2 module.\n  warnings.warn(\n\n0it [00:00, ?it/s]/home/appuser/DiffDock/datasets/parse_chi.py:91: RuntimeWarning: invalid value encountered in cast\n  Y = indices.astype(int)\n\n1it [00:35, 35.07s/it]\n1it [00:35, 35.07s/it]\n"
+    }
+  ],
+  "gpu": "NVIDIA A100-SXM4-40GB, 610.57.04, 40960 MiB",
+  "env": {
+    "MODAL_IMAGE_ID": "im-x9zfDmm5IJzmQ6ydao7RUw",
+    "MODAL_TASK_ID": "ta-01M55KQ9JDVFS1JB40F3CVRD8R",
+    "MODAL_REGION": "eu-west"
+  },
+  "tar": {
+    "path": "/results/glc_wt_diffdock.tar.gz",
+    "bytes": 61844
+  }
+}

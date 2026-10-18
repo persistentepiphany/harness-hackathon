@@ -11,7 +11,7 @@ run record becomes the UI record, and how live and mock data are switched.
 
 | Process | Command | Port |
 | --- | --- | --- |
-| HTTP API | `.venv/bin/pah serve --port 8000` (FastAPI + SSE, `pah[api]` extra) | 8000 |
+| HTTP API | `.venv/bin/pah serve --port 8000` (upstream FastAPI app + `/ui` routes, `pah[api]` extra) | 8000 |
 | Web UI | `cd web && npm run dev` or `npm run build && npm start` | 3000 |
 
 The browser only talks to the Next.js origin. Next.js proxies `/api/harness/:path*` to
@@ -32,43 +32,65 @@ knows which mode is active.
 
 ## Endpoints
 
-All responses are JSON unless marked SSE. Errors are `{"error": {"code": str, "message": str}}` with
-a 4xx or 5xx status. Paths are relative to the API root.
+The API is the harness's own FastAPI app, `pah.interfaces.api:create_app(profile, allow_origins)`,
+started with `pah serve`. Its native routes stay as they are (`POST /runs` with a manifest,
+`GET /runs/{id}` job view, `GET /runs/{id}/events` raw event SSE, `GET /runs/{id}/report`,
+`GET /runs/{id}/findings`, `GET /runs/{id}/files/{rel}`, `POST /batches`, `/tasks`, `/checks`,
+`/schemas/{name}`, `/health`). The UI routes live in `pah.webui` and are mounted on the same app
+under the `/ui` prefix with `app.include_router(pah.webui.ui_router(profile, jobs))`, so they share
+the upstream `JobStore` and run pipeline (`pah.service.run_manifest`: checks, reports, PyMOL renders,
+provenance graph). The UI reads from disk (`runs/<id>/`), so runs started by the CLI, the MCP
+server or an agent appear and stream the same way as runs started from the UI. Batch targets are
+written to `runs/batch-<id>/<target>/` and are not listed in `/ui/jobs`.
+
+All responses are JSON unless marked SSE. UI route errors are `{"error": {"code", "message"}}`.
+The web client calls `/api/harness/ui/...`; files go through the native
+`/api/harness/runs/{id}/files/{rel}`.
 
 | Method and path | Returns | Notes |
 | --- | --- | --- |
-| `GET /health` | `{ok, version, runs_dir, mode: "live"}` | |
-| `GET /jobs` | `Job[]`, newest first | One per directory in `runs_dir` that has `events.jsonl` |
-| `GET /jobs/{id}` | `Job` | |
-| `GET /jobs/{id}/log` | SSE of `LogLine` | Replays the file, then tails it until `run_end`; `?format=json` returns `LogLine[]` |
-| `GET /runs/{id}/record` | `UiRunRecord` | Built from `record.json`, or from `events.jsonl` while the run is still going |
-| `GET /runs/{id}/files/{path}` | file bytes | Only paths inside `runs/<id>/`; no `..`, no symlinks out |
-| `POST /runs` | `{jobId, runId}` (202) | Body `RunSettings`; runs the engine in a background thread |
-| `POST /interpret` | `{settings: RunSettings, steps: Step[]}` | Rule-based port of `interpretRun()`; `steps[i] = {field, value, because}` |
-| `GET /entities?q=` | `EntityGroup[]` | Same shape as `lookupEntities()`, resolved through `pah.sources` clients |
-| `GET /catalog` | `{proteins[], ligands[]}` | From `configs/catalog.yaml` |
-| `GET /tools` | `Tool[]` | Executors from `configs/executors.yaml` with availability |
-| `GET /tasks` | `Task[]` | Task specs with `implemented/checks` counts, mapped to UI task ids |
-| `POST /uploads` | `{files: [{name, size, sha256, kind, status, detail}]}` | Multipart; stored under `runs/uploads/` |
-| `GET /agent/tasks` | `AgentTask[]` | From `runs/agent-*/task.json` + `steps.jsonl` |
-| `POST /agent/tasks` | `AgentTask` (201) | Body `{goal}` |
-| `POST /agent/tasks/{id}/steps` | `AgentStep` (201) | Body `{kind, text, ms?, data?}` |
-| `POST /agent/tasks/{id}/finish` | `AgentTask` | Body `{status: "done" or "failed", outcome}` |
-| `GET /agent/tasks/{id}/steps` | SSE of `AgentStep` | Replays, then tails until the task finishes |
+| `GET /health` | upstream health | Native route |
+| `GET /ui/jobs` | `Job[]`, newest first | One per directory in `runs_dir` with `events.jsonl` (batches and `agent-*` excluded) |
+| `GET /ui/jobs/{id}` | `Job` | |
+| `GET /ui/jobs/{id}/log` | SSE of `LogLine` | Replays the file, then tails it until `run_end`; `?format=json` returns `LogLine[]` |
+| `GET /ui/runs/{id}/record` | `UiRunRecord` | Built from `record.json`, or from `events.jsonl` while the run is still going |
+| `GET /runs/{id}/files/{rel}` | file bytes | Native route; only paths inside `runs/<id>/` |
+| `POST /ui/runs` | `{jobId, runId, etaMs?, eta?}` (202) | Body `RunSettings`; built into a manifest, started through the upstream `JobStore`. With `execute` (default true) the selected executors run first (see Execution); `eta` is the estimate of that stage. The request never waits for an executor |
+| `POST /ui/interpret` | `{settings: RunSettings, steps: Step[]}` | Rule-based port of `interpretRun()`; `steps[i] = {field, value, because}` |
+| `GET /ui/entities?q=` | `EntityGroup[]` | Same shape as `lookupEntities()`, resolved through `pah.sources` clients |
+| `GET /ui/catalog` | `{proteins[], ligands[]}` | From `configs/catalog.yaml` |
+| `GET /ui/tools` | `Tool[]` | Executors from `configs/executors.yaml` with outputs and availability |
+| `GET /ui/tasks` | `Task[]` | Task specs with `implemented/checks` counts, mapped to UI task ids |
+| `GET /ui/examples` | example manifests | `examples/**/manifest.yaml` with task and claim |
+| `GET /ui/glossary` | `{scores: UiGlossaryScore[]}` | Score keys from `configs/executors.yaml` outputs and the check measurements the UI shows, with the executors or checks that produce them |
+| `POST /ui/uploads` | `{files: [{name, size, sha256, kind, status, detail}]}` | Multipart; stored under `runs/uploads/` (not a run: record, job and files routes answer 404 for it). Run settings carry no file references yet, so the New-run page says uploads are stored, not used by the run |
+| `GET /ui/agent/tasks` | `AgentTask[]` | From `runs/agent-*/task.json` + `steps.jsonl` |
+| `POST /ui/agent/tasks` | `AgentTask` (201) | Body `{goal}` |
+| `POST /ui/agent/tasks/{id}/steps` | `AgentStep` (201) | Body `{kind, text, ms?, data?}` |
+| `POST /ui/agent/tasks/{id}/finish` | `AgentTask` | Body `{status: "done" or "failed", outcome}` |
+| `GET /ui/agent/tasks/{id}/steps` | SSE of `AgentStep` | Replays, then tails until the task finishes |
 
 SSE frames: `event: line` (or `step`) with one JSON object in `data`, `event: end` when the stream is
 finished, and a `: ping` comment every 15 s. Each frame carries `id: <seq>` so `Last-Event-ID` resumes.
+The log's `end` data is `{reason, lastSeq}`: `run_end`, `failed` (job.json says failed), `missing`
+(no events file within `?wait`) or `stale` (no change for 10 min; a queued job never goes stale).
+The job page opens the stream again after `missing` or `stale` while the job is queued or running.
 
-An agent under test reports what it is doing either through `POST /agent/tasks/...` or by running
+Write routes under /ui answer 413 `too_large` before reading a body over the limit (uploads:
+20 files of 50 MB; JSON bodies: 4 MB), by Content-Length or by counting a chunked body. Agent
+steps and outcomes with NaN or Infinity are refused with 422.
+
+An agent under test reports what it is doing either through `POST /ui/agent/tasks/...` or by running
 `pah agent-log start|step|finish`, which appends to the same files. A run the agent starts with
-`pah run` (any interface) appears in `/jobs` and streams live, because the API tails `events.jsonl`.
+`pah run` or the MCP server appears in `/ui/jobs` and streams live, because the UI routes tail
+`events.jsonl`. Every way to drive the harness is listed in `docs/INTERFACES.md`.
 
 ## Shapes
 
 TypeScript is the reference; Python returns the same keys (camelCase on the wire).
 
 ```ts
-type Outcome = 'supported' | 'narrowed' | 'refused' | 'incomplete';
+type Outcome = 'supported' | 'narrowed' | 'refused' | 'incomplete' | 'not_assessed';
 type Result = 'pass' | 'warn' | 'stop' | 'skip' | 'reported' | 'pending';
 
 interface Job {
@@ -78,7 +100,10 @@ interface Job {
   layerIdx: number;             // layer currently running, 6 when done
   progress: number;             // 0..1 within layerIdx
   elapsedMs: number; createdAt: string;
-  layers: { i: number; result: Result | null; done: boolean }[];   // 6 entries, worst result per layer
+  layers: { i: number; result: Result | null; done: boolean;
+            incomplete?: string[] }[];   // 6 entries, worst result per layer; incomplete: checks
+                                         // whose skip (tool_missing, error, unknown_check) leaves
+                                         // the verdict incomplete, drawn muted instead of pass
   verdict: Outcome | null;
 }
 
@@ -98,8 +123,11 @@ interface UiCheck {               // schema $defs/check, plus the harness's own 
   message?: string; skipReason?: string;
   measurements?: { name: string; value: number | string | boolean | null; unit?: string | null }[];
   thresholds?: { name: string; value: number | string | boolean; comparator: string;
-                 origin: string; evidenceLevel: string }[];
+                 origin: string; evidenceLevel: string;
+                 measurement?: string }[];   // the measurement the check compared (Threshold.measurement)
 }
+// A row shows `measured cmp threshold` only for the measurement named by `measurement`, or one
+// with the threshold's own name; names are never paired by substring.
 
 interface UiRunRecord {          // run-record.schema.json, with the additions marked
   id: string; createdAt: string; task: string; taskName: string; claim: string;
@@ -132,7 +160,7 @@ interface UiRunRecord {          // run-record.schema.json, with the additions m
 
 ## Harness record to UI record
 
-The adapter (`src/pah/api/adapter.py`) reads `runs/<id>/record.json`, `events.jsonl`,
+The adapter (`src/pah/webui/adapter.py`) reads `runs/<id>/record.json`, `events.jsonl`,
 `provenance.json`, `findings/` and `renders/`. It never invents values.
 
 | UI field | Harness source |
@@ -147,13 +175,104 @@ The adapter (`src/pah/api/adapter.py`) reads `runs/<id>/record.json`, `events.js
 | `layers[i].durationMs` | `stage_end.ts - stage_start.ts` from the event stream |
 | `layers[i].status` | `done` after `stage_end`, `running` after `stage_start`, `not_run` when the layer was not selected |
 | `sources` | `provenance.json`: `source_id`, `accession`, `release` (or `"n/a"`), `sha256`, `retrieved_at`, `extra.cache == "hit"` |
-| `stats` | Empty until layers 4 and 5 produce values. The UI shows "not computed" for a missing block |
+| `stats` | `src/pah/webui/stats.py`: blocks built from finding evidence only (seeds, pairwise, posebusters, physics, interactions, site, pose, metrics, agreement, clusters, reference, ensemble, pae), each traced in `stats.provenance` to its check and tool. A key is present only when its check ran and reported that field; the UI shows "not computed" for a missing block. `pae` carries the saved `.npy` (`path`, `url`) and its `matrix` in Å rounded to 0.01 (above 512 tokens, means of `binned` × `binned` blocks, stated in `lines`) |
+| `docking` | Record-level `{tool, rows, params, source}` from the manifest's docking prediction settings |
+| `tools[].ran`, `ranBy` | `harness` when the run executed the tool, `external` when its outputs were supplied, `null` for checks-only runs |
 | `structures` | Every `.cif`/`.pdb`/`.sdf` under `artifacts/`, served through `/runs/{id}/files/...` |
-| `renders` | `renders/<stem>.png` and `.pse` written by `pah render` |
+| `renders` | Render artifacts in `record.json` (`ArtifactKind` render entries from `pah.report.renders`: PNG views and `.pse` session per structure) |
+
+## Assessment scope
+
+A run that holds no executor outputs (no predictions in the manifest, no executor ran) is a
+pre-run check. The adapter derives the scope of every verdict from the record, so old records read
+the same way:
+
+| UI field | Rule |
+| --- | --- |
+| `assessment` | `pre-run` when the run has no executor outputs, else `full` |
+| `evaluatedLayers` | Layers with at least one check whose result is not `skip` |
+| `verdict.scope` | `layers <evaluatedLayers>`, e.g. `layers 0-3` |
+| `verdict.outcome` | `not_assessed` when the task lists layer 4-5 checks and none gave a non-skip result, unless a stop happened in the evaluated layers (then `refused`). Never `supported` or `narrowed` without predictions. `Job.verdict` uses the same rule |
+| `verdict.pending` | Layer 4-5 check ids waiting for predictions |
+| `verdict.assessedClaim` | `Inputs fit to run` for a pre-run check, `null` for a full run |
+| `verdict.statement` | Names the evaluated and pending layers and the stops and warnings, e.g. `Pre-run check: layers 0-3 evaluated; layers 4-5 pending predictions. 1 check warned in layer 1: l1.ligand.protonation.` |
+| `checks[].skipReason` | `pending_input` for a layer 4-5 skip whose evidence says there are no predictions; `not_applicable` stays for checks that do not apply to the tools (no MSA for Vina) |
+| `checks[].category`, `standing`, `decisive` | From `configs/standing.yaml` (the engine's stamp on the finding first). `decisive`: a stop from the check may set the verdict alone; a stop the policy downgraded carries `downgraded`, `originalGate`, `policyReason` (from `evidence.policy`) and is listed in `verdict.downgraded` |
+| `checks[].sources` | `RecordSource.id`s the check read (record.json `usage`, the inverse of `usedBy`) |
+| `dimensions` | Six verdict dimensions from `configs/standing.yaml` `dimensions`: `inputs` (provenance and identity, structural completeness, chemical state), `exposure` (applicability, including the l3.metric.endpoint stop), `physical_validity`, `chemical_plausibility` (interaction chemistry), `stability` (sampling and stability), `corroboration` (corroboration and controls). `certainty` is the weakest standing (definitional, published, inherited, uncalibrated) among the dimension's non-skip checks; `decisive` lists its decisive checks. Empty when the table is absent |
+| `toolVersions` | One row per tool in the record or in a finding: `exercised` is true when a non-skip finding names the tool, false when the tool is only declared |
+| `execution` | Execution events (`data.stage == "execute"`) aggregated per executor: last `phase`, `gpu`, `route`, `routeNote`, `startedAt`, `elapsedMs`, per-seed `{seed, phase, ms}`. `Job.execution` is the same list; each event is also a `LogLine` of kind `exec` |
+| `stats.status` | Why a block is absent, `{status: 'na' or 'pending', reason}` per block: `pae` is `na` when no executor of the run declares a PAE output in `configs/executors.yaml`, `agreement` is `na` with one executor; blocks of a pre-run are `pending predictions` |
+| `renders[]` pose fields | For a predicted pose: `executor`, `seed`, `rank` (docking mode or sample), `pose`, `score` (first output of the executor that the pose reports, with unit) and `checks` (output checks reported for the pose, from `evidence.poses[]`; `reported` when the row has no pass/fail). `poseChecks` lists the same per pose |
+| `sourceSummary` | `l0.sources.resolved` counts (identifiers, records, failed, cache hits) and the receptor chains present (`l1.receptor.chains`) |
+
+`GET /ui/tools` rows carry `endpoints` (`configs/models.yaml` `models[*].endpoints`) and the dispatch
+route from `configs/dispatch.yaml`: `route` (`modal`, `local`, `none`), `dispatchable`, `gpu`,
+`dispatchApp`, `dispatchReason`, `eta`. A Modal-routed tool is `available` with a note naming the
+app (the host probe does not apply); a local route probes the Python modules it lists
+(`requires_modules`) in the API process; route `none` is not available and the note gives the
+reason.
+`GET /ui/tasks` rows carry `endpoint` (`task_endpoints`), `compatibleTools` (executor ids whose
+endpoints include it), `quickSetup` and `group` (`configs/catalog.yaml`). `GET /ui/catalog` carries
+`prompts`, sample requests that map onto Quick setup tasks. `GET /ui/glossary` lists every executor
+output key (label, unit, kind, the executor note as `what`, `producedBy`), every registered layer 4-5
+check (title, modules, thresholds from `configs/thresholds.yaml`) and the per-pose physics fields.
+`POST /ui/interpret` never swaps a tool the user named: when the tool lacks the task endpoint, or a
+required input (a ligand series for screening or ranking, a partner for protein-protein docking)
+is missing, the result keeps the choice and lists the problem in `warnings` and in a `steps` entry.
 
 Checks that are listed in the task but not registered appear with `result: skip` and
 `skipReason: unknown_check`. The UI shows them in the check list as `not implemented` and counts
 them, so a viewer can see how much of each layer actually ran.
+
+## Execution
+
+`RunSettings.execute` (default true) runs the selected executors before the checks. The route of
+each comes from `configs/dispatch.yaml`: `modal` (the `predict` function of the deployed app
+`pah-gpu-<executor>`, GPU per `gpu`), `local` (Vina in the API process) or `none` (recorded as
+`skipped` with `reason`). The flow of one run:
+
+1. `POST /ui/runs` validates the settings, writes `job.json` (with `eta`) and answers 202. It never
+   waits for a GPU job.
+2. The job builds each executor's request from the manifest (`inputs/` under
+   `predictions/<executor>/`), emits `queued` with `etaMs`, and spawns the GPU calls with
+   `.spawn()` (fire and forget). Each call id is written at once to `runs/<id>/dispatch.json`
+   (`calls.<executor>`: `callId`, `app`, `function`, `seeds`, `status` spawned, done, failed or
+   skipped, `etaMs`, `entries` once done). Vina runs in the API process at the same time.
+3. The job follows the calls: progress from the Modal Dict `pah-gpu-progress` becomes `building`
+   and `running` events (per seed), the return value becomes `done` or `failed`. Outputs are read
+   back from the `pah-predictions` volume into `runs/<id>/predictions/<executor>/` and added to the
+   manifest as `predictions` entries (`settings` records `route`, `route_note`, `mode`, `kit`,
+   `kit_version`, `gpu`, `modal_image`, `modal_call`).
+4. Layers 0-5 then run on the manifest with its predictions; their events continue the sequence.
+
+If the API process ends while calls are out (a Modal container replaced), the next process reads
+`dispatch.json` at start, follows every `spawned` call of a job still `queued` or `running`
+(event `server restarted: following N spawned call(s)`), then runs the checks. Set
+`PAH_EXEC_RESUME=0` to switch this off.
+
+Guards: one GPU run per API process at a time (a second run waits with `queued`, message
+`waiting for the GPU slot`), at most `guard.max_seeds` (5) seeds per executor, and when
+`PAH_EXEC_TOKEN` is set on the API the request needs the header `X-Pah-Exec-Token`. The web proxy
+(`web/app/api/harness/[...path]/route.ts`) adds that header from its own `PAH_EXEC_TOKEN` and never
+forwards a client-supplied one. A run that may not execute records every executor as `skipped`
+with the reason (`job.executionDenied`), and the checks still run. An offline profile records the
+`modal` route as skipped (`profile <name> is offline`).
+
+Execution events: `kind=log`, `stage=execute`, `data` = `{stage, executor, phase, gpu, route,
+routeNote, mode, kit, kitVersion, seed, elapsedMs, etaMs, runEtaMs, callId, message}`. `phase` is
+`queued`, `building`, `running`, `done`, `failed` or `skipped`. `etaMs` is the executor's estimate,
+`runEtaMs` the run's. `UiExecution` (`record.execution`, `Job.execution`) is the latest state per
+executor with the same fields and per-seed `{seed, phase, ms}`.
+
+Estimates (`eta` in `configs/dispatch.yaml`, per executor): `per_seed_s`, `cold_start_s`,
+`first_seed_extra_s`, `basis` (`measured` with the records and dates in `origin`, or `estimate`
+with the reasoning) and `measured_at`. One call runs its seeds in sequence in one container, so an
+executor takes cold start + first-seed extra + per seed × seeds; GPU executors run in parallel, so
+the run estimate (`eta.etaMs`) is the longest of them (or the local executors' sum when longer),
+and `eta.gpuSeconds` sums the GPU containers. `eta.complete` is false when an executor has no
+estimate. `GET /ui/tools` rows carry the per-call `eta` (`perSeedS`, `coldStartS`,
+`firstSeedExtraS`, `basis`, `origin`, `measuredAt`).
 
 ## Number display
 
@@ -166,6 +285,52 @@ Minimal changes from the prototype, in `web/lib/format.ts`:
 - Counts as `pass 12 · warn 1 · stop 0 · skip 8`; zeros are shown muted, not hidden.
 - Fractions keep the denominator (`implemented 13/41`).
 - Missing values render as an en dash in muted ink, never as 0.
+
+## Tools drive the display
+
+Nothing in the UI is written for a particular executor. Every tool-specific label, metric, column,
+docking card and log line comes from the tool register that `GET /tools` returns, and from the
+`tools` list of the record being shown. Adding an executor to `configs/executors.yaml` (with its
+`outputs` block) must make it selectable and displayable with no UI code change.
+
+```ts
+interface ToolOutput {            // one parsed field the executor reports (docs/EXECUTORS.md)
+  key: string;                    // e.g. "confidence_score", "CNNscore", "minimizedAffinity"
+  label: string;                  // e.g. "Confidence", "CNN pose score", "Vina score"
+  unit?: string;                  // e.g. "kcal/mol", "Å", "pK"
+  kind: 'confidence' | 'interface' | 'affinity' | 'score' | 'rmsd' | 'plddt' | 'pae' | 'other';
+  scope: 'global' | 'interface' | 'ligand' | 'pose' | 'residue';
+  range?: [number, number];
+  higherIsBetter?: boolean;
+  rankingOnly?: boolean;          // shown on its own line below the accent rule, never as pose quality
+  note?: string;                  // e.g. "log10(IC50 µM); lower is stronger"
+}
+interface Tool {
+  id: string; name: string; family: 'co-folding' | 'docking'; version: string | null;
+  role: string; available: boolean; note?: string; licence?: string; repo?: string;
+  runtime?: { profiles: string[]; gpu?: string; accel?: boolean };   // from configs/runtimes.yaml
+  outputs: ToolOutput[];
+  dockingParams?: { key: string; label: string; unit?: string; default?: string }[];
+}
+```
+
+Rules for the screens:
+- Executor chips group by `family` and show `available`/`note` from the register.
+- Metric tables, ensemble columns, stat cards and figure legends are built from the `outputs` of
+  the tools in the record. A metric with `rankingOnly` goes under the accent rule.
+- Agreement matrices, seed plots and log lines label methods with `Tool.name` from the record.
+- A tool missing from the register still renders with its id as the name and no metric columns.
+- Mock mode uses the same `Tool` shape (`web/lib/mock` adds `outputs` to the prototype's `TOOLS`).
+
+## Deployment
+
+Default deployment is Modal (`configs/profiles/modal.yaml`). `deploy/modal/api_app.py` serves
+`pah.interfaces.api:create_app` as an ASGI web endpoint with the `pah-runs` and `pah-cache` volumes mounted
+at `/runs` and `/cache`. One container (`max_containers=1`, concurrent inputs) so live tails and
+background runs share a process; the volume is committed after each run and on every write.
+Executors run on GPU through `deploy/modal/executors_app.py`. The web UI is deployed to Vercel
+(`web/vercel.json`) with `HARNESS_API_URL` set to the Modal endpoint, and can also be served from
+Modal (`deploy/modal/web_app.py`, Next.js standalone build) when no Vercel token is configured.
 
 ## Testing hooks for agents
 

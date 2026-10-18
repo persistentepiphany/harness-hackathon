@@ -1,0 +1,2749 @@
+{
+ "_source": "web/tests/fixtures/live/ui-record-vina.json, log-vina.json, jobs.json (run ui-vina, 2026-10-17)",
+ "id": "ui-vina",
+ "harnessRunId": "ligand_pose-c162104df8ec",
+ "createdAt": "2026-10-17T17:12:30.294383Z",
+ "task": "ligand_pose",
+ "taskName": "Ligand pose in a known pocket",
+ "claim": "Pose within stated uncertainty",
+ "inputs": {
+  "partner": null,
+  "ligand": "NC(=N)c1ccccc1",
+  "target": "P00760",
+  "reference": "3PTB",
+  "ph": 7.4,
+  "seeds": 5
+ },
+ "tools": [
+  {
+   "id": "vina",
+   "name": "AutoDock Vina",
+   "version": "1.2.7",
+   "family": "docking",
+   "ranBy": "external"
+  }
+ ],
+ "sources": [
+  {
+   "source": "UniProt",
+   "sourceId": "uniprot",
+   "accession": "P00760",
+   "release": "2026_03",
+   "sha256": "2daae107e8c8e06022040be8b9f5c2d50c4b0249c452e612de8dbcabc333b12a",
+   "url": "https://rest.uniprot.org/uniprotkb/P00760.json"
+  },
+  {
+   "source": "RCSB PDB data API",
+   "sourceId": "rcsb",
+   "accession": "3PTB",
+   "release": "1.4",
+   "sha256": "72f53e884a08dc758905d3e3ec663a1b2f00327cdbe148d7bf45dc380da25899",
+   "url": "https://data.rcsb.org/rest/v1/core/entry/3PTB"
+  },
+  {
+   "source": "PDBe API",
+   "sourceId": "pdbe",
+   "accession": "3ptb",
+   "release": "n/a",
+   "sha256": "707ee0d63b94b760191f727fd3bc1d38395b6e394ddfc29aab8727ed4ee8f8f7",
+   "url": "https://www.ebi.ac.uk/pdbe/api/pdb/entry/molecules/3ptb"
+  },
+  {
+   "source": "SIFTS mappings (PDBe API)",
+   "sourceId": "sifts",
+   "accession": "3ptb",
+   "release": "n/a",
+   "sha256": "cfc0bf7ea029794a67f73ef3968c107509f16f1f90b57ca4596661ca3c531617",
+   "url": "https://www.ebi.ac.uk/pdbe/api/mappings/uniprot/3ptb"
+  },
+  {
+   "source": "PDB Chemical Component Dictionary",
+   "sourceId": "ccd",
+   "accession": "BEN",
+   "release": "2011-06-04",
+   "sha256": "5a5511abe25378302c70521f6be76366bff8191a0d6939d2c565e48960998632",
+   "url": "https://data.rcsb.org/rest/v1/core/chemcomp/BEN"
+  },
+  {
+   "source": "PubChem PUG REST",
+   "sourceId": "pubchem",
+   "accession": "2332",
+   "release": "n/a",
+   "sha256": "58a52c3a8cd31a074b43775a239b8e8ec874f1b70828bf6ad8b5327aa3a55fb8",
+   "url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2332/property/InChIKey,SMILES/JSON"
+  },
+  {
+   "source": "RCSB PDB file service",
+   "sourceId": "rcsb_files",
+   "accession": "3PTB",
+   "release": "n/a",
+   "sha256": "d2744dbacfb97ec9b4ff7f5cf4b204418bccf92e46b63130bfebb3916260232f",
+   "url": "https://files.rcsb.org/download/3PTB.cif"
+  }
+ ],
+ "layers": [
+  {
+   "i": 0,
+   "key": "provenance",
+   "name": "Provenance",
+   "question": "Where did every input come from?",
+   "durationMs": 391,
+   "counts": {
+    "pass": 3,
+    "warn": 0,
+    "stop": 0,
+    "skip": 0
+   },
+   "summary": [
+    "7 objects",
+    "7 cached",
+    "3 checks"
+   ],
+   "checks": [
+    {
+     "id": "l0.sources.resolved",
+     "name": "Every declared identifier resolves to a source record with checksum",
+     "tool": "pah",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "8 identifiers resolved to 7 records · identifiers=8, failed=0, records=7",
+     "ms": 33,
+     "threshold": null,
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "identifiers",
+       "value": 8,
+       "unit": null
+      },
+      {
+       "name": "failed",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "records",
+       "value": 7,
+       "unit": null
+      },
+      {
+       "name": "cache_hits",
+       "value": 7,
+       "unit": null
+      }
+     ],
+     "thresholds": null
+    },
+    {
+     "id": "l0.cross.uniprot_seqres",
+     "name": "UniProt sequence agrees with PDB SEQRES through the SIFTS mapping",
+     "tool": "pah",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "223 residues agree across 1 mapped segments · segments=1, residues_compared=223, mismatches=0",
+     "ms": 0,
+     "threshold": {
+      "value": "== 0",
+      "origin": "Specification, Layer 0 (cross-source checks)",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "segments",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "residues_compared",
+       "value": 223,
+       "unit": null
+      },
+      {
+       "name": "mismatches",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "declared_mutations",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "declaration_errors",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "mismatches",
+       "value": 0,
+       "comparator": "==",
+       "origin": "Specification, Layer 0 (cross-source checks)",
+       "evidenceLevel": "published"
+      }
+     ]
+    },
+    {
+     "id": "l0.cross.ligand_inchikey",
+     "name": "Declared ligand SMILES matches its CCD or PubChem record by InChIKey",
+     "tool": "rdkit",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "2 InChIKey comparisons identical · comparisons=2, mismatches=0, metal_skeleton_only=0",
+     "ms": 354,
+     "threshold": {
+      "value": "== true",
+      "origin": "Specification, Layer 0 (cross-source checks)",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "comparisons",
+       "value": 2,
+       "unit": null
+      },
+      {
+       "name": "mismatches",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "metal_skeleton_only",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "inchikey_equal",
+       "value": true,
+       "comparator": "==",
+       "origin": "Specification, Layer 0 (cross-source checks)",
+       "evidenceLevel": "published"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "i": 1,
+   "key": "integrity",
+   "name": "Input integrity",
+   "question": "Did the run receive exactly what was declared?",
+   "durationMs": 248,
+   "counts": {
+    "pass": 9,
+    "warn": 1,
+    "stop": 0,
+    "skip": 0
+   },
+   "summary": [
+    "10 checks",
+    "1 warn"
+   ],
+   "checks": [
+    {
+     "id": "l1.sequence.matches_record",
+     "name": "Sequence given to the run matches the declared source record",
+     "tool": "pah",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "1 sequences identical to their records · proteins=1, differing=0",
+     "ms": 0,
+     "threshold": {
+      "value": "== true",
+      "origin": "Specification, Layer 1 (input integrity)",
+      "evidenceLevel": "reproduced"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "proteins",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "differing",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "identical",
+       "value": true,
+       "comparator": "==",
+       "origin": "Specification, Layer 1 (input integrity)",
+       "evidenceLevel": "reproduced"
+      }
+     ]
+    },
+    {
+     "id": "l1.sequence.no_truncation_substitution",
+     "name": "No silent truncation, substitution or non-standard residue",
+     "tool": "pah",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "1 sequences have no truncation, substitution or non-standard residue · substitutions=0, n_truncation=0, c_truncation=0",
+     "ms": 1,
+     "threshold": {
+      "value": "== 0",
+      "origin": "Specification, Layer 1 (input integrity)",
+      "evidenceLevel": "reproduced"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "substitutions",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "n_truncation",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "c_truncation",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "internal_deletions",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "insertions",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "non_standard",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "changes",
+       "value": 0,
+       "comparator": "==",
+       "origin": "Specification, Layer 1 (input integrity)",
+       "evidenceLevel": "reproduced"
+      }
+     ]
+    },
+    {
+     "id": "l1.msa.integrity",
+     "name": "MSA belongs to its chain, is not query-only and is not shared across chains",
+     "tool": "pah",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "1 MSAs match their chains · msas=1, query_only=0, query_mismatch=0",
+     "ms": 0,
+     "threshold": {
+      "value": "> 1",
+      "origin": "Specification, Layer 1 (input integrity); query-only alignment",
+      "evidenceLevel": "reproduced"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "msas",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "query_only",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "query_mismatch",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "shared_across_chains",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "sequences",
+       "value": 1,
+       "comparator": ">",
+       "origin": "Specification, Layer 1 (input integrity); query-only alignment",
+       "evidenceLevel": "reproduced"
+      },
+      {
+       "name": "query_matches_chain",
+       "value": true,
+       "comparator": "==",
+       "origin": "Specification, Layer 1 (input integrity)",
+       "evidenceLevel": "reproduced"
+      }
+     ]
+    },
+    {
+     "id": "l1.ligand.sanitization",
+     "name": "Ligand parses, valences are correct and charges are within range",
+     "tool": "rdkit",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "1 ligands sanitised · ligands=1, failed=0, metal_disconnected=0",
+     "ms": 1,
+     "threshold": {
+      "value": "== 0",
+      "origin": "Specification, Layer 1 (input integrity)",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "ligands",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "failed",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "metal_disconnected",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "max_abs_charge",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "chemistry_problems",
+       "value": 0,
+       "comparator": "==",
+       "origin": "Specification, Layer 1 (input integrity)",
+       "evidenceLevel": "published"
+      },
+      {
+       "name": "radicals",
+       "value": 0,
+       "comparator": "==",
+       "origin": "Specification, Layer 1 (input integrity)",
+       "evidenceLevel": "published"
+      },
+      {
+       "name": "abs_net_charge",
+       "value": 2,
+       "comparator": "<=",
+       "origin": "Harness default; not yet calibrated on the harness benchmark",
+       "evidenceLevel": "uncalibrated"
+      }
+     ]
+    },
+    {
+     "id": "l1.ligand.stereo_defined",
+     "name": "Stereocentres and double-bond geometry explicitly defined",
+     "tool": "rdkit",
+     "gate": "Warn",
+     "result": "warn",
+     "evidence": "1 stereo elements undefined · stereo_elements=1, undefined=1, unparsed=0",
+     "ms": 2,
+     "threshold": {
+      "value": "== 0",
+      "origin": "Specification, Layer 1 (input integrity)",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "stereo_elements",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "undefined",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "unparsed",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "undefined_stereo",
+       "value": 0,
+       "comparator": "==",
+       "origin": "Specification, Layer 1 (input integrity)",
+       "evidenceLevel": "published"
+      }
+     ]
+    },
+    {
+     "id": "l1.ligand.identity",
+     "name": "Ligand given to the run matches its database record by InChIKey",
+     "tool": "rdkit",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "2 ligand identities identical · comparisons=2, mismatches=0, metal_skeleton_only=0",
+     "ms": 2,
+     "threshold": {
+      "value": "== true",
+      "origin": "Specification, Layer 1 (input integrity)",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "comparisons",
+       "value": 2,
+       "unit": null
+      },
+      {
+       "name": "mismatches",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "metal_skeleton_only",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "inchikey_equal",
+       "value": true,
+       "comparator": "==",
+       "origin": "Specification, Layer 1 (input integrity)",
+       "evidenceLevel": "published"
+      }
+     ]
+    },
+    {
+     "id": "l1.receptor.chains",
+     "name": "Receptor complete, chains and residue numbering as declared",
+     "tool": "gemmi",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "1 chains present; 223 residues agree with SEQRES numbering · chains_declared=1, chains_missing=0, residues_checked=223",
+     "ms": 203,
+     "threshold": {
+      "value": "== 0",
+      "origin": "Specification, Layer 1 (input integrity)",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "chains_declared",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "chains_missing",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "residues_checked",
+       "value": 223,
+       "unit": null
+      },
+      {
+       "name": "numbering_mismatches",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "numbering_mismatches",
+       "value": 0,
+       "comparator": "==",
+       "origin": "Specification, Layer 1 (input integrity)",
+       "evidenceLevel": "published"
+      }
+     ]
+    },
+    {
+     "id": "l1.receptor.altlocs",
+     "name": "Alternate locations resolved deliberately",
+     "tool": "gemmi",
+     "gate": "Warn",
+     "result": "pass",
+     "evidence": "no alternate locations · altloc_residues=0, altloc_atoms=0",
+     "ms": 1,
+     "threshold": null,
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "altloc_residues",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "altloc_atoms",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": null
+    },
+    {
+     "id": "l1.context.composition",
+     "name": "Chain composition and stoichiometry match the declared assembly",
+     "tool": "pah",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "1 proteins match reference stoichiometry · proteins=1, mismatched=0",
+     "ms": 0,
+     "threshold": {
+      "value": "== true",
+      "origin": "Specification, Layer 1 (input integrity)",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "proteins",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "mismatched",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "copies_equal",
+       "value": true,
+       "comparator": "==",
+       "origin": "Specification, Layer 1 (input integrity)",
+       "evidenceLevel": "published"
+      }
+     ]
+    },
+    {
+     "id": "l1.provenance.model_config",
+     "name": "Model version, checkpoint and database snapshot recorded and consistent",
+     "tool": "pah",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "model provenance recorded: executor=vina, version=1.2.7 · required=2, missing=0, seeds=5",
+     "ms": 12,
+     "threshold": {
+      "value": "== 0",
+      "origin": "Specification, Layer 1 (input integrity)",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "required",
+       "value": 2,
+       "unit": null
+      },
+      {
+       "name": "missing",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "seeds",
+       "value": 5,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "missing_fields",
+       "value": 0,
+       "comparator": "==",
+       "origin": "Specification, Layer 1 (input integrity)",
+       "evidenceLevel": "published"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "i": 2,
+   "key": "adequacy",
+   "name": "Input adequacy",
+   "question": "Does the input carry enough information?",
+   "durationMs": 1939,
+   "counts": {
+    "pass": 5,
+    "warn": 2,
+    "stop": 0,
+    "skip": 1
+   },
+   "summary": [
+    "8 checks",
+    "2 warn"
+   ],
+   "checks": [
+    {
+     "id": "l2.msa.depth",
+     "name": "Alignment depth, distinct sequences, Neff and gap fraction",
+     "tool": "numpy",
+     "gate": "Stop",
+     "result": "skip",
+     "evidence": "no MSA declared for a co-folding model",
+     "ms": null,
+     "threshold": null,
+     "skipReason": "not_applicable",
+     "measurements": null,
+     "thresholds": null
+    },
+    {
+     "id": "l2.context.cofactors",
+     "name": "Required cofactors, ions and partners present",
+     "tool": "gemmi · numpy",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "components within 8.0 Å of BEN: none · near_site=0, missing=0, uniprot_cofactors=1",
+     "ms": 315,
+     "threshold": {
+      "value": "<= 8.0",
+      "origin": "Harness rule: a component of the reference entry within 8 Å of the declared ligand is required context; not yet calibrated",
+      "evidenceLevel": "uncalibrated"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "near_site",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "missing",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "uniprot_cofactors",
+       "value": 1,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "pocket_distance",
+       "value": 8.0,
+       "comparator": "<=",
+       "origin": "Harness rule: a component of the reference entry within 8 Å of the declared ligand is required context; not yet calibrated",
+       "evidenceLevel": "uncalibrated"
+      }
+     ]
+    },
+    {
+     "id": "l2.pocket.resolved",
+     "name": "Pocket residues resolved, no missing loops lining the pocket",
+     "tool": "gemmi",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "22 pocket residues complete in 3PTB.cif · pocket_residues=22, incomplete=0, sequence_gaps=0",
+     "ms": 16,
+     "threshold": {
+      "value": "<= 6.0",
+      "origin": "Harness rule: pocket residues have a heavy atom within 6 Å of the ligand; not yet calibrated",
+      "evidenceLevel": "uncalibrated"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "pocket_residues",
+       "value": 22,
+       "unit": null
+      },
+      {
+       "name": "incomplete",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "sequence_gaps",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "pocket_distance",
+       "value": 6.0,
+       "comparator": "<=",
+       "origin": "Harness rule: pocket residues have a heavy atom within 6 Å of the ligand; not yet calibrated",
+       "evidenceLevel": "uncalibrated"
+      },
+      {
+       "name": "missing_pocket_residues",
+       "value": 0,
+       "comparator": "==",
+       "origin": "Specification layer 2: stop when the pocket is incomplete",
+       "evidenceLevel": "published"
+      }
+     ]
+    },
+    {
+     "id": "l2.receptor.state",
+     "name": "Receptor state apo or holo",
+     "tool": "gemmi · numpy",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "3PTB.cif holo: BEN in the site · state=holo, site_ligands=1",
+     "ms": 7,
+     "threshold": null,
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "state",
+       "value": "holo",
+       "unit": null
+      },
+      {
+       "name": "site_ligands",
+       "value": 1,
+       "unit": null
+      }
+     ],
+     "thresholds": null
+    },
+    {
+     "id": "l2.receptor.protonation",
+     "name": "Receptor protonation at the stated pH",
+     "tool": "propka",
+     "gate": "Stop",
+     "result": "warn",
+     "evidence": "pKa within 1.0 of pH 7.4: HIS57A pKa 7.46, ASP189A pKa 6.49 · hydrogens_present=true, ph=7.4, pocket_titratable=10",
+     "ms": 155,
+     "threshold": {
+      "value": "> 1.0",
+      "origin": "Harness rule: a titratable pocket residue with PROPKA pKa within 1 unit of the stated pH has an ambiguous state; not yet calibrated",
+      "evidenceLevel": "uncalibrated"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "hydrogens_present",
+       "value": true,
+       "unit": null
+      },
+      {
+       "name": "ph",
+       "value": 7.4,
+       "unit": null
+      },
+      {
+       "name": "pocket_titratable",
+       "value": 10,
+       "unit": null
+      },
+      {
+       "name": "ambiguous",
+       "value": 2,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "pka_margin",
+       "value": 1.0,
+       "comparator": ">",
+       "origin": "Harness rule: a titratable pocket residue with PROPKA pKa within 1 unit of the stated pH has an ambiguous state; not yet calibrated",
+       "evidenceLevel": "uncalibrated"
+      }
+     ]
+    },
+    {
+     "id": "l2.ligand.protonation",
+     "name": "Ligand protonation and tautomers enumerated at the stated pH",
+     "tool": "dimorphite_dl",
+     "gate": "Stop",
+     "result": "warn",
+     "evidence": "benzamidine: declared form N=C(N)c1ccccc1 differs from enumerated NC(=[NH2+])c1ccccc1 · ph=7.4, max_states=1, declared_not_enumerated=1",
+     "ms": 87,
+     "threshold": {
+      "value": "== 1.0",
+      "origin": "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated",
+      "evidenceLevel": "uncalibrated"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "ph",
+       "value": 7.4,
+       "unit": null
+      },
+      {
+       "name": "max_states",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "declared_not_enumerated",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "max_tautomers",
+       "value": 1,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "ph_window",
+       "value": 1.0,
+       "comparator": "==",
+       "origin": "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated",
+       "evidenceLevel": "uncalibrated"
+      },
+      {
+       "name": "states",
+       "value": 1,
+       "comparator": "==",
+       "origin": "Specification layer 2: warn when more than one plausible state",
+       "evidenceLevel": "published"
+      }
+     ]
+    },
+    {
+     "id": "l2.ligand.conformers",
+     "name": "Ligand conformers generated and minimised",
+     "tool": "rdkit",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "10 ETKDG conformers per ligand, MMFF minimised · ligands=1, failed=0, min_embedded=10",
+     "ms": 1315,
+     "threshold": {
+      "value": ">= 10",
+      "origin": "Harness default number of ETKDG conformers; not yet calibrated",
+      "evidenceLevel": "uncalibrated"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "ligands",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "failed",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "min_embedded",
+       "value": 10,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "conformers",
+       "value": 10,
+       "comparator": ">=",
+       "origin": "Harness default number of ETKDG conformers; not yet calibrated",
+       "evidenceLevel": "uncalibrated"
+      }
+     ]
+    },
+    {
+     "id": "l2.docking.box",
+     "name": "Docking box encloses the pocket with margin",
+     "tool": "gemmi · numpy",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "box encloses 11 contact residues and the BEN ligand with 2.0 Å margin · volume_A3=1477.9, ligand_atoms_inside_margin=9, ligand_atoms=9",
+     "ms": 30,
+     "threshold": {
+      "value": ">= 2.0",
+      "origin": "Harness rule: every pocket heavy atom lies at least 2 Å inside the box; not yet calibrated",
+      "evidenceLevel": "uncalibrated"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "volume_A3",
+       "value": 1477.9,
+       "unit": null
+      },
+      {
+       "name": "ligand_atoms_inside_margin",
+       "value": 9,
+       "unit": null
+      },
+      {
+       "name": "ligand_atoms",
+       "value": 9,
+       "unit": null
+      },
+      {
+       "name": "contact_residues",
+       "value": 11,
+       "unit": null
+      },
+      {
+       "name": "contact_residues_outside",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "margin",
+       "value": 2.0,
+       "comparator": ">=",
+       "origin": "Harness rule: every pocket heavy atom lies at least 2 Å inside the box; not yet calibrated",
+       "evidenceLevel": "uncalibrated"
+      },
+      {
+       "name": "contact_distance",
+       "value": 4.0,
+       "comparator": "<=",
+       "origin": "Harness rule: contact residues (heavy atom within 4 Å of the reference ligand) must have an atom inside the box; not yet calibrated",
+       "evidenceLevel": "uncalibrated"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "i": 3,
+   "key": "applicability",
+   "name": "Applicability",
+   "question": "Is the tool inside its validated regime?",
+   "durationMs": 7,
+   "counts": {
+    "pass": 3,
+    "warn": 0,
+    "stop": 0,
+    "skip": 3
+   },
+   "summary": [
+    "6 checks"
+   ],
+   "checks": [
+    {
+     "id": "l3.model.training_cutoff",
+     "name": "Model training cutoff recorded",
+     "tool": "pah",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "vina not learned; reference 3PTB released 1983-01-18 · executors=1, unknown=0, reference_released=1983-01-18",
+     "ms": 0,
+     "threshold": {
+      "value": "== recorded",
+      "origin": "Specification, Layer 3 (applicability): stop when unknown",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "executors",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "unknown",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "reference_released",
+       "value": "1983-01-18",
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "training_cutoff",
+       "value": "recorded",
+       "comparator": "==",
+       "origin": "Specification, Layer 3 (applicability): stop when unknown",
+       "evidenceLevel": "published"
+      }
+     ]
+    },
+    {
+     "id": "l3.exposure.pocket",
+     "name": "Pocket similarity to pre-cutoff complexes (SuCOS times pocket coverage)",
+     "tool": "rdkit · gemmi · numpy",
+     "gate": "Stop",
+     "result": "skip",
+     "evidence": "no learned executor declared (physics or empirical scoring has no training set)",
+     "ms": null,
+     "threshold": null,
+     "skipReason": "not_applicable",
+     "measurements": null,
+     "thresholds": null
+    },
+    {
+     "id": "l3.exposure.ligand_prevalence",
+     "name": "Ligand analogues in pre-cutoff training systems",
+     "tool": "rdkit",
+     "gate": "Stop",
+     "result": "skip",
+     "evidence": "no learned executor declared (physics or empirical scoring has no training set)",
+     "ms": null,
+     "threshold": null,
+     "skipReason": "not_applicable",
+     "measurements": null,
+     "thresholds": null
+    },
+    {
+     "id": "l3.exposure.sequence",
+     "name": "Chain sequence identity to pre-cutoff entries (secondary measure)",
+     "tool": "pah",
+     "gate": "Stop",
+     "result": "skip",
+     "evidence": "no learned executor declared (physics or empirical scoring has no training set)",
+     "ms": null,
+     "threshold": null,
+     "skipReason": "not_applicable",
+     "measurements": null,
+     "thresholds": null
+    },
+    {
+     "id": "l3.regime.modality",
+     "name": "Modality inside the validated set; token count against the training crop",
+     "tool": "pah",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "modalities protein, protein_ligand inside the validated set; 232 tokens · modalities=2, tokens=232, outside=0",
+     "ms": 4,
+     "threshold": null,
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "modalities",
+       "value": 2,
+       "unit": null
+      },
+      {
+       "name": "tokens",
+       "value": 232,
+       "unit": null
+      },
+      {
+       "name": "outside",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": null
+    },
+    {
+     "id": "l3.metric.endpoint",
+     "name": "Endpoint fits the tool",
+     "tool": "pah",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "endpoint pose produced by vina · endpoint=pose, executors=1, not_fitting=0",
+     "ms": 0,
+     "threshold": {
+      "value": "in pose",
+      "origin": "Specification, Layer 3 (applicability): no affinity from interface confidence, no protein-protein affinity from Boltz-2",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "endpoint",
+       "value": "pose",
+       "unit": null
+      },
+      {
+       "name": "executors",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "not_fitting",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "endpoint",
+       "value": "pose",
+       "comparator": "in",
+       "origin": "Specification, Layer 3 (applicability): no affinity from interface confidence, no protein-protein affinity from Boltz-2",
+       "evidenceLevel": "published"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "i": 4,
+   "key": "validity",
+   "name": "Output validity",
+   "question": "Is the result physically and chemically sensible?",
+   "durationMs": 4162,
+   "counts": {
+    "pass": 6,
+    "warn": 0,
+    "stop": 0,
+    "skip": 1
+   },
+   "summary": [
+    "7 checks"
+   ],
+   "checks": [
+    {
+     "id": "l4.posebusters",
+     "name": "PoseBusters geometry, stereochemistry, clashes and protein contact",
+     "tool": "posebusters",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "20 of 20 tests pass for vina/seed0/mode0; 5 of 5 poses pass all · poses=5, passed=20, total=20",
+     "ms": 1444,
+     "threshold": {
+      "value": "== 0",
+      "origin": "Specification, Layer 4 (output validity): stop on failure",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "poses",
+       "value": 5,
+       "unit": null
+      },
+      {
+       "name": "passed",
+       "value": 20,
+       "unit": null
+      },
+      {
+       "name": "total",
+       "value": 20,
+       "unit": null
+      },
+      {
+       "name": "poses_all_pass",
+       "value": 5,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "tests_failed",
+       "value": 0,
+       "comparator": "==",
+       "origin": "Specification, Layer 4 (output validity): stop on failure",
+       "evidenceLevel": "published"
+      }
+     ]
+    },
+    {
+     "id": "l4.torsion_strain",
+     "name": "Torsional strain of the ligand pose",
+     "tool": "rdkit MMFF94",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "0 of 1 torsions above 2.5 kcal/mol in vina/seed0/mode0; strain 0.22 kcal/mol · poses=5, unlikely_torsions=0, torsions=1",
+     "ms": 320,
+     "threshold": {
+      "value": "<= 2.5",
+      "origin": "Harness rule: a rotatable torsion whose MMFF energy lies more than 2.5 kcal/mol above the minimum of its rigid scan is unlikely; not yet calibrated",
+      "evidenceLevel": "uncalibrated"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "poses",
+       "value": 5,
+       "unit": null
+      },
+      {
+       "name": "unlikely_torsions",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "torsions",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "strain_kcal",
+       "value": 0.22,
+       "unit": null
+      },
+      {
+       "name": "poses_with_unlikely",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "torsion_energy",
+       "value": 2.5,
+       "comparator": "<=",
+       "origin": "Harness rule: a rotatable torsion whose MMFF energy lies more than 2.5 kcal/mol above the minimum of its rigid scan is unlikely; not yet calibrated",
+       "evidenceLevel": "uncalibrated"
+      }
+     ]
+    },
+    {
+     "id": "l4.interactions.fingerprint",
+     "name": "Interaction fingerprint (PLIP)",
+     "tool": "plip",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "4 interactions in vina/seed0/mode0 (hbond, hydrophobic); 3 distinct across 5 poses (reported) · poses=5, interactions_representative=4, distinct=3",
+     "ms": 1579,
+     "threshold": null,
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "poses",
+       "value": 5,
+       "unit": null
+      },
+      {
+       "name": "interactions_representative",
+       "value": 4,
+       "unit": null
+      },
+      {
+       "name": "distinct",
+       "value": 3,
+       "unit": null
+      },
+      {
+       "name": "hbonds_representative",
+       "value": 2,
+       "unit": null
+      }
+     ],
+     "thresholds": null
+    },
+    {
+     "id": "l4.interactions.unsatisfied_polars",
+     "name": "Buried ligand polar atoms without a hydrogen-bond partner",
+     "tool": "freesasa",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "2 buried polar ligand atoms, all with a partner within 3.5 Å in vina/seed0/mode0 · poses=5, unsatisfied=0, buried_charged=0",
+     "ms": 269,
+     "threshold": {
+      "value": "< 0.1",
+      "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+      "evidenceLevel": "uncalibrated"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "poses",
+       "value": 5,
+       "unit": null
+      },
+      {
+       "name": "unsatisfied",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "buried_charged",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "buried_polar",
+       "value": 2,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "relative_sasa",
+       "value": 0.1,
+       "comparator": "<",
+       "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+       "evidenceLevel": "uncalibrated"
+      },
+      {
+       "name": "hbond_distance",
+       "value": 3.5,
+       "comparator": "<=",
+       "origin": "PLIP hydrogen bond distance cut-off (donor-acceptor 4.1 Å; harness uses 3.5 Å heavy-atom distance)",
+       "evidenceLevel": "published"
+      }
+     ]
+    },
+    {
+     "id": "l4.interactions.hydrophobic",
+     "name": "Hydrophobic complementarity of buried ligand surface",
+     "tool": "freesasa",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "nonpolar fraction of protein contacts around 5 buried nonpolar ligand atoms in vina/seed0/mode0: 0.453 · poses=5, complementarity=0.453, buried_nonpolar=5",
+     "ms": 266,
+     "threshold": {
+      "value": ">= 0.35",
+      "origin": "Harness default anchored on 3PTB: the crystal benzamidine scores 0.51, Vina and Boltz-2 poses within 0.5 Å of it score 0.45 and 0.49; not calibrated on the benchmark",
+      "evidenceLevel": "uncalibrated"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "poses",
+       "value": 5,
+       "unit": null
+      },
+      {
+       "name": "complementarity",
+       "value": 0.453,
+       "unit": null
+      },
+      {
+       "name": "buried_nonpolar",
+       "value": 5,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "fraction",
+       "value": 0.35,
+       "comparator": ">=",
+       "origin": "Harness default anchored on 3PTB: the crystal benzamidine scores 0.51, Vina and Boltz-2 poses within 0.5 Å of it score 0.45 and 0.49; not calibrated on the benchmark",
+       "evidenceLevel": "uncalibrated"
+      },
+      {
+       "name": "relative_sasa",
+       "value": 0.1,
+       "comparator": "<",
+       "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
+       "evidenceLevel": "uncalibrated"
+      }
+     ]
+    },
+    {
+     "id": "l4.interactions.known_binders",
+     "name": "Interactions of the crystal ligand reproduced by the pose",
+     "tool": "plip",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "vina/seed0/mode0 reproduces 1 of 1 BEN interactions: hbond ASP189A · key_interactions=1, reproduced=1, poses_reproducing_all=5",
+     "ms": 252,
+     "threshold": {
+      "value": ">= 1",
+      "origin": "Specification layer 4: warn when no key interaction is reproduced",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "key_interactions",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "reproduced",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "poses_reproducing_all",
+       "value": 5,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "reproduced",
+       "value": 1,
+       "comparator": ">=",
+       "origin": "Specification layer 4: warn when no key interaction is reproduced",
+       "evidenceLevel": "published"
+      }
+     ]
+    },
+    {
+     "id": "l4.minimisation_drift",
+     "name": "Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF)",
+     "tool": "rdkit",
+     "gate": "Stop",
+     "result": "skip",
+     "evidence": "conda environment with OpenMM and OpenFF not found (PAH_CONDA_PREFIX)",
+     "ms": 0,
+     "threshold": null,
+     "skipReason": "tool_missing",
+     "measurements": null,
+     "thresholds": null
+    }
+   ]
+  },
+  {
+   "i": 5,
+   "key": "support",
+   "name": "Output support",
+   "question": "Is a valid result corroborated?",
+   "durationMs": 474,
+   "counts": {
+    "pass": 5,
+    "warn": 0,
+    "stop": 0,
+    "skip": 0
+   },
+   "summary": [
+    "5 checks"
+   ],
+   "checks": [
+    {
+     "id": "l5.confidence.local",
+     "name": "Confidence restricted to the pocket; per-model thresholds",
+     "tool": "gemmi · numpy",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "vina/seed0/mode0: vina_affinity -6.131; no per-model confidence threshold registered for vina (reported) · poses=5, vina_affinity=-6.131",
+     "ms": 0,
+     "threshold": null,
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "poses",
+       "value": 5,
+       "unit": null
+      },
+      {
+       "name": "vina_affinity",
+       "value": -6.131,
+       "unit": null
+      }
+     ],
+     "thresholds": null
+    },
+    {
+     "id": "l5.sampling.seeds",
+     "name": "Independent seeds counted separately from samples; duplicates flagged",
+     "tool": "numpy",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "5 independent seeds, 45 poses, no duplicates · independent_seeds=5, samples=45, duplicated_outputs=0",
+     "ms": 0,
+     "threshold": {
+      "value": ">= 3",
+      "origin": "Harness default for independent docking seeds; not yet calibrated",
+      "evidenceLevel": "uncalibrated"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "independent_seeds",
+       "value": 5,
+       "unit": null
+      },
+      {
+       "name": "samples",
+       "value": 45,
+       "unit": null
+      },
+      {
+       "name": "duplicated_outputs",
+       "value": 0,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "seeds_docking",
+       "value": 3,
+       "comparator": ">=",
+       "origin": "Harness default for independent docking seeds; not yet calibrated",
+       "evidenceLevel": "uncalibrated"
+      }
+     ]
+    },
+    {
+     "id": "l5.sampling.clusters",
+     "name": "Medoid of the largest cluster, populations, pairwise spread, site and pose accuracy",
+     "tool": "spyrmsd",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "medoid vina/seed0/mode0; 1 clusters, largest 5 of 5; pairwise RMSD median 0.07 Å (IQR 0.06 to 0.08); 5 of 5 poses within 4.0 Å of the site (BEN in 3PTB); 5 of 5 poses within 2.0 Å of the medoid · poses=5, clusters=1, largest_cluster=5",
+     "ms": 386,
+     "threshold": {
+      "value": "<= 2.0",
+      "origin": "Specification layer 5: 2 Å symmetry-aware ligand RMSD (spyrmsd) separates pose clusters",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "poses",
+       "value": 5,
+       "unit": null
+      },
+      {
+       "name": "clusters",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "largest_cluster",
+       "value": 5,
+       "unit": null
+      },
+      {
+       "name": "pairwise_rmsd_median_A",
+       "value": 0.071,
+       "unit": null
+      },
+      {
+       "name": "within_medoid",
+       "value": 5,
+       "unit": null
+      },
+      {
+       "name": "in_site",
+       "value": 5,
+       "unit": null
+      },
+      {
+       "name": "best_sampled_rmsd_to_reference_A",
+       "value": 0.367,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "cluster_rmsd",
+       "value": 2.0,
+       "comparator": "<=",
+       "origin": "Specification layer 5: 2 Å symmetry-aware ligand RMSD (spyrmsd) separates pose clusters",
+       "evidenceLevel": "published"
+      },
+      {
+       "name": "site_distance",
+       "value": 4.0,
+       "comparator": "<=",
+       "origin": "Harness rule: a ligand centroid within 4 Å of the reference site centroid is placed in the site; not yet calibrated",
+       "evidenceLevel": "uncalibrated"
+      },
+      {
+       "name": "largest_fraction",
+       "value": 0.5,
+       "comparator": ">=",
+       "origin": "Harness rule: the largest cluster holds at least half of the poses; not yet calibrated",
+       "evidenceLevel": "uncalibrated"
+      }
+     ]
+    },
+    {
+     "id": "l5.agreement.cross_family",
+     "name": "Agreement between methods, weighted by independence",
+     "tool": "spyrmsd",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "vina vs crystal 3PTB 0.38 Å (decisive) · methods=1, comparisons=1, disagreeing=0",
+     "ms": 34,
+     "threshold": {
+      "value": "<= 2.0",
+      "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 Å",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "methods",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "comparisons",
+       "value": 1,
+       "unit": null
+      },
+      {
+       "name": "disagreeing",
+       "value": 0,
+       "unit": null
+      },
+      {
+       "name": "rmsd_to_crystal_A",
+       "value": 0.38,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "rmsd",
+       "value": 2.0,
+       "comparator": "<=",
+       "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 Å",
+       "evidenceLevel": "published"
+      }
+     ]
+    },
+    {
+     "id": "l5.controls.redocking",
+     "name": "Redocking control reproduces the crystal pose",
+     "tool": "spyrmsd · numpy · rdkit · gemmi",
+     "gate": "Stop",
+     "result": "pass",
+     "evidence": "top redocked pose vina/seed0/mode0 at 0.416 Å from BEN in 3PTB · rmsd_A=0.416, best_sampled_rmsd_A=0.404, poses=9",
+     "ms": 49,
+     "threshold": {
+      "value": "<= 2.0",
+      "origin": "Specification layer 5: redocking must reproduce the crystal pose (2 Å ligand RMSD)",
+      "evidenceLevel": "published"
+     },
+     "skipReason": null,
+     "measurements": [
+      {
+       "name": "rmsd_A",
+       "value": 0.416,
+       "unit": null
+      },
+      {
+       "name": "best_sampled_rmsd_A",
+       "value": 0.404,
+       "unit": null
+      },
+      {
+       "name": "poses",
+       "value": 9,
+       "unit": null
+      }
+     ],
+     "thresholds": [
+      {
+       "name": "rmsd",
+       "value": 2.0,
+       "comparator": "<=",
+       "origin": "Specification layer 5: redocking must reproduce the crystal pose (2 Å ligand RMSD)",
+       "evidenceLevel": "published"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "verdict": {
+  "claim": "Pose within stated uncertainty",
+  "outcome": "incomplete",
+  "statement": "1 check in layers 0,1,2,3,4,5 could not be evaluated: l4.minimisation_drift. The claim “Pose within stated uncertainty” is not assessed until they run. 3 checks warned: l1.ligand.stereo_defined, l2.receptor.protonation, l2.ligand.protonation.",
+  "scope": "layers 0,1,2,3,4,5",
+  "stops": [],
+  "warnings": [
+   "l1.ligand.stereo_defined",
+   "l2.receptor.protonation",
+   "l2.ligand.protonation"
+  ],
+  "incomplete": [
+   "l4.minimisation_drift"
+  ],
+  "notApplicable": [
+   "l2.msa.depth",
+   "l3.exposure.pocket",
+   "l3.exposure.ligand_prevalence",
+   "l3.exposure.sequence"
+  ]
+ },
+ "controls": [
+  {
+   "name": "redocking",
+   "status": "sound",
+   "note": "top redocked pose vina/seed0/mode0 at 0.416 Å from BEN in 3PTB",
+   "check": "l5.controls.redocking"
+  }
+ ],
+ "stats": {
+  "seeds": [
+   {
+    "pose": "vina/seed0/mode0",
+    "seed": 0,
+    "sample": 0,
+    "cluster": 1,
+    "rmsdToMedoid": 0.0,
+    "siteDistance": 0.22,
+    "toolId": "vina",
+    "score": -6.131,
+    "scoreKey": "vina_affinity"
+   },
+   {
+    "pose": "vina/seed1/mode0",
+    "seed": 1,
+    "sample": 0,
+    "cluster": 1,
+    "rmsdToMedoid": 0.027,
+    "siteDistance": 0.2,
+    "toolId": "vina",
+    "score": -6.134,
+    "scoreKey": "vina_affinity"
+   },
+   {
+    "pose": "vina/seed2/mode0",
+    "seed": 2,
+    "sample": 0,
+    "cluster": 1,
+    "rmsdToMedoid": 0.076,
+    "siteDistance": 0.24,
+    "toolId": "vina",
+    "score": -6.115,
+    "scoreKey": "vina_affinity"
+   },
+   {
+    "pose": "vina/seed3/mode0",
+    "seed": 3,
+    "sample": 0,
+    "cluster": 1,
+    "rmsdToMedoid": 0.056,
+    "siteDistance": 0.23,
+    "toolId": "vina",
+    "score": -6.098,
+    "scoreKey": "vina_affinity"
+   },
+   {
+    "pose": "vina/seed4/mode0",
+    "seed": 4,
+    "sample": 0,
+    "cluster": 1,
+    "rmsdToMedoid": 0.067,
+    "siteDistance": 0.23,
+    "toolId": "vina",
+    "score": -6.073,
+    "scoreKey": "vina_affinity"
+   }
+  ],
+  "pairwise": {
+   "median": 0.071,
+   "unit": "Å",
+   "source": {
+    "check": "l5.sampling.clusters",
+    "tool": "spyrmsd",
+    "version": "0.9.0",
+    "field": "evidence.pairwise_rmsd_A",
+    "unit": "Å",
+    "n": 10
+   },
+   "iqr": [
+    0.058,
+    0.081
+   ],
+   "n": 10,
+   "poses": 5
+  },
+  "posebusters": [
+   {
+    "test": "sanitization",
+    "pass": true,
+    "value": "pass"
+   },
+   {
+    "test": "inchi_convertible",
+    "pass": true,
+    "value": "pass"
+   },
+   {
+    "test": "all_atoms_connected",
+    "pass": true,
+    "value": "pass"
+   },
+   {
+    "test": "no_radicals",
+    "pass": true,
+    "value": "pass"
+   },
+   {
+    "test": "bond_lengths",
+    "pass": true,
+    "value": "0 long outliers"
+   },
+   {
+    "test": "bond_angles",
+    "pass": true,
+    "value": "0 outliers"
+   },
+   {
+    "test": "internal_steric_clash",
+    "pass": true,
+    "value": "0"
+   },
+   {
+    "test": "aromatic_ring_flatness",
+    "pass": true,
+    "value": "0.00 Å"
+   },
+   {
+    "test": "non-aromatic_ring_non-flatness",
+    "pass": true,
+    "value": "pass"
+   },
+   {
+    "test": "double_bond_flatness",
+    "pass": true,
+    "value": "pass"
+   },
+   {
+    "test": "internal_energy",
+    "pass": true,
+    "value": "1.7 times the ensemble mean"
+   },
+   {
+    "test": "protein-ligand_maximum_distance",
+    "pass": true,
+    "value": "2.84 Å"
+   },
+   {
+    "test": "minimum_distance_to_protein",
+    "pass": true,
+    "value": "2.84 Å"
+   },
+   {
+    "test": "minimum_distance_to_organic_cofactors",
+    "pass": true,
+    "value": "pass"
+   },
+   {
+    "test": "minimum_distance_to_inorganic_cofactors",
+    "pass": true,
+    "value": "pass"
+   },
+   {
+    "test": "minimum_distance_to_waters",
+    "pass": true,
+    "value": "pass"
+   },
+   {
+    "test": "volume_overlap_with_protein",
+    "pass": true,
+    "value": "0.017"
+   },
+   {
+    "test": "volume_overlap_with_organic_cofactors",
+    "pass": true,
+    "value": "pass"
+   },
+   {
+    "test": "volume_overlap_with_inorganic_cofactors",
+    "pass": true,
+    "value": "pass"
+   },
+   {
+    "test": "volume_overlap_with_waters",
+    "pass": true,
+    "value": "pass"
+   }
+  ],
+  "pose": [
+   [
+    "medoid",
+    "vina/seed0/mode0"
+   ],
+   [
+    "RMSD to crystal",
+    "0.38 Å"
+   ],
+   [
+    "clusters",
+    "1"
+   ],
+   [
+    "largest cluster",
+    "5/5 poses"
+   ],
+   [
+    "within 2 Å of medoid",
+    "5/5"
+   ],
+   [
+    "best sampled RMSD to crystal",
+    "0.367 Å"
+   ],
+   [
+    "PoseBusters",
+    "20/20"
+   ],
+   [
+    "unlikely torsions",
+    "0/1"
+   ],
+   [
+    "unsatisfied buried polars",
+    "0/2"
+   ],
+   [
+    "key interactions reproduced",
+    "1/1"
+   ],
+   [
+    "torsion strain",
+    "0.22 kcal/mol"
+   ],
+   [
+    "redocking control RMSD",
+    "0.416 Å"
+   ]
+  ],
+  "site": [
+   [
+    "pocket residues",
+    "22"
+   ],
+   [
+    "incomplete pocket residues",
+    "0"
+   ],
+   [
+    "sequence gaps",
+    "0"
+   ],
+   [
+    "receptor state",
+    "holo"
+   ],
+   [
+    "components near site",
+    "0"
+   ],
+   [
+    "docking box volume",
+    "1477.9 Å³"
+   ],
+   [
+    "contact residues in box",
+    "11/11"
+   ],
+   [
+    "placement",
+    "5/5 poses ≤ 4 Å of site"
+   ]
+  ],
+  "interactions": [
+   {
+    "residue": "ASP189A",
+    "type": "H-bond",
+    "plipType": "hbond",
+    "distance": 2.98,
+    "poses": 5,
+    "of": 5,
+    "inRepresentative": true,
+    "known": true
+   },
+   {
+    "residue": "GLN192A",
+    "type": "Hydrophobic",
+    "plipType": "hydrophobic",
+    "distance": 3.96,
+    "poses": 5,
+    "of": 5,
+    "inRepresentative": true,
+    "known": false
+   },
+   {
+    "residue": "VAL213A",
+    "type": "Hydrophobic",
+    "plipType": "hydrophobic",
+    "distance": 3.73,
+    "poses": 5,
+    "of": 5,
+    "inRepresentative": true,
+    "known": true
+   }
+  ]
+ },
+ "toolVersions": {
+  "rdkit": "2026.9.1",
+  "gemmi": "0.7.5",
+  "numpy": "1.26.4",
+  "propka": "3.5.1",
+  "dimorphite_dl": "2.1.0",
+  "posebusters": "0.6.5",
+  "plip": "3.0.1",
+  "openbabel": "3.2.1",
+  "freesasa": "2.2.1",
+  "spyrmsd": "0.9.0",
+  "scipy": "1.17.1"
+ },
+ "pahVersion": "0.1.0",
+ "startedAt": "2026-10-17T17:12:30.294383Z",
+ "finishedAt": "2026-10-17T17:12:37.572924Z",
+ "job": {
+  "id": "ui-vina",
+  "runId": "ui-vina",
+  "harnessRunId": "ligand_pose-c162104df8ec",
+  "name": "trypsin · benzamidine",
+  "task": "ligand_pose",
+  "taskName": "Ligand pose in a known pocket",
+  "tools": [
+   "vina"
+  ],
+  "seeds": 5,
+  "status": "done",
+  "layerIdx": 6,
+  "progress": 1.0,
+  "elapsedMs": 7279,
+  "createdAt": "2026-10-17T17:12:30.294383Z",
+  "layers": [
+   {
+    "i": 0,
+    "result": "pass",
+    "done": true
+   },
+   {
+    "i": 1,
+    "result": "warn",
+    "done": true
+   },
+   {
+    "i": 2,
+    "result": "warn",
+    "done": true
+   },
+   {
+    "i": 3,
+    "result": "pass",
+    "done": true
+   },
+   {
+    "i": 4,
+    "result": "pass",
+    "done": true
+   },
+   {
+    "i": 5,
+    "result": "pass",
+    "done": true
+   }
+  ],
+  "verdict": "incomplete",
+  "checksDone": 39,
+  "checksTotal": 39,
+  "reportStatus": "done"
+ },
+ "docking": [
+  {
+   "label": "Box centre (x, y, z)",
+   "value": "−1.856, 14.366, 16.748",
+   "unit": "Å",
+   "isDefault": false
+  },
+  {
+   "label": "Box size (x, y, z)",
+   "value": "9.883, 11.95, 12.514",
+   "unit": "Å",
+   "isDefault": false
+  },
+  {
+   "label": "Exhaustiveness",
+   "value": "8",
+   "unit": null,
+   "isDefault": false
+  },
+  {
+   "label": "Poses per run",
+   "value": "9",
+   "unit": null,
+   "isDefault": false
+  },
+  {
+   "label": "Energy range",
+   "value": "3.0",
+   "unit": "kcal/mol",
+   "isDefault": true
+  },
+  {
+   "label": "Scoring function",
+   "value": "vina",
+   "unit": null,
+   "isDefault": false
+  },
+  {
+   "label": "Seed",
+   "value": "0, 1, 2, 3, 4",
+   "unit": null,
+   "isDefault": false
+  }
+ ],
+ "otherJob": {
+  "id": "ui-faulty",
+  "name": "trypsin · benzamidine",
+  "taskName": "Ligand pose in a known pocket",
+  "tools": [
+   "Boltz-2 2.2.1"
+  ],
+  "inputs": {
+   "partner": null,
+   "ligand": "NCc1ccccc1",
+   "target": "P00760",
+   "reference": "3PTB"
+  },
+  "claim": "Pose within stated uncertainty",
+  "verdict": "refused",
+  "elapsedMs": 330,
+  "layers": [
+   {
+    "i": 0,
+    "name": "Provenance",
+    "counts": {
+     "pass": 2,
+     "warn": 0,
+     "stop": 1,
+     "skip": 0
+    }
+   },
+   {
+    "i": 1,
+    "name": "Input integrity",
+    "counts": {
+     "pass": 0,
+     "warn": 0,
+     "stop": 0,
+     "skip": 10
+    }
+   },
+   {
+    "i": 2,
+    "name": "Input adequacy",
+    "counts": {
+     "pass": 0,
+     "warn": 0,
+     "stop": 0,
+     "skip": 8
+    }
+   },
+   {
+    "i": 3,
+    "name": "Applicability",
+    "counts": {
+     "pass": 0,
+     "warn": 0,
+     "stop": 0,
+     "skip": 6
+    }
+   },
+   {
+    "i": 4,
+    "name": "Output validity",
+    "counts": {
+     "pass": 0,
+     "warn": 0,
+     "stop": 0,
+     "skip": 7
+    }
+   },
+   {
+    "i": 5,
+    "name": "Output support",
+    "counts": {
+     "pass": 0,
+     "warn": 0,
+     "stop": 0,
+     "skip": 5
+    }
+   }
+  ]
+ },
+ "log": [
+  {
+   "seq": 1,
+   "t": "0.0s",
+   "layer": null,
+   "kind": "log",
+   "result": null,
+   "plain": "profile=local offline=False cache=/home/user/harness-hackathon/cache.",
+   "text": "run  profile=local offline=False cache=/home/user/harness-hackathon/cache"
+  },
+  {
+   "seq": 2,
+   "t": "0.0s",
+   "layer": null,
+   "kind": "run",
+   "result": null,
+   "plain": "Run started: task ligand_pose, layers 0, 1, 2, 3, 4, 5.",
+   "text": "run  start  task=ligand_pose layers=0,1,2,3,4,5 claim='Pose within stated uncertainty'"
+  },
+  {
+   "seq": 3,
+   "t": "0.0s",
+   "layer": 0,
+   "kind": "layer",
+   "result": null,
+   "plain": "Layer 0, provenance, started: 3 checks.",
+   "text": "L0  start  provenance: 3 checks"
+  },
+  {
+   "seq": 4,
+   "t": "0.0s",
+   "layer": 0,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Every declared identifier resolves to a source record with checksum: 8 identifiers resolved to 7 records (pass).",
+   "text": "L0  l0.sources.resolved  pass  8 identifiers resolved to 7 records  [identifiers=8, failed=0, records=7, cache_hits=7]  33 ms"
+  },
+  {
+   "seq": 5,
+   "t": "0.0s",
+   "layer": 0,
+   "kind": "check",
+   "result": "pass",
+   "plain": "UniProt sequence agrees with PDB SEQRES through the SIFTS mapping: 223 residues agree across 1 mapped segments (pass).",
+   "text": "L0  l0.cross.uniprot_seqres  pass  223 residues agree across 1 mapped segments  [segments=1, residues_compared=223, mismatches=0, declared_mutations=0, declaration_errors=0]  0 ms"
+  },
+  {
+   "seq": 6,
+   "t": "0.4s",
+   "layer": 0,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Declared ligand SMILES matches its CCD or PubChem record by InChIKey: 2 InChIKey comparisons identical (pass).",
+   "text": "L0  l0.cross.ligand_inchikey  pass  2 InChIKey comparisons identical  [comparisons=2, mismatches=0, metal_skeleton_only=0]  354 ms"
+  },
+  {
+   "seq": 7,
+   "t": "0.4s",
+   "layer": 0,
+   "kind": "layer",
+   "result": "pass",
+   "plain": "Layer 0, provenance, finished in 391 ms: 3 checks, 3 pass, 0 warn, 0 stop, 0 skip.",
+   "text": "L0  end  provenance: pass=3  391 ms"
+  },
+  {
+   "seq": 8,
+   "t": "0.4s",
+   "layer": 1,
+   "kind": "layer",
+   "result": null,
+   "plain": "Layer 1, input integrity, started: 10 checks.",
+   "text": "L1  start  input integrity: 10 checks"
+  },
+  {
+   "seq": 9,
+   "t": "0.4s",
+   "layer": 1,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Sequence given to the run matches the declared source record: 1 sequences identical to their records (pass).",
+   "text": "L1  l1.sequence.matches_record  pass  1 sequences identical to their records  [proteins=1, differing=0]  0 ms"
+  },
+  {
+   "seq": 10,
+   "t": "0.4s",
+   "layer": 1,
+   "kind": "check",
+   "result": "pass",
+   "plain": "No silent truncation, substitution or non-standard residue: 1 sequences have no truncation, substitution or non-standard residue (pass).",
+   "text": "L1  l1.sequence.no_truncation_substitution  pass  1 sequences have no truncation, substitution or non-standard residue  [substitutions=0, n_truncation=0, c_truncation=0, internal_deletions=0, insertions=0, non_standard=0]  1 ms"
+  },
+  {
+   "seq": 11,
+   "t": "0.4s",
+   "layer": 1,
+   "kind": "check",
+   "result": "pass",
+   "plain": "MSA belongs to its chain, is not query-only and is not shared across chains: 1 MSAs match their chains (pass).",
+   "text": "L1  l1.msa.integrity  pass  1 MSAs match their chains  [msas=1, query_only=0, query_mismatch=0, shared_across_chains=0]  0 ms"
+  },
+  {
+   "seq": 12,
+   "t": "0.4s",
+   "layer": 1,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Ligand parses, valences are correct and charges are within range: 1 ligands sanitised (pass).",
+   "text": "L1  l1.ligand.sanitization  pass  1 ligands sanitised  [ligands=1, failed=0, metal_disconnected=0, max_abs_charge=0]  1 ms"
+  },
+  {
+   "seq": 13,
+   "t": "0.4s",
+   "layer": 1,
+   "kind": "check",
+   "result": "warn",
+   "plain": "Stereocentres and double-bond geometry explicitly defined: 1 stereo elements undefined (warn).",
+   "text": "L1  l1.ligand.stereo_defined  warn  1 stereo elements undefined  [stereo_elements=1, undefined=1, unparsed=0]  2 ms"
+  },
+  {
+   "seq": 14,
+   "t": "0.4s",
+   "layer": 1,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Ligand given to the run matches its database record by InChIKey: 2 ligand identities identical (pass).",
+   "text": "L1  l1.ligand.identity  pass  2 ligand identities identical  [comparisons=2, mismatches=0, metal_skeleton_only=0]  2 ms"
+  },
+  {
+   "seq": 15,
+   "t": "0.6s",
+   "layer": 1,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Receptor complete, chains and residue numbering as declared: 1 chains present; 223 residues agree with SEQRES numbering (pass).",
+   "text": "L1  l1.receptor.chains  pass  1 chains present; 223 residues agree with SEQRES numbering  [chains_declared=1, chains_missing=0, residues_checked=223, numbering_mismatches=0]  203 ms"
+  },
+  {
+   "seq": 16,
+   "t": "0.6s",
+   "layer": 1,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Alternate locations resolved deliberately: no alternate locations (pass).",
+   "text": "L1  l1.receptor.altlocs  pass  no alternate locations  [altloc_residues=0, altloc_atoms=0]  1 ms"
+  },
+  {
+   "seq": 17,
+   "t": "0.6s",
+   "layer": 1,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Chain composition and stoichiometry match the declared assembly: 1 proteins match reference stoichiometry (pass).",
+   "text": "L1  l1.context.composition  pass  1 proteins match reference stoichiometry  [proteins=1, mismatched=0]  0 ms"
+  },
+  {
+   "seq": 18,
+   "t": "0.6s",
+   "layer": 1,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Model version, checkpoint and database snapshot recorded and consistent: model provenance recorded: executor=vina, version=1.2.7 (pass).",
+   "text": "L1  l1.provenance.model_config  pass  model provenance recorded: executor=vina, version=1.2.7  [required=2, missing=0, seeds=5]  12 ms"
+  },
+  {
+   "seq": 19,
+   "t": "0.6s",
+   "layer": 1,
+   "kind": "layer",
+   "result": "warn",
+   "plain": "Layer 1, input integrity, finished in 248 ms: 10 checks, 9 pass, 1 warn, 0 stop, 0 skip.",
+   "text": "L1  end  input integrity: pass=9 warn=1  248 ms"
+  },
+  {
+   "seq": 20,
+   "t": "0.6s",
+   "layer": 2,
+   "kind": "layer",
+   "result": null,
+   "plain": "Layer 2, input adequacy, started: 8 checks.",
+   "text": "L2  start  input adequacy: 8 checks"
+  },
+  {
+   "seq": 21,
+   "t": "0.6s",
+   "layer": 2,
+   "kind": "check",
+   "result": "skip",
+   "plain": "Alignment depth, distinct sequences, Neff and gap fraction: skipped, no MSA declared for a co-folding model.",
+   "text": "L2  l2.msa.depth  skip  no MSA declared for a co-folding model"
+  },
+  {
+   "seq": 22,
+   "t": "1.0s",
+   "layer": 2,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Required cofactors, ions and partners present: components within 8.0 Å of BEN: none (pass).",
+   "text": "L2  l2.context.cofactors  pass  components within 8.0 Å of BEN: none  [near_site=0, missing=0, uniprot_cofactors=1]  315 ms"
+  },
+  {
+   "seq": 23,
+   "t": "1.0s",
+   "layer": 2,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Pocket residues resolved, no missing loops lining the pocket: 22 pocket residues complete in 3PTB.cif (pass).",
+   "text": "L2  l2.pocket.resolved  pass  22 pocket residues complete in 3PTB.cif  [pocket_residues=22, incomplete=0, sequence_gaps=0]  16 ms"
+  },
+  {
+   "seq": 24,
+   "t": "1.0s",
+   "layer": 2,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Receptor state apo or holo: 3PTB.cif holo: BEN in the site (pass).",
+   "text": "L2  l2.receptor.state  pass  3PTB.cif holo: BEN in the site  [state=holo, site_ligands=1]  7 ms"
+  },
+  {
+   "seq": 25,
+   "t": "1.1s",
+   "layer": 2,
+   "kind": "check",
+   "result": "warn",
+   "plain": "Receptor protonation at the stated pH: pKa within 1.0 of pH 7.4: HIS57A pKa 7.46, ASP189A pKa 6.49 (warn).",
+   "text": "L2  l2.receptor.protonation  warn  pKa within 1.0 of pH 7.4: HIS57A pKa 7.46, ASP189A pKa 6.49  [hydrogens_present=true, ph=7.4, pocket_titratable=10, ambiguous=2]  155 ms"
+  },
+  {
+   "seq": 26,
+   "t": "1.2s",
+   "layer": 2,
+   "kind": "check",
+   "result": "warn",
+   "plain": "Ligand protonation and tautomers enumerated at the stated pH: benzamidine: declared form N=C(N)c1ccccc1 differs from enumerated NC(=[NH2+])c1ccccc1 (warn).",
+   "text": "L2  l2.ligand.protonation  warn  benzamidine: declared form N=C(N)c1ccccc1 differs from enumerated NC(=[NH2+])c1ccccc1  [ph=7.4, max_states=1, declared_not_enumerated=1, max_tautomers=1]  87 ms"
+  },
+  {
+   "seq": 27,
+   "t": "2.5s",
+   "layer": 2,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Ligand conformers generated and minimised: 10 ETKDG conformers per ligand, MMFF minimised (pass).",
+   "text": "L2  l2.ligand.conformers  pass  10 ETKDG conformers per ligand, MMFF minimised  [ligands=1, failed=0, min_embedded=10]  1.3 s"
+  },
+  {
+   "seq": 28,
+   "t": "2.6s",
+   "layer": 2,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Docking box encloses the pocket with margin: box encloses 11 contact residues and the BEN ligand with 2.0 Å margin (pass).",
+   "text": "L2  l2.docking.box  pass  box encloses 11 contact residues and the BEN ligand with 2.0 Å margin  [volume_A3=1477.9, ligand_atoms_inside_margin=9, ligand_atoms=9, contact_residues=11, contact_residues_outside=0]  30 ms"
+  },
+  {
+   "seq": 29,
+   "t": "2.6s",
+   "layer": 2,
+   "kind": "layer",
+   "result": "warn",
+   "plain": "Layer 2, input adequacy, finished in 1.9 s: 8 checks, 5 pass, 2 warn, 0 stop, 1 skip.",
+   "text": "L2  end  input adequacy: pass=5 skip=1 warn=2  1.9 s"
+  },
+  {
+   "seq": 30,
+   "t": "2.6s",
+   "layer": 3,
+   "kind": "layer",
+   "result": null,
+   "plain": "Layer 3, applicability, started: 6 checks.",
+   "text": "L3  start  applicability: 6 checks"
+  },
+  {
+   "seq": 31,
+   "t": "2.6s",
+   "layer": 3,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Model training cutoff recorded: vina not learned; reference 3PTB released 1983-01-18 (pass).",
+   "text": "L3  l3.model.training_cutoff  pass  vina not learned; reference 3PTB released 1983-01-18  [executors=1, unknown=0, reference_released=1983-01-18]  0 ms"
+  },
+  {
+   "seq": 32,
+   "t": "2.6s",
+   "layer": 3,
+   "kind": "check",
+   "result": "skip",
+   "plain": "Pocket similarity to pre-cutoff complexes (SuCOS times pocket coverage): skipped, no learned executor declared (physics or empirical scoring has no training set).",
+   "text": "L3  l3.exposure.pocket  skip  no learned executor declared (physics or empirical scoring has no training set)"
+  },
+  {
+   "seq": 33,
+   "t": "2.6s",
+   "layer": 3,
+   "kind": "check",
+   "result": "skip",
+   "plain": "Ligand analogues in pre-cutoff training systems: skipped, no learned executor declared (physics or empirical scoring has no training set).",
+   "text": "L3  l3.exposure.ligand_prevalence  skip  no learned executor declared (physics or empirical scoring has no training set)"
+  },
+  {
+   "seq": 34,
+   "t": "2.6s",
+   "layer": 3,
+   "kind": "check",
+   "result": "skip",
+   "plain": "Chain sequence identity to pre-cutoff entries (secondary measure): skipped, no learned executor declared (physics or empirical scoring has no training set).",
+   "text": "L3  l3.exposure.sequence  skip  no learned executor declared (physics or empirical scoring has no training set)"
+  },
+  {
+   "seq": 35,
+   "t": "2.6s",
+   "layer": 3,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Modality inside the validated set; token count against the training crop: modalities protein, protein_ligand inside the validated set; 232 tokens (pass).",
+   "text": "L3  l3.regime.modality  pass  modalities protein, protein_ligand inside the validated set; 232 tokens  [modalities=2, tokens=232, outside=0]  4 ms"
+  },
+  {
+   "seq": 36,
+   "t": "2.6s",
+   "layer": 3,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Endpoint fits the tool: endpoint pose produced by vina (pass).",
+   "text": "L3  l3.metric.endpoint  pass  endpoint pose produced by vina  [endpoint=pose, executors=1, not_fitting=0]  0 ms"
+  },
+  {
+   "seq": 37,
+   "t": "2.6s",
+   "layer": 3,
+   "kind": "layer",
+   "result": "pass",
+   "plain": "Layer 3, applicability, finished in 7 ms: 6 checks, 3 pass, 0 warn, 0 stop, 3 skip.",
+   "text": "L3  end  applicability: pass=3 skip=3  7 ms"
+  },
+  {
+   "seq": 38,
+   "t": "2.6s",
+   "layer": 4,
+   "kind": "layer",
+   "result": null,
+   "plain": "Layer 4, output validity, started: 7 checks.",
+   "text": "L4  start  output validity: 7 checks"
+  },
+  {
+   "seq": 39,
+   "t": "4.0s",
+   "layer": 4,
+   "kind": "check",
+   "result": "pass",
+   "plain": "PoseBusters geometry, stereochemistry, clashes and protein contact: 20 of 20 tests pass for vina/seed0/mode0; 5 of 5 poses pass all (pass).",
+   "text": "L4  l4.posebusters  pass  20 of 20 tests pass for vina/seed0/mode0; 5 of 5 poses pass all  [poses=5, passed=20, total=20, poses_all_pass=5]  1.4 s"
+  },
+  {
+   "seq": 40,
+   "t": "4.4s",
+   "layer": 4,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Torsional strain of the ligand pose: 0 of 1 torsions above 2.5 kcal/mol in vina/seed0/mode0; strain 0.22 kcal/mol (pass).",
+   "text": "L4  l4.torsion_strain  pass  0 of 1 torsions above 2.5 kcal/mol in vina/seed0/mode0; strain 0.22 kcal/mol  [poses=5, unlikely_torsions=0, torsions=1, strain_kcal=0.22, poses_with_unlikely=0]  320 ms"
+  },
+  {
+   "seq": 41,
+   "t": "5.9s",
+   "layer": 4,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Interaction fingerprint (PLIP): 4 interactions in vina/seed0/mode0 (hbond, hydrophobic); 3 distinct across 5 poses (reported) (pass).",
+   "text": "L4  l4.interactions.fingerprint  pass  4 interactions in vina/seed0/mode0 (hbond, hydrophobic); 3 distinct across 5 poses (reported)  [poses=5, interactions_representative=4, distinct=3, hbonds_representative=2]  1.6 s"
+  },
+  {
+   "seq": 42,
+   "t": "6.2s",
+   "layer": 4,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Buried ligand polar atoms without a hydrogen-bond partner: 2 buried polar ligand atoms, all with a partner within 3.5 Å in vina/seed0/mode0 (pass).",
+   "text": "L4  l4.interactions.unsatisfied_polars  pass  2 buried polar ligand atoms, all with a partner within 3.5 Å in vina/seed0/mode0  [poses=5, unsatisfied=0, buried_charged=0, buried_polar=2]  269 ms"
+  },
+  {
+   "seq": 43,
+   "t": "6.5s",
+   "layer": 4,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Hydrophobic complementarity of buried ligand surface: nonpolar fraction of protein contacts around 5 buried nonpolar ligand atoms in vina/seed0/mode0: 0.453 (pass).",
+   "text": "L4  l4.interactions.hydrophobic  pass  nonpolar fraction of protein contacts around 5 buried nonpolar ligand atoms in vina/seed0/mode0: 0.453  [poses=5, complementarity=0.453, buried_nonpolar=5]  266 ms"
+  },
+  {
+   "seq": 44,
+   "t": "6.7s",
+   "layer": 4,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Interactions of the crystal ligand reproduced by the pose: vina/seed0/mode0 reproduces 1 of 1 BEN interactions: hbond ASP189A (pass).",
+   "text": "L4  l4.interactions.known_binders  pass  vina/seed0/mode0 reproduces 1 of 1 BEN interactions: hbond ASP189A  [key_interactions=1, reproduced=1, poses_reproducing_all=5]  252 ms"
+  },
+  {
+   "seq": 45,
+   "t": "6.7s",
+   "layer": 4,
+   "kind": "check",
+   "result": "skip",
+   "plain": "Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF): skipped, conda environment with OpenMM and OpenFF not found (PAH_CONDA_PREFIX).",
+   "text": "L4  l4.minimisation_drift  skip  conda environment with OpenMM and OpenFF not found (PAH_CONDA_PREFIX)  0 ms"
+  },
+  {
+   "seq": 46,
+   "t": "6.7s",
+   "layer": 4,
+   "kind": "layer",
+   "result": "pass",
+   "plain": "Layer 4, output validity, finished in 4.2 s: 7 checks, 6 pass, 0 warn, 0 stop, 1 skip.",
+   "text": "L4  end  output validity: pass=6 skip=1  4.2 s"
+  },
+  {
+   "seq": 47,
+   "t": "6.7s",
+   "layer": 5,
+   "kind": "layer",
+   "result": null,
+   "plain": "Layer 5, output support, started: 5 checks.",
+   "text": "L5  start  output support: 5 checks"
+  },
+  {
+   "seq": 48,
+   "t": "6.7s",
+   "layer": 5,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Confidence restricted to the pocket; per-model thresholds: vina/seed0/mode0: vina_affinity -6.131; no per-model confidence threshold registered for vina (reported) (pass).",
+   "text": "L5  l5.confidence.local  pass  vina/seed0/mode0: vina_affinity -6.131; no per-model confidence threshold registered for vina (reported)  [poses=5, vina_affinity=-6.131]  0 ms"
+  },
+  {
+   "seq": 49,
+   "t": "6.8s",
+   "layer": 5,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Independent seeds counted separately from samples; duplicates flagged: 5 independent seeds, 45 poses, no duplicates (pass).",
+   "text": "L5  l5.sampling.seeds  pass  5 independent seeds, 45 poses, no duplicates  [independent_seeds=5, samples=45, duplicated_outputs=0]  0 ms"
+  },
+  {
+   "seq": 50,
+   "t": "7.1s",
+   "layer": 5,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Medoid of the largest cluster, populations, pairwise spread, site and pose accuracy: medoid vina/seed0/mode0; 1 clusters, largest 5 of 5; pairwise RMSD median 0.07 Å (IQR 0.06 to 0.08); 5 of 5 poses within 4.0 Å of the site (BEN in 3PTB); 5 of 5 poses within 2.0 Å of the medoid (pass).",
+   "text": "L5  l5.sampling.clusters  pass  medoid vina/seed0/mode0; 1 clusters, largest 5 of 5; pairwise RMSD median 0.07 Å (IQR 0.06 to 0.08); 5 of 5 poses within 4.0 Å of the site (BEN in 3PTB); 5 of 5 poses within 2.0 Å of the medoid  [poses=5, clusters=1, largest_cluster=5, pairwise_rmsd_median_A=0.071, within_medoid=5, in_site=5]  386 ms"
+  },
+  {
+   "seq": 51,
+   "t": "7.2s",
+   "layer": 5,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Agreement between methods, weighted by independence: vina vs crystal 3PTB 0.38 Å (decisive) (pass).",
+   "text": "L5  l5.agreement.cross_family  pass  vina vs crystal 3PTB 0.38 Å (decisive)  [methods=1, comparisons=1, disagreeing=0, rmsd_to_crystal_A=0.38]  34 ms"
+  },
+  {
+   "seq": 52,
+   "t": "7.2s",
+   "layer": 5,
+   "kind": "check",
+   "result": "pass",
+   "plain": "Redocking control reproduces the crystal pose: top redocked pose vina/seed0/mode0 at 0.416 Å from BEN in 3PTB (pass).",
+   "text": "L5  l5.controls.redocking  pass  top redocked pose vina/seed0/mode0 at 0.416 Å from BEN in 3PTB  [rmsd_A=0.416, best_sampled_rmsd_A=0.404, poses=9]  49 ms"
+  },
+  {
+   "seq": 53,
+   "t": "7.2s",
+   "layer": 5,
+   "kind": "layer",
+   "result": "pass",
+   "plain": "Layer 5, output support, finished in 474 ms: 5 checks, 5 pass, 0 warn, 0 stop, 0 skip.",
+   "text": "L5  end  output support: pass=5  474 ms"
+  },
+  {
+   "seq": 54,
+   "t": "7.3s",
+   "layer": null,
+   "kind": "run",
+   "result": null,
+   "plain": "Run finished after 7.3 s with verdict incomplete: 0 stops, 3 warnings, 1 incomplete.",
+   "text": "run  end  verdict=incomplete stops=0 warnings=3 incomplete=1  7.3 s"
+  }
+ ]
+}

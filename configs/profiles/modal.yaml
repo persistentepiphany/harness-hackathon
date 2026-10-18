@@ -14,5 +14,28 @@ modal:
   cpu: 4
   memory_mb: 16384
   timeout_s: 3600
+  # HTTP API (deploy/modal/api_app.py). One container serves requests and runs jobs in threads.
+  # Runs are not Modal inputs: the container stays up scaledown_window_s after the last request,
+  # so a report stage (PyMOL renders, about 10 min for 45 poses) must finish within it.
+  api:
+    app_name: pah-api
+    label: pah-api
+    cpu: 4
+    memory_mb: 8192
+    timeout_s: 3600
+    scaledown_window_s: 3600
+    max_inputs: 100
+    commit_interval_s: 10
+  # Web UI fallback host (deploy/modal/web_app.py), a Next.js standalone build.
+  web:
+    app_name: pah-web
+    label: pah-web
+    port: 3000
+    cpu: 1
+    memory_mb: 1024
+    timeout_s: 3600
+    scaledown_window_s: 600
+    max_inputs: 100
+    dist_dir: .next-modal
 doctor:
   categories: [sources, tools, executors, skills, infrastructure]

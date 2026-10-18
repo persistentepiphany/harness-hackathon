@@ -17,3 +17,35 @@ jobs:
       - run: uv venv --python ${{ matrix.python }} .venv
       - run: uv pip install --python .venv/bin/python -e ".[dev,checks,report,mcp,api]"
       - run: make lint type test
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      # production build with the default (live) configuration, as deployed
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      # mock suite (tests/e2e smoke + e2e/ screen specs) against `next build` + `next start`
+      - run: npm run e2e:mock
+        env:
+          E2E_PROD: "1"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: web/test-results
+          retention-days: 7

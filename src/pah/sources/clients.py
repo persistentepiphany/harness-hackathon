@@ -24,6 +24,32 @@ class UniProtEntry(_Record):
     md5: str | None = None
 
 
+class UniProtFeature(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    type: str
+    start: int | None
+    end: int | None
+    description: str = ""
+    ligand: str | None = None
+
+
+class UniProtAnnotations(_Record):
+    """Cofactors, sequence features and keywords from the same UniProt entry payload."""
+
+    accession: str
+    cofactors: tuple[str, ...]
+    features: tuple[UniProtFeature, ...]
+    keywords: tuple[str, ...]
+
+
+class SearchCount(_Record):
+    """Result of an RCSB search: total count and the first identifiers returned."""
+
+    query: str
+    total: int
+    identifiers: tuple[str, ...]
+
+
 class PdbEntry(_Record):
     pdb_id: str
     revision: str
@@ -138,6 +164,142 @@ class UniProtClient(SourceClient):
             )
         except (KeyError, TypeError) as exc:
             raise SourceUnavailableError(self.id, accession, Unavailable.PARSE, repr(exc)) from exc
+
+    def annotations(self, accession: str) -> UniProtAnnotations:
+        payload = self.http.get(
+            self.id,
+            accession,
+            f"{self.base}/{accession}.json",
+            release=_header("x-uniprot-release"),
+        )
+        d = _parse(self.id, accession, payload)
+        try:
+            cofactors = tuple(
+                c["name"]
+                for com in d.get("comments", [])
+                if com.get("commentType") == "COFACTOR"
+                for c in com.get("cofactors", [])
+            )
+            features = tuple(
+                UniProtFeature(
+                    type=f["type"],
+                    start=(f.get("location", {}).get("start") or {}).get("value"),
+                    end=(f.get("location", {}).get("end") or {}).get("value"),
+                    description=f.get("description") or "",
+                    ligand=(f.get("ligand") or {}).get("name"),
+                )
+                for f in d.get("features", [])
+            )
+            keywords = tuple(k["name"] for k in d.get("keywords", []))
+        except (KeyError, TypeError) as exc:
+            raise SourceUnavailableError(self.id, accession, Unavailable.PARSE, repr(exc)) from exc
+        return UniProtAnnotations(
+            accession=accession,
+            cofactors=cofactors,
+            features=features,
+            keywords=keywords,
+            provenance=payload.provenance,
+        )
+
+
+class RcsbSearchClient(SourceClient):
+    """RCSB search API v2 through GET, so responses go through the content cache."""
+
+    id = "rcsb_search"
+    url = "https://search.rcsb.org/rcsbsearch/v2/query"
+
+    def search(self, label: str, query: dict[str, Any], *, rows: int = 25) -> SearchCount:
+        import json
+
+        body = dict(query)
+        body.setdefault("request_options", {})
+        body["request_options"] = {
+            **body["request_options"],
+            "paginate": {"start": 0, "rows": rows},
+        }
+        payload = self.http.get(
+            self.id, label, self.url, params={"json": json.dumps(body, sort_keys=True)}
+        )
+        if not payload.data.strip():  # RCSB answers 204 No Content for an empty result
+            return SearchCount(query=label, total=0, identifiers=(), provenance=payload.provenance)
+        d = _parse(self.id, label, payload)
+        rows_out = tuple(str(r["identifier"]) for r in d.get("result_set", []))
+        return SearchCount(
+            query=label,
+            total=int(d.get("total_count", len(rows_out))),
+            identifiers=rows_out,
+            provenance=payload.provenance,
+        )
+
+    @staticmethod
+    def released_before(date: str) -> dict[str, Any]:
+        return {
+            "type": "terminal",
+            "service": "text",
+            "parameters": {
+                "attribute": "rcsb_accession_info.initial_release_date",
+                "operator": "less",
+                "value": date,
+            },
+        }
+
+    def sequence_hits(
+        self, sequence: str, identity: float, before: str, *, rows: int = 25
+    ) -> SearchCount:
+        node = {
+            "type": "terminal",
+            "service": "sequence",
+            "parameters": {
+                "evalue_cutoff": 0.1,
+                "identity_cutoff": identity,
+                "sequence_type": "protein",
+                "value": sequence,
+            },
+        }
+        query = {
+            "query": {
+                "type": "group",
+                "logical_operator": "and",
+                "nodes": [node, self.released_before(before)],
+            },
+            "return_type": "entry",
+            "request_options": {"results_content_type": ["experimental"]},
+        }
+        return self.search(f"seq{identity}:{before}:{len(sequence)}", query, rows=rows)
+
+    def similar_components(self, smiles: str, *, rows: int = 50) -> SearchCount:
+        node = {
+            "type": "terminal",
+            "service": "chemical",
+            "parameters": {
+                "value": smiles,
+                "type": "descriptor",
+                "descriptor_type": "SMILES",
+                "match_type": "fingerprint-similarity",
+            },
+        }
+        return self.search(f"chem:{smiles}", {"query": node, "return_type": "mol_definition"},
+                           rows=rows)  # fmt: skip
+
+    def entries_with_component(self, code: str, before: str, *, rows: int = 25) -> SearchCount:
+        node = {
+            "type": "terminal",
+            "service": "text",
+            "parameters": {
+                "attribute": "rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id",
+                "operator": "exact_match",
+                "value": code,
+            },
+        }
+        query = {
+            "query": {
+                "type": "group",
+                "logical_operator": "and",
+                "nodes": [node, self.released_before(before)],
+            },
+            "return_type": "entry",
+        }
+        return self.search(f"comp:{code}:{before}", query, rows=rows)
 
 
 class RcsbClient(SourceClient):
@@ -296,3 +458,4 @@ class Sources:
         self.pdbe = PdbeClient(http)
         self.pubchem = PubChemClient(http)
         self.alphafold_db = AlphaFoldDbClient(http)
+        self.rcsb_search = RcsbSearchClient(http)

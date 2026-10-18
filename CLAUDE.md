@@ -15,7 +15,9 @@ This repository is engineering only. The scientific thresholds come from the spe
 - Commit as `persistentepiphany <tennesseeshtick@proton.me>` (repo-local `git config`).
 - No Claude, Anthropic or AI attribution anywhere: no `Co-Authored-By` trailers, no session links,
   no footers in commits, PR bodies, code or docs.
-- Development branch: `claude/blissful-johnson-j76s9r`. Do not push elsewhere without asking.
+- Development branches: `harness-core` (harness, checks, reports) and `web-ui` (web UI, `/ui`
+  routes, Modal deployment; PR to `main`). Do not push elsewhere without asking. Branch names
+  carry no `claude/` prefix.
 
 ## Commits
 
@@ -33,6 +35,10 @@ make check                     # ruff + mypy + pytest
 .venv/bin/pah fetch            # binaries and data from configs/externals.yaml
 .venv/bin/pah run examples/3ptb_ligand_pose/manifest.yaml   # layers 0-1, streamed findings
 .venv/bin/pah tasks && .venv/bin/pah checks
+.venv/bin/pah dock <manifest> --out <dir>    # local Vina, writes a manifest with predictions
+.venv/bin/pah lint <file.md>                 # humanizer rules for generated prose
+.venv/bin/python bench/run_pipeline.py --seeds 7,8,9   # perturbation benchmark (Modal, Z.AI)
+.venv/bin/python bench/analysis/deck.py --run-id <id> --review <judgment.json>  # bind slide review
 ```
 
 Adding a check: subclass `pah.core.check.Check` in `src/pah/checks/layer<n>_*.py`, decorate with
@@ -56,6 +62,7 @@ micromamba (see README). The harness finds them through `PAH_CONDA_PREFIX`.
 | `src/pah/interfaces/` | CLI (typer), MCP server, HTTP API (FastAPI + SSE) |
 | `configs/` | Sources, tools, executors, profiles, task specs (data, not code) |
 | `deploy/` | CSF3 sbatch and Apptainer files, Modal app |
+| `bench/` | Perturbation benchmark: prep, Modal app, checks, agent, scoring, report, deck |
 | `third_party/skills/` | Pinned skill submodules (see `third_party/skills/SOURCES.md`) |
 
 ## Engineering rules
@@ -76,8 +83,11 @@ micromamba (see README). The harness finds them through `PAH_CONDA_PREFIX`.
 
 - Verbose streaming: every stage emits events as it happens (start, finding, artifact, layer
   summary, end). Results are written to `runs/<id>/` the moment they exist, not at the end.
-- Every structure output from an executor gets a PyMOL session (`.pse`) and PNG renders. A run
-  whose structure outputs lack renders fails report generation.
+- Each run renders at most 10 structures with PyMOL (`.pse` and PNG, cap in `configs/profiles`):
+  the main structure first (medoid or top-ranked pose), then cluster representatives and top-ranked
+  poses, in parallel. Structures past the cap carry render status `skipped` with the reason; a
+  missing render of a selected structure fails report generation. Agentic workflows that need more
+  raise the cap per run (`--max-renders`, RunSettings `maxRenders`, MCP `max_renders`).
 - Every run writes a provenance document graph (`graph.json`, `graph.mmd`, `graph.svg`):
   sources, files, tools, checks, findings and the verdict, with sha256 checksums and versions.
 - Reports are generated from the run record only. Text is factual: values, thresholds with origin,

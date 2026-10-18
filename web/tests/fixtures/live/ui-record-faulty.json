@@ -1,0 +1,2596 @@
+{
+    "id": "ui-faulty",
+    "createdAt": "2026-10-17T18:50:14.949429Z",
+    "status": "done",
+    "task": "ligand_pose",
+    "taskName": "Ligand pose in a known pocket",
+    "claim": "Pose within stated uncertainty",
+    "tools": [
+        {
+            "id": "boltz2",
+            "name": "Boltz-2",
+            "version": "2.2.1",
+            "role": "Executor and affinity",
+            "outputs": [
+                {
+                    "key": "confidence_score",
+                    "label": "Confidence score",
+                    "kind": "confidence",
+                    "scope": "global",
+                    "higherIsBetter": true,
+                    "note": "0.8 x complex_plddt + 0.2 x iptm, ptm for single chains (docs/prediction.md:201); models ranked by it"
+                },
+                {
+                    "key": "ptm",
+                    "label": "pTM",
+                    "kind": "confidence",
+                    "scope": "global",
+                    "higherIsBetter": true
+                },
+                {
+                    "key": "iptm",
+                    "label": "ipTM",
+                    "kind": "interface",
+                    "scope": "interface",
+                    "higherIsBetter": true
+                },
+                {
+                    "key": "ligand_iptm",
+                    "label": "Ligand ipTM",
+                    "kind": "interface",
+                    "scope": "ligand",
+                    "higherIsBetter": true
+                },
+                {
+                    "key": "protein_iptm",
+                    "label": "Protein ipTM",
+                    "kind": "interface",
+                    "scope": "interface",
+                    "higherIsBetter": true
+                },
+                {
+                    "key": "chains_ptm",
+                    "label": "Chain pTM",
+                    "kind": "confidence",
+                    "scope": "global",
+                    "higherIsBetter": true,
+                    "note": "per chain {chain index: value} (writer.py:190-212); parsed as chains_ptm.<index>"
+                },
+                {
+                    "key": "complex_plddt",
+                    "label": "Complex pLDDT",
+                    "kind": "plddt",
+                    "scope": "global",
+                    "range": [
+                        0.0,
+                        1.0
+                    ],
+                    "higherIsBetter": true,
+                    "note": "0-1 scale; Protenix, AF3 and ColabFold report 0-100"
+                },
+                {
+                    "key": "complex_iplddt",
+                    "label": "Interface pLDDT",
+                    "kind": "plddt",
+                    "scope": "interface",
+                    "higherIsBetter": true
+                },
+                {
+                    "key": "complex_pde",
+                    "label": "Complex PDE",
+                    "unit": "\u00c5",
+                    "kind": "pae",
+                    "scope": "global",
+                    "higherIsBetter": false,
+                    "note": "predicted distance error"
+                },
+                {
+                    "key": "complex_ipde",
+                    "label": "Interface PDE",
+                    "unit": "\u00c5",
+                    "kind": "pae",
+                    "scope": "interface",
+                    "higherIsBetter": false,
+                    "note": "predicted distance error"
+                },
+                {
+                    "key": "plddt",
+                    "label": "Per-token pLDDT",
+                    "kind": "plddt",
+                    "scope": "residue",
+                    "higherIsBetter": true,
+                    "note": "plddt_<name>_model_<k>.npz, key plddt, shape [N_tokens]"
+                },
+                {
+                    "key": "pae",
+                    "label": "PAE matrix",
+                    "kind": "pae",
+                    "scope": "residue",
+                    "higherIsBetter": false,
+                    "note": "pae_<name>_model_<k>.npz, only with --write_full_pae; unit not stated in writer.py (UNVERIFIED)"
+                },
+                {
+                    "key": "affinity_pred_value",
+                    "label": "Boltz-2 affinity",
+                    "unit": "log10(\u00b5M)",
+                    "kind": "affinity",
+                    "scope": "ligand",
+                    "higherIsBetter": false,
+                    "rankingOnly": true,
+                    "note": "log10(IC50 in \u00b5M); lower is a stronger binder; kcal/mol = (6 - y) x 1.364 (docs/prediction.md:249); only with properties.affinity"
+                },
+                {
+                    "key": "affinity_probability_binary",
+                    "label": "Binder probability",
+                    "kind": "affinity",
+                    "scope": "ligand",
+                    "range": [
+                        0.0,
+                        1.0
+                    ],
+                    "higherIsBetter": true,
+                    "rankingOnly": true,
+                    "note": "only with properties.affinity"
+                }
+            ],
+            "family": "co-folding",
+            "declaredVersion": "2.2.1",
+            "ran": false,
+            "ranBy": null
+        }
+    ],
+    "inputs": {
+        "partner": null,
+        "ligand": "NCc1ccccc1",
+        "target": "P00760",
+        "reference": "3PTB"
+    },
+    "sources": [
+        {
+            "id": "uniprot:P00760:2daae107e8c8",
+            "source": "UniProt",
+            "sourceId": "uniprot",
+            "accession": "P00760",
+            "release": "2026_03",
+            "sha256": "2daae107e8c8e06022040be8b9f5c2d50c4b0249c452e612de8dbcabc333b12a",
+            "retrievedAt": "2026-10-17T15:09:38.048979Z",
+            "url": "https://rest.uniprot.org/uniprotkb/P00760.json",
+            "sizeBytes": 176072,
+            "usedBy": [
+                "l0.cross.uniprot_seqres",
+                "l0.sources.resolved",
+                "l1.sequence.matches_record",
+                "l1.sequence.no_truncation_substitution",
+                "l2.context.cofactors",
+                "l3.regime.modality"
+            ],
+            "supplies": "canonical sequences, isoforms, PTMs, active sites, cross-references",
+            "cached": true
+        },
+        {
+            "id": "rcsb:3PTB:72f53e884a08",
+            "source": "RCSB PDB data API",
+            "sourceId": "rcsb",
+            "accession": "3PTB",
+            "release": "1.4",
+            "sha256": "72f53e884a08dc758905d3e3ec663a1b2f00327cdbe148d7bf45dc380da25899",
+            "retrievedAt": "2026-10-17T15:09:38.642675Z",
+            "url": "https://data.rcsb.org/rest/v1/core/entry/3PTB",
+            "sizeBytes": 14707,
+            "usedBy": [
+                "l0.sources.resolved",
+                "l3.model.training_cutoff"
+            ],
+            "supplies": "entry metadata, resolution, method, release dates",
+            "cached": true
+        },
+        {
+            "id": "pdbe:3ptb:707ee0d63b94",
+            "source": "PDBe API",
+            "sourceId": "pdbe",
+            "accession": "3ptb",
+            "release": "n/a",
+            "sha256": "707ee0d63b94b760191f727fd3bc1d38395b6e394ddfc29aab8727ed4ee8f8f7",
+            "retrievedAt": "2026-10-17T15:09:39.351754Z",
+            "url": "https://www.ebi.ac.uk/pdbe/api/pdb/entry/molecules/3ptb",
+            "sizeBytes": 2241,
+            "usedBy": [
+                "l0.cross.uniprot_seqres",
+                "l0.sources.resolved",
+                "l1.context.composition"
+            ],
+            "supplies": "entry summaries, bound ligands, release status",
+            "cached": true
+        },
+        {
+            "id": "sifts:3ptb:cfc0bf7ea029",
+            "source": "SIFTS mappings (PDBe API)",
+            "sourceId": "sifts",
+            "accession": "3ptb",
+            "release": "n/a",
+            "sha256": "cfc0bf7ea029794a67f73ef3968c107509f16f1f90b57ca4596661ca3c531617",
+            "retrievedAt": "2026-10-17T15:09:39.470916Z",
+            "url": "https://www.ebi.ac.uk/pdbe/api/mappings/uniprot/3ptb",
+            "sizeBytes": 372,
+            "usedBy": [
+                "l0.cross.uniprot_seqres",
+                "l0.sources.resolved",
+                "l1.context.composition",
+                "l1.sequence.matches_record",
+                "l1.sequence.no_truncation_substitution"
+            ],
+            "supplies": "residue-level PDB to UniProt mapping",
+            "cached": true
+        },
+        {
+            "id": "ccd:BEN:5a5511abe253",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "BEN",
+            "release": "2011-06-04",
+            "sha256": "5a5511abe25378302c70521f6be76366bff8191a0d6939d2c565e48960998632",
+            "retrievedAt": "2026-10-17T15:09:39.514935Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/BEN",
+            "sizeBytes": 8484,
+            "usedBy": [
+                "l0.cross.ligand_inchikey",
+                "l0.sources.resolved",
+                "l1.ligand.identity",
+                "l2.context.cofactors"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": true
+        },
+        {
+            "id": "rcsb_files:3PTB:d2744dbacfb9",
+            "source": "RCSB PDB file service",
+            "sourceId": "rcsb_files",
+            "accession": "3PTB",
+            "release": "n/a",
+            "sha256": "d2744dbacfb97ec9b4ff7f5cf4b204418bccf92e46b63130bfebb3916260232f",
+            "retrievedAt": "2026-10-17T15:09:40.668162Z",
+            "url": "https://files.rcsb.org/download/3PTB.cif",
+            "sizeBytes": 230954,
+            "usedBy": [
+                "l0.sources.resolved",
+                "l1.receptor.altlocs",
+                "l1.receptor.chains",
+                "l2.context.cofactors",
+                "l2.pocket.resolved",
+                "l2.receptor.state",
+                "l3.exposure.pocket",
+                "l3.regime.modality"
+            ],
+            "supplies": "mmCIF and PDB files, ligand SDF",
+            "cached": true
+        },
+        {
+            "id": "rcsb_search:chem:NCc1ccccc1:809515aa34a1",
+            "source": "RCSB search API",
+            "sourceId": "rcsb_search",
+            "accession": "chem:NCc1ccccc1",
+            "release": "n/a",
+            "sha256": "809515aa34a11f93e790365a90cee51bf2735b91e06fc46b2fb85923f281fafb",
+            "retrievedAt": "2026-10-17T18:50:18.691107Z",
+            "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22parameters%22%3A+%7B%22descriptor_type%22%3A+%22SMILES%22%2C+%22match_type%22%3A+%22fingerprint-similarity%22%2C+%22type%22%3A+%22descriptor%22%2C+%22value%22%3A+%22NCc1ccccc1%22%7D%2C+%22service%22%3A+%22chemical%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+50%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22mol_definition%22%7D",
+            "sizeBytes": 1002,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "sequence, structure and chemical search",
+            "cached": false
+        },
+        {
+            "id": "ccd:02N:e2121784a333",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "02N",
+            "release": "2024-09-27",
+            "sha256": "e2121784a333e984fb0ce383de519023c15e50dfb2497fc6090bb1e55e9dcaf8",
+            "retrievedAt": "2026-10-17T18:50:19.144183Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/02N",
+            "sizeBytes": 6539,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": false
+        },
+        {
+            "id": "ccd:ABN:d046f197b4dc",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "ABN",
+            "release": "2024-09-27",
+            "sha256": "d046f197b4dce0f5082ea9e02ed3f3c214ac8a83e303f3ebe24659a524647175",
+            "retrievedAt": "2026-10-17T18:50:19.196501Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/ABN",
+            "sizeBytes": 4926,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": false
+        },
+        {
+            "id": "ccd:UFZ:3a07d11e7d4d",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "UFZ",
+            "release": "2018-02-23",
+            "sha256": "3a07d11e7d4d22178002ac31c52c336110fc9d3587e6a1813df571c6da2c36b3",
+            "retrievedAt": "2026-10-17T18:50:19.249405Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/UFZ",
+            "sizeBytes": 9937,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": false
+        },
+        {
+            "id": "ccd:PEA:a71ca1547411",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "PEA",
+            "release": "2024-09-27",
+            "sha256": "a71ca15474113f2e4e6fe5c9a5bc1969e8a55ed96b44eb3b430d3868ff6450fd",
+            "retrievedAt": "2026-10-17T18:50:19.306631Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/PEA",
+            "sizeBytes": 11646,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": false
+        },
+        {
+            "id": "ccd:ZF0:fcec409ee390",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "ZF0",
+            "release": "2012-01-13",
+            "sha256": "fcec409ee39000fb3017a99eb23c81da2ad4765221978b523f0856e02b19ce95",
+            "retrievedAt": "2026-10-17T18:50:19.362980Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/ZF0",
+            "sizeBytes": 4292,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": false
+        },
+        {
+            "id": "ccd:010:14bcdb2d97d6",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "010",
+            "release": "2024-09-27",
+            "sha256": "14bcdb2d97d6ba749fcefc40f96bc67d2a125c1f71292004ee0c9d2eea4dd710",
+            "retrievedAt": "2026-10-17T18:50:19.411575Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/010",
+            "sizeBytes": 11061,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": false
+        },
+        {
+            "id": "ccd:9CL:d7f48ed22cf5",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "9CL",
+            "release": "2011-06-04",
+            "sha256": "d7f48ed22cf563de6c62684b5e5c0999cad71a8d6cff13e25d4fa6edf5a72350",
+            "retrievedAt": "2026-10-17T18:50:19.463321Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/9CL",
+            "sizeBytes": 3853,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": false
+        },
+        {
+            "id": "ccd:AIW:74f24b6a85e3",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "AIW",
+            "release": "2022-08-22",
+            "sha256": "74f24b6a85e361cf1c1037e3265ddebd5e8d86343128302ea2911276779276b3",
+            "retrievedAt": "2026-10-17T18:50:19.558708Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/AIW",
+            "sizeBytes": 2706,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": false
+        },
+        {
+            "id": "ccd:PYJ:50ac4292d849",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "PYJ",
+            "release": "2024-09-27",
+            "sha256": "50ac4292d8496644258f25f58e9c9893ded02c000fcbd6bfb7a792ad02a0272a",
+            "retrievedAt": "2026-10-17T18:50:19.640175Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/PYJ",
+            "sizeBytes": 5488,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": false
+        },
+        {
+            "id": "ccd:SDQ:c9ce390fc169",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "SDQ",
+            "release": "2024-09-27",
+            "sha256": "c9ce390fc169bf0b1753863c85ea947bd3485f7e823ece63b56e1cf990a59667",
+            "retrievedAt": "2026-10-17T18:50:19.688649Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/SDQ",
+            "sizeBytes": 3547,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": false
+        },
+        {
+            "id": "ccd:TRJ:d092266faf94",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "TRJ",
+            "release": "2011-06-04",
+            "sha256": "d092266faf943b199bea214fc2d24c7126f2d841217ee7d646421637b7fd2984",
+            "retrievedAt": "2026-10-17T18:50:19.739581Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/TRJ",
+            "sizeBytes": 8158,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": false
+        },
+        {
+            "id": "ccd:PEL:80fc9b499fd2",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "PEL",
+            "release": "2024-09-27",
+            "sha256": "80fc9b499fd24a6e916da159fd1f5c68c9cc22231c39ee701f228079f203d936",
+            "retrievedAt": "2026-10-17T18:50:19.785899Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/PEL",
+            "sizeBytes": 5086,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": false
+        },
+        {
+            "id": "ccd:PRA:f1845905725f",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "PRA",
+            "release": "2024-09-27",
+            "sha256": "f1845905725f9a75144cdeec45aee2dc7b424180037d35521cc3dffa58768758",
+            "retrievedAt": "2026-10-17T18:50:19.850027Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/PRA",
+            "sizeBytes": 5582,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": false
+        },
+        {
+            "id": "ccd:20L:e25c4221b56f",
+            "source": "PDB Chemical Component Dictionary",
+            "sourceId": "ccd",
+            "accession": "20L",
+            "release": "2014-09-05",
+            "sha256": "e25c4221b56f4bfc18f4443f34fb6f2deaa6fdcc44901ce6f66503e09cc73827",
+            "retrievedAt": "2026-10-17T18:50:19.899791Z",
+            "url": "https://data.rcsb.org/rest/v1/core/chemcomp/20L",
+            "sizeBytes": 3269,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "ligand definitions and ideal geometry",
+            "cached": false
+        },
+        {
+            "id": "rcsb_search:comp:ABN:2023-06-01:1be8851a7920",
+            "source": "RCSB search API",
+            "sourceId": "rcsb_search",
+            "accession": "comp:ABN:2023-06-01",
+            "release": "n/a",
+            "sha256": "1be8851a792097743c0b6edc2dd73a1cee3e1325da3049966a5ce346ff0bcfc6",
+            "retrievedAt": "2026-10-17T18:50:20.037530Z",
+            "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22ABN%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222023-06-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+            "sizeBytes": 803,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "sequence, structure and chemical search",
+            "cached": false
+        },
+        {
+            "id": "rcsb_search:comp:UFZ:2023-06-01:7febfed443a4",
+            "source": "RCSB search API",
+            "sourceId": "rcsb_search",
+            "accession": "comp:UFZ:2023-06-01",
+            "release": "n/a",
+            "sha256": "7febfed443a41ac721e85c2e4331179c9481f399e90d6c6bdad381b3e4f1e914",
+            "retrievedAt": "2026-10-17T18:50:20.093765Z",
+            "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_nonpolymer_entity_container_identifiers.nonpolymer_comp_id%22%2C+%22operator%22%3A+%22exact_match%22%2C+%22value%22%3A+%22UFZ%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222023-06-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+1000%2C+%22start%22%3A+0%7D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+            "sizeBytes": 230,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "sequence, structure and chemical search",
+            "cached": false
+        },
+        {
+            "id": "rcsb_search:seq0.9:2023-06-01:218:f817627c5ac0",
+            "source": "RCSB search API",
+            "sourceId": "rcsb_search",
+            "accession": "seq0.9:2023-06-01:218",
+            "release": "n/a",
+            "sha256": "f817627c5ac05cf687cd9e10dde6e2edc5bae379f2578c91daff23922f1b232b",
+            "retrievedAt": "2026-10-17T18:50:20.782991Z",
+            "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.9%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22TCGANTVPYQVSLNSGYHFCGGSLINSQWVASAAHCYKSGIQVRLGEDNINVVEGNEQFISASKSIVHPSYNSNTLNNDIMLIKLKSAASLNSRVASISLPTSCASAATQCLISGWGNTKSSGTSYPDVLKALKAPILSDSSCKSAYPGQITSNMFCAGYLEGGKDSCQGDSGGPVVCSGKLQGIVSWGSGCAQKNKPGVYTKVCNYVSWIKQTIASN%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222023-06-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+200%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+            "sizeBytes": 10528,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "sequence, structure and chemical search",
+            "cached": false
+        },
+        {
+            "id": "rcsb_files:1N6X:bc252bd0016e",
+            "source": "RCSB PDB file service",
+            "sourceId": "rcsb_files",
+            "accession": "1N6X",
+            "release": "n/a",
+            "sha256": "bc252bd0016e52081503554c8d69a9abb139a938e69d722927ed5daa9b55a20e",
+            "retrievedAt": "2026-10-17T18:50:21.449916Z",
+            "url": "https://files.rcsb.org/download/1N6X.cif",
+            "sizeBytes": 400772,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "mmCIF and PDB files, ligand SDF",
+            "cached": false
+        },
+        {
+            "id": "rcsb_files:1N6Y:467ed337669b",
+            "source": "RCSB PDB file service",
+            "sourceId": "rcsb_files",
+            "accession": "1N6Y",
+            "release": "n/a",
+            "sha256": "467ed337669b92a172072333e0bc668e0290af96e4eff76ceb69a4043817fbf1",
+            "retrievedAt": "2026-10-17T18:50:21.839222Z",
+            "url": "https://files.rcsb.org/download/1N6Y.cif",
+            "sizeBytes": 402225,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "mmCIF and PDB files, ligand SDF",
+            "cached": false
+        },
+        {
+            "id": "rcsb_files:1UTN:e408164bbed1",
+            "source": "RCSB PDB file service",
+            "sourceId": "rcsb_files",
+            "accession": "1UTN",
+            "release": "n/a",
+            "sha256": "e408164bbed18b4006ab3a92f23404b143b27b97dbcc210e2fc470cfa9cf425a",
+            "retrievedAt": "2026-10-17T18:50:22.129235Z",
+            "url": "https://files.rcsb.org/download/1UTN.cif",
+            "sizeBytes": 637622,
+            "usedBy": [
+                "l3.exposure.pocket"
+            ],
+            "supplies": "mmCIF and PDB files, ligand SDF",
+            "cached": false
+        },
+        {
+            "id": "rcsb_search:seq0.95:2023-06-01:218:00754b90c5b2",
+            "source": "RCSB search API",
+            "sourceId": "rcsb_search",
+            "accession": "seq0.95:2023-06-01:218",
+            "release": "n/a",
+            "sha256": "00754b90c5b2e84ac3721864106a36207b741e90934094675111585616ede62a",
+            "retrievedAt": "2026-10-17T18:50:22.753051Z",
+            "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.95%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22TCGANTVPYQVSLNSGYHFCGGSLINSQWVASAAHCYKSGIQVRLGEDNINVVEGNEQFISASKSIVHPSYNSNTLNNDIMLIKLKSAASLNSRVASISLPTSCASAATQCLISGWGNTKSSGTSYPDVLKALKAPILSDSSCKSAYPGQITSNMFCAGYLEGGKDSCQGDSGGPVVCSGKLQGIVSWGSGCAQKNKPGVYTKVCNYVSWIKQTIASN%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222023-06-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+5%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+            "sizeBytes": 388,
+            "usedBy": [
+                "l3.exposure.sequence"
+            ],
+            "supplies": "sequence, structure and chemical search",
+            "cached": false
+        },
+        {
+            "id": "rcsb_search:seq0.4:2023-06-01:218:dcaf9680ac35",
+            "source": "RCSB search API",
+            "sourceId": "rcsb_search",
+            "accession": "seq0.4:2023-06-01:218",
+            "release": "n/a",
+            "sha256": "dcaf9680ac35363286dc289ec9dc59d4864866fe19812518d6733cb8b57a20c2",
+            "retrievedAt": "2026-10-17T18:50:23.357796Z",
+            "url": "https://search.rcsb.org/rcsbsearch/v2/query?json=%7B%22query%22%3A+%7B%22logical_operator%22%3A+%22and%22%2C+%22nodes%22%3A+%5B%7B%22parameters%22%3A+%7B%22evalue_cutoff%22%3A+0.1%2C+%22identity_cutoff%22%3A+0.4%2C+%22sequence_type%22%3A+%22protein%22%2C+%22value%22%3A+%22TCGANTVPYQVSLNSGYHFCGGSLINSQWVASAAHCYKSGIQVRLGEDNINVVEGNEQFISASKSIVHPSYNSNTLNNDIMLIKLKSAASLNSRVASISLPTSCASAATQCLISGWGNTKSSGTSYPDVLKALKAPILSDSSCKSAYPGQITSNMFCAGYLEGGKDSCQGDSGGPVVCSGKLQGIVSWGSGCAQKNKPGVYTKVCNYVSWIKQTIASN%22%7D%2C+%22service%22%3A+%22sequence%22%2C+%22type%22%3A+%22terminal%22%7D%2C+%7B%22parameters%22%3A+%7B%22attribute%22%3A+%22rcsb_accession_info.initial_release_date%22%2C+%22operator%22%3A+%22less%22%2C+%22value%22%3A+%222023-06-01%22%7D%2C+%22service%22%3A+%22text%22%2C+%22type%22%3A+%22terminal%22%7D%5D%2C+%22type%22%3A+%22group%22%7D%2C+%22request_options%22%3A+%7B%22paginate%22%3A+%7B%22rows%22%3A+5%2C+%22start%22%3A+0%7D%2C+%22results_content_type%22%3A+%5B%22experimental%22%5D%7D%2C+%22return_type%22%3A+%22entry%22%7D",
+            "sizeBytes": 388,
+            "usedBy": [
+                "l3.exposure.sequence"
+            ],
+            "supplies": "sequence, structure and chemical search",
+            "cached": false
+        }
+    ],
+    "layers": [
+        {
+            "i": 0,
+            "key": "provenance",
+            "name": "Provenance",
+            "question": "Where did every input come from?",
+            "status": "done",
+            "counts": {
+                "pass": 2,
+                "warn": 0,
+                "stop": 1,
+                "skip": 0
+            },
+            "summary": [
+                "29 objects",
+                "6 cached",
+                "3 checks",
+                "1 stop"
+            ],
+            "figures": [
+                [
+                    "identifiers",
+                    "7"
+                ],
+                [
+                    "segments",
+                    "1"
+                ],
+                [
+                    "comparisons",
+                    "1"
+                ]
+            ],
+            "checks": [
+                {
+                    "id": "l0.sources.resolved",
+                    "name": "Every declared identifier resolves to a source record with checksum",
+                    "gate": "Stop",
+                    "result": "pass",
+                    "evidence": "7 identifiers resolved to 6 records \u00b7 identifiers=7, failed=0, records=6",
+                    "message": "7 identifiers resolved to 6 records",
+                    "tool": "pah",
+                    "ms": 37,
+                    "measurements": [
+                        {
+                            "name": "identifiers",
+                            "value": 7,
+                            "unit": null
+                        },
+                        {
+                            "name": "failed",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "records",
+                            "value": 6,
+                            "unit": null
+                        },
+                        {
+                            "name": "cache_hits",
+                            "value": 6,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l0.cross.uniprot_seqres",
+                    "name": "UniProt sequence agrees with PDB SEQRES through the SIFTS mapping",
+                    "gate": "Stop",
+                    "result": "pass",
+                    "evidence": "223 residues agree across 1 mapped segments \u00b7 segments=1, residues_compared=223, mismatches=0",
+                    "message": "223 residues agree across 1 mapped segments",
+                    "tool": "pah",
+                    "ms": 0,
+                    "threshold": {
+                        "value": "== 0",
+                        "origin": "Specification, Layer 0 (cross-source checks)",
+                        "evidenceLevel": "published"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "mismatches",
+                            "value": 0,
+                            "comparator": "==",
+                            "origin": "Specification, Layer 0 (cross-source checks)",
+                            "evidenceLevel": "published"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "segments",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "residues_compared",
+                            "value": 223,
+                            "unit": null
+                        },
+                        {
+                            "name": "mismatches",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "declared_mutations",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "declaration_errors",
+                            "value": 0,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l0.cross.ligand_inchikey",
+                    "name": "Declared ligand SMILES matches its CCD or PubChem record by InChIKey",
+                    "gate": "Stop",
+                    "result": "stop",
+                    "evidence": "1 of 1 InChIKey comparisons differ \u00b7 comparisons=1, mismatches=1, metal_skeleton_only=0",
+                    "message": "1 of 1 InChIKey comparisons differ",
+                    "tool": "rdkit",
+                    "ms": 480,
+                    "threshold": {
+                        "value": "== true",
+                        "origin": "Specification, Layer 0 (cross-source checks)",
+                        "evidenceLevel": "published"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "inchikey_equal",
+                            "value": true,
+                            "comparator": "==",
+                            "origin": "Specification, Layer 0 (cross-source checks)",
+                            "evidenceLevel": "published"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "comparisons",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "mismatches",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "metal_skeleton_only",
+                            "value": 0,
+                            "unit": null
+                        }
+                    ]
+                }
+            ],
+            "durationMs": 525
+        },
+        {
+            "i": 1,
+            "key": "integrity",
+            "name": "Input integrity",
+            "question": "Did the run receive exactly what was declared?",
+            "status": "done",
+            "counts": {
+                "pass": 4,
+                "warn": 0,
+                "stop": 6,
+                "skip": 0
+            },
+            "summary": [
+                "10 checks",
+                "6 stop"
+            ],
+            "figures": [
+                [
+                    "proteins",
+                    "1"
+                ],
+                [
+                    "substitutions",
+                    "3"
+                ],
+                [
+                    "msas",
+                    "1"
+                ],
+                [
+                    "ligands",
+                    "1"
+                ],
+                [
+                    "stereo elements",
+                    "0"
+                ],
+                [
+                    "comparisons",
+                    "1"
+                ],
+                [
+                    "chains declared",
+                    "2"
+                ],
+                [
+                    "altloc residues",
+                    "0"
+                ]
+            ],
+            "checks": [
+                {
+                    "id": "l1.sequence.matches_record",
+                    "name": "Sequence given to the run matches the declared source record",
+                    "gate": "Stop",
+                    "result": "stop",
+                    "evidence": "sequence differs from record for trypsin \u00b7 proteins=1, differing=1",
+                    "message": "sequence differs from record for trypsin",
+                    "tool": "pah",
+                    "ms": 0,
+                    "threshold": {
+                        "value": "== true",
+                        "origin": "Specification, Layer 1 (input integrity)",
+                        "evidenceLevel": "reproduced"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "identical",
+                            "value": true,
+                            "comparator": "==",
+                            "origin": "Specification, Layer 1 (input integrity)",
+                            "evidenceLevel": "reproduced"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "proteins",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "differing",
+                            "value": 1,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l1.sequence.no_truncation_substitution",
+                    "name": "No silent truncation, substitution or non-standard residue",
+                    "gate": "Stop",
+                    "result": "stop",
+                    "evidence": "sequence changed relative to reference: substitutions=3, n_truncation=5 \u00b7 substitutions=3, n_truncation=5, c_truncation=0",
+                    "message": "sequence changed relative to reference: substitutions=3, n_truncation=5",
+                    "tool": "pah",
+                    "ms": 1,
+                    "threshold": {
+                        "value": "== 0",
+                        "origin": "Specification, Layer 1 (input integrity)",
+                        "evidenceLevel": "reproduced"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "changes",
+                            "value": 0,
+                            "comparator": "==",
+                            "origin": "Specification, Layer 1 (input integrity)",
+                            "evidenceLevel": "reproduced"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "substitutions",
+                            "value": 3,
+                            "unit": null
+                        },
+                        {
+                            "name": "n_truncation",
+                            "value": 5,
+                            "unit": null
+                        },
+                        {
+                            "name": "c_truncation",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "internal_deletions",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "insertions",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "non_standard",
+                            "value": 0,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l1.msa.integrity",
+                    "name": "MSA belongs to its chain, is not query-only and is not shared across chains",
+                    "gate": "Stop",
+                    "result": "stop",
+                    "evidence": "MSA integrity failed: query_only=1, query_mismatch=1 \u00b7 msas=1, query_only=1, query_mismatch=1",
+                    "message": "MSA integrity failed: query_only=1, query_mismatch=1",
+                    "tool": "pah",
+                    "ms": 0,
+                    "threshold": {
+                        "value": "> 1",
+                        "origin": "Specification, Layer 1 (input integrity); query-only alignment",
+                        "evidenceLevel": "reproduced"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "sequences",
+                            "value": 1,
+                            "comparator": ">",
+                            "origin": "Specification, Layer 1 (input integrity); query-only alignment",
+                            "evidenceLevel": "reproduced"
+                        },
+                        {
+                            "name": "query_matches_chain",
+                            "value": true,
+                            "comparator": "==",
+                            "origin": "Specification, Layer 1 (input integrity)",
+                            "evidenceLevel": "reproduced"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "msas",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "query_only",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "query_mismatch",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "shared_across_chains",
+                            "value": 0,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l1.ligand.sanitization",
+                    "name": "Ligand parses, valences are correct and charges are within range",
+                    "gate": "Stop",
+                    "result": "pass",
+                    "evidence": "1 ligands sanitised \u00b7 ligands=1, failed=0, metal_disconnected=0",
+                    "message": "1 ligands sanitised",
+                    "tool": "rdkit",
+                    "ms": 0,
+                    "threshold": {
+                        "value": "== 0",
+                        "origin": "Specification, Layer 1 (input integrity)",
+                        "evidenceLevel": "published"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "chemistry_problems",
+                            "value": 0,
+                            "comparator": "==",
+                            "origin": "Specification, Layer 1 (input integrity)",
+                            "evidenceLevel": "published"
+                        },
+                        {
+                            "name": "radicals",
+                            "value": 0,
+                            "comparator": "==",
+                            "origin": "Specification, Layer 1 (input integrity)",
+                            "evidenceLevel": "published"
+                        },
+                        {
+                            "name": "abs_net_charge",
+                            "value": 2,
+                            "comparator": "<=",
+                            "origin": "Harness default; not yet calibrated on the harness benchmark",
+                            "evidenceLevel": "uncalibrated"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "ligands",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "failed",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "metal_disconnected",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "max_abs_charge",
+                            "value": 0,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l1.ligand.stereo_defined",
+                    "name": "Stereocentres and double-bond geometry explicitly defined",
+                    "gate": "Warn",
+                    "result": "pass",
+                    "evidence": "all stereo elements defined \u00b7 stereo_elements=0, undefined=0, unparsed=0",
+                    "message": "all stereo elements defined",
+                    "tool": "rdkit",
+                    "ms": 5,
+                    "threshold": {
+                        "value": "== 0",
+                        "origin": "Specification, Layer 1 (input integrity)",
+                        "evidenceLevel": "published"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "undefined_stereo",
+                            "value": 0,
+                            "comparator": "==",
+                            "origin": "Specification, Layer 1 (input integrity)",
+                            "evidenceLevel": "published"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "stereo_elements",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "undefined",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "unparsed",
+                            "value": 0,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l1.ligand.identity",
+                    "name": "Ligand given to the run matches its database record by InChIKey",
+                    "gate": "Stop",
+                    "result": "stop",
+                    "evidence": "1 of 1 ligand identities differ \u00b7 comparisons=1, mismatches=1, metal_skeleton_only=0",
+                    "message": "1 of 1 ligand identities differ",
+                    "tool": "rdkit",
+                    "ms": 0,
+                    "threshold": {
+                        "value": "== true",
+                        "origin": "Specification, Layer 1 (input integrity)",
+                        "evidenceLevel": "published"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "inchikey_equal",
+                            "value": true,
+                            "comparator": "==",
+                            "origin": "Specification, Layer 1 (input integrity)",
+                            "evidenceLevel": "published"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "comparisons",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "mismatches",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "metal_skeleton_only",
+                            "value": 0,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l1.receptor.chains",
+                    "name": "Receptor complete, chains and residue numbering as declared",
+                    "gate": "Stop",
+                    "result": "stop",
+                    "evidence": "missing chains ['B'] \u00b7 chains_declared=2, chains_missing=1, residues_checked=223",
+                    "message": "missing chains ['B']",
+                    "tool": "gemmi",
+                    "ms": 89,
+                    "threshold": {
+                        "value": "== 0",
+                        "origin": "Specification, Layer 1 (input integrity)",
+                        "evidenceLevel": "published"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "numbering_mismatches",
+                            "value": 0,
+                            "comparator": "==",
+                            "origin": "Specification, Layer 1 (input integrity)",
+                            "evidenceLevel": "published"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "chains_declared",
+                            "value": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "chains_missing",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "residues_checked",
+                            "value": 223,
+                            "unit": null
+                        },
+                        {
+                            "name": "numbering_mismatches",
+                            "value": 0,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l1.receptor.altlocs",
+                    "name": "Alternate locations resolved deliberately",
+                    "gate": "Warn",
+                    "result": "pass",
+                    "evidence": "no alternate locations \u00b7 altloc_residues=0, altloc_atoms=0",
+                    "message": "no alternate locations",
+                    "tool": "gemmi",
+                    "ms": 1,
+                    "measurements": [
+                        {
+                            "name": "altloc_residues",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "altloc_atoms",
+                            "value": 0,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l1.context.composition",
+                    "name": "Chain composition and stoichiometry match the declared assembly",
+                    "gate": "Stop",
+                    "result": "pass",
+                    "evidence": "1 proteins match reference stoichiometry \u00b7 proteins=1, mismatched=0",
+                    "message": "1 proteins match reference stoichiometry",
+                    "tool": "pah",
+                    "ms": 0,
+                    "threshold": {
+                        "value": "== true",
+                        "origin": "Specification, Layer 1 (input integrity)",
+                        "evidenceLevel": "published"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "copies_equal",
+                            "value": true,
+                            "comparator": "==",
+                            "origin": "Specification, Layer 1 (input integrity)",
+                            "evidenceLevel": "published"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "proteins",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "mismatched",
+                            "value": 0,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l1.provenance.model_config",
+                    "name": "Model version, checkpoint and database snapshot recorded and consistent",
+                    "gate": "Stop",
+                    "result": "stop",
+                    "evidence": "model provenance missing: checkpoint, database_snapshot \u00b7 required=4, missing=2, seeds=0",
+                    "message": "model provenance missing: checkpoint, database_snapshot",
+                    "tool": "pah",
+                    "ms": 8,
+                    "threshold": {
+                        "value": "== 0",
+                        "origin": "Specification, Layer 1 (input integrity)",
+                        "evidenceLevel": "published"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "missing_fields",
+                            "value": 0,
+                            "comparator": "==",
+                            "origin": "Specification, Layer 1 (input integrity)",
+                            "evidenceLevel": "published"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "required",
+                            "value": 4,
+                            "unit": null
+                        },
+                        {
+                            "name": "missing",
+                            "value": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "seeds",
+                            "value": 0,
+                            "unit": null
+                        }
+                    ]
+                }
+            ],
+            "durationMs": 116
+        },
+        {
+            "i": 2,
+            "key": "adequacy",
+            "name": "Input adequacy",
+            "question": "Does the input carry enough information?",
+            "status": "done",
+            "counts": {
+                "pass": 4,
+                "warn": 1,
+                "stop": 1,
+                "skip": 2
+            },
+            "summary": [
+                "8 checks",
+                "1 stop",
+                "1 warn"
+            ],
+            "figures": [
+                [
+                    "msas",
+                    "1"
+                ],
+                [
+                    "near site",
+                    "0"
+                ],
+                [
+                    "pocket residues",
+                    "22"
+                ],
+                [
+                    "state",
+                    "holo"
+                ],
+                [
+                    "ph",
+                    "null"
+                ],
+                [
+                    "ligands",
+                    "1"
+                ]
+            ],
+            "checks": [
+                {
+                    "id": "l2.msa.depth",
+                    "name": "Alignment depth, distinct sequences, Neff and gap fraction",
+                    "gate": "Stop",
+                    "result": "stop",
+                    "evidence": "query-only or missing alignment: trypsin \u00b7 msas=1, min_neff=1.0, min_sequences=1",
+                    "message": "query-only or missing alignment: trypsin",
+                    "tool": "numpy",
+                    "ms": 198,
+                    "threshold": {
+                        "value": ">= 2",
+                        "origin": "Specification layer 2: stop when the alignment holds the query only",
+                        "evidenceLevel": "published"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "sequences",
+                            "value": 2,
+                            "comparator": ">=",
+                            "origin": "Specification layer 2: stop when the alignment holds the query only",
+                            "evidenceLevel": "published"
+                        },
+                        {
+                            "name": "neff",
+                            "value": 30,
+                            "comparator": ">=",
+                            "origin": "Jumper et al. 2021, Nature 596:583, Fig. 5a: accuracy falls for Neff below about 30 (80 percent identity clustering)",
+                            "evidenceLevel": "published"
+                        },
+                        {
+                            "name": "gap_fraction",
+                            "value": 0.5,
+                            "comparator": "<=",
+                            "origin": "Harness default; not yet calibrated",
+                            "evidenceLevel": "uncalibrated"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "msas",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "min_neff",
+                            "value": 1.0,
+                            "unit": null
+                        },
+                        {
+                            "name": "min_sequences",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "max_gap_fraction",
+                            "value": 0.0,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l2.context.cofactors",
+                    "name": "Required cofactors, ions and partners present",
+                    "gate": "Stop",
+                    "result": "pass",
+                    "evidence": "components within 8.0 \u00c5 of BEN: none \u00b7 near_site=0, missing=0, uniprot_cofactors=1",
+                    "message": "components within 8.0 \u00c5 of BEN: none",
+                    "tool": "gemmi \u00b7 numpy",
+                    "ms": 186,
+                    "threshold": {
+                        "value": "<= 8.0",
+                        "origin": "Harness rule: a component of the reference entry within 8 \u00c5 of the declared ligand is required context; not yet calibrated",
+                        "evidenceLevel": "uncalibrated"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "pocket_distance",
+                            "value": 8.0,
+                            "comparator": "<=",
+                            "origin": "Harness rule: a component of the reference entry within 8 \u00c5 of the declared ligand is required context; not yet calibrated",
+                            "evidenceLevel": "uncalibrated"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "near_site",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "missing",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "uniprot_cofactors",
+                            "value": 1,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l2.pocket.resolved",
+                    "name": "Pocket residues resolved, no missing loops lining the pocket",
+                    "gate": "Stop",
+                    "result": "pass",
+                    "evidence": "22 pocket residues complete in 3PTB.cif \u00b7 pocket_residues=22, incomplete=0, sequence_gaps=0",
+                    "message": "22 pocket residues complete in 3PTB.cif",
+                    "tool": "gemmi",
+                    "ms": 6,
+                    "threshold": {
+                        "value": "<= 6.0",
+                        "origin": "Harness rule: pocket residues have a heavy atom within 6 \u00c5 of the ligand; not yet calibrated",
+                        "evidenceLevel": "uncalibrated"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "pocket_distance",
+                            "value": 6.0,
+                            "comparator": "<=",
+                            "origin": "Harness rule: pocket residues have a heavy atom within 6 \u00c5 of the ligand; not yet calibrated",
+                            "evidenceLevel": "uncalibrated"
+                        },
+                        {
+                            "name": "missing_pocket_residues",
+                            "value": 0,
+                            "comparator": "==",
+                            "origin": "Specification layer 2: stop when the pocket is incomplete",
+                            "evidenceLevel": "published"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "pocket_residues",
+                            "value": 22,
+                            "unit": null
+                        },
+                        {
+                            "name": "incomplete",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "sequence_gaps",
+                            "value": 0,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l2.receptor.state",
+                    "name": "Receptor state apo or holo",
+                    "gate": "Stop",
+                    "result": "pass",
+                    "evidence": "3PTB.cif holo: BEN in the site \u00b7 state=holo, site_ligands=1",
+                    "message": "3PTB.cif holo: BEN in the site",
+                    "tool": "gemmi \u00b7 numpy",
+                    "ms": 4,
+                    "measurements": [
+                        {
+                            "name": "state",
+                            "value": "holo",
+                            "unit": null
+                        },
+                        {
+                            "name": "site_ligands",
+                            "value": 1,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l2.receptor.protonation",
+                    "name": "Receptor protonation at the stated pH",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "no docking receptor",
+                    "message": "no docking receptor",
+                    "tool": "propka \u00b7 gemmi",
+                    "skipReason": "not_applicable"
+                },
+                {
+                    "id": "l2.ligand.protonation",
+                    "name": "Ligand protonation and tautomers enumerated at the stated pH",
+                    "gate": "Stop",
+                    "result": "warn",
+                    "evidence": "benzamidine: declared form NCc1ccccc1 differs from enumerated [NH3+]Cc1ccccc1; pH not stated; enumerated at 7.4 \u00b7 ph=null, max_states=1, declared_not_enumerated=1",
+                    "message": "benzamidine: declared form NCc1ccccc1 differs from enumerated [NH3+]Cc1ccccc1; pH not stated; enumerated at 7.4",
+                    "tool": "dimorphite_dl",
+                    "ms": 60,
+                    "threshold": {
+                        "value": "== 1.0",
+                        "origin": "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated",
+                        "evidenceLevel": "uncalibrated"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "ph_window",
+                            "value": 1.0,
+                            "comparator": "==",
+                            "origin": "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated",
+                            "evidenceLevel": "uncalibrated"
+                        },
+                        {
+                            "name": "states",
+                            "value": 1,
+                            "comparator": "==",
+                            "origin": "Specification layer 2: warn when more than one plausible state",
+                            "evidenceLevel": "published"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "ph",
+                            "value": null,
+                            "unit": null
+                        },
+                        {
+                            "name": "max_states",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "declared_not_enumerated",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "max_tautomers",
+                            "value": 1,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l2.ligand.conformers",
+                    "name": "Ligand conformers generated and minimised",
+                    "gate": "Stop",
+                    "result": "pass",
+                    "evidence": "10 ETKDG conformers per ligand, MMFF minimised \u00b7 ligands=1, failed=0, min_embedded=10",
+                    "message": "10 ETKDG conformers per ligand, MMFF minimised",
+                    "tool": "rdkit",
+                    "ms": 1848,
+                    "threshold": {
+                        "value": ">= 10",
+                        "origin": "Harness default number of ETKDG conformers; not yet calibrated",
+                        "evidenceLevel": "uncalibrated"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "conformers",
+                            "value": 10,
+                            "comparator": ">=",
+                            "origin": "Harness default number of ETKDG conformers; not yet calibrated",
+                            "evidenceLevel": "uncalibrated"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "ligands",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "failed",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "min_embedded",
+                            "value": 10,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l2.docking.box",
+                    "name": "Docking box encloses the pocket with margin",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "no docking executor or box declared",
+                    "message": "no docking executor or box declared",
+                    "tool": "gemmi \u00b7 numpy",
+                    "skipReason": "not_applicable"
+                }
+            ],
+            "durationMs": 2311
+        },
+        {
+            "i": 3,
+            "key": "applicability",
+            "name": "Applicability",
+            "question": "Is the tool inside its validated regime?",
+            "status": "done",
+            "counts": {
+                "pass": 5,
+                "warn": 1,
+                "stop": 0,
+                "skip": 0
+            },
+            "summary": [
+                "6 checks",
+                "1 warn"
+            ],
+            "figures": [
+                [
+                    "executors",
+                    "1"
+                ],
+                [
+                    "cutoff",
+                    "2023-06-01"
+                ],
+                [
+                    "modalities",
+                    "2"
+                ],
+                [
+                    "endpoint",
+                    "pose"
+                ]
+            ],
+            "checks": [
+                {
+                    "id": "l3.model.training_cutoff",
+                    "name": "Model training cutoff recorded",
+                    "gate": "Stop",
+                    "result": "pass",
+                    "evidence": "boltz2 2023-06-01; reference 3PTB released 1983-01-18, before the cutoff of boltz2 \u00b7 executors=1, unknown=0, reference_released=1983-01-18",
+                    "message": "boltz2 2023-06-01; reference 3PTB released 1983-01-18, before the cutoff of boltz2",
+                    "tool": "pah",
+                    "ms": 0,
+                    "threshold": {
+                        "value": "== recorded",
+                        "origin": "Specification, Layer 3 (applicability): stop when unknown",
+                        "evidenceLevel": "published"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "training_cutoff",
+                            "value": "recorded",
+                            "comparator": "==",
+                            "origin": "Specification, Layer 3 (applicability): stop when unknown",
+                            "evidenceLevel": "published"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "executors",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "unknown",
+                            "value": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "reference_released",
+                            "value": "1983-01-18",
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l3.exposure.pocket",
+                    "name": "Pocket similarity to pre-cutoff complexes (SuCOS times pocket coverage)",
+                    "gate": "Stop",
+                    "result": "warn",
+                    "evidence": "max similarity 79.6 to 1UTN (ABN, SuCOS 0.834, coverage 0.955), released before 2023-06-01 \u00b7 cutoff=2023-06-01, entries_compared=3, max_similarity=79.6",
+                    "message": "max similarity 79.6 to 1UTN (ABN, SuCOS 0.834, coverage 0.955), released before 2023-06-01",
+                    "tool": "rdkit \u00b7 gemmi \u00b7 numpy",
+                    "ms": 4268,
+                    "threshold": {
+                        "value": "<= 50",
+                        "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
+                        "evidenceLevel": "published"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "similarity",
+                            "value": 50,
+                            "comparator": "<=",
+                            "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
+                            "evidenceLevel": "published"
+                        },
+                        {
+                            "name": "entries",
+                            "value": 5,
+                            "comparator": "<=",
+                            "origin": "Harness budget: pre-cutoff holo entries compared per run",
+                            "evidenceLevel": "uncalibrated"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "cutoff",
+                            "value": "2023-06-01",
+                            "unit": null
+                        },
+                        {
+                            "name": "entries_compared",
+                            "value": 3,
+                            "unit": null
+                        },
+                        {
+                            "name": "max_similarity",
+                            "value": 79.6,
+                            "unit": null
+                        },
+                        {
+                            "name": "pocket_residues",
+                            "value": 22,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l3.exposure.ligand_prevalence",
+                    "name": "Ligand analogues in pre-cutoff training systems",
+                    "gate": "Stop",
+                    "result": "pass",
+                    "evidence": "15 PDB entries released before 2023-06-01 (boltz2 cutoff) contain analogues of benzamidine above Tanimoto 0.9: ABN, UFZ \u00b7 cutoff=2023-06-01, systems=15, analogue_components=2",
+                    "message": "15 PDB entries released before 2023-06-01 (boltz2 cutoff) contain analogues of benzamidine above Tanimoto 0.9: ABN, UFZ",
+                    "tool": "RCSB search (chemical) + RDKit topological fingerprint",
+                    "ms": 0,
+                    "threshold": {
+                        "value": "> 0.9",
+                        "origin": "Specification layer 3: analogues above 0.9 Tanimoto (RDKit topological fingerprint)",
+                        "evidenceLevel": "published"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "tanimoto",
+                            "value": 0.9,
+                            "comparator": ">",
+                            "origin": "Specification layer 3: analogues above 0.9 Tanimoto (RDKit topological fingerprint)",
+                            "evidenceLevel": "published"
+                        },
+                        {
+                            "name": "systems",
+                            "value": 100,
+                            "comparator": "<=",
+                            "origin": "Specification layer 3: prevalent when analogues occur in more than 100 training systems",
+                            "evidenceLevel": "published"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "cutoff",
+                            "value": "2023-06-01",
+                            "unit": null
+                        },
+                        {
+                            "name": "systems",
+                            "value": 15,
+                            "unit": null
+                        },
+                        {
+                            "name": "analogue_components",
+                            "value": 2,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l3.exposure.sequence",
+                    "name": "Chain sequence identity to pre-cutoff entries (secondary measure)",
+                    "gate": "Stop",
+                    "result": "pass",
+                    "evidence": "trypsin: 536 entries at 95 percent identity, 922 at 40 percent, released before 2023-06-01 (reported, not gating) \u00b7 cutoff=2023-06-01, entries_95=536, entries_40=922",
+                    "message": "trypsin: 536 entries at 95 percent identity, 922 at 40 percent, released before 2023-06-01 (reported, not gating)",
+                    "tool": "RCSB search (sequence, MMseqs2)",
+                    "ms": 1186,
+                    "threshold": {
+                        "value": "< 0.4",
+                        "origin": "Specification layer 3: conventional 40 percent identity leakage threshold, reported as a secondary measure only",
+                        "evidenceLevel": "published"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "identity",
+                            "value": 0.4,
+                            "comparator": "<",
+                            "origin": "Specification layer 3: conventional 40 percent identity leakage threshold, reported as a secondary measure only",
+                            "evidenceLevel": "published"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "cutoff",
+                            "value": "2023-06-01",
+                            "unit": null
+                        },
+                        {
+                            "name": "entries_95",
+                            "value": 536,
+                            "unit": null
+                        },
+                        {
+                            "name": "entries_40",
+                            "value": 922,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l3.regime.modality",
+                    "name": "Modality inside the validated set; token count against the training crop",
+                    "gate": "Stop",
+                    "result": "pass",
+                    "evidence": "modalities protein, protein_ligand inside the validated set; 226 tokens \u00b7 modalities=2, tokens=226, outside=0",
+                    "message": "modalities protein, protein_ligand inside the validated set; 226 tokens",
+                    "tool": "pah",
+                    "ms": 6,
+                    "measurements": [
+                        {
+                            "name": "modalities",
+                            "value": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "tokens",
+                            "value": 226,
+                            "unit": null
+                        },
+                        {
+                            "name": "outside",
+                            "value": 0,
+                            "unit": null
+                        }
+                    ]
+                },
+                {
+                    "id": "l3.metric.endpoint",
+                    "name": "Endpoint fits the tool",
+                    "gate": "Stop",
+                    "result": "pass",
+                    "evidence": "endpoint pose produced by boltz2 \u00b7 endpoint=pose, executors=1, not_fitting=0",
+                    "message": "endpoint pose produced by boltz2",
+                    "tool": "pah",
+                    "ms": 0,
+                    "threshold": {
+                        "value": "in pose",
+                        "origin": "Specification, Layer 3 (applicability): no affinity from interface confidence, no protein-protein affinity from Boltz-2",
+                        "evidenceLevel": "published"
+                    },
+                    "thresholds": [
+                        {
+                            "name": "endpoint",
+                            "value": "pose",
+                            "comparator": "in",
+                            "origin": "Specification, Layer 3 (applicability): no affinity from interface confidence, no protein-protein affinity from Boltz-2",
+                            "evidenceLevel": "published"
+                        }
+                    ],
+                    "measurements": [
+                        {
+                            "name": "endpoint",
+                            "value": "pose",
+                            "unit": null
+                        },
+                        {
+                            "name": "executors",
+                            "value": 1,
+                            "unit": null
+                        },
+                        {
+                            "name": "not_fitting",
+                            "value": 0,
+                            "unit": null
+                        }
+                    ]
+                }
+            ],
+            "durationMs": 5466
+        },
+        {
+            "i": 4,
+            "key": "validity",
+            "name": "Output validity",
+            "question": "Is the result physically and chemically sensible?",
+            "status": "done",
+            "counts": {
+                "pass": 0,
+                "warn": 0,
+                "stop": 0,
+                "skip": 7
+            },
+            "summary": [
+                "7 checks"
+            ],
+            "figures": [],
+            "checks": [
+                {
+                    "id": "l4.posebusters",
+                    "name": "PoseBusters geometry, stereochemistry, clashes and protein contact",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "no predictions declared (pre-run assessment)",
+                    "message": "no predictions declared (pre-run assessment)",
+                    "tool": "posebusters \u00b7 rdkit",
+                    "skipReason": "not_applicable"
+                },
+                {
+                    "id": "l4.torsion_strain",
+                    "name": "Torsional strain of the ligand pose",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "no predictions declared (pre-run assessment)",
+                    "message": "no predictions declared (pre-run assessment)",
+                    "tool": "rdkit",
+                    "skipReason": "not_applicable"
+                },
+                {
+                    "id": "l4.interactions.fingerprint",
+                    "name": "Interaction fingerprint (PLIP)",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "no predictions declared (pre-run assessment)",
+                    "message": "no predictions declared (pre-run assessment)",
+                    "tool": "plip \u00b7 openbabel",
+                    "skipReason": "not_applicable"
+                },
+                {
+                    "id": "l4.interactions.unsatisfied_polars",
+                    "name": "Buried ligand polar atoms without a hydrogen-bond partner",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "no predictions declared (pre-run assessment)",
+                    "message": "no predictions declared (pre-run assessment)",
+                    "tool": "freesasa \u00b7 gemmi \u00b7 rdkit",
+                    "skipReason": "not_applicable"
+                },
+                {
+                    "id": "l4.interactions.hydrophobic",
+                    "name": "Hydrophobic complementarity of buried ligand surface",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "no predictions declared (pre-run assessment)",
+                    "message": "no predictions declared (pre-run assessment)",
+                    "tool": "freesasa \u00b7 gemmi \u00b7 rdkit",
+                    "skipReason": "not_applicable"
+                },
+                {
+                    "id": "l4.interactions.known_binders",
+                    "name": "Interactions of the crystal ligand reproduced by the pose",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "no predictions declared (pre-run assessment)",
+                    "message": "no predictions declared (pre-run assessment)",
+                    "tool": "plip \u00b7 openbabel \u00b7 gemmi",
+                    "skipReason": "not_applicable"
+                },
+                {
+                    "id": "l4.minimisation_drift",
+                    "name": "Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF)",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "no predictions declared (pre-run assessment)",
+                    "message": "no predictions declared (pre-run assessment)",
+                    "tool": "rdkit",
+                    "skipReason": "not_applicable"
+                }
+            ],
+            "durationMs": 8
+        },
+        {
+            "i": 5,
+            "key": "support",
+            "name": "Output support",
+            "question": "Is a valid result corroborated?",
+            "status": "done",
+            "counts": {
+                "pass": 0,
+                "warn": 0,
+                "stop": 0,
+                "skip": 5
+            },
+            "summary": [
+                "5 checks"
+            ],
+            "figures": [],
+            "checks": [
+                {
+                    "id": "l5.confidence.local",
+                    "name": "Confidence restricted to the pocket; per-model thresholds",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "no predictions declared (pre-run assessment)",
+                    "message": "no predictions declared (pre-run assessment)",
+                    "tool": "gemmi \u00b7 numpy",
+                    "skipReason": "not_applicable"
+                },
+                {
+                    "id": "l5.sampling.seeds",
+                    "name": "Independent seeds counted separately from samples; duplicates flagged",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "no predictions declared (pre-run assessment)",
+                    "message": "no predictions declared (pre-run assessment)",
+                    "tool": "numpy",
+                    "skipReason": "not_applicable"
+                },
+                {
+                    "id": "l5.sampling.clusters",
+                    "name": "Medoid of the largest cluster, populations, pairwise spread, site and pose accuracy",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "no predictions declared (pre-run assessment)",
+                    "message": "no predictions declared (pre-run assessment)",
+                    "tool": "spyrmsd \u00b7 scipy \u00b7 numpy \u00b7 rdkit",
+                    "skipReason": "not_applicable"
+                },
+                {
+                    "id": "l5.agreement.cross_family",
+                    "name": "Agreement between methods, weighted by independence",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "no predictions declared (pre-run assessment)",
+                    "message": "no predictions declared (pre-run assessment)",
+                    "tool": "spyrmsd \u00b7 numpy \u00b7 rdkit",
+                    "skipReason": "not_applicable"
+                },
+                {
+                    "id": "l5.controls.redocking",
+                    "name": "Redocking control reproduces the crystal pose",
+                    "gate": "Stop",
+                    "result": "skip",
+                    "evidence": "no predictions declared (pre-run assessment)",
+                    "message": "no predictions declared (pre-run assessment)",
+                    "tool": "spyrmsd \u00b7 numpy \u00b7 rdkit \u00b7 gemmi",
+                    "skipReason": "not_applicable"
+                }
+            ],
+            "durationMs": 3
+        }
+    ],
+    "verdict": {
+        "claim": "Pose within stated uncertainty",
+        "outcome": "refused",
+        "statement": "8 checks stopped in layers 0,1,2,3,4,5: l0.cross.ligand_inchikey, l1.sequence.matches_record, l1.sequence.no_truncation_substitution, l1.msa.integrity and 4 more. The claim \u201cPose within stated uncertainty\u201d is not supported.",
+        "scope": "layers 0,1,2,3,4,5",
+        "stops": [
+            "l0.cross.ligand_inchikey",
+            "l1.sequence.matches_record",
+            "l1.sequence.no_truncation_substitution",
+            "l1.msa.integrity",
+            "l1.ligand.identity",
+            "l1.receptor.chains",
+            "l1.provenance.model_config",
+            "l2.msa.depth"
+        ],
+        "warnings": [
+            "l2.ligand.protonation",
+            "l3.exposure.pocket"
+        ],
+        "incomplete": [],
+        "notApplicable": [
+            "l2.receptor.protonation",
+            "l2.docking.box",
+            "l4.posebusters",
+            "l4.torsion_strain",
+            "l4.interactions.fingerprint",
+            "l4.interactions.unsatisfied_polars",
+            "l4.interactions.hydrophobic",
+            "l4.interactions.known_binders",
+            "l4.minimisation_drift",
+            "l5.confidence.local",
+            "l5.sampling.seeds",
+            "l5.sampling.clusters",
+            "l5.agreement.cross_family",
+            "l5.controls.redocking"
+        ]
+    },
+    "stats": {
+        "site": [
+            [
+                "pocket residues",
+                "22"
+            ],
+            [
+                "incomplete pocket residues",
+                "0"
+            ],
+            [
+                "sequence gaps",
+                "0"
+            ],
+            [
+                "receptor state",
+                "holo"
+            ],
+            [
+                "components near site",
+                "0"
+            ]
+        ],
+        "provenance": {
+            "site.pocket residues": {
+                "check": "l2.pocket.resolved",
+                "tool": "gemmi",
+                "field": "measurements"
+            },
+            "site.incomplete pocket residues": {
+                "check": "l2.pocket.resolved",
+                "tool": "gemmi",
+                "field": "measurements"
+            },
+            "site.sequence gaps": {
+                "check": "l2.pocket.resolved",
+                "tool": "gemmi",
+                "field": "measurements"
+            },
+            "site.receptor state": {
+                "check": "l2.receptor.state",
+                "tool": null,
+                "field": "measurements"
+            },
+            "site.components near site": {
+                "check": "l2.context.cofactors",
+                "tool": null,
+                "field": "measurements"
+            },
+            "site": {
+                "check": null,
+                "checks": [
+                    "l2.context.cofactors",
+                    "l2.pocket.resolved",
+                    "l2.receptor.state"
+                ],
+                "tool": null,
+                "n": 5
+            }
+        }
+    },
+    "narrative": [
+        "Layer 0, provenance: 3 checks; 2 pass, 0 warn, 1 stop, 0 skip. Stopped: l0.cross.ligand_inchikey.",
+        "Layer 1, input integrity: 10 checks; 4 pass, 0 warn, 6 stop, 0 skip. Stopped: l1.sequence.matches_record, l1.sequence.no_truncation_substitution, l1.msa.integrity, l1.ligand.identity and 2 more.",
+        "Layer 2, input adequacy: 8 checks; 4 pass, 1 warn, 1 stop, 2 skip. Stopped: l2.msa.depth. Warned: l2.ligand.protonation.",
+        "Layer 3, applicability: 6 checks; 5 pass, 1 warn, 0 stop, 0 skip. Warned: l3.exposure.pocket.",
+        "Layer 4, output validity: 7 checks; 0 pass, 0 warn, 0 stop, 7 skip.",
+        "Layer 5, output support: 5 checks; 0 pass, 0 warn, 0 stop, 5 skip.",
+        "Verdict: refused. 8 checks stopped in layers 0,1,2,3,4,5: l0.cross.ligand_inchikey, l1.sequence.matches_record, l1.sequence.no_truncation_substitution, l1.msa.integrity and 4 more. The claim \u201cPose within stated uncertainty\u201d is not supported."
+    ],
+    "controls": [
+        {
+            "name": "redocking",
+            "status": "missing",
+            "note": "no predictions declared (pre-run assessment)",
+            "check": "l5.controls.redocking"
+        }
+    ],
+    "outputs": [
+        "artifacts/sources/1N6X.cif",
+        "artifacts/sources/1N6Y.cif",
+        "artifacts/sources/1UTN.cif",
+        "artifacts/sources/3PTB.cif",
+        "events.jsonl",
+        "figures/gates_by_layer.csv",
+        "figures/gates_by_layer.png",
+        "figures/gates_by_layer.svg",
+        "graph.json",
+        "graph.mmd",
+        "graph.svg",
+        "provenance.json",
+        "record.json",
+        "renders/1N6X.pse",
+        "renders/1N6X_overview.png",
+        "renders/1N6X_pocket.png",
+        "renders/1N6Y.pse",
+        "renders/1N6Y_overview.png",
+        "renders/1N6Y_pocket.png",
+        "renders/1UTN.pse",
+        "renders/1UTN_overview.png",
+        "renders/1UTN_pocket.png",
+        "renders/3PTB.pse",
+        "renders/3PTB_overview.png",
+        "renders/3PTB_pocket.png",
+        "report.html",
+        "report.json",
+        "report.md",
+        "ui_record.json"
+    ],
+    "record": {
+        "runId": "ligand_pose-ee95ec6ef46c",
+        "pahVersion": "0.1.0",
+        "toolVersions": {
+            "rdkit": "2026.9.1",
+            "gemmi": "0.7.5",
+            "numpy": "1.26.4",
+            "propka": "3.5.1",
+            "dimorphite_dl": "2.1.0",
+            "posebusters": "0.6.5",
+            "plip": "3.0.1",
+            "openbabel": "3.2.1",
+            "freesasa": "2.2.1",
+            "spyrmsd": "0.9.0",
+            "scipy": "1.17.1"
+        },
+        "startedAt": "2026-10-17T18:50:14.949429Z",
+        "finishedAt": "2026-10-17T18:50:23.413148Z",
+        "layersSelected": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+        ],
+        "profile": "local"
+    },
+    "structures": [
+        {
+            "id": "artifacts/sources/3PTB",
+            "label": "3PTB mmCIF",
+            "kind": "crystal",
+            "url": "/runs/ui-faulty/files/artifacts/sources/3PTB.cif",
+            "format": "mmcif",
+            "artifactKind": "source_structure",
+            "path": "artifacts/sources/3PTB.cif",
+            "sha256": "d2744dbacfb97ec9b4ff7f5cf4b204418bccf92e46b63130bfebb3916260232f",
+            "derivedFrom": [
+                "rcsb_files:3PTB:d2744dbacfb9"
+            ]
+        },
+        {
+            "id": "artifacts/sources/1N6X",
+            "label": "1N6X mmCIF",
+            "kind": "crystal",
+            "url": "/runs/ui-faulty/files/artifacts/sources/1N6X.cif",
+            "format": "mmcif",
+            "artifactKind": "source_structure",
+            "path": "artifacts/sources/1N6X.cif",
+            "sha256": "bc252bd0016e52081503554c8d69a9abb139a938e69d722927ed5daa9b55a20e",
+            "derivedFrom": [
+                "rcsb_files:1N6X:bc252bd0016e"
+            ]
+        },
+        {
+            "id": "artifacts/sources/1N6Y",
+            "label": "1N6Y mmCIF",
+            "kind": "crystal",
+            "url": "/runs/ui-faulty/files/artifacts/sources/1N6Y.cif",
+            "format": "mmcif",
+            "artifactKind": "source_structure",
+            "path": "artifacts/sources/1N6Y.cif",
+            "sha256": "467ed337669b92a172072333e0bc668e0290af96e4eff76ceb69a4043817fbf1",
+            "derivedFrom": [
+                "rcsb_files:1N6Y:467ed337669b"
+            ]
+        },
+        {
+            "id": "artifacts/sources/1UTN",
+            "label": "1UTN mmCIF",
+            "kind": "crystal",
+            "url": "/runs/ui-faulty/files/artifacts/sources/1UTN.cif",
+            "format": "mmcif",
+            "artifactKind": "source_structure",
+            "path": "artifacts/sources/1UTN.cif",
+            "sha256": "e408164bbed18b4006ab3a92f23404b143b27b97dbcc210e2fc470cfa9cf425a",
+            "derivedFrom": [
+                "rcsb_files:1UTN:e408164bbed1"
+            ]
+        }
+    ],
+    "renders": [
+        {
+            "structure": "artifacts/sources/3PTB",
+            "png": "/runs/ui-faulty/files/renders/3PTB_overview.png",
+            "pse": "/runs/ui-faulty/files/renders/3PTB.pse",
+            "view": "overview",
+            "caption": "3PTB mmCIF (source_structure), whole structure. Chains A; organic components BEN. sha256 d2744dbacfb97ec9.",
+            "alt": "PyMOL cartoon of 3PTB mmCIF coloured by chain, ligands as sticks."
+        },
+        {
+            "structure": "artifacts/sources/3PTB",
+            "png": "/runs/ui-faulty/files/renders/3PTB_pocket.png",
+            "pse": "/runs/ui-faulty/files/renders/3PTB.pse",
+            "view": "pocket",
+            "caption": "3PTB mmCIF (source_structure), ligand environment within 5 \u00c5. Chains A; organic components BEN. sha256 d2744dbacfb97ec9.",
+            "alt": "PyMOL cartoon of 3PTB mmCIF coloured by chain, ligands as sticks."
+        },
+        {
+            "structure": "artifacts/sources/1N6X",
+            "png": "/runs/ui-faulty/files/renders/1N6X_overview.png",
+            "pse": "/runs/ui-faulty/files/renders/1N6X.pse",
+            "view": "overview",
+            "caption": "1N6X mmCIF (source_structure), whole structure. Chains A; organic components ABN, GOL. sha256 bc252bd0016e5208.",
+            "alt": "PyMOL cartoon of 1N6X mmCIF coloured by chain, ligands as sticks."
+        },
+        {
+            "structure": "artifacts/sources/1N6X",
+            "png": "/runs/ui-faulty/files/renders/1N6X_pocket.png",
+            "pse": "/runs/ui-faulty/files/renders/1N6X.pse",
+            "view": "pocket",
+            "caption": "1N6X mmCIF (source_structure), ligand environment within 5 \u00c5. Chains A; organic components ABN, GOL. sha256 bc252bd0016e5208.",
+            "alt": "PyMOL cartoon of 1N6X mmCIF coloured by chain, ligands as sticks."
+        },
+        {
+            "structure": "artifacts/sources/1N6Y",
+            "png": "/runs/ui-faulty/files/renders/1N6Y_overview.png",
+            "pse": "/runs/ui-faulty/files/renders/1N6Y.pse",
+            "view": "overview",
+            "caption": "1N6Y mmCIF (source_structure), whole structure. Chains A; organic components ABN, GOL. sha256 467ed337669b92a1.",
+            "alt": "PyMOL cartoon of 1N6Y mmCIF coloured by chain, ligands as sticks."
+        },
+        {
+            "structure": "artifacts/sources/1N6Y",
+            "png": "/runs/ui-faulty/files/renders/1N6Y_pocket.png",
+            "pse": "/runs/ui-faulty/files/renders/1N6Y.pse",
+            "view": "pocket",
+            "caption": "1N6Y mmCIF (source_structure), ligand environment within 5 \u00c5. Chains A; organic components ABN, GOL. sha256 467ed337669b92a1.",
+            "alt": "PyMOL cartoon of 1N6Y mmCIF coloured by chain, ligands as sticks."
+        },
+        {
+            "structure": "artifacts/sources/1UTN",
+            "png": "/runs/ui-faulty/files/renders/1UTN_overview.png",
+            "pse": "/runs/ui-faulty/files/renders/1UTN.pse",
+            "view": "overview",
+            "caption": "1UTN mmCIF (source_structure), whole structure. Chains A; organic components ABN, GOL, TRS. sha256 e408164bbed18b40.",
+            "alt": "PyMOL cartoon of 1UTN mmCIF coloured by chain, ligands as sticks."
+        },
+        {
+            "structure": "artifacts/sources/1UTN",
+            "png": "/runs/ui-faulty/files/renders/1UTN_pocket.png",
+            "pse": "/runs/ui-faulty/files/renders/1UTN.pse",
+            "view": "pocket",
+            "caption": "1UTN mmCIF (source_structure), ligand environment within 5 \u00c5. Chains A; organic components ABN, GOL, TRS. sha256 e408164bbed18b40.",
+            "alt": "PyMOL cartoon of 1UTN mmCIF coloured by chain, ligands as sticks."
+        }
+    ],
+    "report": {
+        "status": "done",
+        "reports": {
+            "markdown": "/runs/ui-faulty/files/report.md",
+            "json": "/runs/ui-faulty/files/report.json"
+        },
+        "graph": {
+            "json": "/runs/ui-faulty/files/graph.json",
+            "mmd": "/runs/ui-faulty/files/graph.mmd",
+            "svg": "/runs/ui-faulty/files/graph.svg"
+        },
+        "figures": [
+            {
+                "id": "gates_by_layer",
+                "url": "/runs/ui-faulty/files/figures/gates_by_layer.svg",
+                "caption": "Check outcomes per layer for run ligand_pose-ee95ec6ef46c. Totals: pass 15, warn 2, stop 8, skip 14.",
+                "alt": "Horizontal stacked bars per layer, split into pass, warn, stop and skip counts.",
+                "data": "/runs/ui-faulty/files/figures/gates_by_layer.csv"
+            }
+        ],
+        "renderErrors": [],
+        "rendersOverwritten": 0,
+        "limitations": [
+            "This report covers layers 0, 1, 2, 3, 4, 5.",
+            "The harness establishes when a result should not be trusted. Passing checks are not evidence that a prediction is correct.",
+            "Thresholds marked uncalibrated come from the specification or harness defaults and have not been recalibrated on the harness benchmark."
+        ]
+    },
+    "artifacts": [
+        {
+            "path": "/home/user/harness-hackathon/examples/3ptb_faulty_inputs/chain_A_query_only.a3m",
+            "kind": "input_msa",
+            "label": "trypsin",
+            "sha256": "64a332daa45311df6cb7f39721a9f81a1ad63bb50ca48dd102e5dadd22c007d0",
+            "sizeBytes": 231,
+            "url": null,
+            "derivedFrom": []
+        },
+        {
+            "path": "artifacts/sources/3PTB.cif",
+            "kind": "source_structure",
+            "label": "3PTB mmCIF",
+            "sha256": "d2744dbacfb97ec9b4ff7f5cf4b204418bccf92e46b63130bfebb3916260232f",
+            "sizeBytes": 230954,
+            "url": "/runs/ui-faulty/files/artifacts/sources/3PTB.cif",
+            "derivedFrom": [
+                "rcsb_files:3PTB:d2744dbacfb9"
+            ]
+        },
+        {
+            "path": "artifacts/sources/1N6X.cif",
+            "kind": "source_structure",
+            "label": "1N6X mmCIF",
+            "sha256": "bc252bd0016e52081503554c8d69a9abb139a938e69d722927ed5daa9b55a20e",
+            "sizeBytes": 400772,
+            "url": "/runs/ui-faulty/files/artifacts/sources/1N6X.cif",
+            "derivedFrom": [
+                "rcsb_files:1N6X:bc252bd0016e"
+            ]
+        },
+        {
+            "path": "artifacts/sources/1N6Y.cif",
+            "kind": "source_structure",
+            "label": "1N6Y mmCIF",
+            "sha256": "467ed337669b92a172072333e0bc668e0290af96e4eff76ceb69a4043817fbf1",
+            "sizeBytes": 402225,
+            "url": "/runs/ui-faulty/files/artifacts/sources/1N6Y.cif",
+            "derivedFrom": [
+                "rcsb_files:1N6Y:467ed337669b"
+            ]
+        },
+        {
+            "path": "artifacts/sources/1UTN.cif",
+            "kind": "source_structure",
+            "label": "1UTN mmCIF",
+            "sha256": "e408164bbed18b4006ab3a92f23404b143b27b97dbcc210e2fc470cfa9cf425a",
+            "sizeBytes": 637622,
+            "url": "/runs/ui-faulty/files/artifacts/sources/1UTN.cif",
+            "derivedFrom": [
+                "rcsb_files:1UTN:e408164bbed1"
+            ]
+        },
+        {
+            "path": "renders/3PTB_overview.png",
+            "kind": "render",
+            "label": "3PTB mmCIF",
+            "sha256": "2e8f4ca9390ced1b2c6ea8fb33d7fc78f27941baf3a9eb7b2acfc28e0aa3b526",
+            "sizeBytes": 196888,
+            "url": "/runs/ui-faulty/files/renders/3PTB_overview.png",
+            "derivedFrom": []
+        },
+        {
+            "path": "renders/3PTB_pocket.png",
+            "kind": "render",
+            "label": "3PTB mmCIF",
+            "sha256": "33b0813a35b192e6bb83070e603efb385f2ae3e3de150e7b02caf1a9d5377d7a",
+            "sizeBytes": 265455,
+            "url": "/runs/ui-faulty/files/renders/3PTB_pocket.png",
+            "derivedFrom": []
+        },
+        {
+            "path": "renders/3PTB.pse",
+            "kind": "session",
+            "label": "3PTB mmCIF",
+            "sha256": "f1cb50081b72057bab5e78541fdf613438f1d9aa8eb78e2cf92cc08bd81d4261",
+            "sizeBytes": 543669,
+            "url": "/runs/ui-faulty/files/renders/3PTB.pse",
+            "derivedFrom": []
+        },
+        {
+            "path": "renders/1N6X_overview.png",
+            "kind": "render",
+            "label": "1N6X mmCIF",
+            "sha256": "78d69963ea72477ec320515cf8ab95f318dcdf9401df41b38f0367a8427d35e1",
+            "sizeBytes": 199487,
+            "url": "/runs/ui-faulty/files/renders/1N6X_overview.png",
+            "derivedFrom": []
+        },
+        {
+            "path": "renders/1N6X_pocket.png",
+            "kind": "render",
+            "label": "1N6X mmCIF",
+            "sha256": "f42e146472e78674baf0281def2a268332c9718ba62b6685343d33e0b7bd938c",
+            "sizeBytes": 266878,
+            "url": "/runs/ui-faulty/files/renders/1N6X_pocket.png",
+            "derivedFrom": []
+        },
+        {
+            "path": "renders/1N6X.pse",
+            "kind": "session",
+            "label": "1N6X mmCIF",
+            "sha256": "d72407fd9192ab0f2ddac7368f5fc17e208fcaa7ec3eff675591b038103d048e",
+            "sizeBytes": 552294,
+            "url": "/runs/ui-faulty/files/renders/1N6X.pse",
+            "derivedFrom": []
+        },
+        {
+            "path": "renders/1N6Y_overview.png",
+            "kind": "render",
+            "label": "1N6Y mmCIF",
+            "sha256": "8954ac8b029c3f52a82e216cf375a06c6f85f143c518a0ffb457cf15f35e0d27",
+            "sizeBytes": 200322,
+            "url": "/runs/ui-faulty/files/renders/1N6Y_overview.png",
+            "derivedFrom": []
+        },
+        {
+            "path": "renders/1N6Y_pocket.png",
+            "kind": "render",
+            "label": "1N6Y mmCIF",
+            "sha256": "cddf74fedc40003c2e0eb23b2281660825b42afc939add640abfc38c89d3fbb1",
+            "sizeBytes": 267759,
+            "url": "/runs/ui-faulty/files/renders/1N6Y_pocket.png",
+            "derivedFrom": []
+        },
+        {
+            "path": "renders/1N6Y.pse",
+            "kind": "session",
+            "label": "1N6Y mmCIF",
+            "sha256": "82174edc0872ab5df0f0aa24c491ef0ae94cd5ad25423cfb4bda85f9f72c8f4d",
+            "sizeBytes": 552339,
+            "url": "/runs/ui-faulty/files/renders/1N6Y.pse",
+            "derivedFrom": []
+        },
+        {
+            "path": "renders/1UTN_overview.png",
+            "kind": "render",
+            "label": "1UTN mmCIF",
+            "sha256": "a898335319ad4770c17b17973b89834294adab937d1b3e077806941754dbc1d0",
+            "sizeBytes": 211787,
+            "url": "/runs/ui-faulty/files/renders/1UTN_overview.png",
+            "derivedFrom": []
+        },
+        {
+            "path": "renders/1UTN_pocket.png",
+            "kind": "render",
+            "label": "1UTN mmCIF",
+            "sha256": "de4db657f34e58f2049e8138b14fc75c92bde13058710d6e559b08283692e92c",
+            "sizeBytes": 214387,
+            "url": "/runs/ui-faulty/files/renders/1UTN_pocket.png",
+            "derivedFrom": []
+        },
+        {
+            "path": "renders/1UTN.pse",
+            "kind": "session",
+            "label": "1UTN mmCIF",
+            "sha256": "eae35e9fee2b91223e12af08dd1fcaff79825591f1880a2a29d84cdee40e73dd",
+            "sizeBytes": 1142092,
+            "url": "/runs/ui-faulty/files/renders/1UTN.pse",
+            "derivedFrom": []
+        },
+        {
+            "path": "figures/gates_by_layer.svg",
+            "kind": "figure",
+            "label": "gates_by_layer",
+            "sha256": "257f1576e6e02b36974885de1e7c155f927dac43b5691e5c428e8ec0ee1baca6",
+            "sizeBytes": 91451,
+            "url": "/runs/ui-faulty/files/figures/gates_by_layer.svg",
+            "derivedFrom": []
+        },
+        {
+            "path": "figures/gates_by_layer.csv",
+            "kind": "data",
+            "label": "gates_by_layer",
+            "sha256": "5d50771fa33ba10e8617397c8fdfcc06a0d9b61fe727319aab054ee55c1023fb",
+            "sizeBytes": 186,
+            "url": "/runs/ui-faulty/files/figures/gates_by_layer.csv",
+            "derivedFrom": []
+        },
+        {
+            "path": "graph.json",
+            "kind": "graph",
+            "label": "provenance graph",
+            "sha256": "e8d8600a830543c96a30d7ccc01aa94bcdf497833aaf65d3433732f6fee27723",
+            "sizeBytes": 34524,
+            "url": "/runs/ui-faulty/files/graph.json",
+            "derivedFrom": []
+        },
+        {
+            "path": "graph.mmd",
+            "kind": "graph",
+            "label": "provenance graph",
+            "sha256": "94d89245fd475d0ba23939b88391054cc62eec47ccebb8e949d170943e6a44f5",
+            "sizeBytes": 7266,
+            "url": "/runs/ui-faulty/files/graph.mmd",
+            "derivedFrom": []
+        },
+        {
+            "path": "graph.svg",
+            "kind": "graph",
+            "label": "provenance graph",
+            "sha256": "c0ddd107a010d9c6f89acd8e25545be9a966ebd46bda8a90923765b5d12473aa",
+            "sizeBytes": 89093,
+            "url": "/runs/ui-faulty/files/graph.svg",
+            "derivedFrom": []
+        }
+    ],
+    "source": "pah"
+}

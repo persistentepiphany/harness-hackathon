@@ -1,0 +1,58 @@
+{
+  "check_id": "l3.metric.endpoint",
+  "layer": 3,
+  "gate": "pass",
+  "message": "endpoint pose produced by diffdock, boltz2",
+  "measurements": [
+    {
+      "name": "endpoint",
+      "value": "pose",
+      "unit": null
+    },
+    {
+      "name": "executors",
+      "value": 2,
+      "unit": null
+    },
+    {
+      "name": "not_fitting",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "endpoint",
+      "value": "pose",
+      "comparator": "in",
+      "origin": "Specification, Layer 3 (applicability): no affinity from interface confidence, no protein-protein affinity from Boltz-2",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "claim": "Predicted pose of ATP in CDK2 is valid",
+    "models": [
+      {
+        "executor": "diffdock",
+        "endpoints": [
+          "pose"
+        ],
+        "fits": true
+      },
+      {
+        "executor": "boltz2",
+        "endpoints": [
+          "pose",
+          "structure",
+          "interface",
+          "affinity_series"
+        ],
+        "fits": true
+      }
+    ],
+    "claim_names_affinity": false
+  },
+  "artifacts": [],
+  "tool": null,
+  "duration_s": 0.0
+}

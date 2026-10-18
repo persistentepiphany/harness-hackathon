@@ -1,0 +1,90 @@
+{
+  "check_id": "l2.pocket.resolved",
+  "layer": 2,
+  "gate": "pass",
+  "message": "37 pocket residues complete in 7XLP.cif",
+  "measurements": [
+    {
+      "name": "pocket_residues",
+      "value": 37,
+      "unit": null
+    },
+    {
+      "name": "incomplete",
+      "value": 0,
+      "unit": null
+    },
+    {
+      "name": "sequence_gaps",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "pocket_distance",
+      "value": 6.0,
+      "comparator": "<=",
+      "origin": "Harness rule: pocket residues have a heavy atom within 6 Å of the ligand; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    },
+    {
+      "name": "missing_pocket_residues",
+      "value": 0,
+      "comparator": "==",
+      "origin": "Specification layer 2: stop when the pocket is incomplete",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "site": "FZC in 7XLP",
+    "receptor": "7XLP.cif",
+    "pocket": [
+      "LEU74A",
+      "GLY75A",
+      "ALA76A",
+      "GLY77A",
+      "ASN78A",
+      "VAL82A",
+      "ALA95A",
+      "ARG96A",
+      "LYS97A",
+      "ILE99A",
+      "LEU115A",
+      "LEU118A",
+      "VAL127A",
+      "ILE141A",
+      "CYS142A",
+      "MET143A",
+      "GLU144A",
+      "HIS145A",
+      "MET146A",
+      "ASP147A",
+      "GLY148A",
+      "GLY149A",
+      "SER150A",
+      "ASP152A",
+      "GLN153A",
+      "LYS192A",
+      "SER194A",
+      "ASN195A",
+      "ILE196A",
+      "LEU197A",
+      "CYS207A",
+      "ASP208A",
+      "PHE209A",
+      "GLY210A",
+      "VAL211A",
+      "SER212A",
+      "LEU215A"
+    ],
+    "incomplete": [],
+    "gaps": []
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "gemmi",
+    "version": null
+  },
+  "duration_s": 0.013
+}

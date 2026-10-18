@@ -1,0 +1,169 @@
+{
+  "check_id": "l4.posebusters",
+  "layer": 4,
+  "gate": "pass",
+  "message": "20 of 20 tests pass for boltz2/seed7/sample0; 3 of 3 poses pass all",
+  "measurements": [
+    {
+      "name": "poses",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "passed",
+      "value": 20,
+      "unit": null
+    },
+    {
+      "name": "total",
+      "value": 20,
+      "unit": null
+    },
+    {
+      "name": "poses_all_pass",
+      "value": 3,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "tests_failed",
+      "value": 0,
+      "comparator": "==",
+      "origin": "Specification, Layer 4 (output validity): stop on failure",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "representative": "boltz2/seed7/sample0",
+    "tests": [
+      {
+        "test": "sanitization",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "inchi_convertible",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "all_atoms_connected",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "no_radicals",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "bond_lengths",
+        "pass": true,
+        "value": "0 long outliers"
+      },
+      {
+        "test": "bond_angles",
+        "pass": true,
+        "value": "0 outliers"
+      },
+      {
+        "test": "internal_steric_clash",
+        "pass": true,
+        "value": "0"
+      },
+      {
+        "test": "aromatic_ring_flatness",
+        "pass": true,
+        "value": "0.00 Å"
+      },
+      {
+        "test": "non-aromatic_ring_non-flatness",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "double_bond_flatness",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "internal_energy",
+        "pass": true,
+        "value": "3.1 times the ensemble mean"
+      },
+      {
+        "test": "protein-ligand_maximum_distance",
+        "pass": true,
+        "value": "2.56 Å"
+      },
+      {
+        "test": "minimum_distance_to_protein",
+        "pass": true,
+        "value": "2.56 Å"
+      },
+      {
+        "test": "minimum_distance_to_organic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "minimum_distance_to_inorganic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "minimum_distance_to_waters",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "volume_overlap_with_protein",
+        "pass": true,
+        "value": "0.016"
+      },
+      {
+        "test": "volume_overlap_with_organic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "volume_overlap_with_inorganic_cofactors",
+        "pass": true,
+        "value": "pass"
+      },
+      {
+        "test": "volume_overlap_with_waters",
+        "pass": true,
+        "value": "pass"
+      }
+    ],
+    "poses": [
+      {
+        "pose": "boltz2/seed7/sample0",
+        "passed": 20,
+        "total": 20,
+        "failed": []
+      },
+      {
+        "pose": "boltz2/seed8/sample0",
+        "passed": 20,
+        "total": 20,
+        "failed": []
+      },
+      {
+        "pose": "boltz2/seed9/sample0",
+        "passed": 20,
+        "total": 20,
+        "failed": []
+      }
+    ],
+    "reference": "ATP in 8X61"
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "posebusters",
+    "version": "0.6.5"
+  },
+  "duration_s": 2.051
+}

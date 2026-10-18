@@ -1,0 +1,753 @@
+[
+    {
+        "id": "monomer",
+        "pah": "monomer_structure",
+        "name": "Monomer structure",
+        "long": "Monomer structure",
+        "group": "co-folding",
+        "families": [
+            "co-folding"
+        ],
+        "defaultTools": [
+            "boltz2",
+            "afdb"
+        ],
+        "inputs": [
+            "target",
+            "seeds"
+        ],
+        "kind": "monomer",
+        "claim": "Fold of confident regions",
+        "status": "specified",
+        "controls": [],
+        "requiredInputs": [],
+        "checks": 9,
+        "implemented": 9,
+        "layers": [
+            {
+                "i": 0,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 1,
+                "checks": 4,
+                "implemented": 4
+            },
+            {
+                "i": 2,
+                "checks": 2,
+                "implemented": 2
+            },
+            {
+                "i": 4,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 5,
+                "checks": 1,
+                "implemented": 1
+            }
+        ]
+    },
+    {
+        "id": "known_complex",
+        "pah": "known_complex_assembly",
+        "name": "Known complex",
+        "long": "Known complex assembly",
+        "group": "co-folding",
+        "families": [
+            "co-folding"
+        ],
+        "defaultTools": [
+            "boltz2",
+            "protenix"
+        ],
+        "inputs": [
+            "target",
+            "partner",
+            "reference",
+            "seeds"
+        ],
+        "kind": "complex",
+        "claim": "Interface geometry, scoped by exposure",
+        "status": "specified",
+        "controls": [
+            "exposure_report"
+        ],
+        "requiredInputs": [],
+        "checks": 12,
+        "implemented": 12,
+        "layers": [
+            {
+                "i": 0,
+                "checks": 2,
+                "implemented": 2
+            },
+            {
+                "i": 1,
+                "checks": 3,
+                "implemented": 3
+            },
+            {
+                "i": 2,
+                "checks": 2,
+                "implemented": 2
+            },
+            {
+                "i": 3,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 4,
+                "checks": 3,
+                "implemented": 3
+            },
+            {
+                "i": 5,
+                "checks": 1,
+                "implemented": 1
+            }
+        ]
+    },
+    {
+        "id": "interaction_discovery",
+        "pah": "interaction_discovery",
+        "name": "Interaction discovery",
+        "long": "Interaction discovery",
+        "group": "co-folding",
+        "families": [
+            "co-folding"
+        ],
+        "defaultTools": [
+            "boltz2",
+            "protenix"
+        ],
+        "inputs": [
+            "target",
+            "partner",
+            "reference",
+            "seeds"
+        ],
+        "kind": "complex",
+        "claim": "Plausible relative to controls, never that the proteins bind",
+        "status": "implemented",
+        "controls": [
+            "decoy_partners",
+            "sticky_control",
+            "known_positive"
+        ],
+        "requiredInputs": [
+            "proteins"
+        ],
+        "checks": 23,
+        "implemented": 23,
+        "layers": [
+            {
+                "i": 0,
+                "checks": 2,
+                "implemented": 2
+            },
+            {
+                "i": 1,
+                "checks": 5,
+                "implemented": 5
+            },
+            {
+                "i": 2,
+                "checks": 4,
+                "implemented": 4
+            },
+            {
+                "i": 3,
+                "checks": 4,
+                "implemented": 4
+            },
+            {
+                "i": 4,
+                "checks": 3,
+                "implemented": 3
+            },
+            {
+                "i": 5,
+                "checks": 5,
+                "implemented": 5
+            }
+        ]
+    },
+    {
+        "id": "ligand_pose",
+        "pah": "ligand_pose",
+        "name": "Ligand pose",
+        "long": "Ligand pose in a known pocket",
+        "group": "co-folding",
+        "families": [
+            "co-folding",
+            "docking"
+        ],
+        "defaultTools": [
+            "boltz2",
+            "gnina"
+        ],
+        "inputs": [
+            "target",
+            "ligand",
+            "reference",
+            "ph",
+            "seeds"
+        ],
+        "kind": "ligand",
+        "claim": "Pose within stated uncertainty",
+        "status": "implemented",
+        "controls": [
+            "redocking"
+        ],
+        "requiredInputs": [
+            "proteins",
+            "ligands"
+        ],
+        "checks": 39,
+        "implemented": 39,
+        "layers": [
+            {
+                "i": 0,
+                "checks": 3,
+                "implemented": 3
+            },
+            {
+                "i": 1,
+                "checks": 10,
+                "implemented": 10
+            },
+            {
+                "i": 2,
+                "checks": 8,
+                "implemented": 8
+            },
+            {
+                "i": 3,
+                "checks": 6,
+                "implemented": 6
+            },
+            {
+                "i": 4,
+                "checks": 7,
+                "implemented": 7
+            },
+            {
+                "i": 5,
+                "checks": 5,
+                "implemented": 5
+            }
+        ]
+    },
+    {
+        "id": "binding_site",
+        "pah": "binding_site_identification",
+        "name": "Binding site",
+        "long": "Binding site identification",
+        "group": "co-folding",
+        "families": [
+            "co-folding"
+        ],
+        "defaultTools": [
+            "boltz2",
+            "protenix"
+        ],
+        "inputs": [
+            "target",
+            "ligand",
+            "seeds"
+        ],
+        "kind": "ligand",
+        "claim": "Candidate sites ranked",
+        "status": "specified",
+        "controls": [
+            "known_sites"
+        ],
+        "requiredInputs": [],
+        "checks": 5,
+        "implemented": 5,
+        "layers": [
+            {
+                "i": 0,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 2,
+                "checks": 2,
+                "implemented": 2
+            },
+            {
+                "i": 5,
+                "checks": 2,
+                "implemented": 2
+            }
+        ]
+    },
+    {
+        "id": "affinity_ranking",
+        "pah": "affinity_ranking",
+        "name": "Affinity ranking",
+        "long": "Affinity ranking within a congeneric series",
+        "group": "co-folding",
+        "families": [
+            "co-folding"
+        ],
+        "defaultTools": [
+            "boltz2",
+            "gnina"
+        ],
+        "inputs": [
+            "target",
+            "series",
+            "reference",
+            "ph",
+            "seeds"
+        ],
+        "kind": "ligand",
+        "claim": "Relative order within a congeneric series, never absolute affinity",
+        "status": "specified",
+        "controls": [
+            "chembl_actives_inactives"
+        ],
+        "requiredInputs": [],
+        "checks": 9,
+        "implemented": 9,
+        "layers": [
+            {
+                "i": 0,
+                "checks": 2,
+                "implemented": 2
+            },
+            {
+                "i": 1,
+                "checks": 2,
+                "implemented": 2
+            },
+            {
+                "i": 3,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 4,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 5,
+                "checks": 3,
+                "implemented": 3
+            }
+        ]
+    },
+    {
+        "id": "variant_effect",
+        "pah": "variant_effect",
+        "name": "Variant effect",
+        "long": "Variant effect",
+        "group": "co-folding",
+        "families": [
+            "co-folding"
+        ],
+        "defaultTools": [
+            "boltz2",
+            "chai1"
+        ],
+        "inputs": [
+            "target",
+            "ligand",
+            "reference",
+            "seeds"
+        ],
+        "kind": "ligand",
+        "claim": "Change detected, or not distinguishable from model noise",
+        "status": "specified",
+        "controls": [
+            "wild_type_noise_floor"
+        ],
+        "requiredInputs": [],
+        "checks": 4,
+        "implemented": 4,
+        "layers": [
+            {
+                "i": 0,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 1,
+                "checks": 2,
+                "implemented": 2
+            },
+            {
+                "i": 5,
+                "checks": 1,
+                "implemented": 1
+            }
+        ]
+    },
+    {
+        "id": "design_validation",
+        "pah": "design_validation",
+        "name": "Design validation",
+        "long": "Design validation",
+        "group": "co-folding",
+        "families": [
+            "co-folding"
+        ],
+        "defaultTools": [
+            "boltz2",
+            "protenix"
+        ],
+        "inputs": [
+            "target",
+            "partner",
+            "seeds"
+        ],
+        "kind": "complex",
+        "claim": "Design is self-consistent, not that it binds",
+        "status": "specified",
+        "controls": [
+            "scrambled_designs"
+        ],
+        "requiredInputs": [],
+        "checks": 4,
+        "implemented": 4,
+        "layers": [
+            {
+                "i": 1,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 4,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 5,
+                "checks": 2,
+                "implemented": 2
+            }
+        ]
+    },
+    {
+        "id": "redocking",
+        "pah": "redocking",
+        "name": "Redocking",
+        "long": "Redocking of the crystal ligand",
+        "group": "docking",
+        "families": [
+            "docking"
+        ],
+        "defaultTools": [
+            "vina",
+            "gnina"
+        ],
+        "inputs": [
+            "target",
+            "ligand",
+            "reference",
+            "ph",
+            "seeds"
+        ],
+        "kind": "ligand",
+        "claim": "The protocol reproduces known poses on this receptor",
+        "status": "specified",
+        "controls": [],
+        "requiredInputs": [],
+        "checks": 6,
+        "implemented": 6,
+        "layers": [
+            {
+                "i": 0,
+                "checks": 2,
+                "implemented": 2
+            },
+            {
+                "i": 1,
+                "checks": 2,
+                "implemented": 2
+            },
+            {
+                "i": 2,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 5,
+                "checks": 1,
+                "implemented": 1
+            }
+        ]
+    },
+    {
+        "id": "pose_known_pocket",
+        "pah": "ligand_pose",
+        "name": "Docked pose",
+        "long": "Pose prediction in a known pocket",
+        "group": "docking",
+        "families": [
+            "co-folding",
+            "docking"
+        ],
+        "defaultTools": [
+            "gnina",
+            "diffdock"
+        ],
+        "inputs": [
+            "target",
+            "ligand",
+            "reference",
+            "ph",
+            "seeds"
+        ],
+        "kind": "ligand",
+        "claim": "Pose within stated uncertainty",
+        "status": "implemented",
+        "controls": [
+            "redocking"
+        ],
+        "requiredInputs": [
+            "proteins",
+            "ligands"
+        ],
+        "checks": 39,
+        "implemented": 39,
+        "layers": [
+            {
+                "i": 0,
+                "checks": 3,
+                "implemented": 3
+            },
+            {
+                "i": 1,
+                "checks": 10,
+                "implemented": 10
+            },
+            {
+                "i": 2,
+                "checks": 8,
+                "implemented": 8
+            },
+            {
+                "i": 3,
+                "checks": 6,
+                "implemented": 6
+            },
+            {
+                "i": 4,
+                "checks": 7,
+                "implemented": 7
+            },
+            {
+                "i": 5,
+                "checks": 5,
+                "implemented": 5
+            }
+        ]
+    },
+    {
+        "id": "blind_docking",
+        "pah": "blind_docking",
+        "name": "Blind docking",
+        "long": "Blind docking",
+        "group": "docking",
+        "families": [
+            "docking"
+        ],
+        "defaultTools": [
+            "diffdock",
+            "gnina"
+        ],
+        "inputs": [
+            "target",
+            "ligand",
+            "seeds"
+        ],
+        "kind": "ligand",
+        "claim": "Candidate sites, low confidence",
+        "status": "specified",
+        "controls": [
+            "known_site"
+        ],
+        "requiredInputs": [],
+        "checks": 3,
+        "implemented": 3,
+        "layers": [
+            {
+                "i": 2,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 4,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 5,
+                "checks": 1,
+                "implemented": 1
+            }
+        ]
+    },
+    {
+        "id": "virtual_screening",
+        "pah": "virtual_screening",
+        "name": "Virtual screening",
+        "long": "Virtual screening",
+        "group": "docking",
+        "families": [
+            "docking"
+        ],
+        "defaultTools": [
+            "vina",
+            "gnina"
+        ],
+        "inputs": [
+            "target",
+            "series",
+            "reference",
+            "ph",
+            "seeds"
+        ],
+        "kind": "ligand",
+        "claim": "Enrichment over decoys, not individual affinities",
+        "status": "implemented",
+        "controls": [
+            "property_matched_decoys",
+            "confirmed_inactives"
+        ],
+        "requiredInputs": [
+            "ligands"
+        ],
+        "checks": 18,
+        "implemented": 18,
+        "layers": [
+            {
+                "i": 0,
+                "checks": 2,
+                "implemented": 2
+            },
+            {
+                "i": 1,
+                "checks": 6,
+                "implemented": 6
+            },
+            {
+                "i": 2,
+                "checks": 4,
+                "implemented": 4
+            },
+            {
+                "i": 3,
+                "checks": 2,
+                "implemented": 2
+            },
+            {
+                "i": 4,
+                "checks": 2,
+                "implemented": 2
+            },
+            {
+                "i": 5,
+                "checks": 2,
+                "implemented": 2
+            }
+        ]
+    },
+    {
+        "id": "series_scoring",
+        "pah": "series_scoring",
+        "name": "Series scoring",
+        "long": "Series scoring",
+        "group": "docking",
+        "families": [
+            "docking"
+        ],
+        "defaultTools": [
+            "gnina",
+            "vina"
+        ],
+        "inputs": [
+            "target",
+            "series",
+            "reference",
+            "ph",
+            "seeds"
+        ],
+        "kind": "ligand",
+        "claim": "Weak ranking, explicitly flagged",
+        "status": "specified",
+        "controls": [
+            "chembl_actives"
+        ],
+        "requiredInputs": [],
+        "checks": 3,
+        "implemented": 3,
+        "layers": [
+            {
+                "i": 1,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 5,
+                "checks": 2,
+                "implemented": 2
+            }
+        ]
+    },
+    {
+        "id": "protein_protein_docking",
+        "pah": "protein_protein_docking",
+        "name": "Protein\u2013protein docking",
+        "long": "Protein\u2013protein docking",
+        "group": "docking",
+        "families": [
+            "docking"
+        ],
+        "defaultTools": [
+            "pydock",
+            "haddock"
+        ],
+        "inputs": [
+            "target",
+            "partner",
+            "reference",
+            "seeds"
+        ],
+        "kind": "complex",
+        "claim": "Candidate arrangements",
+        "status": "specified",
+        "controls": [
+            "non_cognate_partner"
+        ],
+        "requiredInputs": [],
+        "checks": 5,
+        "implemented": 5,
+        "layers": [
+            {
+                "i": 1,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 4,
+                "checks": 1,
+                "implemented": 1
+            },
+            {
+                "i": 5,
+                "checks": 3,
+                "implemented": 3
+            }
+        ]
+    }
+]

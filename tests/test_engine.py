@@ -10,6 +10,7 @@ from pah.core.events import EventBus, MemorySink
 from pah.core.manifest import Manifest
 from pah.core.models import EventKind, Finding, Gate, Layer
 from pah.core.policy import Outcome, decide
+from pah.core.standing import CheckStanding, Role, Standing, StandingTable, load_standing
 from pah.core.task import TaskSpec
 from pah.sources import CachedHttp, ContentCache, Sources
 
@@ -50,10 +51,27 @@ def ctx(tmp_path: Path) -> CheckContext:
     return CheckContext(Manifest(task="t"), task, sources, tmp_path / "run")
 
 
-def _run(ctx: CheckContext, layers: dict[int, tuple[str, ...]], escalate: tuple[str, ...] = ()):
+def _decisive(*ids: str) -> StandingTable:
+    """A gate-policy table in which the given synthetic checks may decide."""
+    rows = {
+        cid: CheckStanding(
+            check_id=cid, standing=Standing.DEFINITIONAL, decisive=True, role=Role.DECIDE
+        )
+        for cid in ids
+    }
+    return StandingTable(checks=rows)
+
+
+def _run(
+    ctx: CheckContext,
+    layers: dict[int, tuple[str, ...]],
+    escalate: tuple[str, ...] = (),
+    standing: StandingTable | None = None,
+):
     ctx.task = ctx.task.model_copy(update={"layers": layers, "escalate": escalate})
     mem = MemorySink()
-    record = Engine(EventBus("run-t", [mem]), ctx).run(tuple(layers))
+    engine = Engine(EventBus("run-t", [mem]), ctx, standing=standing or StandingTable())
+    record = engine.run(tuple(layers))
     return record, mem
 
 
@@ -82,7 +100,7 @@ def test_streams_writes_and_passes(ctx: CheckContext) -> None:
 def test_stop_halts_later_layers(ctx: CheckContext) -> None:
     a = _make("t.stop", Layer.PROVENANCE, Gate.STOP)
     b = _make("t.after", Layer.INTEGRITY, Gate.PASS)
-    record, _ = _run(ctx, {0: (a,), 1: (b,)})
+    record, _ = _run(ctx, {0: (a,), 1: (b,)}, standing=_decisive(a))
     assert record.findings[1].gate is Gate.SKIP
     assert record.findings[1].evidence["skip_reason"] == SkipReason.UPSTREAM_STOP
     assert record.verdict and record.verdict.outcome is Outcome.STOP
@@ -103,9 +121,51 @@ def test_errors_missing_tools_unknown_checks_are_incomplete(ctx: CheckContext) -
 
 def test_task_escalates_warn_to_stop(ctx: CheckContext) -> None:
     w = _make("t.warn", Layer.INTEGRITY, Gate.WARN)
-    record, _ = _run(ctx, {1: (w,)}, escalate=(w,))
+    record, _ = _run(ctx, {1: (w,)}, escalate=(w,), standing=_decisive(w))
     assert record.findings[0].gate is Gate.STOP
     assert record.findings[0].evidence["escalated_by_task"] == "t"
+
+
+def test_stop_from_a_narrowing_check_becomes_a_recorded_warning(ctx: CheckContext) -> None:
+    a = _make("t.narrow", Layer.PROVENANCE, Gate.STOP)
+    b = _make("t.next", Layer.INTEGRITY, Gate.PASS)
+    narrow = StandingTable(
+        checks={a: CheckStanding(check_id=a, standing=Standing.UNCALIBRATED, role=Role.NARROW)}
+    )
+    record, _ = _run(ctx, {0: (a,), 1: (b,)}, standing=narrow)
+    f = record.findings[0]
+    assert f.gate is Gate.WARN and f.standing == "uncalibrated"
+    assert f.evidence["policy"]["original_gate"] == "stop"
+    assert f.evidence["policy"]["role"] == "narrow"
+    assert record.findings[1].gate is Gate.PASS  # a narrowing warning does not halt
+    v = record.verdict
+    assert v and v.outcome is Outcome.PASS_WITH_WARNINGS and v.downgraded == (a,)
+
+
+def test_undeclared_check_narrows_and_escalation_cannot_make_it_decide(
+    ctx: CheckContext,
+) -> None:
+    w = _make("t.undeclared", Layer.INTEGRITY, Gate.WARN)
+    record, _ = _run(ctx, {1: (w,)}, escalate=(w,))
+    f = record.findings[0]
+    assert f.gate is Gate.WARN and f.standing == "undeclared"
+    assert f.evidence["escalated_by_task"] == "t"
+    assert f.evidence["policy"]["original_gate"] == "stop"
+
+
+def test_every_registered_check_is_classified() -> None:
+    import pah.checks  # noqa: F401  registers the library
+
+    table = load_standing()
+    assert not table.errors, table.errors
+    library = [cid for cid in CHECKS if not cid.startswith("t.")]
+    assert [cid for cid in library if cid not in table.checks] == []
+    decide_ids = {cid for cid, row in table.checks.items() if row.role is Role.DECIDE}
+    assert all(
+        table.checks[c].standing in (Standing.DEFINITIONAL, Standing.PUBLISHED)
+        or c.startswith("l4.posebusters")
+        for c in decide_ids
+    ), sorted(decide_ids)
 
 
 def test_decide_precedence() -> None:

@@ -17,7 +17,7 @@ from typing import Any
 
 from mcp.server.mcpserver import Context, MCPServer
 
-from pah.config import Profile
+from pah.config import Profile, resolve_path
 from pah.core.events import CallbackSink, Sink
 from pah.core.models import Event, EventKind
 from pah.service import (
@@ -37,8 +37,10 @@ support a declared claim, layer by layer (0 provenance, 1 input integrity, 2 ade
 3 applicability, 4 output validity, 5 output support). Layers 0 and 1 are implemented.
 
 Typical flow: pah_list_tasks -> pah_run(manifest=...) -> read verdict, stops and warnings ->
-pah_get_report(run_id) for the full Markdown report. Verdicts: pass, pass_with_warnings,
-stop (the claim is not supported by these inputs), incomplete (a check could not run).
+pah_get_report(run_id) for the full Markdown report (format="html" for the HTML page;
+resource pah://runs/{run_id}/ui_record.json for the web UI record).
+Verdicts: pass, pass_with_warnings, stop (the claim is not supported by these inputs),
+incomplete (a check could not run).
 A manifest names task, proteins (uniprot, pdb_id, chain, sequence, mutations, msa), ligands
 (smiles, ccd, pubchem_cid, file), receptor (pdb_id or file, chains) and model (executor,
 version, checkpoint, database_snapshot, seeds). JSON Schema: resource pah://schemas/manifest.
@@ -139,7 +141,9 @@ def build_server(profile: Profile) -> MCPServer:
         not_ok = [r.model_dump(mode="json") for r in report.results if r.status.value != "ok"]
         return {"run_id": report.run_id, "counts": report.counts(), "not_ok": not_ok}
 
-    @server.tool(description="Return the Markdown or JSON report of a run or batch by id.")
+    @server.tool(
+        description="Return the report of a run or batch by id: format md (default), json or html."
+    )
     def pah_get_report(run_id: str, format: str = "md") -> str:
         return _read_report(profile, run_id, format)
 
@@ -157,6 +161,15 @@ def build_server(profile: Profile) -> MCPServer:
     @server.resource("pah://runs/{run_id}/report.md", mime_type="text/markdown")
     def run_report_md(run_id: str) -> str:
         return _read_report(profile, run_id, "md")
+
+    @server.resource("pah://runs/{run_id}/ui_record.json", mime_type="application/json")
+    def run_ui_record(run_id: str) -> str:
+        from pah.api.adapter import ui_record
+
+        d = run_dir_for(profile, run_id)
+        if not (d / "events.jsonl").is_file() and not (d / "record.json").is_file():
+            raise InputError(f"no run {run_id!r}")
+        return json.dumps(ui_record(d), indent=2)
 
     @server.resource("pah://runs/{run_id}/record.json", mime_type="application/json")
     def run_record(run_id: str) -> str:
@@ -178,6 +191,9 @@ def build_server(profile: Profile) -> MCPServer:
             raise ValueError(f"unknown schema {name!r}; one of {sorted(MODELS)}")
         return json.dumps(build(name), indent=2)
 
+    from pah.webui.agent_log import register_mcp_tools  # agent_start, agent_step, agent_finish
+
+    register_mcp_tools(server, resolve_path(profile.runs_dir))
     return server
 
 
@@ -193,8 +209,8 @@ def _check_total(source: Any, layers: tuple[int, ...]) -> int | None:
 
 
 def _read_report(profile: Profile, run_id: str, fmt: str) -> str:
-    if fmt not in ("md", "json"):
-        raise ValueError("format must be md or json")
+    if fmt not in ("md", "json", "html"):
+        raise ValueError("format must be md, json or html")
     d = run_dir_for(profile, run_id)
     for name in (f"report.{fmt}", f"batch_report.{fmt}"):
         if (d / name).is_file():

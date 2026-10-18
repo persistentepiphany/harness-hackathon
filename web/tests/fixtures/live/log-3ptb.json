@@ -1,0 +1,839 @@
+[
+    {
+        "seq": 1,
+        "ts": "2026-10-17T16:59:08.921873Z",
+        "t": "0.0s",
+        "layer": null,
+        "kind": "log",
+        "text": "run  profile=local offline=False cache=/home/user/harness-hackathon/cache",
+        "plain": "profile=local offline=False cache=/home/user/harness-hackathon/cache."
+    },
+    {
+        "seq": 2,
+        "ts": "2026-10-17T16:59:08.922411Z",
+        "t": "0.0s",
+        "layer": null,
+        "kind": "run",
+        "text": "run  start  task=ligand_pose layers=0,1,2,3,4,5 claim='Pose within stated uncertainty'",
+        "plain": "Run started: task ligand_pose, layers 0, 1, 2, 3, 4, 5."
+    },
+    {
+        "seq": 3,
+        "ts": "2026-10-17T16:59:08.922778Z",
+        "t": "0.0s",
+        "layer": 0,
+        "kind": "layer",
+        "text": "L0  start  provenance: 3 checks",
+        "plain": "Layer 0, provenance, started: 3 checks."
+    },
+    {
+        "seq": 4,
+        "ts": "2026-10-17T16:59:08.966811Z",
+        "t": "0.0s",
+        "layer": 0,
+        "kind": "check",
+        "result": "pass",
+        "text": "L0  l0.sources.resolved  pass  8 identifiers resolved to 7 records  [identifiers=8, failed=0, records=7, cache_hits=7]  43 ms",
+        "plain": "Every declared identifier resolves to a source record with checksum: 8 identifiers resolved to 7 records (pass)."
+    },
+    {
+        "seq": 5,
+        "ts": "2026-10-17T16:59:08.967512Z",
+        "t": "0.0s",
+        "layer": 0,
+        "kind": "check",
+        "result": "pass",
+        "text": "L0  l0.cross.uniprot_seqres  pass  223 residues agree across 1 mapped segments  [segments=1, residues_compared=223, mismatches=0, declared_mutations=0, declaration_errors=0]  0 ms",
+        "plain": "UniProt sequence agrees with PDB SEQRES through the SIFTS mapping: 223 residues agree across 1 mapped segments (pass)."
+    },
+    {
+        "seq": 6,
+        "ts": "2026-10-17T16:59:09.188539Z",
+        "t": "0.3s",
+        "layer": 0,
+        "kind": "check",
+        "result": "pass",
+        "text": "L0  l0.cross.ligand_inchikey  pass  2 InChIKey comparisons identical  [comparisons=2, mismatches=0, metal_skeleton_only=0]  220 ms",
+        "plain": "Declared ligand SMILES matches its CCD or PubChem record by InChIKey: 2 InChIKey comparisons identical (pass)."
+    },
+    {
+        "seq": 7,
+        "ts": "2026-10-17T16:59:09.188774Z",
+        "t": "0.3s",
+        "layer": 0,
+        "kind": "layer",
+        "text": "L0  end  provenance: pass=3  266 ms",
+        "plain": "Layer 0, provenance, finished in 266 ms: 3 checks, 3 pass, 0 warn, 0 stop, 0 skip.",
+        "result": "pass"
+    },
+    {
+        "seq": 8,
+        "ts": "2026-10-17T16:59:09.188805Z",
+        "t": "0.3s",
+        "layer": 1,
+        "kind": "layer",
+        "text": "L1  start  input integrity: 10 checks",
+        "plain": "Layer 1, input integrity, started: 10 checks."
+    },
+    {
+        "seq": 9,
+        "ts": "2026-10-17T16:59:09.189248Z",
+        "t": "0.3s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.sequence.matches_record  pass  1 sequences identical to their records  [proteins=1, differing=0]  0 ms",
+        "plain": "Sequence given to the run matches the declared source record: 1 sequences identical to their records (pass)."
+    },
+    {
+        "seq": 10,
+        "ts": "2026-10-17T16:59:09.190091Z",
+        "t": "0.3s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.sequence.no_truncation_substitution  pass  1 sequences have no truncation, substitution or non-standard residue  [substitutions=0, n_truncation=0, c_truncation=0, internal_deletions=0, insertions=0, non_standard=0]  0 ms",
+        "plain": "No silent truncation, substitution or non-standard residue: 1 sequences have no truncation, substitution or non-standard residue (pass)."
+    },
+    {
+        "seq": 11,
+        "ts": "2026-10-17T16:59:09.190606Z",
+        "t": "0.3s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.msa.integrity  pass  1 MSAs match their chains  [msas=1, query_only=0, query_mismatch=0, shared_across_chains=0]  0 ms",
+        "plain": "MSA belongs to its chain, is not query-only and is not shared across chains: 1 MSAs match their chains (pass)."
+    },
+    {
+        "seq": 12,
+        "ts": "2026-10-17T16:59:09.195220Z",
+        "t": "0.3s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.ligand.sanitization  pass  1 ligands sanitised  [ligands=1, failed=0, metal_disconnected=0, max_abs_charge=0]  1 ms",
+        "plain": "Ligand parses, valences are correct and charges are within range: 1 ligands sanitised (pass)."
+    },
+    {
+        "seq": 13,
+        "ts": "2026-10-17T16:59:09.204448Z",
+        "t": "0.3s",
+        "layer": 1,
+        "kind": "check",
+        "result": "warn",
+        "text": "L1  l1.ligand.stereo_defined  warn  1 stereo elements undefined  [stereo_elements=1, undefined=1, unparsed=0]  9 ms",
+        "plain": "Stereocentres and double-bond geometry explicitly defined: 1 stereo elements undefined (warn)."
+    },
+    {
+        "seq": 14,
+        "ts": "2026-10-17T16:59:09.205400Z",
+        "t": "0.3s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.ligand.identity  pass  2 ligand identities identical  [comparisons=2, mismatches=0, metal_skeleton_only=0]  1 ms",
+        "plain": "Ligand given to the run matches its database record by InChIKey: 2 ligand identities identical (pass)."
+    },
+    {
+        "seq": 15,
+        "ts": "2026-10-17T16:59:09.367955Z",
+        "t": "0.4s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.receptor.chains  pass  1 chains present; 223 residues agree with SEQRES numbering  [chains_declared=1, chains_missing=0, residues_checked=223, numbering_mismatches=0]  162 ms",
+        "plain": "Receptor complete, chains and residue numbering as declared: 1 chains present; 223 residues agree with SEQRES numbering (pass)."
+    },
+    {
+        "seq": 16,
+        "ts": "2026-10-17T16:59:09.370133Z",
+        "t": "0.4s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.receptor.altlocs  pass  no alternate locations  [altloc_residues=0, altloc_atoms=0]  2 ms",
+        "plain": "Alternate locations resolved deliberately: no alternate locations (pass)."
+    },
+    {
+        "seq": 17,
+        "ts": "2026-10-17T16:59:09.370424Z",
+        "t": "0.4s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.context.composition  pass  1 proteins match reference stoichiometry  [proteins=1, mismatched=0]  0 ms",
+        "plain": "Chain composition and stoichiometry match the declared assembly: 1 proteins match reference stoichiometry (pass)."
+    },
+    {
+        "seq": 18,
+        "ts": "2026-10-17T16:59:09.388369Z",
+        "t": "0.5s",
+        "layer": 1,
+        "kind": "check",
+        "result": "pass",
+        "text": "L1  l1.provenance.model_config  pass  model provenance recorded: executor=boltz2, version=2.2.1, checkpoint=boltz2_conf.ckpt, database_snapshot=colabfold_envdb_202108  [required=4, missing=0, seeds=5]  14 ms",
+        "plain": "Model version, checkpoint and database snapshot recorded and consistent: model provenance recorded: executor=boltz2, version=2.2.1, checkpoint=boltz2_conf.ckpt, database_snapshot=colabfold_envdb_202108 (pass)."
+    },
+    {
+        "seq": 19,
+        "ts": "2026-10-17T16:59:09.388452Z",
+        "t": "0.5s",
+        "layer": 1,
+        "kind": "layer",
+        "text": "L1  end  input integrity: pass=9 warn=1  200 ms",
+        "plain": "Layer 1, input integrity, finished in 200 ms: 10 checks, 9 pass, 1 warn, 0 stop, 0 skip.",
+        "result": "warn"
+    },
+    {
+        "seq": 20,
+        "ts": "2026-10-17T16:59:09.388475Z",
+        "t": "0.5s",
+        "layer": 2,
+        "kind": "layer",
+        "text": "L2  start  input adequacy: 8 checks",
+        "plain": "Layer 2, input adequacy, started: 8 checks."
+    },
+    {
+        "seq": 21,
+        "ts": "2026-10-17T16:59:09.562813Z",
+        "t": "0.6s",
+        "layer": 2,
+        "kind": "check",
+        "result": "warn",
+        "text": "L2  l2.msa.depth  warn  Neff below 30 for trypsin  [msas=1, min_neff=1.8, min_sequences=4, max_gap_fraction=0.0]  174 ms",
+        "plain": "Alignment depth, distinct sequences, Neff and gap fraction: Neff below 30 for trypsin (warn)."
+    },
+    {
+        "seq": 22,
+        "ts": "2026-10-17T16:59:09.892482Z",
+        "t": "1.0s",
+        "layer": 2,
+        "kind": "check",
+        "result": "pass",
+        "text": "L2  l2.context.cofactors  pass  components within 8.0 \u00c5 of BEN: none  [near_site=0, missing=0, uniprot_cofactors=1]  329 ms",
+        "plain": "Required cofactors, ions and partners present: components within 8.0 \u00c5 of BEN: none (pass)."
+    },
+    {
+        "seq": 23,
+        "ts": "2026-10-17T16:59:09.918190Z",
+        "t": "1.0s",
+        "layer": 2,
+        "kind": "check",
+        "result": "pass",
+        "text": "L2  l2.pocket.resolved  pass  22 pocket residues complete in 3PTB.cif  [pocket_residues=22, incomplete=0, sequence_gaps=0]  25 ms",
+        "plain": "Pocket residues resolved, no missing loops lining the pocket: 22 pocket residues complete in 3PTB.cif (pass)."
+    },
+    {
+        "seq": 24,
+        "ts": "2026-10-17T16:59:09.923900Z",
+        "t": "1.0s",
+        "layer": 2,
+        "kind": "check",
+        "result": "pass",
+        "text": "L2  l2.receptor.state  pass  3PTB.cif holo: BEN in the site  [state=holo, site_ligands=1]  5 ms",
+        "plain": "Receptor state apo or holo: 3PTB.cif holo: BEN in the site (pass)."
+    },
+    {
+        "seq": 25,
+        "ts": "2026-10-17T16:59:09.924332Z",
+        "t": "1.0s",
+        "layer": 2,
+        "kind": "check",
+        "result": "skip",
+        "text": "L2  l2.receptor.protonation  skip  no docking receptor",
+        "plain": "Receptor protonation at the stated pH: skipped, no docking receptor."
+    },
+    {
+        "seq": 26,
+        "ts": "2026-10-17T16:59:10.040829Z",
+        "t": "1.1s",
+        "layer": 2,
+        "kind": "check",
+        "result": "warn",
+        "text": "L2  l2.ligand.protonation  warn  benzamidine: declared form N=C(N)c1ccccc1 differs from enumerated NC(=[NH2+])c1ccccc1  [ph=7.4, max_states=1, declared_not_enumerated=1, max_tautomers=1]  116 ms",
+        "plain": "Ligand protonation and tautomers enumerated at the stated pH: benzamidine: declared form N=C(N)c1ccccc1 differs from enumerated NC(=[NH2+])c1ccccc1 (warn)."
+    },
+    {
+        "seq": 27,
+        "ts": "2026-10-17T16:59:12.614477Z",
+        "t": "3.7s",
+        "layer": 2,
+        "kind": "check",
+        "result": "pass",
+        "text": "L2  l2.ligand.conformers  pass  10 ETKDG conformers per ligand, MMFF minimised  [ligands=1, failed=0, min_embedded=10]  2.6 s",
+        "plain": "Ligand conformers generated and minimised: 10 ETKDG conformers per ligand, MMFF minimised (pass)."
+    },
+    {
+        "seq": 28,
+        "ts": "2026-10-17T16:59:12.614875Z",
+        "t": "3.7s",
+        "layer": 2,
+        "kind": "check",
+        "result": "skip",
+        "text": "L2  l2.docking.box  skip  no docking executor or box declared",
+        "plain": "Docking box encloses the pocket with margin: skipped, no docking executor or box declared."
+    },
+    {
+        "seq": 29,
+        "ts": "2026-10-17T16:59:12.615025Z",
+        "t": "3.7s",
+        "layer": 2,
+        "kind": "layer",
+        "text": "L2  end  input adequacy: pass=4 skip=2 warn=2  3.2 s",
+        "plain": "Layer 2, input adequacy, finished in 3.2 s: 8 checks, 4 pass, 2 warn, 0 stop, 2 skip.",
+        "result": "warn"
+    },
+    {
+        "seq": 30,
+        "ts": "2026-10-17T16:59:12.615090Z",
+        "t": "3.7s",
+        "layer": 3,
+        "kind": "layer",
+        "text": "L3  start  applicability: 6 checks",
+        "plain": "Layer 3, applicability, started: 6 checks."
+    },
+    {
+        "seq": 31,
+        "ts": "2026-10-17T16:59:12.615504Z",
+        "t": "3.7s",
+        "layer": 3,
+        "kind": "check",
+        "result": "pass",
+        "text": "L3  l3.model.training_cutoff  pass  boltz2 2023-06-01; reference 3PTB released 1983-01-18, before the cutoff of boltz2  [executors=1, unknown=0, reference_released=1983-01-18]  0 ms",
+        "plain": "Model training cutoff recorded: boltz2 2023-06-01; reference 3PTB released 1983-01-18, before the cutoff of boltz2 (pass)."
+    },
+    {
+        "seq": 32,
+        "ts": "2026-10-17T16:59:12.835942Z",
+        "t": "3.9s",
+        "layer": 3,
+        "kind": "check",
+        "result": "warn",
+        "text": "L3  l3.exposure.pocket  warn  max similarity 100.0 to 3PTB (BEN, SuCOS 1.0, coverage 1.0), released before 2023-06-01  [cutoff=2023-06-01, entries_compared=5, max_similarity=100.0, pocket_residues=22]  220 ms",
+        "plain": "Pocket similarity to pre-cutoff complexes (SuCOS times pocket coverage): max similarity 100.0 to 3PTB (BEN, SuCOS 1.0, coverage 1.0), released before 2023-06-01 (warn)."
+    },
+    {
+        "seq": 33,
+        "ts": "2026-10-17T16:59:12.836364Z",
+        "t": "3.9s",
+        "layer": 3,
+        "kind": "check",
+        "result": "warn",
+        "text": "L3  l3.exposure.ligand_prevalence  warn  314 PDB entries released before 2023-06-01 (boltz2 cutoff) contain analogues of benzamidine above Tanimoto 0.9: BEN  [cutoff=2023-06-01, systems=314, analogue_components=1]  0 ms",
+        "plain": "Ligand analogues in pre-cutoff training systems: 314 PDB entries released before 2023-06-01 (boltz2 cutoff) contain analogues of benzamidine above Tanimoto 0.9: BEN (warn)."
+    },
+    {
+        "seq": 34,
+        "ts": "2026-10-17T16:59:12.848320Z",
+        "t": "3.9s",
+        "layer": 3,
+        "kind": "check",
+        "result": "pass",
+        "text": "L3  l3.exposure.sequence  pass  trypsin: 563 entries at 95 percent identity, 927 at 40 percent, released before 2023-06-01 (reported, not gating)  [cutoff=2023-06-01, entries_95=563, entries_40=927]  12 ms",
+        "plain": "Chain sequence identity to pre-cutoff entries (secondary measure): trypsin: 563 entries at 95 percent identity, 927 at 40 percent, released before 2023-06-01 (reported, not gating) (pass)."
+    },
+    {
+        "seq": 35,
+        "ts": "2026-10-17T16:59:12.867611Z",
+        "t": "3.9s",
+        "layer": 3,
+        "kind": "check",
+        "result": "pass",
+        "text": "L3  l3.regime.modality  pass  modalities protein, protein_ligand inside the validated set; 232 tokens  [modalities=2, tokens=232, outside=0]  3 ms",
+        "plain": "Modality inside the validated set; token count against the training crop: modalities protein, protein_ligand inside the validated set; 232 tokens (pass)."
+    },
+    {
+        "seq": 36,
+        "ts": "2026-10-17T16:59:12.868013Z",
+        "t": "3.9s",
+        "layer": 3,
+        "kind": "check",
+        "result": "pass",
+        "text": "L3  l3.metric.endpoint  pass  endpoint pose produced by boltz2  [endpoint=pose, executors=1, not_fitting=0]  0 ms",
+        "plain": "Endpoint fits the tool: endpoint pose produced by boltz2 (pass)."
+    },
+    {
+        "seq": 37,
+        "ts": "2026-10-17T16:59:12.868069Z",
+        "t": "3.9s",
+        "layer": 3,
+        "kind": "layer",
+        "text": "L3  end  applicability: pass=4 warn=2  253 ms",
+        "plain": "Layer 3, applicability, finished in 253 ms: 6 checks, 4 pass, 2 warn, 0 stop, 0 skip.",
+        "result": "warn"
+    },
+    {
+        "seq": 38,
+        "ts": "2026-10-17T16:59:12.868092Z",
+        "t": "3.9s",
+        "layer": 4,
+        "kind": "layer",
+        "text": "L4  start  output validity: 7 checks",
+        "plain": "Layer 4, output validity, started: 7 checks."
+    },
+    {
+        "seq": 39,
+        "ts": "2026-10-17T16:59:12.868447Z",
+        "t": "3.9s",
+        "layer": 4,
+        "kind": "check",
+        "result": "skip",
+        "text": "L4  l4.posebusters  skip  no predictions declared (pre-run assessment)",
+        "plain": "PoseBusters geometry, stereochemistry, clashes and protein contact: skipped, no predictions declared (pre-run assessment)."
+    },
+    {
+        "seq": 40,
+        "ts": "2026-10-17T16:59:12.868683Z",
+        "t": "3.9s",
+        "layer": 4,
+        "kind": "check",
+        "result": "skip",
+        "text": "L4  l4.torsion_strain  skip  no predictions declared (pre-run assessment)",
+        "plain": "Torsional strain of the ligand pose: skipped, no predictions declared (pre-run assessment)."
+    },
+    {
+        "seq": 41,
+        "ts": "2026-10-17T16:59:12.869180Z",
+        "t": "3.9s",
+        "layer": 4,
+        "kind": "check",
+        "result": "skip",
+        "text": "L4  l4.interactions.fingerprint  skip  no predictions declared (pre-run assessment)",
+        "plain": "Interaction fingerprint (PLIP): skipped, no predictions declared (pre-run assessment)."
+    },
+    {
+        "seq": 42,
+        "ts": "2026-10-17T16:59:12.869407Z",
+        "t": "3.9s",
+        "layer": 4,
+        "kind": "check",
+        "result": "skip",
+        "text": "L4  l4.interactions.unsatisfied_polars  skip  no predictions declared (pre-run assessment)",
+        "plain": "Buried ligand polar atoms without a hydrogen-bond partner: skipped, no predictions declared (pre-run assessment)."
+    },
+    {
+        "seq": 43,
+        "ts": "2026-10-17T16:59:12.869597Z",
+        "t": "3.9s",
+        "layer": 4,
+        "kind": "check",
+        "result": "skip",
+        "text": "L4  l4.interactions.hydrophobic  skip  no predictions declared (pre-run assessment)",
+        "plain": "Hydrophobic complementarity of buried ligand surface: skipped, no predictions declared (pre-run assessment)."
+    },
+    {
+        "seq": 44,
+        "ts": "2026-10-17T16:59:12.869825Z",
+        "t": "3.9s",
+        "layer": 4,
+        "kind": "check",
+        "result": "skip",
+        "text": "L4  l4.interactions.known_binders  skip  no predictions declared (pre-run assessment)",
+        "plain": "Interactions of the crystal ligand reproduced by the pose: skipped, no predictions declared (pre-run assessment)."
+    },
+    {
+        "seq": 45,
+        "ts": "2026-10-17T16:59:12.869939Z",
+        "t": "3.9s",
+        "layer": 4,
+        "kind": "check",
+        "result": "skip",
+        "text": "L4  l4.minimisation_drift  skip  no predictions declared (pre-run assessment)",
+        "plain": "Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF): skipped, no predictions declared (pre-run assessment)."
+    },
+    {
+        "seq": 46,
+        "ts": "2026-10-17T16:59:12.869970Z",
+        "t": "3.9s",
+        "layer": 4,
+        "kind": "layer",
+        "text": "L4  end  output validity: skip=7  2 ms",
+        "plain": "Layer 4, output validity, finished in 2 ms: 7 checks, 0 pass, 0 warn, 0 stop, 7 skip.",
+        "result": "skip"
+    },
+    {
+        "seq": 47,
+        "ts": "2026-10-17T16:59:12.869989Z",
+        "t": "3.9s",
+        "layer": 5,
+        "kind": "layer",
+        "text": "L5  start  output support: 5 checks",
+        "plain": "Layer 5, output support, started: 5 checks."
+    },
+    {
+        "seq": 48,
+        "ts": "2026-10-17T16:59:12.870186Z",
+        "t": "3.9s",
+        "layer": 5,
+        "kind": "check",
+        "result": "skip",
+        "text": "L5  l5.confidence.local  skip  no predictions declared (pre-run assessment)",
+        "plain": "Confidence restricted to the pocket; per-model thresholds: skipped, no predictions declared (pre-run assessment)."
+    },
+    {
+        "seq": 49,
+        "ts": "2026-10-17T16:59:12.870385Z",
+        "t": "3.9s",
+        "layer": 5,
+        "kind": "check",
+        "result": "skip",
+        "text": "L5  l5.sampling.seeds  skip  no predictions declared (pre-run assessment)",
+        "plain": "Independent seeds counted separately from samples; duplicates flagged: skipped, no predictions declared (pre-run assessment)."
+    },
+    {
+        "seq": 50,
+        "ts": "2026-10-17T16:59:12.870586Z",
+        "t": "3.9s",
+        "layer": 5,
+        "kind": "check",
+        "result": "skip",
+        "text": "L5  l5.sampling.clusters  skip  no predictions declared (pre-run assessment)",
+        "plain": "Medoid of the largest cluster, populations, pairwise spread, site and pose accuracy: skipped, no predictions declared (pre-run assessment)."
+    },
+    {
+        "seq": 51,
+        "ts": "2026-10-17T16:59:12.870776Z",
+        "t": "3.9s",
+        "layer": 5,
+        "kind": "check",
+        "result": "skip",
+        "text": "L5  l5.agreement.cross_family  skip  no predictions declared (pre-run assessment)",
+        "plain": "Agreement between methods, weighted by independence: skipped, no predictions declared (pre-run assessment)."
+    },
+    {
+        "seq": 52,
+        "ts": "2026-10-17T16:59:12.870983Z",
+        "t": "3.9s",
+        "layer": 5,
+        "kind": "check",
+        "result": "skip",
+        "text": "L5  l5.controls.redocking  skip  no predictions declared (pre-run assessment)",
+        "plain": "Redocking control reproduces the crystal pose: skipped, no predictions declared (pre-run assessment)."
+    },
+    {
+        "seq": 53,
+        "ts": "2026-10-17T16:59:12.871012Z",
+        "t": "3.9s",
+        "layer": 5,
+        "kind": "layer",
+        "text": "L5  end  output support: skip=5  1 ms",
+        "plain": "Layer 5, output support, finished in 1 ms: 5 checks, 0 pass, 0 warn, 0 stop, 5 skip.",
+        "result": "skip"
+    },
+    {
+        "seq": 54,
+        "ts": "2026-10-17T16:59:12.919080Z",
+        "t": "4.0s",
+        "layer": null,
+        "kind": "run",
+        "text": "run  end  verdict=pass_with_warnings stops=0 warnings=5 incomplete=0  4.0 s",
+        "plain": "Run finished after 4.0 s with verdict narrowed: 0 stops, 5 warnings, 0 incomplete.",
+        "result": "warn"
+    },
+    {
+        "seq": 55,
+        "ts": "2026-10-17T16:59:12.919155Z",
+        "t": "4.0s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  record.json",
+        "plain": "Wrote record.json.",
+        "path": "record.json",
+        "url": "/runs/ui-3ptb/files/record.json"
+    },
+    {
+        "seq": 56,
+        "ts": "2026-10-17T16:59:12.919180Z",
+        "t": "4.0s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  provenance.json",
+        "plain": "Wrote provenance.json.",
+        "path": "provenance.json",
+        "url": "/runs/ui-3ptb/files/provenance.json"
+    },
+    {
+        "seq": 57,
+        "ts": "2026-10-17T16:59:12.967125Z",
+        "t": "4.0s",
+        "layer": null,
+        "kind": "log",
+        "text": "report  start  renders, figures, provenance graph, markdown",
+        "plain": "Stage report started: renders, figures, provenance graph, markdown."
+    },
+    {
+        "seq": 58,
+        "ts": "2026-10-17T16:59:24.876529Z",
+        "t": "16.0s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/3PTB_overview.png (render)",
+        "plain": "Wrote renders/3PTB_overview.png.",
+        "path": "renders/3PTB_overview.png",
+        "url": "/runs/ui-3ptb/files/renders/3PTB_overview.png"
+    },
+    {
+        "seq": 59,
+        "ts": "2026-10-17T16:59:24.877797Z",
+        "t": "16.0s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/3PTB_pocket.png (render)",
+        "plain": "Wrote renders/3PTB_pocket.png.",
+        "path": "renders/3PTB_pocket.png",
+        "url": "/runs/ui-3ptb/files/renders/3PTB_pocket.png"
+    },
+    {
+        "seq": 60,
+        "ts": "2026-10-17T16:59:24.878255Z",
+        "t": "16.0s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/3PTB.pse (session)",
+        "plain": "Wrote renders/3PTB.pse.",
+        "path": "renders/3PTB.pse",
+        "url": "/runs/ui-3ptb/files/renders/3PTB.pse"
+    },
+    {
+        "seq": 61,
+        "ts": "2026-10-17T16:59:39.140736Z",
+        "t": "30.2s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/1BTY_overview.png (render)",
+        "plain": "Wrote renders/1BTY_overview.png.",
+        "path": "renders/1BTY_overview.png",
+        "url": "/runs/ui-3ptb/files/renders/1BTY_overview.png"
+    },
+    {
+        "seq": 62,
+        "ts": "2026-10-17T16:59:39.164454Z",
+        "t": "30.2s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/1BTY_pocket.png (render)",
+        "plain": "Wrote renders/1BTY_pocket.png.",
+        "path": "renders/1BTY_pocket.png",
+        "url": "/runs/ui-3ptb/files/renders/1BTY_pocket.png"
+    },
+    {
+        "seq": 63,
+        "ts": "2026-10-17T16:59:39.172949Z",
+        "t": "30.3s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/1BTY.pse (session)",
+        "plain": "Wrote renders/1BTY.pse.",
+        "path": "renders/1BTY.pse",
+        "url": "/runs/ui-3ptb/files/renders/1BTY.pse"
+    },
+    {
+        "seq": 64,
+        "ts": "2026-10-17T16:59:52.341119Z",
+        "t": "43.4s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/1C1N_overview.png (render)",
+        "plain": "Wrote renders/1C1N_overview.png.",
+        "path": "renders/1C1N_overview.png",
+        "url": "/runs/ui-3ptb/files/renders/1C1N_overview.png"
+    },
+    {
+        "seq": 65,
+        "ts": "2026-10-17T16:59:52.342657Z",
+        "t": "43.4s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/1C1N_pocket.png (render)",
+        "plain": "Wrote renders/1C1N_pocket.png.",
+        "path": "renders/1C1N_pocket.png",
+        "url": "/runs/ui-3ptb/files/renders/1C1N_pocket.png"
+    },
+    {
+        "seq": 66,
+        "ts": "2026-10-17T16:59:52.343980Z",
+        "t": "43.4s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/1C1N.pse (session)",
+        "plain": "Wrote renders/1C1N.pse.",
+        "path": "renders/1C1N.pse",
+        "url": "/runs/ui-3ptb/files/renders/1C1N.pse"
+    },
+    {
+        "seq": 67,
+        "ts": "2026-10-17T17:00:04.036485Z",
+        "t": "55.1s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/1C5P_overview.png (render)",
+        "plain": "Wrote renders/1C5P_overview.png.",
+        "path": "renders/1C5P_overview.png",
+        "url": "/runs/ui-3ptb/files/renders/1C5P_overview.png"
+    },
+    {
+        "seq": 68,
+        "ts": "2026-10-17T17:00:04.038969Z",
+        "t": "55.1s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/1C5P_pocket.png (render)",
+        "plain": "Wrote renders/1C5P_pocket.png.",
+        "path": "renders/1C5P_pocket.png",
+        "url": "/runs/ui-3ptb/files/renders/1C5P_pocket.png"
+    },
+    {
+        "seq": 69,
+        "ts": "2026-10-17T17:00:04.044317Z",
+        "t": "55.1s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/1C5P.pse (session)",
+        "plain": "Wrote renders/1C5P.pse.",
+        "path": "renders/1C5P.pse",
+        "url": "/runs/ui-3ptb/files/renders/1C5P.pse"
+    },
+    {
+        "seq": 70,
+        "ts": "2026-10-17T17:00:16.494240Z",
+        "t": "67.6s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/1CE5_overview.png (render)",
+        "plain": "Wrote renders/1CE5_overview.png.",
+        "path": "renders/1CE5_overview.png",
+        "url": "/runs/ui-3ptb/files/renders/1CE5_overview.png"
+    },
+    {
+        "seq": 71,
+        "ts": "2026-10-17T17:00:16.495039Z",
+        "t": "67.6s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/1CE5_pocket.png (render)",
+        "plain": "Wrote renders/1CE5_pocket.png.",
+        "path": "renders/1CE5_pocket.png",
+        "url": "/runs/ui-3ptb/files/renders/1CE5_pocket.png"
+    },
+    {
+        "seq": 72,
+        "ts": "2026-10-17T17:00:16.495752Z",
+        "t": "67.6s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  renders/1CE5.pse (session)",
+        "plain": "Wrote renders/1CE5.pse.",
+        "path": "renders/1CE5.pse",
+        "url": "/runs/ui-3ptb/files/renders/1CE5.pse"
+    },
+    {
+        "seq": 73,
+        "ts": "2026-10-17T17:00:18.093173Z",
+        "t": "69.2s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  figures/gates_by_layer.svg (figure)",
+        "plain": "Wrote figures/gates_by_layer.svg.",
+        "path": "figures/gates_by_layer.svg",
+        "url": "/runs/ui-3ptb/files/figures/gates_by_layer.svg"
+    },
+    {
+        "seq": 74,
+        "ts": "2026-10-17T17:00:18.093313Z",
+        "t": "69.2s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  figures/gates_by_layer.csv (data)",
+        "plain": "Wrote figures/gates_by_layer.csv.",
+        "path": "figures/gates_by_layer.csv",
+        "url": "/runs/ui-3ptb/files/figures/gates_by_layer.csv"
+    },
+    {
+        "seq": 75,
+        "ts": "2026-10-17T17:00:18.348577Z",
+        "t": "69.4s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  graph.json (graph)",
+        "plain": "Wrote graph.json.",
+        "path": "graph.json",
+        "url": "/runs/ui-3ptb/files/graph.json"
+    },
+    {
+        "seq": 76,
+        "ts": "2026-10-17T17:00:18.348709Z",
+        "t": "69.4s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  graph.mmd (graph)",
+        "plain": "Wrote graph.mmd.",
+        "path": "graph.mmd",
+        "url": "/runs/ui-3ptb/files/graph.mmd"
+    },
+    {
+        "seq": 77,
+        "ts": "2026-10-17T17:00:18.348835Z",
+        "t": "69.4s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  graph.svg (graph)",
+        "plain": "Wrote graph.svg.",
+        "path": "graph.svg",
+        "url": "/runs/ui-3ptb/files/graph.svg"
+    },
+    {
+        "seq": 78,
+        "ts": "2026-10-17T17:00:18.353384Z",
+        "t": "69.4s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  ui_record.json (report)",
+        "plain": "Wrote ui_record.json.",
+        "path": "ui_record.json",
+        "url": "/runs/ui-3ptb/files/ui_record.json"
+    },
+    {
+        "seq": 79,
+        "ts": "2026-10-17T17:00:18.358328Z",
+        "t": "69.4s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  report.md (report)",
+        "plain": "Wrote report.md.",
+        "path": "report.md",
+        "url": "/runs/ui-3ptb/files/report.md"
+    },
+    {
+        "seq": 80,
+        "ts": "2026-10-17T17:00:18.360400Z",
+        "t": "69.4s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  report.html (report)",
+        "plain": "Wrote report.html.",
+        "path": "report.html",
+        "url": "/runs/ui-3ptb/files/report.html"
+    },
+    {
+        "seq": 81,
+        "ts": "2026-10-17T17:00:18.361299Z",
+        "t": "69.4s",
+        "layer": null,
+        "kind": "artifact",
+        "text": "artifact  report.json (report)",
+        "plain": "Wrote report.json.",
+        "path": "report.json",
+        "url": "/runs/ui-3ptb/files/report.json"
+    },
+    {
+        "seq": 82,
+        "ts": "2026-10-17T17:00:18.374405Z",
+        "t": "69.5s",
+        "layer": null,
+        "kind": "log",
+        "text": "report  end  24 files  65.4 s",
+        "plain": "Stage report finished: 24 files.",
+        "result": "pass"
+    }
+]

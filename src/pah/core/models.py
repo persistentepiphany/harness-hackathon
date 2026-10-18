@@ -34,8 +34,10 @@ class Layer(IntEnum):
 class EvidenceLevel(StrEnum):
     """Strength of the evidence behind a threshold or failure mode."""
 
+    DEFINITIONAL = "definitional"
     REPRODUCED = "reproduced"
     PUBLISHED = "published"
+    INHERITED = "inherited"
     SUSPECTED = "suspected"
     UNCALIBRATED = "uncalibrated"
 
@@ -55,6 +57,11 @@ class Threshold(_Frozen):
     comparator: str = Field(description="One of <, <=, >, >=, ==, !=, in")
     origin: str = Field(description="Citation or calibration run the value comes from")
     evidence_level: EvidenceLevel = EvidenceLevel.UNCALIBRATED
+    measurement: str | None = Field(
+        default=None,
+        description="Name of the measurement compared with this threshold, when it differs "
+        "from the threshold name",
+    )
 
 
 class Measurement(_Frozen):
@@ -89,6 +96,14 @@ class Finding(_Frozen):
     artifacts: tuple[str, ...] = ()
     tool: ToolRef | None = None
     duration_s: float | None = None
+    category: str | None = Field(
+        default=None, description="What the check examines (configs/standing.yaml categories)"
+    )
+    standing: str | None = Field(
+        default=None,
+        description="definitional, published, inherited, uncalibrated or undeclared "
+        "(configs/standing.yaml); set by the engine",
+    )
 
 
 class EventKind(StrEnum):

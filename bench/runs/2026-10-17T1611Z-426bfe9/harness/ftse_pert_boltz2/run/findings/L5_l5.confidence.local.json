@@ -1,0 +1,157 @@
+{
+  "check_id": "l5.confidence.local",
+  "layer": 5,
+  "gate": "pass",
+  "message": "boltz2/seed3/sample0: pocket_plddt 85.5",
+  "measurements": [
+    {
+      "name": "poses",
+      "value": 3,
+      "unit": null
+    },
+    {
+      "name": "pocket_plddt",
+      "value": 85.5,
+      "unit": null
+    },
+    {
+      "name": "global_plddt",
+      "value": 92.6,
+      "unit": null
+    },
+    {
+      "name": "iptm",
+      "value": 0.898,
+      "unit": null
+    },
+    {
+      "name": "ptm",
+      "value": 0.94,
+      "unit": null
+    },
+    {
+      "name": "confidence_score",
+      "value": 0.893,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "boltz2.pocket_plddt",
+      "value": 70,
+      "comparator": ">=",
+      "origin": "AlphaFold DB pLDDT bands (70 and above: confident backbone), applied to pocket residues; not calibrated for ligand pose",
+      "evidence_level": "published"
+    }
+  ],
+  "evidence": {
+    "representative": "boltz2/seed3/sample0",
+    "poses": [
+      {
+        "pose": "boltz2/seed1/sample0",
+        "confidence_score": 0.889,
+        "ptm": 0.943,
+        "iptm": 0.907,
+        "ligand_iptm": 0.907,
+        "protein_iptm": 0.0,
+        "complex_plddt": 0.885,
+        "complex_iplddt": 0.738,
+        "complex_pde": 0.47,
+        "complex_ipde": 1.22,
+        "chains_ptm.0": 0.951,
+        "chains_ptm.1": 0.868,
+        "global_plddt": 92.2,
+        "pocket_plddt": 85.8,
+        "pocket_residues": 24,
+        "pae": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/ftse_pert_boltz2/run/predictions/00_boltz2/boltz2/seed1/sample0/pae.npy"
+      },
+      {
+        "pose": "boltz2/seed2/sample0",
+        "confidence_score": 0.89,
+        "ptm": 0.943,
+        "iptm": 0.903,
+        "ligand_iptm": 0.903,
+        "protein_iptm": 0.0,
+        "complex_plddt": 0.886,
+        "complex_iplddt": 0.733,
+        "complex_pde": 0.474,
+        "complex_ipde": 1.252,
+        "chains_ptm.0": 0.951,
+        "chains_ptm.1": 0.873,
+        "global_plddt": 92.4,
+        "pocket_plddt": 83.3,
+        "pocket_residues": 22,
+        "pae": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/ftse_pert_boltz2/run/predictions/00_boltz2/boltz2/seed2/sample0/pae.npy"
+      },
+      {
+        "pose": "boltz2/seed3/sample0",
+        "confidence_score": 0.893,
+        "ptm": 0.94,
+        "iptm": 0.898,
+        "ligand_iptm": 0.898,
+        "protein_iptm": 0.0,
+        "complex_plddt": 0.892,
+        "complex_iplddt": 0.753,
+        "complex_pde": 0.484,
+        "complex_ipde": 1.307,
+        "chains_ptm.0": 0.949,
+        "chains_ptm.1": 0.871,
+        "global_plddt": 92.6,
+        "pocket_plddt": 85.5,
+        "pocket_residues": 23,
+        "pae": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/ftse_pert_boltz2/run/predictions/00_boltz2/boltz2/seed3/sample0/pae.npy"
+      }
+    ],
+    "metrics": [
+      {
+        "name": "affinity_pred_value",
+        "value": 0.667865514755249,
+        "tool": "boltz2",
+        "read": "ranking within a series, never pose quality",
+        "separate": true
+      },
+      {
+        "name": "affinity_probability_binary",
+        "value": 0.3289666771888733,
+        "tool": "boltz2",
+        "read": "ranking within a series, never pose quality",
+        "separate": true
+      },
+      {
+        "name": "affinity_pred_value",
+        "value": 0.6961108446121216,
+        "tool": "boltz2",
+        "read": "ranking within a series, never pose quality",
+        "separate": true
+      },
+      {
+        "name": "affinity_probability_binary",
+        "value": 0.29148268699645996,
+        "tool": "boltz2",
+        "read": "ranking within a series, never pose quality",
+        "separate": true
+      },
+      {
+        "name": "affinity_pred_value",
+        "value": 0.7126880884170532,
+        "tool": "boltz2",
+        "read": "ranking within a series, never pose quality",
+        "separate": true
+      },
+      {
+        "name": "affinity_probability_binary",
+        "value": 0.33395737409591675,
+        "tool": "boltz2",
+        "read": "ranking within a series, never pose quality",
+        "separate": true
+      }
+    ],
+    "pae": {
+      "pose": "boltz2/seed1/sample0",
+      "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1611Z-426bfe9/harness/ftse_pert_boltz2/run/predictions/00_boltz2/boltz2/seed1/sample0/pae.npy"
+    }
+  },
+  "artifacts": [],
+  "tool": null,
+  "duration_s": 0.033
+}

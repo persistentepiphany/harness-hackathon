@@ -35,6 +35,14 @@ class SkipReason(StrEnum):
     UNKNOWN_CHECK = "unknown_check"
 
 
+class GateKind(StrEnum):
+    """What a failing result of a check does to the claim: stop it, warn, or report only."""
+
+    STOP = "Stop"
+    WARN = "Warn"
+    REPORTED = "Reported"
+
+
 INCOMPLETE_REASONS = frozenset(
     {SkipReason.TOOL_MISSING, SkipReason.ERROR, SkipReason.UNKNOWN_CHECK}
 )
@@ -111,6 +119,7 @@ class Check(ABC):
     layer: ClassVar[Layer]
     title: ClassVar[str]
     requires_modules: ClassVar[tuple[str, ...]] = ()
+    gate_kind: ClassVar[GateKind] = GateKind.STOP
 
     def applies(self, ctx: CheckContext) -> str | None:
         """None when the check applies; otherwise the reason it does not."""
@@ -124,7 +133,7 @@ class Check(ABC):
         gate: Gate,
         message: str,
         *,
-        measurements: Mapping[str, float | int | str | bool | None] | None = None,
+        measurements: Mapping[str, Any] | None = None,
         units: Mapping[str, str] | None = None,
         thresholds: tuple[Threshold, ...] = (),
         evidence: dict[str, Any] | None = None,

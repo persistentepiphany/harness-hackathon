@@ -1,0 +1,182 @@
+{
+  "check_id": "l2.receptor.protonation",
+  "layer": 2,
+  "gate": "warn",
+  "message": "receptor has no hydrogens (protonation not assigned)",
+  "measurements": [
+    {
+      "name": "hydrogens_present",
+      "value": false,
+      "unit": null
+    },
+    {
+      "name": "ph",
+      "value": 7.4,
+      "unit": null
+    },
+    {
+      "name": "pocket_titratable",
+      "value": 19,
+      "unit": null
+    },
+    {
+      "name": "ambiguous",
+      "value": 0,
+      "unit": null
+    }
+  ],
+  "thresholds": [
+    {
+      "name": "pka_margin",
+      "value": 1.0,
+      "comparator": ">",
+      "origin": "Harness rule: a titratable pocket residue with PROPKA pKa within 1 unit of the stated pH has an ambiguous state; not yet calibrated",
+      "evidence_level": "uncalibrated"
+    }
+  ],
+  "evidence": {
+    "site": "ATP in 1B38",
+    "pocket_pka": [
+      {
+        "residue": "LYS9A",
+        "chain": "A",
+        "seqnum": 9,
+        "pka": 11.85,
+        "model_pka": 10.5
+      },
+      {
+        "residue": "GLU12A",
+        "chain": "A",
+        "seqnum": 12,
+        "pka": 3.35,
+        "model_pka": 4.5
+      },
+      {
+        "residue": "TYR15A",
+        "chain": "A",
+        "seqnum": 15,
+        "pka": 12.71,
+        "model_pka": 10.0
+      },
+      {
+        "residue": "TYR19A",
+        "chain": "A",
+        "seqnum": 19,
+        "pka": 9.81,
+        "model_pka": 10.0
+      },
+      {
+        "residue": "LYS20A",
+        "chain": "A",
+        "seqnum": 20,
+        "pka": 10.29,
+        "model_pka": 10.5
+      },
+      {
+        "residue": "LYS33A",
+        "chain": "A",
+        "seqnum": 33,
+        "pka": 10.39,
+        "model_pka": 10.5
+      },
+      {
+        "residue": "LYS34A",
+        "chain": "A",
+        "seqnum": 34,
+        "pka": 10.49,
+        "model_pka": 10.5
+      },
+      {
+        "residue": "LYS65A",
+        "chain": "A",
+        "seqnum": 65,
+        "pka": 10.3,
+        "model_pka": 10.5
+      },
+      {
+        "residue": "GLU81A",
+        "chain": "A",
+        "seqnum": 81,
+        "pka": 3.9,
+        "model_pka": 4.5
+      },
+      {
+        "residue": "HIS84A",
+        "chain": "A",
+        "seqnum": 84,
+        "pka": 5.79,
+        "model_pka": 6.5
+      },
+      {
+        "residue": "ASP86A",
+        "chain": "A",
+        "seqnum": 86,
+        "pka": 4.62,
+        "model_pka": 3.8
+      },
+      {
+        "residue": "LYS88A",
+        "chain": "A",
+        "seqnum": 88,
+        "pka": 10.69,
+        "model_pka": 10.5
+      },
+      {
+        "residue": "LYS89A",
+        "chain": "A",
+        "seqnum": 89,
+        "pka": 10.49,
+        "model_pka": 10.5
+      },
+      {
+        "residue": "HIS125A",
+        "chain": "A",
+        "seqnum": 125,
+        "pka": 5.02,
+        "model_pka": 6.5
+      },
+      {
+        "residue": "ASP127A",
+        "chain": "A",
+        "seqnum": 127,
+        "pka": 3.06,
+        "model_pka": 3.8
+      },
+      {
+        "residue": "LYS129A",
+        "chain": "A",
+        "seqnum": 129,
+        "pka": 11.15,
+        "model_pka": 10.5
+      },
+      {
+        "residue": "ASP145A",
+        "chain": "A",
+        "seqnum": 145,
+        "pka": 2.87,
+        "model_pka": 3.8
+      },
+      {
+        "residue": "TYR159A",
+        "chain": "A",
+        "seqnum": 159,
+        "pka": 11.24,
+        "model_pka": 10.0
+      },
+      {
+        "residue": "GLU162A",
+        "chain": "A",
+        "seqnum": 162,
+        "pka": 4.95,
+        "model_pka": 4.5
+      }
+    ],
+    "ambiguous": []
+  },
+  "artifacts": [],
+  "tool": {
+    "name": "propka",
+    "version": "3.5.1"
+  },
+  "duration_s": 0.347
+}

@@ -1,0 +1,278 @@
+{
+  "title": "Dock Harness",
+  "deck_style": {
+    "style_preset": "lab-report",
+    "composition_grammar": "scientific-evidence-plate",
+    "style_seed": "dock-harness-pitch",
+    "header_variant": "auto",
+    "footer_mode": "source-line",
+    "footer_page_numbers": true,
+    "readability_contract": {
+      "min_title_pt": 28,
+      "min_body_pt": 16,
+      "min_support_pt": 13,
+      "min_caption_pt": 9,
+      "min_footer_pt": 9,
+      "min_metadata_pt": 9,
+      "max_title_lines": 2
+    }
+  },
+  "slides": [
+    {
+      "type": "title",
+      "role": "title",
+      "slide_intent": "name the product and the question it answers",
+      "title": "Dock Harness",
+      "subtitle": "Does this prediction support the claim?",
+      "notes": "Bovine trypsin, PDB 3PTB, with benzamidine. The harness decides whether a co-folding or docking result can support a declared claim.",
+      "alt_text": "Trypsin 3PTB with benzamidine",
+      "kicker": "Prediction Assurance Harness (pah)"
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "scientific-figure",
+      "slide_intent": "problem",
+      "title": "Confidence scores do not validate a pose",
+      "figures": [
+        {
+          "path": "/home/user/harness-hackathon/bench/finding/flip.png",
+          "alt_text": "Grid of nine perturbed Boltz-2 poses: all missed on confidence score, all caught with the harness fact file"
+        }
+      ],
+      "figure_layout": "panel-grid",
+      "figure_frame": "open",
+      "interpretation": "Score only: 12 of 12 perturbed Boltz-2 poses called valid. Published: about 75 ROC AUC for poses within 2 Å (489 complexes).",
+      "sources": [
+        "S1",
+        "S2"
+      ],
+      "footer": "S1: bench/finding/flip.csv; bench/runs/*/report.md (4 systems x 3 runs; FtsE not shown). S2: docs/SPECIFICATION.md",
+      "notes": "Score-only verdicts use the confidence values alone, so the FtsE superposition issue does not affect them.",
+      "figure_alt_text": "Grid of nine perturbed Boltz-2 poses: all missed on confidence score, all caught with the harness fact file"
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "scientific-figure",
+      "slide_intent": "solution",
+      "title": "Six layers; each check carries evidence",
+      "figures": [
+        {
+          "path": "/home/user/harness-hackathon/media/deck/assets/layers.png",
+          "alt_text": "Diagram of harness layers L0 to L5 and the four check outcomes pass, warn, stop, skip"
+        }
+      ],
+      "figure_layout": "panel-grid",
+      "figure_frame": "open",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: docs/SPECIFICATION.md; README.md",
+      "figure_alt_text": "Diagram of harness layers L0 to L5 and the four check outcomes pass, warn, stop, skip",
+      "notes": "Thresholds come from the specification and configs/, each recorded with its origin."
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "cards-3",
+      "slide_intent": "tools and sources",
+      "title": "Executors, check tools and 34 sources",
+      "cards": [
+        {
+          "title": "Executors",
+          "body": "Boltz-1/2, Chai-1, Protenix, ColabFold, OpenFold3, Gnina, DiffDock-L on GPU hosts (Modal); AutoDock Vina on CPU"
+        },
+        {
+          "title": "Checks",
+          "body": "PoseBusters, RDKit, gemmi, PLIP, FreeSASA, OpenMM, PyMOL renders"
+        },
+        {
+          "title": "Sources",
+          "body": "UniProt, RCSB PDB, PDBe and SIFTS, CCD, PubChem, AlphaFold DB, ChEMBL, BindingDB"
+        }
+      ],
+      "caption": "Sources listed in configs/sources.yaml (34 entries); executor contracts in docs/EXECUTORS.md.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: README.md; configs/sources.yaml; docs/EXECUTORS.md"
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "image-sidebar",
+      "slide_intent": "worked example on a known complex",
+      "title": "3PTB: Vina passes, Boltz-2 stops",
+      "assets": {
+        "hero_image": "/home/user/harness-hackathon/media/deck/assets/3ptb_pair.png"
+      },
+      "alt_text": "Trypsin 3PTB with benzamidine, and Vina poses overlaid on the crystal ligand in Mol*",
+      "image_sidebar_mode": "analysis-rail",
+      "sidebar_sections": [
+        {
+          "title": "Vina, 5 seeds: pass with warnings",
+          "body": "PoseBusters 20/20; medoid 0.38 Å from crystal; redocking 0.42 Å"
+        },
+        {
+          "title": "Boltz-2: stop",
+          "body": "ipTM 0.962; pocket pLDDT 98.6; no redocking control; 314 pre-cutoff benzamidine entries"
+        }
+      ],
+      "caption": "Trypsin (P00760) with benzamidine (CCD BEN).",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: README.md, Examples (examples/3ptb_vina, examples/3ptb_boltz2)"
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "scientific-figure",
+      "slide_intent": "what a run produces",
+      "title": "Each run writes a report, graph and figures",
+      "figures": [
+        {
+          "path": "/home/user/harness-hackathon/media/deck/assets/runfiles.png",
+          "alt_text": "Provenance graph, PoseBusters grid and interaction heatmap for the CDK2 perturbed Boltz-2 run"
+        }
+      ],
+      "figure_layout": "panel-grid",
+      "figure_frame": "open",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856/harness/cdk2_pert_boltz2/run/ (CDK2 perturbed, Boltz-2)",
+      "figure_alt_text": "Provenance graph, PoseBusters grid and interaction heatmap for the CDK2 perturbed Boltz-2 run",
+      "interpretation": "Also written: report.html, record.json, provenance.json, PyMOL renders."
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "flow",
+      "slide_intent": "benchmark method",
+      "title": "Benchmark: remove the pocket, ask an agent",
+      "flow_steps": [
+        {
+          "title": "Perturb",
+          "detail": "Pocket to glycine, or glucose hydroxyls methylated"
+        },
+        {
+          "title": "Predict",
+          "detail": "Boltz-2, DiffDock-L; 3 seeds"
+        },
+        {
+          "title": "Check",
+          "detail": "Fact file per prediction"
+        },
+        {
+          "title": "Judge",
+          "detail": "LLM agent: score only, or fact file"
+        }
+      ],
+      "caption": "FtsE 8X61, CDK2 1B38, MEK1 7XLP, glucose DH 2VWH; 16 predictions per run, 3 runs. Perturbed counts as invalid.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/README.md; bench/runs/2026-10-17T1859Z-849c856/report.md",
+      "flow_layout": "auto",
+      "notes": "Wild type is valid when the medoid pose lies within 2.0 Å of the deposited ligand."
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "scientific-figure",
+      "slide_intent": "result with uncertainty",
+      "title": "Balanced accuracy: 0.50 score only, 0.75 fact file",
+      "figures": [
+        {
+          "path": "/home/user/harness-hackathon/media/deck/assets/results_pair.png"
+        }
+      ],
+      "figure_layout": "panel-grid",
+      "figure_frame": "open",
+      "interpretation": "Fact file 95% CI 0.50 to 1.0, McNemar p = 0.125: no interval excludes 0.5. It rejected 12 of 12 perturbed Boltz-2 poses and valid high-strain DiffDock-L poses.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856/report.md; 12 of 12 adds runs 1611Z, 1752Z",
+      "figure_alt_text": "Balanced accuracy by arm with 95% intervals, and pooled confusion matrices",
+      "notes": "FtsE fact-file values in all three runs predate the superposition fix (commit de35af7)."
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "scientific-figure",
+      "slide_intent": "worked case",
+      "title": "CDK2: confidence holds after pocket removal",
+      "figures": [
+        {
+          "path": "/home/user/harness-hackathon/media/deck/assets/cdk2_pair.png"
+        }
+      ],
+      "figure_layout": "panel-grid",
+      "figure_frame": "open",
+      "interpretation": "Perturbed: PoseBusters 20/20, 2.39 Å off. Score only: valid; fact file: invalid.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/finding/values.csv, panels/ (run 2026-10-17T1611Z-426bfe9)",
+      "figure_alt_text": "CDK2 Boltz-2 poses, wild type and with pocket residues cut to glycine",
+      "notes": "CDK2 1B38 chain A, ATP. Proteins superposed by CA, one camera; red marks residues cut to glycine."
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "stats",
+      "slide_intent": "engineering",
+      "title": "Tests and interfaces",
+      "facts": [
+        {
+          "value": "394",
+          "label": "Python test functions",
+          "detail": "No network; recorded source responses"
+        },
+        {
+          "value": "221",
+          "label": "Web UI tests",
+          "detail": "Next.js port of the design prototype"
+        },
+        {
+          "value": "7",
+          "label": "Of 7 planted input faults stopped",
+          "detail": "examples/3ptb_faulty_inputs"
+        },
+        {
+          "value": "68",
+          "label": "Registered checks, layers 2 to 5",
+          "detail": "Each threshold with an origin"
+        }
+      ],
+      "caption": "Web UI deployed on Modal: persistentepiphany--pah-web.us-east.modal.run",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: README.md; tests/; web/ test files"
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "scientific-figure",
+      "slide_intent": "close",
+      "title": "Every number traceable to a check, a tool and a source",
+      "figures": [
+        {
+          "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1859Z-849c856/results/figures/decisions.png"
+        }
+      ],
+      "figure_alt_text": "Ground truth, score-only and fact-file decisions for each of 16 predictions in run 3",
+      "figure_layout": "panel-grid",
+      "figure_frame": "open",
+      "interpretation": "Limits: 16 predictions per run; read as a demonstration, since no interval excludes 0.5.",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856/results/figures/decisions.csv"
+    }
+  ]
+}

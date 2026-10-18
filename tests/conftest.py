@@ -1,5 +1,5 @@
 import subprocess
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 
 import pytest
@@ -108,3 +108,25 @@ def _fake_pymol(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setattr(
         renders.PymolRenderer, "render", lambda self, s, lig, stem: fake.render(s, lig, stem)
     )
+
+
+@pytest.fixture(autouse=True)
+def _rdkit_log_stream() -> Iterator[None]:
+    """Puts RDKit's log handler back on the stream it had before the test.
+
+    PoseBusters' CaptureLogger resets that handler to `sys.stderr` when it releases. Inside
+    `CliRunner.invoke`, `sys.stderr` is the runner's buffer, which is closed after the call, so
+    every later PoseBusters run in this process would fail its energy-ratio module. Autouse for
+    every test, because any CliRunner test that reaches layer 4 leaks it.
+    """
+    try:
+        import rdkit
+    except ImportError:
+        yield
+        return
+    handler = getattr(rdkit, "log_handler", None)
+    stream = getattr(handler, "stream", None)
+    yield
+    if handler is not None and stream is not None:
+        with handler.lock:  # not setStream: it flushes the closed stream first
+            handler.stream = stream
