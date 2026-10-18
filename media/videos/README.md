@@ -194,3 +194,61 @@ out/videos/a2/work/record.sh v6 warm press   # third argument: press or page (in
 .venv/bin/python out/videos/a2/work/build.py v6   # add --webm for a WebM copy
 out/videos/a2/work/publish.sh v6
 ```
+
+## Video C: the problem, the harness, the result and the product
+
+`demo-c.mp4` is a 166.6 s edited film (1920x1080, 30 fps, H.264 + AAC 192 kb/s, +faststart) built from
+HTML scene stills, PyMOL renders and six takes of the live web UI. `demo-c-nosfx.mp4` is the same
+edit and the same music without the interface sounds. `demo-c.srt` holds the 29 captions that are
+burned into both files. Text on screen is kept to a line or a few labels per scene; every scene that
+shows a number carries a source tag in the bottom right.
+
+### What it shows
+
+| Time | Scene | Data |
+| --- | --- | --- |
+| 0:00 | "Biomolecular models give confident scores to physically implausible poses." | none |
+| 0:06 | PoseBusters citation card: Buttenschoen, Morris, Deane, Chem. Sci. 2024, doi:10.1039/d3sc04185a, one line | `video-c/REFERENCES.md` |
+| 0:12 | Before, built up step by step: CDK2 + ATP, a model (Boltz-2, DiffDock-L, Chai-1), ipTM 0.93 and pLDDT 82, the wrong pose with 1 of 9 contacts | bench run 3, CDK2 Boltz-2 seed 8 |
+| 0:21 | With the harness: CDK2 + ATP, Dock Harness, the checks as labels (provenance, input integrity, applicability, PoseBusters, PLIP contacts, torsion strain, seed stability, controls), verdict stop | `README.md` check tables; bench run 3 `record.json` |
+| 0:31 | "12 wrong without the harness, 12 right with it": the 12 perturbed Boltz-2 renders (CDK2 1B38, FtsE 8X61, MEK1 7XLP, glucose dehydrogenase 2VWH; 3 runs each) marked "called valid", then "rejected" with contacts recovered or the PoseBusters result; GLM-4.6 card: score only 0/12, harness fact file 12/12 | `bench/runs/*`, `media/figures/twelve/` |
+| 0:53 | Live UI, New run: Trypsin, benzamidine, Boltz-2, Chai-1, DiffDock-L, AutoDock Vina, 5 seeds, picked from the menus; Start run is not pressed | live UI |
+| 1:19 | Finished run `ligand_pose-249098d10007`: verdict, issues, the PyMOL-rendered Boltz-2 medoid, execution rows with A100 time per seed | live UI |
+| 1:41 | Ensemble: 164 structures with their values | live UI |
+| 1:54 | Evidence: one expanded check, the artifact list, Thresholds · Origin | live UI |
+| 2:05 | Document page: verdict and key numbers, downloads (run record, report, provenance graph), structure, figures | live UI |
+| 2:37 | Agent view, 3 s | live UI |
+| 2:41 | "Every number traceable to a check, a tool and a source." and the site URL | |
+
+### Sources and checks
+
+PoseBusters was checked against its Europe PMC record on 2026-10-18 (`video-c/REFERENCES.md`). The
+renders of the 12 predictions were made for this film by `video-c/render_twelve.py` from the medoid
+pose named in each run's harness record. The live UI takes were recorded on 2026-10-18 against
+https://persistentepiphany--pah-web.us-east.modal.run with a CDP screencast (1280x627 CSS px at 1.5x).
+The tool list is visible in the New run menus, so the film has no separate tools slide.
+
+### Sound
+
+Music is the v1 sequence (`build.py`, numpy: pad chords in D major at 100 BPM, sub bass, light kick,
+off-beat hats, sparse pluck) with the music bus 2 dB lower than v1. Interface sounds come from
+`video-c/make_sfx.py` (synthesised, no API): a soft click on each recorded pointer press (12), a soft
+whoosh at each scene change (12) and a light tick at each build step of the two flow scenes. No text
+is typed, so there are no key ticks.
+
+### Rebuild
+
+```bash
+uv pip install --python .venv/bin/python pymol-open-source-whl pillow scipy
+W=/home/user/harness-hackathon/out/videos/c
+.venv/bin/python media/videos/video-c/render_twelve.py          # media/figures/twelve/*
+for t in input report ensemble evidence document agent; do node media/videos/video-c/record3.js $W/r3_$t $t; done
+.venv/bin/python media/videos/video-c/scenes.py $W              # html/*.html, shots.json
+node media/videos/video-c/shoot.js $W scenes                    # stills/*.png
+.venv/bin/python media/videos/video-c/build.py $W v11           # both MP4s, SRT, contact sheet
+```
+
+`build.py` shortens the captions recorded in the takes through `CAP_FIX` and cuts the ensemble take at
+12.9 s and the agent take at 3.7 s. Final take: `out/videos/c/v11`. `render_3ptb.py` and
+`shoot_live.js` made stills for the previous cut and are kept; `record.js` and `record2.js` are the
+takes of the first version, which pressed Start run.

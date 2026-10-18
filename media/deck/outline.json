@@ -24,32 +24,38 @@
       "slide_intent": "name the product and the question it answers",
       "title": "Dock Harness",
       "subtitle": "Does this prediction support the claim?",
-      "notes": "Bovine trypsin, PDB 3PTB, with benzamidine. The harness decides whether a co-folding or docking result can support a declared claim.",
-      "alt_text": "Trypsin 3PTB with benzamidine",
+      "notes": "The harness decides whether a co-folding or docking result can support a declared claim. Example system throughout: bovine trypsin, PDB 3PTB, with benzamidine.",
+      "alt_text": "Title slide",
       "kicker": "Prediction Assurance Harness (pah)"
     },
     {
       "type": "content",
       "role": "evidence",
-      "variant": "scientific-figure",
-      "slide_intent": "problem",
-      "title": "Confidence scores do not validate a pose",
-      "figures": [
-        {
-          "path": "/home/user/harness-hackathon/bench/finding/flip.png",
-          "alt_text": "Grid of nine perturbed Boltz-2 poses: all missed on confidence score, all caught with the harness fact file"
-        }
-      ],
-      "figure_layout": "panel-grid",
-      "figure_frame": "open",
-      "interpretation": "Score only: 12 of 12 perturbed Boltz-2 poses called valid. Published: about 75 ROC AUC for poses within 2 Å (489 complexes).",
+      "variant": "image-sidebar",
+      "slide_intent": "lead result",
+      "title": "12 perturbed poses: valid on confidence, rejected with the harness",
       "sources": [
         "S1",
         "S2"
       ],
-      "footer": "S1: bench/finding/flip.csv; bench/runs/*/report.md (4 systems x 3 runs; FtsE not shown). S2: docs/SPECIFICATION.md",
-      "notes": "Score-only verdicts use the confidence values alone, so the FtsE superposition issue does not affect them.",
-      "figure_alt_text": "Grid of nine perturbed Boltz-2 poses: all missed on confidence score, all caught with the harness fact file"
+      "footer": "S1: media/figures/twelve/twelve.json; bench/runs/*/report.md. S2: Kim et al. 2026 [R2]. Refs: R4, R16, R23–R26",
+      "notes": "Columns: CDK2 1B38, FtsE 8X61, MEK1 7XLP, glucose dehydrogenase 2VWH. Rows: runs 1 to 3. Red spheres mark pocket residues cut to glycine; glucose dehydrogenase has its ligand hydroxyls methylated instead. Without the harness means the agent saw only ligand ipTM and pocket pLDDT; with the harness it saw the fact file. Published AUC: AlphaFold3 ligand pLDDT, 489 Mac1 complexes.",
+      "assets": {
+        "hero_image": "/home/user/harness-hackathon/media/figures/twelve/grid.png"
+      },
+      "alt_text": "Grid of 12 PyMOL renders of perturbed Boltz-2 poses, 4 systems by 3 runs, each labelled with ligand ipTM and pocket pLDDT",
+      "image_sidebar_mode": "analysis-rail",
+      "sidebar_sections": [
+        {
+          "title": "Without the harness: valid",
+          "body": "Agent given ligand ipTM and pocket pLDDT called 12 of 12 valid"
+        },
+        {
+          "title": "With the harness: rejected",
+          "body": "Same agent given the fact file rejected 12 of 12"
+        }
+      ],
+      "caption": "Boltz-2, pocket removed; PyMOL renders [R16]. Best published confidence ROC AUC: 0.756 for poses within 2 Å [R2]."
     },
     {
       "type": "content",
@@ -68,35 +74,80 @@
       "sources": [
         "S1"
       ],
-      "footer": "S1: docs/SPECIFICATION.md; README.md",
+      "footer": "S1: docs/SPECIFICATION.md; README.md. Diagram: media/deck/make_layers.py",
       "figure_alt_text": "Diagram of harness layers L0 to L5 and the four check outcomes pass, warn, stop, skip",
       "notes": "Thresholds come from the specification and configs/, each recorded with its origin."
+    },
+    {
+      "type": "content",
+      "role": "table",
+      "variant": "table",
+      "slide_intent": "models covered",
+      "title": "Models it runs and checks",
+      "sources": [
+        "S1"
+      ],
+      "footer": "S1: README.md; configs/executors.yaml; configs/runtimes.yaml. Refs: R3–R13, R18–R20",
+      "notes": "OpenFold3 runs as the openfold3 runtime (configs/runtimes.yaml). AlphaFold3 weights are issued on request, so its outputs are checked, not produced.",
+      "table": {
+        "headers": [
+          "Models",
+          "Harness role"
+        ],
+        "column_weights": [
+          0.62,
+          0.38
+        ],
+        "rows": [
+          [
+            "Boltz-1, Boltz-2, Chai-1, Protenix, ColabFold (AlphaFold2), OpenFold3",
+            "Runs on Modal A100 GPUs, then checks"
+          ],
+          [
+            "DiffDock-L, Gnina",
+            "Runs on Modal A100 GPUs, then checks"
+          ],
+          [
+            "AutoDock Vina",
+            "Runs on CPU, then checks"
+          ],
+          [
+            "AlphaFold3",
+            "Checks outputs supplied by the user"
+          ],
+          [
+            "HADDOCK3, pyDock (protein–protein)",
+            "Checks outputs supplied by the user"
+          ]
+        ]
+      },
+      "caption": "Executor input and output contracts: docs/EXECUTORS.md."
     },
     {
       "type": "content",
       "role": "evidence",
       "variant": "cards-3",
       "slide_intent": "tools and sources",
-      "title": "Executors, check tools and 34 sources",
+      "title": "Check tools, sources and interfaces",
       "cards": [
         {
-          "title": "Executors",
-          "body": "Boltz-1/2, Chai-1, Protenix, ColabFold, OpenFold3, Gnina, DiffDock-L on GPU hosts (Modal); AutoDock Vina on CPU"
-        },
-        {
           "title": "Checks",
-          "body": "PoseBusters, RDKit, gemmi, PLIP, FreeSASA, OpenMM, PyMOL renders"
+          "body": "PoseBusters [R1], RDKit [R15], PLIP [R14], OpenMM [R17], PyMOL [R16], gemmi, FreeSASA"
         },
         {
           "title": "Sources",
-          "body": "UniProt, RCSB PDB, PDBe and SIFTS, CCD, PubChem, AlphaFold DB, ChEMBL, BindingDB"
+          "body": "UniProt, RCSB PDB [R21], PDBe and SIFTS, CCD, PubChem, AlphaFold DB, ChEMBL, BindingDB"
+        },
+        {
+          "title": "Interfaces",
+          "body": "MCP server and HTTP API for agents; web UI with an Agent view"
         }
       ],
-      "caption": "Sources listed in configs/sources.yaml (34 entries); executor contracts in docs/EXECUTORS.md.",
+      "caption": "34 entries in configs/sources.yaml; library versions in README.md, Tools used.",
       "sources": [
         "S1"
       ],
-      "footer": "S1: README.md; configs/sources.yaml; docs/EXECUTORS.md"
+      "footer": "S1: README.md; configs/sources.yaml. Refs: see References"
     },
     {
       "type": "content",
@@ -107,7 +158,7 @@
       "assets": {
         "hero_image": "/home/user/harness-hackathon/media/deck/assets/3ptb_pair.png"
       },
-      "alt_text": "Trypsin 3PTB with benzamidine, and Vina poses overlaid on the crystal ligand in Mol*",
+      "alt_text": "PyMOL cartoons of trypsin 3PTB with benzamidine as deposited, and the Vina seed 0 top pose on the receptor",
       "image_sidebar_mode": "analysis-rail",
       "sidebar_sections": [
         {
@@ -119,11 +170,11 @@
           "body": "ipTM 0.962; pocket pLDDT 98.6; no redocking control; 314 pre-cutoff benzamidine entries"
         }
       ],
-      "caption": "Trypsin (P00760) with benzamidine (CCD BEN).",
+      "caption": "Trypsin (P00760) with benzamidine (CCD BEN). PyMOL renders [R16] of PDB 3PTB [R22].",
       "sources": [
         "S1"
       ],
-      "footer": "S1: README.md, Examples (examples/3ptb_vina, examples/3ptb_boltz2)"
+      "footer": "S1: README.md, Results on real targets (examples/3ptb_vina, examples/3ptb_boltz2). Refs: R1, R4, R12, R16, R22"
     },
     {
       "type": "content",
@@ -142,9 +193,9 @@
       "sources": [
         "S1"
       ],
-      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856/harness/cdk2_pert_boltz2/run/ (CDK2 perturbed, Boltz-2)",
+      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856/harness/cdk2_pert_boltz2/run/. Boltz-2 [R4], PoseBusters [R1], PLIP [R14]",
       "figure_alt_text": "Provenance graph, PoseBusters grid and interaction heatmap for the CDK2 perturbed Boltz-2 run",
-      "interpretation": "Also written: report.html, record.json, provenance.json, PyMOL renders."
+      "interpretation": "Also written: report.html, report.md, record.json, provenance.json."
     },
     {
       "type": "content",
@@ -167,14 +218,14 @@
         },
         {
           "title": "Judge",
-          "detail": "LLM agent: score only, or fact file"
+          "detail": "GLM-4.6 agent: score only, or fact file"
         }
       ],
       "caption": "FtsE 8X61, CDK2 1B38, MEK1 7XLP, glucose DH 2VWH; 16 predictions per run, 3 runs. Perturbed counts as invalid.",
       "sources": [
         "S1"
       ],
-      "footer": "S1: bench/README.md; bench/runs/2026-10-17T1859Z-849c856/report.md",
+      "footer": "S1: bench/README.md; bench/runs/2026-10-17T1859Z-849c856/report.md. Refs: R4, R10; PDB entries R23–R26",
       "flow_layout": "auto",
       "notes": "Wild type is valid when the medoid pose lies within 2.0 Å of the deposited ligand."
     },
@@ -183,7 +234,7 @@
       "role": "evidence",
       "variant": "scientific-figure",
       "slide_intent": "result with uncertainty",
-      "title": "Balanced accuracy: 0.50 score only, 0.75 fact file",
+      "title": "Run 3 balanced accuracy: 0.50 score only, 0.75 fact file",
       "figures": [
         {
           "path": "/home/user/harness-hackathon/media/deck/assets/results_pair.png"
@@ -191,20 +242,20 @@
       ],
       "figure_layout": "panel-grid",
       "figure_frame": "open",
-      "interpretation": "Fact file 95% CI 0.50 to 1.0, McNemar p = 0.125: no interval excludes 0.5. It rejected 12 of 12 perturbed Boltz-2 poses and valid high-strain DiffDock-L poses.",
+      "interpretation": "Fact file 95% CI 0.50 to 1.0, p = 0.125. Runs 1, 2: 0.53, 0.58.",
       "sources": [
         "S1"
       ],
-      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856/report.md; 12 of 12 adds runs 1611Z, 1752Z",
+      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856/report.md; README.md, Perturbation benchmark",
       "figure_alt_text": "Balanced accuracy by arm with 95% intervals, and pooled confusion matrices",
-      "notes": "FtsE fact-file values in all three runs predate the superposition fix (commit de35af7)."
+      "notes": "Run 3 values: balanced_accuracy.csv and report.md line 67 (McNemar exact p 0.125). Runs 1 and 2 fact-file balanced accuracy 0.533 and 0.583 (their report.md line 67). FtsE fact-file values in all three runs predate the superposition fix (commit de35af7)."
     },
     {
       "type": "content",
       "role": "evidence",
       "variant": "scientific-figure",
       "slide_intent": "worked case",
-      "title": "CDK2: confidence holds after pocket removal",
+      "title": "CDK2: confidence holds without the pocket",
       "figures": [
         {
           "path": "/home/user/harness-hackathon/media/deck/assets/cdk2_pair.png"
@@ -212,13 +263,13 @@
       ],
       "figure_layout": "panel-grid",
       "figure_frame": "open",
-      "interpretation": "Perturbed: PoseBusters 20/20, 2.39 Å off. Score only: valid; fact file: invalid.",
+      "interpretation": "Perturbed: PoseBusters 20/20, RMSD 2.39 Å. Fact file: invalid.",
       "sources": [
         "S1"
       ],
-      "footer": "S1: bench/finding/values.csv, panels/ (run 2026-10-17T1611Z-426bfe9)",
-      "figure_alt_text": "CDK2 Boltz-2 poses, wild type and with pocket residues cut to glycine",
-      "notes": "CDK2 1B38 chain A, ATP. Proteins superposed by CA, one camera; red marks residues cut to glycine."
+      "footer": "S1: bench/finding/values.csv, panels/; bench/runs/2026-10-17T1611Z-426bfe9/report.md. Refs: R4, R16, R23",
+      "figure_alt_text": "PyMOL renders of CDK2 Boltz-2 poses, wild type and with 13 pocket residues cut to glycine",
+      "notes": "CDK2 1B38 chain A, ATP, run 2026-10-17T1611Z-426bfe9. RMSD is the perturbed medoid to the deposited ATP (report.md line 17). Proteins superposed by CA, one camera; red marks residues cut to glycine."
     },
     {
       "type": "content",
@@ -233,9 +284,9 @@
           "detail": "No network; recorded source responses"
         },
         {
-          "value": "221",
+          "value": "225",
           "label": "Web UI tests",
-          "detail": "Next.js port of the design prototype"
+          "detail": "162 Vitest, 63 Playwright"
         },
         {
           "value": "7",
@@ -243,8 +294,8 @@
           "detail": "examples/3ptb_faulty_inputs"
         },
         {
-          "value": "68",
-          "label": "Registered checks, layers 2 to 5",
+          "value": "70",
+          "label": "Registered checks, L0 to L5",
           "detail": "Each threshold with an origin"
         }
       ],
@@ -252,14 +303,14 @@
       "sources": [
         "S1"
       ],
-      "footer": "S1: README.md; tests/; web/ test files"
+      "footer": "S1: README.md; tests/ (def test_); web: vitest list, playwright test --list; pah checks"
     },
     {
       "type": "content",
       "role": "evidence",
       "variant": "scientific-figure",
       "slide_intent": "close",
-      "title": "Every number traceable to a check, a tool and a source",
+      "title": "Each number traces to a check and a source",
       "figures": [
         {
           "path": "/home/user/harness-hackathon/bench/runs/2026-10-17T1859Z-849c856/results/figures/decisions.png"
@@ -272,7 +323,144 @@
       "sources": [
         "S1"
       ],
-      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856/results/figures/decisions.csv"
+      "footer": "S1: bench/runs/2026-10-17T1859Z-849c856/results/figures/decisions.csv. Boltz-2 [R4], DiffDock-L [R10]"
+    },
+    {
+      "type": "content",
+      "role": "references",
+      "variant": "table",
+      "slide_intent": "references 1",
+      "title": "References: models and benchmarks",
+      "table": {
+        "table_style": "references",
+        "headers": [
+          "ID",
+          "Reference"
+        ],
+        "column_weights": [
+          0.09,
+          0.91
+        ],
+        "rows": [
+          [
+            "R1",
+            "Buttenschoen M, Morris GM, Deane CM. PoseBusters. Chem Sci 2024;15:3130. doi:10.1039/d3sc04185a"
+          ],
+          [
+            "R2",
+            "Kim J, …, Fraser JS. Co-folding on Mac1–ligand complexes. eLife 2026;15. doi:10.7554/eLife.110475"
+          ],
+          [
+            "R3",
+            "Wohlwend J, Corso G, Passaro S, et al. Boltz-1. bioRxiv 2024. doi:10.1101/2024.11.19.624167"
+          ],
+          [
+            "R4",
+            "Passaro S, Corso G, Wohlwend J, et al. Boltz-2. bioRxiv 2025. doi:10.1101/2025.06.14.659707"
+          ],
+          [
+            "R5",
+            "Chai Discovery, Boitreaud J, et al. Chai-1. bioRxiv 2024. doi:10.1101/2024.10.10.615955"
+          ],
+          [
+            "R6",
+            "ByteDance AML AI4Science Team, et al. Protenix. bioRxiv 2025. doi:10.1101/2025.01.08.631967"
+          ],
+          [
+            "R7",
+            "Mirdita M, et al. ColabFold. Nat Methods 2022;19:679. doi:10.1038/s41592-022-01488-1"
+          ],
+          [
+            "R8",
+            "Abramson J, et al. AlphaFold 3. Nature 2024;630:493. doi:10.1038/s41586-024-07487-w"
+          ]
+        ]
+      },
+      "sources": [
+        "Europe PMC records"
+      ],
+      "footer": "Full titles and verification: media/deck/FIGURES.md"
+    },
+    {
+      "type": "content",
+      "role": "references",
+      "variant": "table",
+      "slide_intent": "references 2",
+      "title": "References: docking and analysis",
+      "table": {
+        "table_style": "references",
+        "headers": [
+          "ID",
+          "Reference"
+        ],
+        "column_weights": [
+          0.09,
+          0.91
+        ],
+        "rows": [
+          [
+            "R9",
+            "Corso G, Stärk H, Jing B, Barzilay R, Jaakkola T. DiffDock. arXiv:2210.01776 (2022)"
+          ],
+          [
+            "R10",
+            "Corso G, Deng A, Fry B, et al. DiffDock-L. ICLR 2024. arXiv:2402.18396"
+          ],
+          [
+            "R11",
+            "McNutt AT, et al. GNINA 1.0. J Cheminform 2021;13:43. doi:10.1186/s13321-021-00522-2"
+          ],
+          [
+            "R12",
+            "Trott O, Olson AJ. AutoDock Vina. J Comput Chem 2010;31:455. doi:10.1002/jcc.21334"
+          ],
+          [
+            "R13",
+            "Eberhardt J, et al. AutoDock Vina 1.2.0. J Chem Inf Model 2021;61:3891. doi:10.1021/acs.jcim.1c00203"
+          ],
+          [
+            "R14",
+            "PLIP: Salentin S, et al. 2015, doi:10.1093/nar/gkv315; Adasme MF, et al. 2021, doi:10.1093/nar/gkab294"
+          ],
+          [
+            "R17",
+            "Eastman P, et al. OpenMM 8. J Phys Chem B 2024;128:109. doi:10.1021/acs.jpcb.3c06662"
+          ],
+          [
+            "R18",
+            "Giulini M, et al. HADDOCK3. J Chem Inf Model 2025;65:7315. doi:10.1021/acs.jcim.5c00969"
+          ]
+        ]
+      },
+      "sources": [
+        "Europe PMC; arXiv"
+      ],
+      "footer": "Full titles and verification: media/deck/FIGURES.md"
+    },
+    {
+      "type": "content",
+      "role": "evidence",
+      "variant": "cards-3",
+      "slide_intent": "references 3",
+      "title": "References: software and data",
+      "cards": [
+        {
+          "title": "Software",
+          "body": "R15 RDKit 2026.9.1, doi:10.5281/zenodo.591637. R16 PyMOL open-source 3.2.0, Schrödinger. R20 OpenFold3 0.4.1 (software)"
+        },
+        {
+          "title": "pyDock [R19]",
+          "body": "Cheng TM, Blundell TL, Fernandez-Recio J. Proteins 2007;68:503. doi:10.1002/prot.21419"
+        },
+        {
+          "title": "Structures",
+          "body": "R21 Berman HM, et al. Nucleic Acids Res 2000;28:235. doi:10.1093/nar/28.1.235. R22–R26 PDB 3PTB, 1B38, 8X61, 7XLP, 2VWH (primary citations in FIGURES.md)"
+        }
+      ],
+      "sources": [
+        "Europe PMC; RCSB PDB; rdkit.org"
+      ],
+      "footer": "Full titles and verification: media/deck/FIGURES.md"
     }
   ]
 }
