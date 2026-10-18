@@ -1,5 +1,5 @@
 {
-  "id": "ligand_pose-293711945656",
+  "id": "ligand_pose-1a2c62340cc3",
   "task": "ligand_pose",
   "taskName": "Ligand pose in a known pocket",
   "claim": "Predicted pose of ATP in CDK2 is valid",
@@ -613,7 +613,7 @@
           "result": "stop",
           "message": "components within 8.0 \u00c5 of ATP in 1B38 not supplied: MG",
           "evidence": "components within 8.0 \u00c5 of ATP in 1B38 not supplied: MG \u00b7 near_site=1, missing=1, uniprot_cofactors=0",
-          "ms": 176,
+          "ms": 10026,
           "threshold": {
             "value": "<= 8",
             "origin": "Harness rule: a component of the reference entry within 8 \u00c5 of the declared ligand is required context; not yet calibrated",
@@ -654,7 +654,7 @@
           "message": "30 pocket residues complete in 1B38.cif",
           "tool": "gemmi",
           "evidence": "30 pocket residues complete in 1B38.cif \u00b7 pocket_residues=30, incomplete=0, sequence_gaps=0",
-          "ms": 9,
+          "ms": 8,
           "threshold": {
             "value": "<= 6",
             "origin": "Harness rule: pocket residues have a heavy atom within 6 \u00c5 of the ligand; not yet calibrated",
@@ -701,7 +701,7 @@
           "result": "pass",
           "message": "1B38.cif holo: ATP in the site",
           "evidence": "1B38.cif holo: ATP in the site \u00b7 state=holo, site_ligands=1",
-          "ms": 25,
+          "ms": 11,
           "measurements": [
             {
               "name": "state",
@@ -723,7 +723,7 @@
           "message": "receptor has no hydrogens (protonation not assigned)",
           "tool": "propka 3.5.1",
           "evidence": "receptor has no hydrogens (protonation not assigned) \u00b7 hydrogens_present=False, ph=7.4, pocket_titratable=19",
-          "ms": 373,
+          "ms": 578,
           "threshold": {
             "value": "> 1",
             "origin": "Harness rule: a titratable pocket residue with PROPKA pKa within 1 unit of the stated pH has an ambiguous state; not yet calibrated",
@@ -769,7 +769,7 @@
           "message": "ligand: 2 states; ligand: declared form Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)[C@@H](O)[C@H]1O differs from enumerated Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)([O-])O[P@](=O)([O-])OP(=O)([O-])O)[C@@H](O)[C@H]1O, Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)([O-])O[P@](=O)([O-])OP(=O)([O-])[O-])[C@@H](O)[C@H]1O",
           "tool": "dimorphite_dl 2.1.0",
           "evidence": "ligand: 2 states; ligand: declared form Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)[C@@H](O)[C@H]1O differs from enumerated Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)([O-])O[P@](=O)([O-])OP(=O)([O-])O)[C@@H](O)[C@H]1O, Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO[P@@](=O)([O-])O[P@](=O)([O-])OP(=O)([O-])[O-])[C@@H](O)[C@H]1O \u00b7 ph=7.4, max_states=2, declared_not_enumerated=1",
-          "ms": 59,
+          "ms": 982,
           "threshold": {
             "value": "== 1",
             "origin": "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated",
@@ -822,7 +822,7 @@
           "message": "10 ETKDG conformers per ligand, MMFF minimised",
           "tool": "rdkit",
           "evidence": "10 ETKDG conformers per ligand, MMFF minimised \u00b7 ligands=1, failed=0, min_embedded=10",
-          "ms": 903,
+          "ms": 8190,
           "threshold": {
             "value": ">= 10",
             "origin": "Harness default number of ETKDG conformers; not yet calibrated",
@@ -862,7 +862,7 @@
           "result": "warn",
           "message": "no box declared; derived box encloses 22 contact residues and the ATP ligand with 2.0 \u00c5 margin",
           "evidence": "no box declared; derived box encloses 22 contact residues and the ATP ligand with 2.0 \u00c5 margin \u00b7 volume_A3=4879.6, ligand_atoms_inside_margin=31, ligand_atoms=31",
-          "ms": 13,
+          "ms": 37,
           "threshold": {
             "value": ">= 2",
             "origin": "Harness rule: every pocket heavy atom lies at least 2 \u00c5 inside the box; not yet calibrated",
@@ -913,7 +913,7 @@
           ]
         }
       ],
-      "durationMs": 1580,
+      "durationMs": 19859,
       "figures": [
         [
           "near site",
@@ -1009,7 +1009,7 @@
           "result": "warn",
           "message": "max similarity 52.0 to 1B39 (ATP, SuCOS 0.555, coverage 0.938), released before 2019-01-01",
           "evidence": "max similarity 52.0 to 1B39 (ATP, SuCOS 0.555, coverage 0.938), released before 2019-01-01 \u00b7 cutoff=2019-01-01, entries_compared=5, max_similarity=52",
-          "ms": 633,
+          "ms": 3342,
           "threshold": {
             "value": "<= 50",
             "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
@@ -1110,7 +1110,7 @@
           "message": "protein: 391 entries at 95 percent identity, 456 at 40 percent, released before 2019-01-01 (reported, not gating)",
           "tool": "RCSB search (sequence, MMseqs2)",
           "evidence": "protein: 391 entries at 95 percent identity, 456 at 40 percent, released before 2019-01-01 (reported, not gating) \u00b7 cutoff=2019-01-01, entries_95=391, entries_40=456",
-          "ms": 1,
+          "ms": 2,
           "threshold": {
             "value": "< 0.4",
             "origin": "Specification layer 3: conventional 40 percent identity leakage threshold, reported as a secondary measure only",
@@ -1150,7 +1150,7 @@
           "result": "pass",
           "message": "modalities protein, protein_ligand inside the validated set; 330 tokens",
           "evidence": "modalities protein, protein_ligand inside the validated set; 330 tokens \u00b7 modalities=2, tokens=330, outside=0",
-          "ms": 5,
+          "ms": 4,
           "measurements": [
             {
               "name": "modalities",
@@ -1210,7 +1210,7 @@
           ]
         }
       ],
-      "durationMs": 641,
+      "durationMs": 3353,
       "figures": [
         [
           "executors",
@@ -1267,7 +1267,7 @@
           "message": "20 of 20 tests pass for boltz2/seed8/sample0; 2 of 3 poses pass all",
           "tool": "posebusters 0.6.5",
           "evidence": "20 of 20 tests pass for boltz2/seed8/sample0; 2 of 3 poses pass all \u00b7 poses=3, passed=20, total=20",
-          "ms": 2526,
+          "ms": 2934,
           "threshold": {
             "value": "== 0",
             "origin": "Specification, Layer 4 (output validity): stop on failure",
@@ -1313,7 +1313,7 @@
           "message": "0 of 14 torsions above 2.5 kcal/mol in boltz2/seed8/sample0; strain 14.28 kcal/mol",
           "tool": "rdkit MMFF94",
           "evidence": "0 of 14 torsions above 2.5 kcal/mol in boltz2/seed8/sample0; strain 14.28 kcal/mol \u00b7 poses=3, unlikely_torsions=0, torsions=14",
-          "ms": 3976,
+          "ms": 3957,
           "threshold": {
             "value": "<= 2.5",
             "origin": "Harness rule: a rotatable torsion whose MMFF energy lies more than 2.5 kcal/mol above the minimum of its rigid scan is unlikely; not yet calibrated",
@@ -1364,7 +1364,7 @@
           "message": "13 interactions in boltz2/seed8/sample0 (hbond, metal, salt_bridge); 13 distinct across 3 poses (reported)",
           "tool": "plip 3.0.1",
           "evidence": "13 interactions in boltz2/seed8/sample0 (hbond, metal, salt_bridge); 13 distinct across 3 poses (reported) \u00b7 poses=3, interactions_representative=13, distinct=13",
-          "ms": 1248,
+          "ms": 3918,
           "measurements": [
             {
               "name": "poses",
@@ -1396,7 +1396,7 @@
           "message": "6 of 11 buried polar ligand atoms without a partner in boltz2/seed8/sample0",
           "tool": "freesasa 2.2.1",
           "evidence": "6 of 11 buried polar ligand atoms without a partner in boltz2/seed8/sample0 \u00b7 poses=3, unsatisfied=6, buried_charged=0",
-          "ms": 247,
+          "ms": 277,
           "threshold": {
             "value": "< 0.1",
             "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
@@ -1449,7 +1449,7 @@
           "message": "nonpolar fraction of protein contacts around 8 buried nonpolar ligand atoms in boltz2/seed8/sample0: 0.667",
           "tool": "freesasa",
           "evidence": "nonpolar fraction of protein contacts around 8 buried nonpolar ligand atoms in boltz2/seed8/sample0: 0.667 \u00b7 poses=3, complementarity=0.667, buried_nonpolar=8",
-          "ms": 256,
+          "ms": 269,
           "threshold": {
             "value": ">= 0.35",
             "origin": "Harness default anchored on 3PTB: the crystal benzamidine scores 0.51, Vina and Boltz-2 poses within 0.5 \u00c5 of it score 0.45 and 0.49; not calibrated on the benchmark",
@@ -1497,7 +1497,7 @@
           "message": "boltz2/seed8/sample0 reproduces 6 of 9 ATP interactions: hbond GLN131A, hbond GLU81A, hbond LEU83A, hbond THR14A, salt_bridge LYS129A, salt_bridge LYS33A",
           "tool": "plip 3.0.1",
           "evidence": "boltz2/seed8/sample0 reproduces 6 of 9 ATP interactions: hbond GLN131A, hbond GLU81A, hbond LEU83A, hbond THR14A, salt_bridge LYS129A, salt_bridge LYS33A \u00b7 key_interactions=9, reproduced=6, poses_reproducing_all=0",
-          "ms": 234,
+          "ms": 250,
           "threshold": {
             "value": ">= 1",
             "origin": "Specification layer 4: warn when no key interaction is reproduced",
@@ -1537,11 +1537,11 @@
           "result": "skip",
           "message": "OutputUnavailableError: minimisation failed for every pose: ValueError: No template found for residue 0 (UNK).  The set of heavy atoms matches NALA, but the residue is missing 1 H atom.  You may be able to add it with Modeller.addHydrogens().  For more information, see https://github.com/openmm/openmm/wiki/Frequently-Asked-Questions#template; ValueError: No template found for residue 0 (UNK).  The set of heavy atoms matches NALA, but the residue is missing 1 H atom.  You may be able to add it with Modeller.addHydrogens().  For more information, see https://github.com/openmm/openmm/wiki/Frequently-Asked-Questions#template; ValueError: No template found for residue 0 (UNK).  The set of heavy atoms matches NALA, but the residue is missing 1 H atom.  You may be able to add it with Modeller.addHydrogens().  For more information, see https://github.com/openmm/openmm/wiki/Frequently-Asked-Questions#template",
           "evidence": "OutputUnavailableError: minimisation failed for every pose: ValueError: No template found for residue 0 (UNK).  The set of heavy atoms matches NALA, but the residue is missing 1 H atom.  You may be able to add it with Modeller.addHydrogens().  For more information, see https://github.com/openmm/openmm/wiki/Frequently-Asked-Questions#template; ValueError: No template found for residue 0 (UNK).  The set of heavy atoms matches NALA, but the residue is missing 1 H atom.  You may be able to add it with Modeller.addHydrogens().  For more information, see https://github.com/openmm/openmm/wiki/Frequently-Asked-Questions#template; ValueError: No template found for residue 0 (UNK).  The set of heavy atoms matches NALA, but the residue is missing 1 H atom.  You may be able to add it with Modeller.addHydrogens().  For more information, see https://github.com/openmm/openmm/wiki/Frequently-Asked-Questions#template",
-          "ms": 28883,
+          "ms": 53056,
           "skipReason": "error"
         }
       ],
-      "durationMs": 37375,
+      "durationMs": 64829,
       "figures": [
         [
           "poses",
@@ -1597,7 +1597,7 @@
           "result": "pass",
           "message": "boltz2/seed8/sample0: pocket_plddt 95.1",
           "evidence": "boltz2/seed8/sample0: pocket_plddt 95.1 \u00b7 poses=3, pocket_plddt=95.1, global_plddt=95.8",
-          "ms": 18,
+          "ms": 26,
           "threshold": {
             "value": ">= 70",
             "origin": "AlphaFold DB pLDDT bands (70 and above: confident backbone), applied to pocket residues; not calibrated for ligand pose",
@@ -1693,7 +1693,7 @@
           "message": "medoid boltz2/seed8/sample0; 1 clusters, largest 3 of 3; pairwise RMSD median 1.20 \u00c5 (IQR 1.07 to 1.47); 3 of 3 poses within 4.0 \u00c5 of the site (ATP in 1B38); 3 of 3 poses within 2.0 \u00c5 of the medoid",
           "tool": "spyrmsd 0.9.0",
           "evidence": "medoid boltz2/seed8/sample0; 1 clusters, largest 3 of 3; pairwise RMSD median 1.20 \u00c5 (IQR 1.07 to 1.47); 3 of 3 poses within 4.0 \u00c5 of the site (ATP in 1B38); 3 of 3 poses within 2.0 \u00c5 of the medoid \u00b7 poses=3, clusters=1, largest_cluster=3",
-          "ms": 29,
+          "ms": 31,
           "threshold": {
             "value": "<= 2",
             "origin": "Specification layer 5: 2 \u00c5 symmetry-aware ligand RMSD (spyrmsd) separates pose clusters",
@@ -1768,7 +1768,7 @@
           "message": "boltz2 vs diffdock 1.994 \u00c5 (high); boltz2 vs crystal 1B38 1.823 \u00c5 (decisive); diffdock vs crystal 1B38 0.732 \u00c5 (decisive)",
           "tool": "spyrmsd",
           "evidence": "boltz2 vs diffdock 1.994 \u00c5 (high); boltz2 vs crystal 1B38 1.823 \u00c5 (decisive); diffdock vs crystal 1B38 0.732 \u00c5 (decisive) \u00b7 methods=2, comparisons=3, disagreeing=0",
-          "ms": 93,
+          "ms": 87,
           "threshold": {
             "value": "<= 2",
             "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 \u00c5",
@@ -1830,7 +1830,7 @@
           ]
         }
       ],
-      "durationMs": 143,
+      "durationMs": 316,
       "figures": [
         [
           "poses",
@@ -2845,7 +2845,7 @@
     }
   ],
   "source": "pah",
-  "createdAt": "2026-10-17T19:15:08.712413Z",
+  "createdAt": "2026-10-17T23:32:45.975607Z",
   "verdict": {
     "claim": "Predicted pose of ATP in CDK2 is valid",
     "outcome": "refused",

@@ -1,8 +1,8 @@
 {
   "check_id": "l5.sampling.clusters",
   "layer": 5,
-  "gate": "pass",
-  "message": "medoid boltz2/seed7/sample0; 2 clusters, largest 2 of 3; pairwise RMSD median 2.21 Å (IQR 1.66 to 2.43); 0 of 3 poses within 4.0 Å of the site (ATP in 8X61); 2 of 3 poses within 2.0 Å of the medoid",
+  "gate": "warn",
+  "message": "medoid boltz2/seed7/sample0; 3 clusters, largest 1 of 3; pairwise RMSD median 29.81 Å (IQR 16.08 to 30.05); 2 of 3 poses within 4.0 Å of the site (ATP in 8X61); 1 of 3 poses within 2.0 Å of the medoid",
   "measurements": [
     {
       "name": "poses",
@@ -11,32 +11,32 @@
     },
     {
       "name": "clusters",
-      "value": 2,
+      "value": 3,
       "unit": null
     },
     {
       "name": "largest_cluster",
-      "value": 2,
+      "value": 1,
       "unit": null
     },
     {
       "name": "pairwise_rmsd_median_A",
-      "value": 2.213,
+      "value": 29.809,
       "unit": null
     },
     {
       "name": "within_medoid",
-      "value": 2,
+      "value": 1,
       "unit": null
     },
     {
       "name": "in_site",
-      "value": 0,
+      "value": 2,
       "unit": null
     },
     {
       "name": "best_sampled_rmsd_to_reference_A",
-      "value": 15.305,
+      "value": 1.955,
       "unit": null
     }
   ],
@@ -73,27 +73,27 @@
         "cluster": 1,
         "rmsd_to_medoid_A": 0.0,
         "confidence": 0.888,
-        "site_distance_A": 15.51
+        "site_distance_A": 1.35
       },
       {
         "pose": "boltz2/seed8/sample0",
         "executor": "boltz2",
         "seed": 8,
         "sample": 0,
-        "cluster": 1,
-        "rmsd_to_medoid_A": 1.103,
+        "cluster": 2,
+        "rmsd_to_medoid_A": 30.29,
         "confidence": 0.882,
-        "site_distance_A": 14.65
+        "site_distance_A": 28.94
       },
       {
         "pose": "boltz2/seed9/sample0",
         "executor": "boltz2",
         "seed": 9,
         "sample": 0,
-        "cluster": 2,
-        "rmsd_to_medoid_A": 2.639,
+        "cluster": 3,
+        "rmsd_to_medoid_A": 2.347,
         "confidence": 0.881,
-        "site_distance_A": 14.38
+        "site_distance_A": 0.46
       }
     ],
     "medoid": "boltz2/seed7/sample0",
@@ -101,31 +101,36 @@
     "clusters": [
       {
         "id": 1,
-        "size": 2,
+        "size": 1,
         "medoid": "boltz2/seed7/sample0"
       },
       {
         "id": 2,
         "size": 1,
+        "medoid": "boltz2/seed8/sample0"
+      },
+      {
+        "id": 3,
+        "size": 1,
         "medoid": "boltz2/seed9/sample0"
       }
     ],
     "pairwise_rmsd_A": {
-      "median": 2.213,
-      "q1": 1.658,
-      "q3": 2.426,
+      "median": 29.809,
+      "q1": 16.078,
+      "q3": 30.05,
       "n": 3
     },
-    "site_placement": "0 of 3 poses within 4.0 Å of the site (ATP in 8X61)",
-    "pose_accuracy": "2 of 3 poses within 2.0 Å of the medoid",
+    "site_placement": "2 of 3 poses within 4.0 Å of the site (ATP in 8X61)",
+    "pose_accuracy": "1 of 3 poses within 2.0 Å of the medoid",
     "sampling": {
-      "best_sampled_rmsd_to_reference_A": 15.305,
+      "best_sampled_rmsd_to_reference_A": 1.955,
       "pose": "boltz2/seed9/sample0"
     },
     "frame_ca_rmsd_A": {
-      "boltz2/seed7/sample0": 19.987,
-      "boltz2/seed8/sample0": 19.863,
-      "boltz2/seed9/sample0": 19.806
+      "boltz2/seed7/sample0": 1.513,
+      "boltz2/seed8/sample0": 0.774,
+      "boltz2/seed9/sample0": 0.877
     }
   },
   "artifacts": [],
@@ -133,5 +138,5 @@
     "name": "spyrmsd",
     "version": "0.9.0"
   },
-  "duration_s": 0.054
+  "duration_s": 0.047
 }

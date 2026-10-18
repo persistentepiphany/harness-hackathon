@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "run_id": "ligand_pose-791b70c39f7a",
+  "run_id": "ligand_pose-37c3fb91ee8e",
   "task": "ligand_pose",
   "task_title": "Ligand pose in a known pocket",
   "claim": "Predicted pose of ATP in FtsE is valid",
@@ -14,8 +14,8 @@
     0,
     1
   ],
-  "started_at": "2026-10-17T19:19:04.493237Z",
-  "finished_at": "2026-10-17T19:20:15.562325Z",
+  "started_at": "2026-10-17T23:37:14.904209Z",
+  "finished_at": "2026-10-17T23:38:15.911148Z",
   "pah_version": "0.1.0",
   "verdict": {
     "claim": "Predicted pose of ATP in FtsE is valid",
@@ -31,6 +31,7 @@
       "l3.exposure.ligand_prevalence",
       "l4.interactions.unsatisfied_polars",
       "l5.sampling.seeds",
+      "l5.sampling.clusters",
       "l5.agreement.cross_family"
     ],
     "incomplete": [],
@@ -39,8 +40,8 @@
     ]
   },
   "counts": {
-    "pass": 17,
-    "warn": 7,
+    "pass": 16,
+    "warn": 8,
     "stop": 1,
     "skip": 1
   },
@@ -136,7 +137,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.186,
+          "duration_s": 0.209,
           "tool": null,
           "sources_used": [
             "rcsb_files:8X61:ba2b64fd50fa",
@@ -256,7 +257,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.203,
+          "duration_s": 0.18,
           "tool": {
             "name": "propka",
             "version": "3.5.1"
@@ -308,7 +309,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.055,
+          "duration_s": 0.054,
           "tool": {
             "name": "dimorphite_dl",
             "version": "2.1.0"
@@ -348,7 +349,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.799,
+          "duration_s": 0.769,
           "tool": {
             "name": "rdkit",
             "version": null
@@ -405,7 +406,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.013,
+          "duration_s": 0.014,
           "tool": null,
           "sources_used": [
             "rcsb_files:8X61:ba2b64fd50fa"
@@ -507,7 +508,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.383,
+          "duration_s": 0.405,
           "tool": null,
           "sources_used": [
             "rcsb_files:8X61:ba2b64fd50fa",
@@ -639,7 +640,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.0,
+          "duration_s": 0.001,
           "tool": {
             "name": "RCSB search (sequence, MMseqs2)",
             "version": null
@@ -674,7 +675,7 @@
           ],
           "thresholds": [],
           "skip_reason": null,
-          "duration_s": 0.011,
+          "duration_s": 0.01,
           "tool": null,
           "sources_used": [
             "rcsb_files:8X61:ba2b64fd50fa"
@@ -767,7 +768,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 2.451,
+          "duration_s": 2.083,
           "tool": {
             "name": "posebusters",
             "version": "0.6.5"
@@ -817,7 +818,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 3.939,
+          "duration_s": 3.646,
           "tool": {
             "name": "rdkit MMFF94",
             "version": null
@@ -829,7 +830,7 @@
           "title": "Interaction fingerprint (PLIP)",
           "layer": 4,
           "gate": "pass",
-          "message": "10 interactions in boltz2/seed7/sample0 (hbond, salt_bridge); 13 distinct across 3 poses (reported)",
+          "message": "10 interactions in boltz2/seed7/sample0 (hbond, salt_bridge); 17 distinct across 3 poses (reported)",
           "measurements": [
             {
               "name": "poses",
@@ -843,7 +844,7 @@
             },
             {
               "name": "distinct",
-              "value": 13,
+              "value": 17,
               "unit": null
             },
             {
@@ -854,7 +855,7 @@
           ],
           "thresholds": [],
           "skip_reason": null,
-          "duration_s": 0.793,
+          "duration_s": 0.743,
           "tool": {
             "name": "plip",
             "version": "3.0.1"
@@ -908,7 +909,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.178,
+          "duration_s": 0.183,
           "tool": {
             "name": "freesasa",
             "version": "2.2.1"
@@ -955,7 +956,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.177,
+          "duration_s": 0.18,
           "tool": {
             "name": "freesasa",
             "version": null
@@ -967,7 +968,7 @@
           "title": "Interactions of the crystal ligand reproduced by the pose",
           "layer": 4,
           "gate": "pass",
-          "message": "boltz2/seed7/sample0 reproduces 1 of 16 ATP interactions: hbond ARG15A",
+          "message": "boltz2/seed7/sample0 reproduces 3 of 16 ATP interactions: hbond ARG15A, hbond GLY38A, hbond GLY40A",
           "measurements": [
             {
               "name": "key_interactions",
@@ -976,7 +977,7 @@
             },
             {
               "name": "reproduced",
-              "value": 1,
+              "value": 3,
               "unit": null
             },
             {
@@ -995,7 +996,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.436,
+          "duration_s": 0.476,
           "tool": {
             "name": "plip",
             "version": "3.0.1"
@@ -1009,7 +1010,7 @@
           "title": "Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF)",
           "layer": 4,
           "gate": "pass",
-          "message": "boltz2/seed7/sample0 moves 1.904 Å under restrained minimisation; 0 of 3 poses above 2.0 Å",
+          "message": "boltz2/seed7/sample0 moves 1.99 Å under restrained minimisation; 0 of 3 poses above 2.0 Å",
           "measurements": [
             {
               "name": "poses",
@@ -1018,12 +1019,12 @@
             },
             {
               "name": "drift_A",
-              "value": 1.904,
+              "value": 1.99,
               "unit": null
             },
             {
               "name": "max_drift_A",
-              "value": 1.904,
+              "value": 1.99,
               "unit": null
             },
             {
@@ -1047,7 +1048,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 61.108,
+          "duration_s": 51.727,
           "tool": {
             "name": "openmm",
             "version": "8.6.1"
@@ -1060,8 +1061,8 @@
       "layer": 5,
       "name": "output support",
       "counts": {
-        "pass": 2,
-        "warn": 2,
+        "pass": 1,
+        "warn": 3,
         "stop": 1,
         "skip": 0
       },
@@ -1159,8 +1160,8 @@
           "check_id": "l5.sampling.clusters",
           "title": "Medoid of the largest cluster, populations, pairwise spread, site and pose accuracy",
           "layer": 5,
-          "gate": "pass",
-          "message": "medoid boltz2/seed7/sample0; 2 clusters, largest 2 of 3; pairwise RMSD median 2.21 Å (IQR 1.66 to 2.43); 0 of 3 poses within 4.0 Å of the site (ATP in 8X61); 2 of 3 poses within 2.0 Å of the medoid",
+          "gate": "warn",
+          "message": "medoid boltz2/seed7/sample0; 3 clusters, largest 1 of 3; pairwise RMSD median 29.81 Å (IQR 16.08 to 30.05); 2 of 3 poses within 4.0 Å of the site (ATP in 8X61); 1 of 3 poses within 2.0 Å of the medoid",
           "measurements": [
             {
               "name": "poses",
@@ -1169,32 +1170,32 @@
             },
             {
               "name": "clusters",
-              "value": 2,
+              "value": 3,
               "unit": null
             },
             {
               "name": "largest_cluster",
-              "value": 2,
+              "value": 1,
               "unit": null
             },
             {
               "name": "pairwise_rmsd_median_A",
-              "value": 2.213,
+              "value": 29.809,
               "unit": null
             },
             {
               "name": "within_medoid",
-              "value": 2,
+              "value": 1,
               "unit": null
             },
             {
               "name": "in_site",
-              "value": 0,
+              "value": 2,
               "unit": null
             },
             {
               "name": "best_sampled_rmsd_to_reference_A",
-              "value": 15.305,
+              "value": 1.955,
               "unit": null
             }
           ],
@@ -1222,7 +1223,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.054,
+          "duration_s": 0.047,
           "tool": {
             "name": "spyrmsd",
             "version": "0.9.0"
@@ -1236,7 +1237,7 @@
           "title": "Agreement between methods, weighted by independence",
           "layer": 5,
           "gate": "warn",
-          "message": "boltz2 vs diffdock 3.977 Å (high); boltz2 vs crystal 8X61 16.401 Å (decisive); diffdock vs crystal 8X61 17.821 Å (decisive)",
+          "message": "boltz2 vs diffdock 2.102 Å (high); boltz2 vs crystal 8X61 1.992 Å (decisive); diffdock vs crystal 8X61 2.191 Å (decisive)",
           "measurements": [
             {
               "name": "methods",
@@ -1250,12 +1251,12 @@
             },
             {
               "name": "disagreeing",
-              "value": 3,
+              "value": 2,
               "unit": null
             },
             {
               "name": "rmsd_to_crystal_A",
-              "value": 16.401,
+              "value": 1.992,
               "unit": null
             }
           ],
@@ -1269,7 +1270,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.171,
+          "duration_s": 0.153,
           "tool": {
             "name": "spyrmsd",
             "version": null
@@ -3386,15 +3387,15 @@
     {
       "path": "figures/gates_by_layer.svg",
       "kind": "figure",
-      "sha256": "c00fd0c8a423b59464f4ce54417e43de7ecd0567b7704e7a710bfdcfcf5b0893",
-      "size_bytes": 89214,
+      "sha256": "f6fc9e1afe3809bce1545e4c5f93f556e7df7958bb2a55728eb911bd38cee843",
+      "size_bytes": 89212,
       "label": "gates_by_layer",
       "derived_from": []
     },
     {
       "path": "figures/gates_by_layer.csv",
       "kind": "data",
-      "sha256": "02b86904d13849ce900a49868758d33068abc9dc2125b57567c57b92ef03f3ca",
+      "sha256": "d60133a5ff7d317ad263b360d81be811d1f24045ee0b4e1de041d1499e757835",
       "size_bytes": 135,
       "label": "gates_by_layer",
       "derived_from": []
@@ -3402,15 +3403,15 @@
     {
       "path": "figures/seed_spread.svg",
       "kind": "figure",
-      "sha256": "ffcf6675c7e2a3100d8a6acfa5d9ef14f3685b52f00b13a56f7c960c53e4df59",
-      "size_bytes": 11955,
+      "sha256": "7dd0dee4d0cccb9c73f32a5f14de3dd856ae6f8d2a102d979566284fee1de840",
+      "size_bytes": 13801,
       "label": "seed_spread",
       "derived_from": []
     },
     {
       "path": "figures/seed_spread.csv",
       "kind": "data",
-      "sha256": "2ddc031fdc2146d8bc21b450887707ad69718071371912b41407cdb9d10702d7",
+      "sha256": "3bf651868a415190fbbf651c701da1d66d5243cc6dfb85228a35dc9f01746b37",
       "size_bytes": 159,
       "label": "seed_spread",
       "derived_from": []
@@ -3418,7 +3419,7 @@
     {
       "path": "figures/posebusters_grid.svg",
       "kind": "figure",
-      "sha256": "24e628921117d516e91a6ceee2005b4a400f1466eebd00e6f8f302d463b92c32",
+      "sha256": "f2af5294cb3c99cd6e5e45e2af83a2cbd5dbcca492d5796bd2d9d79d1ea9100a",
       "size_bytes": 26731,
       "label": "posebusters_grid",
       "derived_from": []
@@ -3434,39 +3435,39 @@
     {
       "path": "figures/interactions.svg",
       "kind": "figure",
-      "sha256": "14c6b52e2cfdb5a7cd5803a573b8fa217ceabc2d3e345e48d940c55cf2e749a1",
-      "size_bytes": 20522,
+      "sha256": "25bd54887d493b27db6707a39f2fbdb8f3d5bcf0c11d42cfabc421476a9128b0",
+      "size_bytes": 24211,
       "label": "interactions",
       "derived_from": []
     },
     {
       "path": "figures/interactions.csv",
       "kind": "data",
-      "sha256": "fc4346e9694cad8ed24528241119314cf0beda0cd9274dc954e3fdaf27808968",
-      "size_bytes": 341,
+      "sha256": "1e97f687d2cbb822bdc03584f750ba9804e8cbe794fe6ddbfc80b0719f114d44",
+      "size_bytes": 430,
       "label": "interactions",
       "derived_from": []
     },
     {
       "path": "figures/agreement.svg",
       "kind": "figure",
-      "sha256": "c08f7cb84a833beec4a8f1ad744b9b0ec4d9285a304b13420ac4c07c12f1a198",
-      "size_bytes": 9296,
+      "sha256": "ed3cad4d9746c833b5141b0be79e988dbe317c1ae36bd5cb400df0dc2575c0c3",
+      "size_bytes": 9858,
       "label": "agreement",
       "derived_from": []
     },
     {
       "path": "figures/agreement.csv",
       "kind": "data",
-      "sha256": "5276078c51f7096d214a494e042c024fab201823be99f442cd58752f7abd8685",
-      "size_bytes": 142,
+      "sha256": "9df9ca0d7dd4f3773daa31a5d17624db86bc227f98173f6617a600161a640e4d",
+      "size_bytes": 140,
       "label": "agreement",
       "derived_from": []
     },
     {
       "path": "figures/pae.svg",
       "kind": "figure",
-      "sha256": "9869b4e3f231e1d68d0df7d7d18a92b945e9cc2fae33c54f9ea69d4d8020bcc4",
+      "sha256": "a5a5344671a153903802802f0fd967940ea65b23a477be0eb86de28615bdfaa7",
       "size_bytes": 86069,
       "label": "pae",
       "derived_from": []
@@ -3482,7 +3483,7 @@
     {
       "path": "graph.json",
       "kind": "graph",
-      "sha256": "1c692b40a7180def17e9c890a3b30e8157616e3475ed20cf5e35479ca24b6715",
+      "sha256": "1d50f7beb89b326cc4458b0c7d541b00b3e6ed15b50f9c621dac3e9ae1f0b543",
       "size_bytes": 69243,
       "label": "provenance graph",
       "derived_from": []
@@ -3490,7 +3491,7 @@
     {
       "path": "graph.mmd",
       "kind": "graph",
-      "sha256": "8448fa8cd4e7b02e856f654aa656b95b4d797bedde4f0fd1e13e337eb36c66bb",
+      "sha256": "6928a0ed605535b9caead6c561bec9e8bb5245194bd4f1b1b2b681364c037c01",
       "size_bytes": 10764,
       "label": "provenance graph",
       "derived_from": []
@@ -3498,8 +3499,8 @@
     {
       "path": "graph.svg",
       "kind": "graph",
-      "sha256": "4d3002e6ead9b89dbd00e396477a199f17e079190edcf694f0fd34973d1f83f4",
-      "size_bytes": 151472,
+      "sha256": "a9c8f3f43b2efc2b4aed0c7329cf7c819eb488f995d205c9859494d6c0ad095d",
+      "size_bytes": 151479,
       "label": "provenance graph",
       "derived_from": []
     }
@@ -3509,7 +3510,7 @@
       "id": "gates_by_layer",
       "kind": "figure",
       "path": "figures/gates_by_layer.svg",
-      "caption": "Check outcomes per layer for run ligand_pose-791b70c39f7a. Totals: pass 17, warn 7, stop 1, skip 1.",
+      "caption": "Check outcomes per layer for run ligand_pose-37c3fb91ee8e. Totals: pass 16, warn 8, stop 1, skip 1.",
       "alt": "Horizontal stacked bars per layer, split into pass, warn, stop and skip counts.",
       "data_path": "figures/gates_by_layer.csv",
       "session_path": null,
@@ -3519,7 +3520,7 @@
       "id": "seed_spread",
       "kind": "figure",
       "path": "figures/seed_spread.svg",
-      "caption": "RMSD to the medoid for 3 poses, coloured by cluster (2 clusters). Dashed line: median 1.10 Å; range 0.00 to 2.64 Å.",
+      "caption": "RMSD to the medoid for 3 poses, coloured by cluster (3 clusters). Dashed line: median 2.35 Å; range 0.00 to 30.29 Å.",
       "alt": "Dot plot of RMSD to the medoid per pose, coloured by cluster, with a dashed median line.",
       "data_path": "figures/seed_spread.csv",
       "session_path": null,
@@ -3539,7 +3540,7 @@
       "id": "interactions",
       "kind": "figure",
       "path": "figures/interactions.svg",
-      "caption": "Interactions by residue (13) and type (2); cell label: poses with the interaction over poses assessed.",
+      "caption": "Interactions by residue (17) and type (2); cell label: poses with the interaction over poses assessed.",
       "alt": "Heatmap of residues (rows) by interaction type (columns), shaded by pose count.",
       "data_path": "figures/interactions.csv",
       "session_path": null,
@@ -3549,7 +3550,7 @@
       "id": "agreement",
       "kind": "figure",
       "path": "figures/agreement.svg",
-      "caption": "Agreement between 2 methods and 2 comparators; range 3.977 to 17.821 Å.",
+      "caption": "Agreement between 2 methods and 2 comparators; range 1.992 to 2.191 Å.",
       "alt": "Matrix of methods (rows) against comparators (columns), shaded by the difference.",
       "data_path": "figures/agreement.csv",
       "session_path": null,

@@ -1,6 +1,6 @@
 # Run report · Ligand pose in a known pocket
 
-Prediction assurance · run `ligand_pose-4d20ef01a9ab` · 2026-10-17 19:27:32 UTC
+Prediction assurance · run `ligand_pose-371f8be8f769` · 2026-10-17 23:45:11 UTC
 
 **Refused** for the claim "Predicted pose of BGC in glucose dehydrogenase (glucose-binding) is valid".
 
@@ -20,9 +20,9 @@ Warnings: `l2.receptor.protonation`, `l2.docking.box`, `l3.exposure.ligand_preva
 | pH | 7.4 |
 | Seeds | 3 |
 | Layers run | 2, 3, 4, 5 |
-| Run | `ligand_pose-4d20ef01a9ab` |
-| Created | 2026-10-17 19:27:32 UTC |
-| Finished | 2026-10-17 19:28:50 UTC |
+| Run | `ligand_pose-371f8be8f769` |
+| Created | 2026-10-17 23:45:11 UTC |
+| Finished | 2026-10-17 23:46:33 UTC |
 | pah version | 0.1.0 |
 | Report schema | 1 |
 
@@ -32,16 +32,16 @@ Warnings: `l2.receptor.protonation`, `l2.docking.box`, `l3.exposure.ligand_preva
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | L0 Provenance | not run | n/a | n/a | n/a | n/a | n/a | n/a |
 | L1 Input integrity | not run | n/a | n/a | n/a | n/a | n/a | n/a |
-| L2 Input adequacy | done | stop | 4 | 2 | 1 | 1 | 1.3 s |
-| L3 Applicability | done | warn | 5 | 1 | 0 | 0 | 408 ms |
-| L4 Output validity | done | stop | 5 | 1 | 1 | 0 | 76.5 s |
-| L5 Output support | done | stop | 2 | 2 | 1 | 0 | 314 ms |
+| L2 Input adequacy | done | stop | 4 | 2 | 1 | 1 | 1.2 s |
+| L3 Applicability | done | warn | 5 | 1 | 0 | 0 | 312 ms |
+| L4 Output validity | done | stop | 5 | 1 | 1 | 0 | 80.7 s |
+| L5 Output support | done | stop | 2 | 2 | 1 | 0 | 301 ms |
 
 ## Figures
 
 ![Horizontal stacked bars per layer, split into pass, warn, stop and skip counts.](figures/gates_by_layer.svg)
 
-Fig. 1 · Check outcomes per layer for run ligand_pose-4d20ef01a9ab. Totals: pass 16, warn 6, stop 3, skip 1.
+Fig. 1 · Check outcomes per layer for run ligand_pose-371f8be8f769. Totals: pass 16, warn 6, stop 3, skip 1.
 Files: data [figures/gates_by_layer.csv](figures/gates_by_layer.csv).
 
 ## Structures
@@ -336,7 +336,7 @@ Status: not run.
 
 Does the input carry enough information?
 
-Status: done. Checks: pass 4 · warn 2 · stop 1 · skip 1. Time: 1.3 s.
+Status: done. Checks: pass 4 · warn 2 · stop 1 · skip 1. Time: 1.2 s.
 
 #### Key figures
 
@@ -364,19 +364,19 @@ Status: done. Checks: pass 4 · warn 2 · stop 1 · skip 1. Time: 1.3 s.
 | Check | Result | Measured cmp threshold | Evidence | Id · time |
 | --- | --- | --- | --- | --- |
 | Alignment depth, distinct sequences, Neff and gap fraction | skip | n/a | no MSA declared for a co-folding model · not applicable | `l2.msa.depth` |
-| Required cofactors, ions and partners present | stop | `pocket_distance <= 8` | components within 8.0 Å of BGC in 2VWH not supplied: NAP, ZN · near_site=2, missing=2, uniprot_cofactors=0 | `l2.context.cofactors` · 185 ms |
-| Pocket residues resolved, no missing loops lining the pocket | pass | `pocket_distance <= 6` | 19 pocket residues complete in 2VWH.cif · pocket_residues=19, incomplete=0, sequence_gaps=0 | `l2.pocket.resolved` · 8 ms |
+| Required cofactors, ions and partners present | stop | `pocket_distance <= 8` | components within 8.0 Å of BGC in 2VWH not supplied: NAP, ZN · near_site=2, missing=2, uniprot_cofactors=0 | `l2.context.cofactors` · 194 ms |
+| Pocket residues resolved, no missing loops lining the pocket | pass | `pocket_distance <= 6` | 19 pocket residues complete in 2VWH.cif · pocket_residues=19, incomplete=0, sequence_gaps=0 | `l2.pocket.resolved` · 9 ms |
 | Receptor state apo or holo | pass | n/a | 2VWH.cif holo: BGC, NAP in the site · state=holo, site_ligands=2 | `l2.receptor.state` · 7 ms |
-| Receptor protonation at the stated pH | warn | `pka_margin > 1` | receptor has no hydrogens (protonation not assigned); pKa within 1.0 of pH 7.4: GLU64A pKa 6.96, GLU150A pKa 8.39 · hydrogens_present=False, ph=7.4, pocket_titratable=13 | `l2.receptor.protonation` · 499 ms |
-| Ligand protonation and tautomers enumerated at the stated pH | pass | `ph 7.4 == 1` | one state at pH 7.4 for every ligand · ph=7.4, max_states=1, declared_not_enumerated=0 | `l2.ligand.protonation` · 51 ms |
-| Ligand conformers generated and minimised | pass | `conformers >= 10` | 10 ETKDG conformers per ligand, MMFF minimised · ligands=1, failed=0, min_embedded=10 | `l2.ligand.conformers` · 535 ms |
-| Docking box encloses the pocket with margin | warn | `margin >= 2` | no box declared; derived box encloses 11 contact residues and the BGC ligand with 2.0 Å margin · volume_A3=1808.5, ligand_atoms_inside_margin=12, ligand_atoms=12 | `l2.docking.box` · 13 ms |
+| Receptor protonation at the stated pH | warn | `pka_margin > 1` | receptor has no hydrogens (protonation not assigned); pKa within 1.0 of pH 7.4: GLU64A pKa 6.96, GLU150A pKa 8.39 · hydrogens_present=False, ph=7.4, pocket_titratable=13 | `l2.receptor.protonation` · 505 ms |
+| Ligand protonation and tautomers enumerated at the stated pH | pass | `ph 7.4 == 1` | one state at pH 7.4 for every ligand · ph=7.4, max_states=1, declared_not_enumerated=0 | `l2.ligand.protonation` · 40 ms |
+| Ligand conformers generated and minimised | pass | `conformers >= 10` | 10 ETKDG conformers per ligand, MMFF minimised · ligands=1, failed=0, min_embedded=10 | `l2.ligand.conformers` · 425 ms |
+| Docking box encloses the pocket with margin | warn | `margin >= 2` | no box declared; derived box encloses 11 contact residues and the BGC ligand with 2.0 Å margin · volume_A3=1808.5, ligand_atoms_inside_margin=12, ligand_atoms=12 | `l2.docking.box` · 9 ms |
 
 ## L3 Applicability
 
 Is the tool inside its validated regime?
 
-Status: done. Checks: pass 5 · warn 1 · stop 0 · skip 0. Time: 408 ms.
+Status: done. Checks: pass 5 · warn 1 · stop 0 · skip 0. Time: 312 ms.
 
 #### Key figures
 
@@ -396,17 +396,17 @@ Status: done. Checks: pass 5 · warn 1 · stop 0 · skip 0. Time: 408 ms.
 | Check | Result | Measured cmp threshold | Evidence | Id · time |
 | --- | --- | --- | --- | --- |
 | Model training cutoff recorded | pass | `training_cutoff == recorded` | diffdock 2019-01-01; boltz2 2023-06-01; reference 2VWH released 2009-01-13, before the cutoff of diffdock, boltz2 · executors=2, unknown=0, reference_released=2009-01-13 | `l3.model.training_cutoff` · 1 ms |
-| Pocket similarity to pre-cutoff complexes (SuCOS times pocket coverage) | pass | `similarity <= 50` | max similarity 15.7 to 2VWH (BGC, SuCOS 0.218, coverage 0.722), released before 2019-01-01 · cutoff=2019-01-01, entries_compared=1, max_similarity=15.7 | `l3.exposure.pocket` · 397 ms |
+| Pocket similarity to pre-cutoff complexes (SuCOS times pocket coverage) | pass | `similarity <= 50` | max similarity 15.7 to 2VWH (BGC, SuCOS 0.218, coverage 0.722), released before 2019-01-01 · cutoff=2019-01-01, entries_compared=1, max_similarity=15.7 | `l3.exposure.pocket` · 302 ms |
 | Ligand analogues in pre-cutoff training systems | warn | `tanimoto > 0.9` | 1079 PDB entries released before 2019-01-01 (diffdock cutoff) contain analogues of ligand above Tanimoto 0.9: 3MK, 4GL, 4N2, A1EKO, AFD, ALL · cutoff=2019-01-01, systems=1079, analogue_components=25 | `l3.exposure.ligand_prevalence` · 0 ms |
-| Chain sequence identity to pre-cutoff entries (secondary measure) | pass | `identity < 0.4` | protein: 6 entries at 95 percent identity, 6 at 40 percent, released before 2019-01-01 (reported, not gating) · cutoff=2019-01-01, entries_95=6, entries_40=6 | `l3.exposure.sequence` · 1 ms |
-| Modality inside the validated set; token count against the training crop | pass | n/a | modalities protein, protein_ligand inside the validated set; 369 tokens · modalities=2, tokens=369, outside=0 | `l3.regime.modality` · 7 ms |
+| Chain sequence identity to pre-cutoff entries (secondary measure) | pass | `identity < 0.4` | protein: 6 entries at 95 percent identity, 6 at 40 percent, released before 2019-01-01 (reported, not gating) · cutoff=2019-01-01, entries_95=6, entries_40=6 | `l3.exposure.sequence` · 0 ms |
+| Modality inside the validated set; token count against the training crop | pass | n/a | modalities protein, protein_ligand inside the validated set; 369 tokens · modalities=2, tokens=369, outside=0 | `l3.regime.modality` · 5 ms |
 | Endpoint fits the tool | pass | `endpoint pose in pose` | endpoint pose produced by diffdock, boltz2 · endpoint=pose, executors=2, not_fitting=0 | `l3.metric.endpoint` · 0 ms |
 
 ## L4 Output validity
 
 Is the result physically and chemically sensible?
 
-Status: done. Checks: pass 5 · warn 1 · stop 1 · skip 0. Time: 76.5 s.
+Status: done. Checks: pass 5 · warn 1 · stop 1 · skip 0. Time: 80.7 s.
 
 #### Key figures
 
@@ -450,10 +450,10 @@ Status: done. Checks: pass 5 · warn 1 · stop 1 · skip 0. Time: 76.5 s.
 
 | pose | seed | drift Å | converged | unlikely torsions | unsat. polars | buried charged | PoseBusters |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| diffdock/seed7/mode0 | 7 | 1.21 | true | 0/6 | 1 | 0 | 19/20 |
-| diffdock/seed8/mode0 | 8 | 2.29 | true | 0/6 | 0 | 0 | 19/20 |
-| diffdock/seed9/mode0 | 9 | 3.91 | true | 1/6 | 0 | 0 | 19/20 |
-| median | n/a | 2.29 | n/a | 0 | 0 | 0 | 19/20 |
+| diffdock/seed7/mode0 | 7 | 1.14 | true | 0/6 | 1 | 0 | 19/20 |
+| diffdock/seed8/mode0 | 8 | 2.49 | true | 0/6 | 0 | 0 | 19/20 |
+| diffdock/seed9/mode0 | 9 | 1.23 | true | 1/6 | 0 | 0 | 19/20 |
+| median | n/a | 1.23 | n/a | 0 | 0 | 0 | 19/20 |
 
 #### Interaction fingerprint · representative pose diffdock/seed7/mode0
 
@@ -484,19 +484,19 @@ Files: data [figures/interactions.csv](figures/interactions.csv).
 
 | Check | Result | Measured cmp threshold | Evidence | Id · time |
 | --- | --- | --- | --- | --- |
-| PoseBusters geometry, stereochemistry, clashes and protein contact | stop | `tests_failed == 0` | representative pose diffdock/seed7/mode0 fails minimum_distance_to_protein · poses=3, passed=19, total=20 | `l4.posebusters` · 917 ms |
-| Torsional strain of the ligand pose | pass | `torsion_energy <= 2.5` | 0 of 6 torsions above 2.5 kcal/mol in diffdock/seed7/mode0; strain 9.96 kcal/mol · poses=3, unlikely_torsions=0, torsions=6 | `l4.torsion_strain` · 515 ms |
-| Interaction fingerprint (PLIP) | pass | n/a | 5 interactions in diffdock/seed7/mode0 (hbond); 10 distinct across 3 poses (reported) · poses=3, interactions_representative=5, distinct=10 | `l4.interactions.fingerprint` · 699 ms |
-| Buried ligand polar atoms without a hydrogen-bond partner | warn | `relative_sasa < 0.1` | 1 of 5 buried polar ligand atoms without a partner in diffdock/seed7/mode0 · poses=3, unsatisfied=1, buried_charged=0 | `l4.interactions.unsatisfied_polars` · 324 ms |
-| Hydrophobic complementarity of buried ligand surface | pass | `fraction >= 0.35` | nonpolar fraction of protein contacts around 2 buried nonpolar ligand atoms in diffdock/seed7/mode0: 0.717 · poses=3, complementarity=0.717, buried_nonpolar=2 | `l4.interactions.hydrophobic` · 414 ms |
-| Interactions of the crystal ligand reproduced by the pose | pass | `reproduced 2 >= 1` | diffdock/seed7/mode0 reproduces 2 of 6 BGC interactions: hbond ASN303A, hbond THR40A · key_interactions=6, reproduced=2, poses_reproducing_all=0 | `l4.interactions.known_binders` · 386 ms |
-| Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF) | pass | `drift_A 1.21 <= 2` | diffdock/seed7/mode0 moves 1.205 Å under restrained minimisation; 2 of 3 poses above 2.0 Å · poses=3, drift_A=1.205, max_drift_A=3.914 | `l4.minimisation_drift` · 73.2 s |
+| PoseBusters geometry, stereochemistry, clashes and protein contact | stop | `tests_failed == 0` | representative pose diffdock/seed7/mode0 fails minimum_distance_to_protein · poses=3, passed=19, total=20 | `l4.posebusters` · 853 ms |
+| Torsional strain of the ligand pose | pass | `torsion_energy <= 2.5` | 0 of 6 torsions above 2.5 kcal/mol in diffdock/seed7/mode0; strain 9.96 kcal/mol · poses=3, unlikely_torsions=0, torsions=6 | `l4.torsion_strain` · 443 ms |
+| Interaction fingerprint (PLIP) | pass | n/a | 5 interactions in diffdock/seed7/mode0 (hbond); 10 distinct across 3 poses (reported) · poses=3, interactions_representative=5, distinct=10 | `l4.interactions.fingerprint` · 654 ms |
+| Buried ligand polar atoms without a hydrogen-bond partner | warn | `relative_sasa < 0.1` | 1 of 5 buried polar ligand atoms without a partner in diffdock/seed7/mode0 · poses=3, unsatisfied=1, buried_charged=0 | `l4.interactions.unsatisfied_polars` · 317 ms |
+| Hydrophobic complementarity of buried ligand surface | pass | `fraction >= 0.35` | nonpolar fraction of protein contacts around 2 buried nonpolar ligand atoms in diffdock/seed7/mode0: 0.717 · poses=3, complementarity=0.717, buried_nonpolar=2 | `l4.interactions.hydrophobic` · 335 ms |
+| Interactions of the crystal ligand reproduced by the pose | pass | `reproduced 2 >= 1` | diffdock/seed7/mode0 reproduces 2 of 6 BGC interactions: hbond ASN303A, hbond THR40A · key_interactions=6, reproduced=2, poses_reproducing_all=0 | `l4.interactions.known_binders` · 277 ms |
+| Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF) | pass | `drift_A 1.14 <= 2` | diffdock/seed7/mode0 moves 1.136 Å under restrained minimisation; 1 of 3 poses above 2.0 Å · poses=3, drift_A=1.136, max_drift_A=2.487 | `l4.minimisation_drift` · 77.9 s |
 
 ## L5 Output support
 
 Is a valid result corroborated?
 
-Status: done. Checks: pass 2 · warn 2 · stop 1 · skip 0. Time: 314 ms.
+Status: done. Checks: pass 2 · warn 2 · stop 1 · skip 0. Time: 301 ms.
 
 #### Key figures
 
@@ -570,8 +570,8 @@ Files: data [figures/agreement.csv](figures/agreement.csv).
 | --- | --- | --- | --- | --- |
 | Confidence restricted to the pocket; per-model thresholds | pass | n/a | diffdock/seed7/mode0: diffdock_confidence -0.81; no per-model confidence threshold registered for diffdock (reported) · poses=3, diffdock_confidence=-0.81 | `l5.confidence.local` · 0 ms |
 | Independent seeds counted separately from samples; duplicates flagged | pass | `seeds_docking >= 3` | 3 independent seeds, 30 poses, no duplicates · independent_seeds=3, samples=30, duplicated_outputs=0 | `l5.sampling.seeds` · 0 ms |
-| Medoid of the largest cluster, populations, pairwise spread, site and pose accuracy | warn | `cluster_rmsd <= 2` | medoid diffdock/seed7/mode0; 3 clusters, largest 1 of 3; pairwise RMSD median 14.17 Å (IQR 13.75 to 18.60); 1 of 3 poses within 4.0 Å of the site (BGC in 2VWH); 1 of 3 poses within 2.0 Å of the medoid · poses=3, clusters=3, largest_cluster=1 | `l5.sampling.clusters` · 218 ms |
-| Agreement between methods, weighted by independence | warn | `rmsd_to_crystal_A 4.08 <= 2` | diffdock vs boltz2 3.988 Å (high); diffdock vs crystal 2VWH 4.079 Å (decisive); boltz2 vs crystal 2VWH 0.291 Å (decisive) · methods=2, comparisons=3, disagreeing=2 | `l5.agreement.cross_family` · 94 ms |
+| Medoid of the largest cluster, populations, pairwise spread, site and pose accuracy | warn | `cluster_rmsd <= 2` | medoid diffdock/seed7/mode0; 3 clusters, largest 1 of 3; pairwise RMSD median 14.17 Å (IQR 13.75 to 18.60); 1 of 3 poses within 4.0 Å of the site (BGC in 2VWH); 1 of 3 poses within 2.0 Å of the medoid · poses=3, clusters=3, largest_cluster=1 | `l5.sampling.clusters` · 211 ms |
+| Agreement between methods, weighted by independence | warn | `rmsd_to_crystal_A 4.08 <= 2` | diffdock vs boltz2 3.988 Å (high); diffdock vs crystal 2VWH 4.079 Å (decisive); boltz2 vs crystal 2VWH 0.291 Å (decisive) · methods=2, comparisons=3, disagreeing=2 | `l5.agreement.cross_family` · 86 ms |
 | Redocking control reproduces the crystal pose | stop | `rmsd <= 2` | redocking control required by the task and not supplied (controls.redocking) | `l5.controls.redocking` · 0 ms |
 
 ## Controls
@@ -861,16 +861,16 @@ Tool versions: dimorphite_dl 2.1.0, freesasa 2.2.1, gemmi 0.7.5, numpy 1.26.4, o
 | renders/boltz2_seed9_sample0_overview.png | render | 222673 | `a6d3ec24fe54` |
 | renders/boltz2_seed9_sample0_pocket.png | render | 456032 | `a61d0ca2fde4` |
 | renders/boltz2_seed9_sample0.pse | session | 937964 | `97f11a6d70a6` |
-| figures/gates_by_layer.svg | figure | 89918 | `05e36df68a6e` |
+| figures/gates_by_layer.svg | figure | 89918 | `3147e4b4c54e` |
 | figures/gates_by_layer.csv | data | 135 | `fcf0e36874ad` |
-| figures/seed_spread.svg | figure | 14566 | `08549c8f9336` |
+| figures/seed_spread.svg | figure | 14566 | `13bd11a2de37` |
 | figures/seed_spread.csv | data | 159 | `1e3c02ed06ba` |
-| figures/posebusters_grid.svg | figure | 27815 | `5eaefb03cb48` |
+| figures/posebusters_grid.svg | figure | 27815 | `aa9e2234b9bf` |
 | figures/posebusters_grid.csv | data | 888 | `becfe21380ec` |
-| figures/interactions.svg | figure | 17001 | `07cf5e40d5c6` |
+| figures/interactions.svg | figure | 17001 | `3b46e6de919a` |
 | figures/interactions.csv | data | 271 | `d019e2b5a314` |
-| figures/agreement.svg | figure | 9809 | `399a49e11fea` |
+| figures/agreement.svg | figure | 9809 | `685b9a64f43b` |
 | figures/agreement.csv | data | 140 | `63807bb055ed` |
 | graph.json | graph | 76616 | `d3422c1d8be5` |
-| graph.mmd | graph | 11251 | `e52428259d1a` |
-| graph.svg | graph | 157697 | `9b855fd8f330` |
+| graph.mmd | graph | 11251 | `720364d8d7c6` |
+| graph.svg | graph | 157697 | `035a3ba368e7` |

@@ -1,5 +1,5 @@
 {
-  "run_id": "ligand_pose-47f58e21f3eb",
+  "run_id": "ligand_pose-fa805ff2f6b7",
   "task": "ligand_pose",
   "claim": "Predicted pose of ATP in CDK2 is valid",
   "layers": [
@@ -98,8 +98,8 @@
       "sticky": null
     }
   },
-  "started_at": "2026-10-17T19:19:03.628355Z",
-  "finished_at": "2026-10-17T19:20:31.047404Z",
+  "started_at": "2026-10-17T23:37:14.839372Z",
+  "finished_at": "2026-10-17T23:38:24.785001Z",
   "pah_version": "0.1.0",
   "tool_versions": {
     "numpy": "1.26.4",
@@ -175,7 +175,7 @@
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 0.177
+      "duration_s": 0.252
     },
     {
       "check_id": "l2.pocket.resolved",
@@ -258,7 +258,7 @@
         "name": "gemmi",
         "version": null
       },
-      "duration_s": 0.007
+      "duration_s": 0.009
     },
     {
       "check_id": "l2.receptor.state",
@@ -469,7 +469,7 @@
         "name": "propka",
         "version": "3.5.1"
       },
-      "duration_s": 0.347
+      "duration_s": 0.384
     },
     {
       "check_id": "l2.ligand.protonation",
@@ -534,7 +534,7 @@
         "name": "dimorphite_dl",
         "version": "2.1.0"
       },
-      "duration_s": 0.053
+      "duration_s": 0.074
     },
     {
       "check_id": "l2.ligand.conformers",
@@ -582,7 +582,7 @@
         "name": "rdkit",
         "version": null
       },
-      "duration_s": 0.832
+      "duration_s": 0.806
     },
     {
       "check_id": "l2.docking.box",
@@ -649,7 +649,7 @@
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 0.009
+      "duration_s": 0.008
     },
     {
       "check_id": "l3.model.training_cutoff",
@@ -774,10 +774,10 @@
           {
             "entry": "1FIN",
             "ligand": "ATP",
-            "sucos": 0.002,
-            "coverage": 0.484,
-            "similarity": 0.1,
-            "ca_rmsd": 13.3
+            "sucos": 0.299,
+            "coverage": 0.806,
+            "similarity": 24.1,
+            "ca_rmsd": 3.87
           },
           {
             "entry": "1FQ1",
@@ -790,16 +790,16 @@
           {
             "entry": "1GY3",
             "ligand": "ATP",
-            "sucos": 0.325,
-            "coverage": 0.774,
-            "similarity": 25.2,
-            "ca_rmsd": 5.88
+            "sucos": 0.283,
+            "coverage": 0.839,
+            "similarity": 23.7,
+            "ca_rmsd": 4.5
           }
         ]
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 0.726
+      "duration_s": 0.898
     },
     {
       "check_id": "l3.exposure.ligand_prevalence",
@@ -1070,7 +1070,7 @@
       },
       "artifacts": [],
       "tool": null,
-      "duration_s": 0.006
+      "duration_s": 0.005
     },
     {
       "check_id": "l3.metric.endpoint",
@@ -1303,7 +1303,7 @@
         "name": "posebusters",
         "version": "0.6.5"
       },
-      "duration_s": 2.654
+      "duration_s": 2.133
     },
     {
       "check_id": "l4.torsion_strain",
@@ -1804,7 +1804,7 @@
         "name": "rdkit MMFF94",
         "version": null
       },
-      "duration_s": 3.549
+      "duration_s": 3.771
     },
     {
       "check_id": "l4.interactions.fingerprint",
@@ -2193,7 +2193,7 @@
         "name": "plip",
         "version": "3.0.1"
       },
-      "duration_s": 1.078
+      "duration_s": 1.067
     },
     {
       "check_id": "l4.interactions.unsatisfied_polars",
@@ -2552,7 +2552,7 @@
         "name": "freesasa",
         "version": "2.2.1"
       },
-      "duration_s": 0.292
+      "duration_s": 0.251
     },
     {
       "check_id": "l4.interactions.hydrophobic",
@@ -2618,7 +2618,7 @@
         "name": "freesasa",
         "version": null
       },
-      "duration_s": 0.247
+      "duration_s": 0.253
     },
     {
       "check_id": "l4.interactions.known_binders",
@@ -2756,13 +2756,13 @@
         "name": "plip",
         "version": "3.0.1"
       },
-      "duration_s": 0.325
+      "duration_s": 0.332
     },
     {
       "check_id": "l4.minimisation_drift",
       "layer": 4,
       "gate": "pass",
-      "message": "diffdock/seed8/mode0 moves 1.081 Å under restrained minimisation; 0 of 3 poses above 2.0 Å",
+      "message": "diffdock/seed8/mode0 moves 1.099 Å under restrained minimisation; 0 of 3 poses above 2.0 Å",
       "measurements": [
         {
           "name": "poses",
@@ -2771,12 +2771,12 @@
         },
         {
           "name": "drift_A",
-          "value": 1.081,
+          "value": 1.099,
           "unit": null
         },
         {
           "name": "max_drift_A",
-          "value": 1.296,
+          "value": 1.207,
           "unit": null
         },
         {
@@ -2804,27 +2804,27 @@
         "poses": [
           {
             "pose": "diffdock/seed7/mode0",
-            "drift_A": 0.661,
-            "energy_before_kJ": 220762.7,
-            "energy_after_kJ": -23010.2,
+            "drift_A": 0.582,
+            "energy_before_kJ": 224814.9,
+            "energy_after_kJ": -22963.2,
             "converged": true,
             "openmm": "8.6.1",
             "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
           },
           {
             "pose": "diffdock/seed8/mode0",
-            "drift_A": 1.081,
-            "energy_before_kJ": 227975.4,
-            "energy_after_kJ": -22991.7,
+            "drift_A": 1.099,
+            "energy_before_kJ": 219564.9,
+            "energy_after_kJ": -23003.4,
             "converged": true,
             "openmm": "8.6.1",
             "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
           },
           {
             "pose": "diffdock/seed9/mode0",
-            "drift_A": 1.296,
-            "energy_before_kJ": 220161.6,
-            "energy_after_kJ": -23077.7,
+            "drift_A": 1.207,
+            "energy_before_kJ": 217681.6,
+            "energy_after_kJ": -23069.1,
             "converged": true,
             "openmm": "8.6.1",
             "method": "OpenMM, AMBER14 protein, OpenFF Sage 2.2 ligand with MMFF94 charges, protein heavy atoms restrained at 10 kcal/mol/Å², vacuum, L-BFGS"
@@ -2837,7 +2837,7 @@
         "name": "openmm",
         "version": "8.6.1"
       },
-      "duration_s": 76.739
+      "duration_s": 59.306
     },
     {
       "check_id": "l5.confidence.local",
@@ -3062,7 +3062,7 @@
         "name": "spyrmsd",
         "version": "0.9.0"
       },
-      "duration_s": 0.215
+      "duration_s": 0.235
     },
     {
       "check_id": "l5.agreement.cross_family",
@@ -3134,7 +3134,7 @@
         "name": "spyrmsd",
         "version": null
       },
-      "duration_s": 0.089
+      "duration_s": 0.081
     },
     {
       "check_id": "l5.controls.redocking",

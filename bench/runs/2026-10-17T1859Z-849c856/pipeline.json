@@ -76,6 +76,48 @@
       ],
       "rc": 0,
       "seconds": 0.6
+    },
+    {
+      "stage": "checks",
+      "cmd": [
+        "bench/checks/run_checks.py",
+        "--run-id",
+        "2026-10-17T1859Z-849c856",
+        "--jobs",
+        "3"
+      ],
+      "rc": 0,
+      "seconds": 1427.5
+    },
+    {
+      "stage": "agent",
+      "cmd": [
+        "bench/agent/decide.py",
+        "--run-id",
+        "2026-10-17T1859Z-849c856"
+      ],
+      "rc": 0,
+      "seconds": 937.8
+    },
+    {
+      "stage": "score",
+      "cmd": [
+        "bench/analysis/score.py",
+        "--run-id",
+        "2026-10-17T1859Z-849c856"
+      ],
+      "rc": 0,
+      "seconds": 1.8
+    },
+    {
+      "stage": "report",
+      "cmd": [
+        "bench/analysis/report.py",
+        "--run-id",
+        "2026-10-17T1859Z-849c856"
+      ],
+      "rc": 0,
+      "seconds": 0.7
     }
   ]
 }

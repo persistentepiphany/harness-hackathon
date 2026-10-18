@@ -1,5 +1,5 @@
 {
-  "id": "ligand_pose-55d3852e80c3",
+  "id": "ligand_pose-89e4a83c7a08",
   "task": "ligand_pose",
   "taskName": "Ligand pose in a known pocket",
   "claim": "Predicted pose of BGC in glucose dehydrogenase (glucose-binding) is valid",
@@ -413,7 +413,7 @@
           "result": "stop",
           "message": "components within 8.0 \u00c5 of BGC in 2VWH not supplied: NAP, ZN",
           "evidence": "components within 8.0 \u00c5 of BGC in 2VWH not supplied: NAP, ZN \u00b7 near_site=2, missing=2, uniprot_cofactors=0",
-          "ms": 226,
+          "ms": 171,
           "threshold": {
             "value": "<= 8",
             "origin": "Harness rule: a component of the reference entry within 8 \u00c5 of the declared ligand is required context; not yet calibrated",
@@ -454,7 +454,7 @@
           "message": "19 pocket residues complete in 2VWH.cif",
           "tool": "gemmi",
           "evidence": "19 pocket residues complete in 2VWH.cif \u00b7 pocket_residues=19, incomplete=0, sequence_gaps=0",
-          "ms": 8,
+          "ms": 7,
           "threshold": {
             "value": "<= 6",
             "origin": "Harness rule: pocket residues have a heavy atom within 6 \u00c5 of the ligand; not yet calibrated",
@@ -501,7 +501,7 @@
           "result": "pass",
           "message": "2VWH.cif holo: BGC, NAP in the site",
           "evidence": "2VWH.cif holo: BGC, NAP in the site \u00b7 state=holo, site_ligands=2",
-          "ms": 8,
+          "ms": 7,
           "measurements": [
             {
               "name": "state",
@@ -523,7 +523,7 @@
           "message": "receptor has no hydrogens (protonation not assigned); pKa within 1.0 of pH 7.4: GLU64A pKa 6.96, GLU150A pKa 8.39",
           "tool": "propka 3.5.1",
           "evidence": "receptor has no hydrogens (protonation not assigned); pKa within 1.0 of pH 7.4: GLU64A pKa 6.96, GLU150A pKa 8.39 \u00b7 hydrogens_present=False, ph=7.4, pocket_titratable=13",
-          "ms": 532,
+          "ms": 557,
           "threshold": {
             "value": "> 1",
             "origin": "Harness rule: a titratable pocket residue with PROPKA pKa within 1 unit of the stated pH has an ambiguous state; not yet calibrated",
@@ -622,7 +622,7 @@
           "message": "10 ETKDG conformers per ligand, MMFF minimised",
           "tool": "rdkit",
           "evidence": "10 ETKDG conformers per ligand, MMFF minimised \u00b7 ligands=1, failed=0, min_embedded=10",
-          "ms": 516,
+          "ms": 489,
           "threshold": {
             "value": ">= 10",
             "origin": "Harness default number of ETKDG conformers; not yet calibrated",
@@ -713,7 +713,7 @@
           ]
         }
       ],
-      "durationMs": 1356,
+      "durationMs": 1300,
       "figures": [
         [
           "near site",
@@ -809,7 +809,7 @@
           "result": "pass",
           "message": "max similarity 0.2 to 2VWH (BGC, SuCOS 0.004, coverage 0.5), released before 2019-01-01",
           "evidence": "max similarity 0.2 to 2VWH (BGC, SuCOS 0.004, coverage 0.5), released before 2019-01-01 \u00b7 cutoff=2019-01-01, entries_compared=1, max_similarity=0.2",
-          "ms": 298,
+          "ms": 292,
           "threshold": {
             "value": "<= 50",
             "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
@@ -1010,7 +1010,7 @@
           ]
         }
       ],
-      "durationMs": 307,
+      "durationMs": 303,
       "figures": [
         [
           "executors",
@@ -1067,7 +1067,7 @@
           "message": "representative pose diffdock/seed7/mode0 fails minimum_distance_to_protein, volume_overlap_with_protein",
           "tool": "posebusters 0.6.5",
           "evidence": "representative pose diffdock/seed7/mode0 fails minimum_distance_to_protein, volume_overlap_with_protein \u00b7 poses=3, passed=18, total=20",
-          "ms": 1116,
+          "ms": 1174,
           "threshold": {
             "value": "== 0",
             "origin": "Specification, Layer 4 (output validity): stop on failure",
@@ -1113,7 +1113,7 @@
           "message": "0 of 9 torsions above 2.5 kcal/mol in diffdock/seed7/mode0; strain 14.68 kcal/mol",
           "tool": "rdkit MMFF94",
           "evidence": "0 of 9 torsions above 2.5 kcal/mol in diffdock/seed7/mode0; strain 14.68 kcal/mol \u00b7 poses=3, unlikely_torsions=0, torsions=9",
-          "ms": 998,
+          "ms": 1016,
           "threshold": {
             "value": "<= 2.5",
             "origin": "Harness rule: a rotatable torsion whose MMFF energy lies more than 2.5 kcal/mol above the minimum of its rigid scan is unlikely; not yet calibrated",
@@ -1164,7 +1164,7 @@
           "message": "3 interactions in diffdock/seed7/mode0 (hbond, salt_bridge); 5 distinct across 3 poses (reported)",
           "tool": "plip 3.0.1",
           "evidence": "3 interactions in diffdock/seed7/mode0 (hbond, salt_bridge); 5 distinct across 3 poses (reported) \u00b7 poses=3, interactions_representative=3, distinct=5",
-          "ms": 730,
+          "ms": 655,
           "measurements": [
             {
               "name": "poses",
@@ -1196,7 +1196,7 @@
           "message": "2 buried polar ligand atoms, all with a partner within 3.5 \u00c5 in diffdock/seed7/mode0",
           "tool": "freesasa 2.2.1",
           "evidence": "2 buried polar ligand atoms, all with a partner within 3.5 \u00c5 in diffdock/seed7/mode0 \u00b7 poses=3, unsatisfied=0, buried_charged=0",
-          "ms": 407,
+          "ms": 335,
           "threshold": {
             "value": "< 0.1",
             "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
@@ -1249,7 +1249,7 @@
           "message": "nonpolar fraction of protein contacts around 3 buried nonpolar ligand atoms in diffdock/seed7/mode0: 0.537",
           "tool": "freesasa",
           "evidence": "nonpolar fraction of protein contacts around 3 buried nonpolar ligand atoms in diffdock/seed7/mode0: 0.537 \u00b7 poses=3, complementarity=0.537, buried_nonpolar=3",
-          "ms": 323,
+          "ms": 283,
           "threshold": {
             "value": ">= 0.35",
             "origin": "Harness default anchored on 3PTB: the crystal benzamidine scores 0.51, Vina and Boltz-2 poses within 0.5 \u00c5 of it score 0.45 and 0.49; not calibrated on the benchmark",
@@ -1297,7 +1297,7 @@
           "message": "diffdock/seed7/mode0 reproduces none of 6 BGC interactions",
           "tool": "plip 3.0.1",
           "evidence": "diffdock/seed7/mode0 reproduces none of 6 BGC interactions \u00b7 key_interactions=6, reproduced=0, poses_reproducing_all=0",
-          "ms": 328,
+          "ms": 263,
           "threshold": {
             "value": ">= 1",
             "origin": "Specification layer 4: warn when no key interaction is reproduced",
@@ -1335,10 +1335,10 @@
           "name": "Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF)",
           "gate": "Stop",
           "result": "pass",
-          "message": "diffdock/seed7/mode0 moves 1.826 \u00c5 under restrained minimisation; 1 of 3 poses above 2.0 \u00c5",
+          "message": "diffdock/seed7/mode0 moves 1.826 \u00c5 under restrained minimisation; 2 of 3 poses above 2.0 \u00c5",
           "tool": "openmm 8.6.1",
-          "evidence": "diffdock/seed7/mode0 moves 1.826 \u00c5 under restrained minimisation; 1 of 3 poses above 2.0 \u00c5 \u00b7 poses=3, drift_A=1.826, max_drift_A=2.398",
-          "ms": 72368,
+          "evidence": "diffdock/seed7/mode0 moves 1.826 \u00c5 under restrained minimisation; 2 of 3 poses above 2.0 \u00c5 \u00b7 poses=3, drift_A=1.826, max_drift_A=2.533",
+          "ms": 65678,
           "threshold": {
             "value": "<= 2",
             "origin": "Specification layer 4: warn when the pose moves beyond 2 \u00c5 under restrained minimisation",
@@ -1366,12 +1366,12 @@
             },
             {
               "name": "max_drift_A",
-              "value": 2.398,
+              "value": 2.533,
               "unit": null
             },
             {
               "name": "poses_over",
-              "value": 1,
+              "value": 2,
               "unit": null
             },
             {
@@ -1382,7 +1382,7 @@
           ]
         }
       ],
-      "durationMs": 76274,
+      "durationMs": 69411,
       "figures": [
         [
           "poses",
@@ -1500,7 +1500,7 @@
           "message": "medoid diffdock/seed7/mode0; 3 clusters, largest 1 of 3; pairwise RMSD median 5.94 \u00c5 (IQR 4.32 to 6.37); 0 of 3 poses within 4.0 \u00c5 of the site (BGC in 2VWH); 1 of 3 poses within 2.0 \u00c5 of the medoid",
           "tool": "spyrmsd 0.9.0",
           "evidence": "medoid diffdock/seed7/mode0; 3 clusters, largest 1 of 3; pairwise RMSD median 5.94 \u00c5 (IQR 4.32 to 6.37); 0 of 3 poses within 4.0 \u00c5 of the site (BGC in 2VWH); 1 of 3 poses within 2.0 \u00c5 of the medoid \u00b7 poses=3, clusters=3, largest_cluster=1",
-          "ms": 213,
+          "ms": 198,
           "threshold": {
             "value": "<= 2",
             "origin": "Specification layer 5: 2 \u00c5 symmetry-aware ligand RMSD (spyrmsd) separates pose clusters",
@@ -1575,7 +1575,7 @@
           "message": "diffdock vs boltz2 7.479 \u00c5 (high)",
           "tool": "spyrmsd",
           "evidence": "diffdock vs boltz2 7.479 \u00c5 (high) \u00b7 methods=2, comparisons=1, disagreeing=1",
-          "ms": 108,
+          "ms": 87,
           "threshold": {
             "value": "<= 2",
             "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 \u00c5",
@@ -1637,7 +1637,7 @@
           ]
         }
       ],
-      "durationMs": 325,
+      "durationMs": 290,
       "figures": [
         [
           "poses",
@@ -1924,7 +1924,7 @@
         "torsionsTotal": 9,
         "unsatisfied": 2,
         "buriedCharged": 0,
-        "drift": 1.995,
+        "drift": 2.533,
         "converged": true,
         "seed": 8
       },
@@ -1940,7 +1940,7 @@
         "torsionsTotal": 9,
         "unsatisfied": 1,
         "buriedCharged": 0,
-        "drift": 2.398,
+        "drift": 2.452,
         "converged": true,
         "seed": 9
       }
@@ -2473,7 +2473,7 @@
     }
   ],
   "source": "pah",
-  "createdAt": "2026-10-17T19:25:12.401923Z",
+  "createdAt": "2026-10-17T23:43:00.978979Z",
   "verdict": {
     "claim": "Predicted pose of BGC in glucose dehydrogenase (glucose-binding) is valid",
     "outcome": "refused",

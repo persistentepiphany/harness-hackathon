@@ -1,8 +1,8 @@
 {
   "check_id": "l5.agreement.cross_family",
   "layer": 5,
-  "gate": "warn",
-  "message": "boltz2 vs diffdock 2.455 Å (high); boltz2 vs crystal 8X61 2.662 Å (decisive); diffdock vs crystal 8X61 1.037 Å (decisive)",
+  "gate": "pass",
+  "message": "boltz2 vs diffdock 0.795 Å (high); boltz2 vs crystal 8X61 0.767 Å (decisive); diffdock vs crystal 8X61 1.037 Å (decisive)",
   "measurements": [
     {
       "name": "methods",
@@ -16,12 +16,12 @@
     },
     {
       "name": "disagreeing",
-      "value": 2,
+      "value": 0,
       "unit": null
     },
     {
       "name": "rmsd_to_crystal_A",
-      "value": 2.662,
+      "value": 0.767,
       "unit": null
     }
   ],
@@ -39,14 +39,14 @@
       {
         "method": "boltz2",
         "vs": "diffdock",
-        "value": 2.455,
+        "value": 0.795,
         "unit": "Å",
         "weight": "high"
       },
       {
         "method": "boltz2",
         "vs": "crystal 8X61",
-        "value": 2.662,
+        "value": 0.767,
         "unit": "Å",
         "weight": "decisive"
       },
@@ -68,5 +68,5 @@
     "name": "spyrmsd",
     "version": null
   },
-  "duration_s": 0.173
+  "duration_s": 0.158
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "run_id": "ligand_pose-e66954a388e5",
+  "run_id": "ligand_pose-b3dfd26780eb",
   "task": "ligand_pose",
   "task_title": "Ligand pose in a known pocket",
   "claim": "Predicted pose of ATP in FtsE is valid",
@@ -14,8 +14,8 @@
     0,
     1
   ],
-  "started_at": "2026-10-17T19:22:40.489189Z",
-  "finished_at": "2026-10-17T19:23:45.138864Z",
+  "started_at": "2026-10-17T23:40:30.290428Z",
+  "finished_at": "2026-10-17T23:41:32.428728Z",
   "pah_version": "0.1.0",
   "verdict": {
     "claim": "Predicted pose of ATP in FtsE is valid",
@@ -32,7 +32,7 @@
       "l3.exposure.ligand_prevalence",
       "l4.torsion_strain",
       "l4.interactions.unsatisfied_polars",
-      "l5.agreement.cross_family"
+      "l4.minimisation_drift"
     ],
     "incomplete": [],
     "not_applicable": [
@@ -137,7 +137,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.236,
+          "duration_s": 0.176,
           "tool": null,
           "sources_used": [
             "rcsb_files:8X61:ba2b64fd50fa",
@@ -213,7 +213,7 @@
           ],
           "thresholds": [],
           "skip_reason": null,
-          "duration_s": 0.015,
+          "duration_s": 0.014,
           "tool": null,
           "sources_used": [
             "rcsb_files:8X61:ba2b64fd50fa"
@@ -257,7 +257,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.217,
+          "duration_s": 0.184,
           "tool": {
             "name": "propka",
             "version": "3.5.1"
@@ -309,7 +309,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.055,
+          "duration_s": 0.049,
           "tool": {
             "name": "dimorphite_dl",
             "version": "2.1.0"
@@ -349,7 +349,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.79,
+          "duration_s": 0.819,
           "tool": {
             "name": "rdkit",
             "version": null
@@ -457,7 +457,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.001,
+          "duration_s": 0.0,
           "tool": null,
           "sources_used": [
             "rcsb:8X61:40597bd4cb89"
@@ -508,7 +508,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.381,
+          "duration_s": 0.403,
           "tool": null,
           "sources_used": [
             "rcsb_files:8X61:ba2b64fd50fa",
@@ -675,7 +675,7 @@
           ],
           "thresholds": [],
           "skip_reason": null,
-          "duration_s": 0.012,
+          "duration_s": 0.01,
           "tool": null,
           "sources_used": [
             "rcsb_files:8X61:ba2b64fd50fa"
@@ -724,8 +724,8 @@
       "layer": 4,
       "name": "output validity",
       "counts": {
-        "pass": 4,
-        "warn": 2,
+        "pass": 3,
+        "warn": 3,
         "stop": 1,
         "skip": 0
       },
@@ -768,7 +768,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 1.844,
+          "duration_s": 1.769,
           "tool": {
             "name": "posebusters",
             "version": "0.6.5"
@@ -818,7 +818,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 4.036,
+          "duration_s": 3.986,
           "tool": {
             "name": "rdkit MMFF94",
             "version": null
@@ -855,7 +855,7 @@
           ],
           "thresholds": [],
           "skip_reason": null,
-          "duration_s": 0.612,
+          "duration_s": 0.753,
           "tool": {
             "name": "plip",
             "version": "3.0.1"
@@ -909,7 +909,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.176,
+          "duration_s": 0.213,
           "tool": {
             "name": "freesasa",
             "version": "2.2.1"
@@ -956,7 +956,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.169,
+          "duration_s": 0.244,
           "tool": {
             "name": "freesasa",
             "version": null
@@ -996,7 +996,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.557,
+          "duration_s": 0.57,
           "tool": {
             "name": "plip",
             "version": "3.0.1"
@@ -1009,8 +1009,8 @@
           "check_id": "l4.minimisation_drift",
           "title": "Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF)",
           "layer": 4,
-          "gate": "pass",
-          "message": "diffdock/seed8/mode0 moves 1.352 Å under restrained minimisation; 1 of 3 poses above 2.0 Å",
+          "gate": "warn",
+          "message": "diffdock/seed8/mode0 moves 2.759 Å under restrained minimisation",
           "measurements": [
             {
               "name": "poses",
@@ -1019,17 +1019,17 @@
             },
             {
               "name": "drift_A",
-              "value": 1.352,
+              "value": 2.759,
               "unit": null
             },
             {
               "name": "max_drift_A",
-              "value": 2.413,
+              "value": 2.759,
               "unit": null
             },
             {
               "name": "poses_over",
-              "value": 1,
+              "value": 2,
               "unit": null
             },
             {
@@ -1048,7 +1048,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 54.839,
+          "duration_s": 52.255,
           "tool": {
             "name": "openmm",
             "version": "8.6.1"
@@ -1061,8 +1061,8 @@
       "layer": 5,
       "name": "output support",
       "counts": {
-        "pass": 3,
-        "warn": 1,
+        "pass": 4,
+        "warn": 0,
         "stop": 1,
         "skip": 0
       },
@@ -1195,7 +1195,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.454,
+          "duration_s": 0.438,
           "tool": {
             "name": "spyrmsd",
             "version": "0.9.0"
@@ -1208,8 +1208,8 @@
           "check_id": "l5.agreement.cross_family",
           "title": "Agreement between methods, weighted by independence",
           "layer": 5,
-          "gate": "warn",
-          "message": "diffdock vs boltz2 2.455 Å (high); diffdock vs crystal 8X61 1.037 Å (decisive); boltz2 vs crystal 8X61 2.662 Å (decisive)",
+          "gate": "pass",
+          "message": "diffdock vs boltz2 0.795 Å (high); diffdock vs crystal 8X61 1.037 Å (decisive); boltz2 vs crystal 8X61 0.767 Å (decisive)",
           "measurements": [
             {
               "name": "methods",
@@ -1223,7 +1223,7 @@
             },
             {
               "name": "disagreeing",
-              "value": 2,
+              "value": 0,
               "unit": null
             },
             {
@@ -1242,7 +1242,7 @@
             }
           ],
           "skip_reason": null,
-          "duration_s": 0.157,
+          "duration_s": 0.161,
           "tool": {
             "name": "spyrmsd",
             "version": null
@@ -3359,15 +3359,15 @@
     {
       "path": "figures/gates_by_layer.svg",
       "kind": "figure",
-      "sha256": "a73ebfebf59bf9ae7d492c46a256733285b149ad603a5ab36f634d9dc219ebde",
-      "size_bytes": 89567,
+      "sha256": "9057cb00d564e95077e350117e67f130bc76b2972a16ab9fb7730dca29eb3064",
+      "size_bytes": 89214,
       "label": "gates_by_layer",
       "derived_from": []
     },
     {
       "path": "figures/gates_by_layer.csv",
       "kind": "data",
-      "sha256": "2751a5bcce31b6a78a60172d1d47a31e7d5ff85dda37795b2329c80441de430e",
+      "sha256": "422b9e4dae571de72c225296b4d9a2eb85bb67ba6435815a1ae16984273898a5",
       "size_bytes": 135,
       "label": "gates_by_layer",
       "derived_from": []
@@ -3375,7 +3375,7 @@
     {
       "path": "figures/seed_spread.svg",
       "kind": "figure",
-      "sha256": "e9f6b1c06c42f1fed160026d27a47e52d866b1e44ce707abc316ebd222806537",
+      "sha256": "0b31e8584a4e0e934bf1d5db069ca07cf3d128f3a8f8dfc09dac31b0d2faf93a",
       "size_bytes": 12413,
       "label": "seed_spread",
       "derived_from": []
@@ -3391,7 +3391,7 @@
     {
       "path": "figures/posebusters_grid.svg",
       "kind": "figure",
-      "sha256": "67ad1ba68ec0bb6f6144777d02393962069d39f20ddf89e6e18ed59858c20fe4",
+      "sha256": "3266dbbbfb36bc3778a52e3094392924f92666dba680f5a926564050506b3760",
       "size_bytes": 27448,
       "label": "posebusters_grid",
       "derived_from": []
@@ -3407,7 +3407,7 @@
     {
       "path": "figures/interactions.svg",
       "kind": "figure",
-      "sha256": "1292c49de3c1c42a427feddcb3fedfd36bd9720de176ba9489e8ab1f3e505333",
+      "sha256": "3af990e014509bbdcf70bcd85a196965200ffccd4257c562b22c92c42f2d7d37",
       "size_bytes": 18462,
       "label": "interactions",
       "derived_from": []
@@ -3423,15 +3423,15 @@
     {
       "path": "figures/agreement.svg",
       "kind": "figure",
-      "sha256": "a656767f2e8e4691057673ba9b86d9d395fa0494b0381878fef0dd274f688833",
-      "size_bytes": 10406,
+      "sha256": "10c88ebb1659d7158e0d56bf3e38297d846b4b73c32b4ad3e9647bf69bdfe88f",
+      "size_bytes": 10408,
       "label": "agreement",
       "derived_from": []
     },
     {
       "path": "figures/agreement.csv",
       "kind": "data",
-      "sha256": "a6c0f911d1fad47db6a616a691f4fc9586c2e75c8b83f98ad1ec9f7ea512f0ec",
+      "sha256": "140d5ef27cfca1029debc4288d8464b8e53893fdecd6f120bddd68fdc67d6edb",
       "size_bytes": 140,
       "label": "agreement",
       "derived_from": []
@@ -3439,7 +3439,7 @@
     {
       "path": "graph.json",
       "kind": "graph",
-      "sha256": "217616f105845f3981077068d4c1d804ce1ef8b4af3b62e8a6e6ed08d12d2c0d",
+      "sha256": "db6d9ec28fdd622d74a62231a53d2bc060060ac5d179e8b1c0c842ac02d6aa1d",
       "size_bytes": 69213,
       "label": "provenance graph",
       "derived_from": []
@@ -3447,7 +3447,7 @@
     {
       "path": "graph.mmd",
       "kind": "graph",
-      "sha256": "095fafcf5169ec7eb2cd2f20e9f7d77a5ee9d55c804ebb084e276ad8aef7feb9",
+      "sha256": "5dda7446d28a305e1f1c1e0241cab4cc01e91fcbebff0ab169e78eda8021224a",
       "size_bytes": 10758,
       "label": "provenance graph",
       "derived_from": []
@@ -3455,8 +3455,8 @@
     {
       "path": "graph.svg",
       "kind": "graph",
-      "sha256": "d5bc75e88d1eefd5f966d221acfce9b4216953c4e52e70dc5705cb0a8a9e085e",
-      "size_bytes": 151466,
+      "sha256": "c2f5fec2ba155630a4d1d2fdbf17d6d7dffb8e9285844c0ae13ed7c217b2c490",
+      "size_bytes": 151453,
       "label": "provenance graph",
       "derived_from": []
     }
@@ -3466,7 +3466,7 @@
       "id": "gates_by_layer",
       "kind": "figure",
       "path": "figures/gates_by_layer.svg",
-      "caption": "Check outcomes per layer for run ligand_pose-e66954a388e5. Totals: pass 16, warn 7, stop 2, skip 1.",
+      "caption": "Check outcomes per layer for run ligand_pose-b3dfd26780eb. Totals: pass 16, warn 7, stop 2, skip 1.",
       "alt": "Horizontal stacked bars per layer, split into pass, warn, stop and skip counts.",
       "data_path": "figures/gates_by_layer.csv",
       "session_path": null,
@@ -3506,7 +3506,7 @@
       "id": "agreement",
       "kind": "figure",
       "path": "figures/agreement.svg",
-      "caption": "Agreement between 2 methods and 2 comparators; range 1.037 to 2.662 Å.",
+      "caption": "Agreement between 2 methods and 2 comparators; range 0.767 to 1.037 Å.",
       "alt": "Matrix of methods (rows) against comparators (columns), shaded by the difference.",
       "data_path": "figures/agreement.csv",
       "session_path": null,

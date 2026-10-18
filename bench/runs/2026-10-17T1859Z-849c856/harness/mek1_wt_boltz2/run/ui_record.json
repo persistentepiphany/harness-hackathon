@@ -1,5 +1,5 @@
 {
-  "id": "ligand_pose-f089aceba16e",
+  "id": "ligand_pose-294c6d510bfd",
   "task": "ligand_pose",
   "taskName": "Ligand pose in a known pocket",
   "claim": "Predicted pose of FZC in MEK1 is valid",
@@ -203,7 +203,7 @@
           "result": "stop",
           "message": "components within 8.0 \u00c5 of FZC in 7XLP not supplied: CA",
           "evidence": "components within 8.0 \u00c5 of FZC in 7XLP not supplied: CA \u00b7 near_site=1, missing=1, uniprot_cofactors=0",
-          "ms": 186,
+          "ms": 212,
           "threshold": {
             "value": "<= 8",
             "origin": "Harness rule: a component of the reference entry within 8 \u00c5 of the declared ligand is required context; not yet calibrated",
@@ -244,7 +244,7 @@
           "message": "37 pocket residues complete in 7XLP.cif",
           "tool": "gemmi",
           "evidence": "37 pocket residues complete in 7XLP.cif \u00b7 pocket_residues=37, incomplete=0, sequence_gaps=0",
-          "ms": 12,
+          "ms": 16,
           "threshold": {
             "value": "<= 6",
             "origin": "Harness rule: pocket residues have a heavy atom within 6 \u00c5 of the ligand; not yet calibrated",
@@ -291,7 +291,7 @@
           "result": "pass",
           "message": "7XLP.cif holo: FZC in the site",
           "evidence": "7XLP.cif holo: FZC in the site \u00b7 state=holo, site_ligands=1",
-          "ms": 14,
+          "ms": 16,
           "measurements": [
             {
               "name": "state",
@@ -313,7 +313,7 @@
           "message": "receptor has no hydrogens (protonation not assigned)",
           "tool": "propka 3.5.1",
           "evidence": "receptor has no hydrogens (protonation not assigned) \u00b7 hydrogens_present=False, ph=7.4, pocket_titratable=15",
-          "ms": 325,
+          "ms": 385,
           "threshold": {
             "value": "> 1",
             "origin": "Harness rule: a titratable pocket residue with PROPKA pKa within 1 unit of the stated pH has an ambiguous state; not yet calibrated",
@@ -359,7 +359,7 @@
           "message": "ligand: 16 states",
           "tool": "dimorphite_dl 2.1.0",
           "evidence": "ligand: 16 states \u00b7 ph=7.4, max_states=16, declared_not_enumerated=0",
-          "ms": 90,
+          "ms": 104,
           "threshold": {
             "value": "== 1",
             "origin": "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated",
@@ -412,7 +412,7 @@
           "message": "10 ETKDG conformers per ligand, MMFF minimised",
           "tool": "rdkit",
           "evidence": "10 ETKDG conformers per ligand, MMFF minimised \u00b7 ligands=1, failed=0, min_embedded=10",
-          "ms": 1424,
+          "ms": 1246,
           "threshold": {
             "value": ">= 10",
             "origin": "Harness default number of ETKDG conformers; not yet calibrated",
@@ -452,7 +452,7 @@
           "result": "warn",
           "message": "no box declared; derived box encloses 19 contact residues and the FZC ligand with 2.0 \u00c5 margin",
           "evidence": "no box declared; derived box encloses 19 contact residues and the FZC ligand with 2.0 \u00c5 margin \u00b7 volume_A3=5697, ligand_atoms_inside_margin=33, ligand_atoms=33",
-          "ms": 14,
+          "ms": 15,
           "threshold": {
             "value": ">= 2",
             "origin": "Harness rule: every pocket heavy atom lies at least 2 \u00c5 inside the box; not yet calibrated",
@@ -503,7 +503,7 @@
           ]
         }
       ],
-      "durationMs": 2081,
+      "durationMs": 2026,
       "figures": [
         [
           "near site",
@@ -559,7 +559,7 @@
           "result": "pass",
           "message": "boltz2 2023-06-01; diffdock 2019-01-01; reference 7XLP released 2023-03-01, before the cutoff of boltz2",
           "evidence": "boltz2 2023-06-01; diffdock 2019-01-01; reference 7XLP released 2023-03-01, before the cutoff of boltz2 \u00b7 executors=2, unknown=0, reference_released=2023-03-01",
-          "ms": 0,
+          "ms": 1,
           "threshold": {
             "value": "== recorded",
             "origin": "Specification, Layer 3 (applicability): stop when unknown",
@@ -599,7 +599,7 @@
           "result": "pass",
           "message": "max similarity 35.4 to 3ZM4 (22T, SuCOS 0.564, coverage 0.629), released before 2019-01-01",
           "evidence": "max similarity 35.4 to 3ZM4 (22T, SuCOS 0.564, coverage 0.629), released before 2019-01-01 \u00b7 cutoff=2019-01-01, entries_compared=5, max_similarity=35.4",
-          "ms": 446,
+          "ms": 760,
           "threshold": {
             "value": "<= 50",
             "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
@@ -700,7 +700,7 @@
           "message": "protein: 35 entries at 95 percent identity, 46 at 40 percent, released before 2019-01-01 (reported, not gating)",
           "tool": "RCSB search (sequence, MMseqs2)",
           "evidence": "protein: 35 entries at 95 percent identity, 46 at 40 percent, released before 2019-01-01 (reported, not gating) \u00b7 cutoff=2019-01-01, entries_95=35, entries_40=46",
-          "ms": 1,
+          "ms": 6,
           "threshold": {
             "value": "< 0.4",
             "origin": "Specification layer 3: conventional 40 percent identity leakage threshold, reported as a secondary measure only",
@@ -740,7 +740,7 @@
           "result": "pass",
           "message": "modalities protein, protein_ligand inside the validated set; 381 tokens",
           "evidence": "modalities protein, protein_ligand inside the validated set; 381 tokens \u00b7 modalities=2, tokens=381, outside=0",
-          "ms": 9,
+          "ms": 8,
           "measurements": [
             {
               "name": "modalities",
@@ -800,7 +800,7 @@
           ]
         }
       ],
-      "durationMs": 460,
+      "durationMs": 784,
       "figures": [
         [
           "executors",
@@ -857,7 +857,7 @@
           "message": "20 of 20 tests pass for boltz2/seed8/sample0; 3 of 3 poses pass all",
           "tool": "posebusters 0.6.5",
           "evidence": "20 of 20 tests pass for boltz2/seed8/sample0; 3 of 3 poses pass all \u00b7 poses=3, passed=20, total=20",
-          "ms": 2975,
+          "ms": 3229,
           "threshold": {
             "value": "== 0",
             "origin": "Specification, Layer 4 (output validity): stop on failure",
@@ -903,7 +903,7 @@
           "message": "0 of 7 torsions above 2.5 kcal/mol in boltz2/seed8/sample0; strain 1.32 kcal/mol",
           "tool": "rdkit MMFF94",
           "evidence": "0 of 7 torsions above 2.5 kcal/mol in boltz2/seed8/sample0; strain 1.32 kcal/mol \u00b7 poses=3, unlikely_torsions=0, torsions=7",
-          "ms": 7191,
+          "ms": 6514,
           "threshold": {
             "value": "<= 2.5",
             "origin": "Harness rule: a rotatable torsion whose MMFF energy lies more than 2.5 kcal/mol above the minimum of its rigid scan is unlikely; not yet calibrated",
@@ -986,7 +986,7 @@
           "message": "4 of 7 buried polar ligand atoms without a partner in boltz2/seed8/sample0",
           "tool": "freesasa 2.2.1",
           "evidence": "4 of 7 buried polar ligand atoms without a partner in boltz2/seed8/sample0 \u00b7 poses=3, unsatisfied=4, buried_charged=0",
-          "ms": 330,
+          "ms": 285,
           "threshold": {
             "value": "< 0.1",
             "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
@@ -1039,7 +1039,7 @@
           "message": "nonpolar fraction of protein contacts around 22 buried nonpolar ligand atoms in boltz2/seed8/sample0: 0.767",
           "tool": "freesasa",
           "evidence": "nonpolar fraction of protein contacts around 22 buried nonpolar ligand atoms in boltz2/seed8/sample0: 0.767 \u00b7 poses=3, complementarity=0.767, buried_nonpolar=22",
-          "ms": 305,
+          "ms": 282,
           "threshold": {
             "value": ">= 0.35",
             "origin": "Harness default anchored on 3PTB: the crystal benzamidine scores 0.51, Vina and Boltz-2 poses within 0.5 \u00c5 of it score 0.45 and 0.49; not calibrated on the benchmark",
@@ -1087,7 +1087,7 @@
           "message": "boltz2/seed8/sample0 reproduces 2 of 3 FZC interactions: halogen ALA95A, hbond MET146A",
           "tool": "plip 3.0.1",
           "evidence": "boltz2/seed8/sample0 reproduces 2 of 3 FZC interactions: halogen ALA95A, hbond MET146A \u00b7 key_interactions=3, reproduced=2, poses_reproducing_all=2",
-          "ms": 278,
+          "ms": 240,
           "threshold": {
             "value": ">= 1",
             "origin": "Specification layer 4: warn when no key interaction is reproduced",
@@ -1125,10 +1125,10 @@
           "name": "Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF)",
           "gate": "Stop",
           "result": "pass",
-          "message": "boltz2/seed8/sample0 moves 0.279 \u00c5 under restrained minimisation; 0 of 3 poses above 2.0 \u00c5",
+          "message": "boltz2/seed8/sample0 moves 0.264 \u00c5 under restrained minimisation; 0 of 3 poses above 2.0 \u00c5",
           "tool": "openmm 8.6.1",
-          "evidence": "boltz2/seed8/sample0 moves 0.279 \u00c5 under restrained minimisation; 0 of 3 poses above 2.0 \u00c5 \u00b7 poses=3, drift_A=0.279, max_drift_A=0.345",
-          "ms": 62295,
+          "evidence": "boltz2/seed8/sample0 moves 0.264 \u00c5 under restrained minimisation; 0 of 3 poses above 2.0 \u00c5 \u00b7 poses=3, drift_A=0.264, max_drift_A=0.353",
+          "ms": 63225,
           "threshold": {
             "value": "<= 2",
             "origin": "Specification layer 4: warn when the pose moves beyond 2 \u00c5 under restrained minimisation",
@@ -1151,12 +1151,12 @@
             },
             {
               "name": "drift_A",
-              "value": 0.279,
+              "value": 0.264,
               "unit": null
             },
             {
               "name": "max_drift_A",
-              "value": 0.345,
+              "value": 0.353,
               "unit": null
             },
             {
@@ -1172,7 +1172,7 @@
           ]
         }
       ],
-      "durationMs": 74592,
+      "durationMs": 75000,
       "figures": [
         [
           "poses",
@@ -1228,7 +1228,7 @@
           "result": "pass",
           "message": "boltz2/seed8/sample0: pocket_plddt 96.9",
           "evidence": "boltz2/seed8/sample0: pocket_plddt 96.9 \u00b7 poses=3, pocket_plddt=96.9, global_plddt=92.2",
-          "ms": 20,
+          "ms": 19,
           "threshold": {
             "value": ">= 70",
             "origin": "AlphaFold DB pLDDT bands (70 and above: confident backbone), applied to pocket residues; not calibrated for ligand pose",
@@ -1399,7 +1399,7 @@
           "message": "boltz2 vs diffdock 1.382 \u00c5 (high); boltz2 vs crystal 7XLP 0.706 \u00c5 (decisive); diffdock vs crystal 7XLP 1.489 \u00c5 (decisive)",
           "tool": "spyrmsd",
           "evidence": "boltz2 vs diffdock 1.382 \u00c5 (high); boltz2 vs crystal 7XLP 0.706 \u00c5 (decisive); diffdock vs crystal 7XLP 1.489 \u00c5 (decisive) \u00b7 methods=2, comparisons=3, disagreeing=0",
-          "ms": 123,
+          "ms": 117,
           "threshold": {
             "value": "<= 2",
             "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 \u00c5",
@@ -1461,7 +1461,7 @@
           ]
         }
       ],
-      "durationMs": 184,
+      "durationMs": 179,
       "figures": [
         [
           "poses",
@@ -1847,7 +1847,7 @@
         "torsionsTotal": 7,
         "unsatisfied": 4,
         "buriedCharged": 0,
-        "drift": 0.285,
+        "drift": 0.297,
         "converged": true,
         "seed": 7
       },
@@ -1860,7 +1860,7 @@
         "torsionsTotal": 7,
         "unsatisfied": 4,
         "buriedCharged": 0,
-        "drift": 0.279,
+        "drift": 0.264,
         "converged": true,
         "seed": 8
       },
@@ -1873,7 +1873,7 @@
         "torsionsTotal": 7,
         "unsatisfied": 4,
         "buriedCharged": 0,
-        "drift": 0.345,
+        "drift": 0.353,
         "converged": true,
         "seed": 9
       }
@@ -2507,7 +2507,7 @@
     }
   ],
   "source": "pah",
-  "createdAt": "2026-10-17T19:31:15.311760Z",
+  "createdAt": "2026-10-17T23:48:56.381974Z",
   "verdict": {
     "claim": "Predicted pose of FZC in MEK1 is valid",
     "outcome": "refused",

@@ -25,12 +25,12 @@ Perturbation: 7 contacts within 3.5 Å cut to glycine.
 
 | Prediction | State | Medoid RMSD to deposited (Å) | Deposited interactions recovered | Truth | Score only | Fact file |
 | --- | --- | --- | --- | --- | --- | --- |
-| Boltz-2 | wild type | 2.662 | 9 of 16 | invalid | valid | invalid |
+| Boltz-2 | wild type | 0.767 | 9 of 16 | valid | valid | invalid |
 | DiffDock-L | wild type | 1.037 | 10 of 16 | valid | invalid | invalid |
-| Boltz-2 | perturbed | 16.401 | 1 of 16 | invalid | valid | invalid |
-| DiffDock-L | perturbed | 17.821 | 1 of 16 | invalid | invalid | invalid |
+| Boltz-2 | perturbed | 1.992 | 3 of 16 | invalid | valid | invalid |
+| DiffDock-L | perturbed | 2.191 | 3 of 16 | invalid | invalid | invalid |
 
-Wild-type medoids recover 9 (Boltz-2) and 10 (DiffDock-L) of 16 deposited contacts; the perturbed medoids recover 1 and 1.
+Wild-type medoids recover 9 (Boltz-2) and 10 (DiffDock-L) of 16 deposited contacts; the perturbed medoids recover 3 and 3.
 
 ### glucose dehydrogenase (glucose-binding): 2VWH chain A, BGC
 
@@ -52,7 +52,7 @@ Perturbation: 11 contacts within 3.5 Å cut to glycine.
 | Prediction | State | Medoid RMSD to deposited (Å) | Deposited interactions recovered | Truth | Score only | Fact file |
 | --- | --- | --- | --- | --- | --- | --- |
 | Boltz-2 | wild type | 0.706 | 2 of 3 | valid | valid | valid |
-| DiffDock-L | wild type | 1.489 | 3 of 3 | valid | invalid | valid |
+| DiffDock-L | wild type | 1.489 | 3 of 3 | valid | invalid | invalid |
 | Boltz-2 | perturbed | 2.886 | 0 of 3 | invalid | valid | invalid |
 | DiffDock-L | perturbed | 1.494 | 0 of 3 | invalid | invalid | invalid |
 
@@ -64,11 +64,11 @@ Reported for completeness. With four systems per state the intervals are wide an
 
 | Scope | Predictions | Score only, balanced accuracy (95% CI) | Fact file, balanced accuracy (95% CI) | McNemar exact p |
 | --- | --- | --- | --- | --- |
-| pooled | 16 (6 valid, 10 invalid) | 0.5 (0.236 to 0.767) | 0.75 (0.5 to 1.0) | 0.125 |
-| Boltz-2 | 8 (3 valid, 5 invalid) | 0.5 (0.5 to 0.5) | 0.833 (0.5 to 1.0) | 0.2188 |
-| DiffDock-L | 8 (3 valid, 5 invalid) | 0.5 (0.5 to 0.5) | 0.667 (0.5 to 1.0) | 1.0 |
+| pooled | 16 (7 valid, 9 invalid) | 0.563 (0.31 to 0.817) | 0.643 (0.5 to 0.833) | 0.6875 |
+| Boltz-2 | 8 (4 valid, 4 invalid) | 0.5 (0.5 to 0.5) | 0.75 (0.5 to 1.0) | 0.6875 |
+| DiffDock-L | 8 (3 valid, 5 invalid) | 0.5 (0.5 to 0.5) | 0.5 (0.5 to 0.5) | 1.0 |
 
-Decisions are the majority over 3 repeats at temperature 0 (glm-4.6). Agreement across repeats: score only 0.958, fact file 0.979. Failed agent calls: 0. Predictions without ground truth: 0.
+Decisions are the majority over 3 repeats at temperature 0 (glm-4.6). Agreement across repeats: score only 1.0, fact file 0.958. Failed agent calls: 0. Predictions without ground truth: 0.
 
 ## Design
 
@@ -88,10 +88,10 @@ Ground truth by construction: a perturbed system is invalid; a wild-type system 
 | cdk2_pert · Boltz-2 | 2.231 | invalid | valid (valid,valid,valid) | invalid (invalid,invalid,invalid) |
 | cdk2_pert · DiffDock-L | 0.868 | invalid | invalid (invalid,invalid,invalid) | invalid (invalid,invalid,invalid) |
 | cdk2_wt · Boltz-2 | 1.823 | valid | valid (valid,valid,valid) | invalid (invalid,invalid,invalid) |
-| cdk2_wt · DiffDock-L | 0.732 | valid | invalid (valid,invalid,invalid) | invalid (invalid,invalid,invalid) |
-| ftse_pert · Boltz-2 | 16.401 | invalid | valid (valid,valid,valid) | invalid (invalid,invalid,invalid) |
-| ftse_pert · DiffDock-L | 17.821 | invalid | invalid (invalid,invalid,valid) | invalid (invalid,invalid,invalid) |
-| ftse_wt · Boltz-2 | 2.662 | invalid | valid (valid,valid,valid) | invalid (invalid,invalid,invalid) |
+| cdk2_wt · DiffDock-L | 0.732 | valid | invalid (invalid,invalid,invalid) | invalid (invalid,invalid,invalid) |
+| ftse_pert · Boltz-2 | 1.992 | invalid | valid (valid,valid,valid) | invalid (invalid,invalid,invalid) |
+| ftse_pert · DiffDock-L | 2.191 | invalid | invalid (invalid,invalid,invalid) | invalid (invalid,invalid,invalid) |
+| ftse_wt · Boltz-2 | 0.767 | valid | valid (valid,valid,valid) | invalid (invalid,invalid,invalid) |
 | ftse_wt · DiffDock-L | 1.037 | valid | invalid (invalid,invalid,invalid) | invalid (invalid,invalid,invalid) |
 | glc_pert · Boltz-2 | n/a | invalid | valid (valid,valid,valid) | invalid (invalid,invalid,invalid) |
 | glc_pert · DiffDock-L | n/a | invalid | invalid (invalid,invalid,invalid) | invalid (invalid,invalid,invalid) |
@@ -99,8 +99,8 @@ Ground truth by construction: a perturbed system is invalid; a wild-type system 
 | glc_wt · DiffDock-L | 4.079 | invalid | invalid (invalid,invalid,invalid) | invalid (invalid,invalid,invalid) |
 | mek1_pert · Boltz-2 | 2.886 | invalid | valid (valid,valid,valid) | invalid (invalid,invalid,invalid) |
 | mek1_pert · DiffDock-L | 1.494 | invalid | invalid (invalid,invalid,invalid) | invalid (invalid,invalid,invalid) |
-| mek1_wt · Boltz-2 | 0.706 | valid | valid (valid,valid,valid) | valid (valid,valid,valid) |
-| mek1_wt · DiffDock-L | 1.489 | valid | invalid (invalid,invalid,invalid) | valid (valid,valid,invalid) |
+| mek1_wt · Boltz-2 | 0.706 | valid | valid (valid,valid,valid) | valid (valid,invalid,valid) |
+| mek1_wt · DiffDock-L | 1.489 | valid | invalid (invalid,invalid,invalid) | invalid (valid,invalid,invalid) |
 
 ## Fact file values
 
@@ -110,10 +110,10 @@ Ground truth by construction: a perturbed system is invalid; a wild-type system 
 | cdk2_pert · DiffDock-L | diffdock_confidence -3.1 | 19/20 | 1/9 | 25.1 | 2 | 0.467 | 1.69 | 1 | 2.31 |
 | cdk2_wt · Boltz-2 | ligand_iptm 0.978, pocket_plddt 95.1, confidence_score 0.958 | 20/20 | 6/9 | 14.3 | 6 | 0.667 | 1.2 | 1 | 1.99 |
 | cdk2_wt · DiffDock-L | diffdock_confidence -0.29 | 19/20 | 9/9 | 27.6 | 2 | 0.813 | 1.01 | 1 | 1.99 |
-| ftse_pert · Boltz-2 | ligand_iptm 0.893, pocket_plddt 84.2, confidence_score 0.888 | 20/20 | 1/16 | 20.2 | 4 | 0.833 | 2.21 | 0.667 | 3.98 |
-| ftse_pert · DiffDock-L | diffdock_confidence -1.03 | 20/20 | 1/16 | 27.8 | 2 | 0.375 | 0.721 | 1 | 3.98 |
-| ftse_wt · Boltz-2 | ligand_iptm 0.966, pocket_plddt 94.4, confidence_score 0.938 | 20/20 | 9/16 | 16.4 | 2 | 0.646 | 0.409 | 1 | 2.46 |
-| ftse_wt · DiffDock-L | diffdock_confidence -0.87 | 19/20 | 10/16 | 25.3 | 3 | 0.75 | 0.368 | 1 | 2.46 |
+| ftse_pert · Boltz-2 | ligand_iptm 0.893, pocket_plddt 84.2, confidence_score 0.888 | 20/20 | 3/16 | 20.2 | 4 | 0.833 | 29.8 | 0.333 | 2.1 |
+| ftse_pert · DiffDock-L | diffdock_confidence -1.03 | 20/20 | 3/16 | 27.8 | 2 | 0.375 | 0.721 | 1 | 2.1 |
+| ftse_wt · Boltz-2 | ligand_iptm 0.966, pocket_plddt 94.4, confidence_score 0.938 | 20/20 | 9/16 | 16.4 | 2 | 0.646 | 0.266 | 1 | 0.795 |
+| ftse_wt · DiffDock-L | diffdock_confidence -0.87 | 19/20 | 10/16 | 25.3 | 3 | 0.75 | 0.368 | 1 | 0.795 |
 | glc_pert · Boltz-2 | ligand_iptm 0.984, pocket_plddt 97.8, confidence_score 0.968 | 19/20 | 3/6 | 18 | 0 | 0.562 | 0.39 | 1 | 7.48 |
 | glc_pert · DiffDock-L | diffdock_confidence -4.12 | 18/20 | 0/6 | 14.7 | 0 | 0.537 | 5.94 | 0.333 | 7.48 |
 | glc_wt · Boltz-2 | ligand_iptm 0.991, pocket_plddt 97.4, confidence_score 0.982 | 20/20 | 5/6 | 3.14 | 0 | 0.535 | 0.099 | 1 | 3.99 |
@@ -129,17 +129,18 @@ Repeat 0 of each arm, quoted from `agent/calls.jsonl`.
 
 | Prediction | Truth | Arm | Verdict | Reason |
 | --- | --- | --- | --- | --- |
-| cdk2_pert · Boltz-2 | invalid | score only | valid | The high ligand ipTM of 0.925 and good pocket pLDDT of 82.3 indicate a confident and structurally reliable predicted pose. |
-| cdk2_wt · Boltz-2 | valid | fact file | invalid | The high torsional strain of 14.3 kcal/mol and 6 buried polar atoms lacking hydrogen-bond partners indicate severe energetic penalties that make this pose implausible despite high model confidence and passing geometric checks. |
-| cdk2_wt · DiffDock-L | valid | score only | invalid | A DiffDock-L confidence score of -0.29 indicates high confidence in the predicted pose, as scores closer to zero represent lower positional variance. |
-| cdk2_wt · DiffDock-L | valid | fact file | invalid | Despite recovering all 9 deposited interactions, the pose fails the minimum_distance_to_protein check, has an extremely high torsional strain of 27.6 kcal/mol indicating an energetically implausible conformation, a low DiffDock confidence of -0.29, and 2 unsatisfied buried polar atoms, collectively undermining its physical credibility. |
-| ftse_pert · Boltz-2 | invalid | score only | valid | The high ligand ipTM of 0.893 and high pocket pLDDT of 84.2 both indicate strong model confidence in the predicted binding pose and local structure. |
-| ftse_wt · Boltz-2 | invalid | score only | valid | The ligand ipTM of 0.966 and pocket pLDDT of 94.4 are both exceptionally high, indicating strong confidence in the predicted binding pose and the local structure of the binding site. |
-| ftse_wt · DiffDock-L | valid | score only | invalid | The DiffDock-L confidence score of -0.87 is very low, indicating high model uncertainty and an untrustworthy pose. |
-| ftse_wt · DiffDock-L | valid | fact file | invalid | The pose fails the minimum_distance_to_protein check (indicating improper positioning), has extremely high torsional strain (25.3 kcal/mol), and contains 3 buried polar atoms without hydrogen-bond partners, all of which indicate an implausible binding pose despite good ensemble consistency. |
-| glc_pert · Boltz-2 | invalid | score only | valid | The exceptionally high ligand ipTM (0.984) and pocket pLDDT (97.8) both indicate very high confidence in the predicted binding pose and the local protein structure. |
-| mek1_pert · Boltz-2 | invalid | score only | valid | Both the ligand ipTM (0.968) and pocket pLDDT (91.2) are very high, indicating a highly confident and plausible predicted pose. |
-| mek1_wt · DiffDock-L | valid | score only | invalid | The DiffDock-L confidence score of 0.34 is below the typical threshold for reliable predictions (usually >0.5), indicating significant uncertainty in the predicted pose. |
+| cdk2_pert · Boltz-2 | invalid | score only | valid | The high ligand ipTM of 0.925 and high pocket pLDDT of 82.3 both indicate a highly confident and well-resolved predicted binding pose. |
+| cdk2_wt · Boltz-2 | valid | fact file | invalid | The ligand torsional strain of 14.3 kcal/mol is unacceptably high, and 6 buried polar atoms lack hydrogen-bond partners, making this pose energetically implausible despite high model confidence and passing geometric validity checks. |
+| cdk2_wt · DiffDock-L | valid | score only | invalid | The DiffDock-L confidence score of -0.29 is below the typical threshold for a reliable prediction, indicating high uncertainty in the predicted pose. |
+| cdk2_wt · DiffDock-L | valid | fact file | invalid | The extremely high ligand torsional strain (27.6 kcal/mol) and failure of the minimum_distance_to_protein check indicate the pose is physically implausible despite recovering all expected interactions. |
+| ftse_pert · Boltz-2 | invalid | score only | valid | High ligand ipTM of 0.893 indicates strong confidence in the predicted ligand orientation, and pocket pLDDT of 84.2 confirms reliable local structure prediction for the binding site. |
+| ftse_wt · Boltz-2 | valid | fact file | invalid | The ligand torsional strain of 16.4 kcal/mol is unacceptably high (well above the ~12 kcal/mol threshold for credible poses), and two buried polar atoms lack hydrogen-bond partners, indicating significant energetic penalties despite passing geometric validity checks and recovering 9 of 16 known interactions. |
+| ftse_wt · DiffDock-L | valid | score only | invalid | The DiffDock-L confidence score of -0.87 is low, indicating high uncertainty in the predicted binding pose and making it unreliable as evidence of binding. |
+| ftse_wt · DiffDock-L | valid | fact file | invalid | The pose fails the critical minimum_distance_to_protein check (ligand not properly positioned), has a negative confidence score (-0.87), and exhibits extremely high torsional strain (25.3 kcal/mol) with 3 unsatisfied buried polar atoms, making it physically implausible despite good ensemble consistency. |
+| glc_pert · Boltz-2 | invalid | score only | valid | The ligand ipTM of 0.984 and pocket pLDDT of 97.8 both indicate exceptionally high confidence in the predicted pose and binding pocket structure. |
+| mek1_pert · Boltz-2 | invalid | score only | valid | The exceptionally high ligand ipTM of 0.968 and pocket pLDDT of 91.2 indicate very high confidence in the predicted binding orientation and local structural accuracy. |
+| mek1_wt · DiffDock-L | valid | score only | invalid | The DiffDock-L confidence score of 0.34 is too low to reliably trust the predicted binding pose. |
+| mek1_wt · DiffDock-L | valid | fact file | invalid | Despite the low model confidence score, the pose passes all physical validity checks, recovers all 3 known interactions from deposited complexes, shows excellent ensemble convergence (0.239 Å RMSD, 100% clustering), and has acceptable cross-executor agreement (1.38 Å) and torsional strain (2.29 kcal/mol), with only 2 unsatisfied buried polar atoms as a minor concern. |
 
 ## Figures
 
@@ -157,7 +158,7 @@ Ground truth and majority decision per prediction. Data: `results/figures/decisi
 
 ## Run record
 
-- Commit baae127 on claude/blissful-johnson-j76s9r.
+- Commit 760d1b9 on claude/blissful-johnson-j76s9r.
 - GPUs: NVIDIA A100-SXM4-40GB, 610.57.04, 40960 MiB, NVIDIA A100-SXM4-80GB, 610.57.04, 81920 MiB on Modal; images {'boltz2': 'im-sC7Kxfl8WRyiLZEjfHoql9', 'diffdock': 'im-x9zfDmm5IJzmQ6ydao7RUw'}.
 - Executors: Boltz-2 2.2.1, DiffDock-L v1.1.3 (rbgcsail/diffdock image); seeds [7, 8, 9]; DiffDock samples per run 10. DiffDock has no seed option; its seeds label replicate runs.
 - Agent: glm-4.6 through https://api.z.ai/api/paas/v4; every prompt and response in `agent/calls.jsonl`.

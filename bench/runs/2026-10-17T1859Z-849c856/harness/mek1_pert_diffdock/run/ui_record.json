@@ -1,5 +1,5 @@
 {
-  "id": "ligand_pose-712ba5248a53",
+  "id": "ligand_pose-d450dbe3b21e",
   "task": "ligand_pose",
   "taskName": "Ligand pose in a known pocket",
   "claim": "Predicted pose of FZC in MEK1 is valid",
@@ -203,7 +203,7 @@
           "result": "stop",
           "message": "components within 8.0 \u00c5 of FZC in 7XLP not supplied: CA",
           "evidence": "components within 8.0 \u00c5 of FZC in 7XLP not supplied: CA \u00b7 near_site=1, missing=1, uniprot_cofactors=0",
-          "ms": 274,
+          "ms": 208,
           "threshold": {
             "value": "<= 8",
             "origin": "Harness rule: a component of the reference entry within 8 \u00c5 of the declared ligand is required context; not yet calibrated",
@@ -244,7 +244,7 @@
           "message": "37 pocket residues complete in 7XLP.cif",
           "tool": "gemmi",
           "evidence": "37 pocket residues complete in 7XLP.cif \u00b7 pocket_residues=37, incomplete=0, sequence_gaps=0",
-          "ms": 14,
+          "ms": 19,
           "threshold": {
             "value": "<= 6",
             "origin": "Harness rule: pocket residues have a heavy atom within 6 \u00c5 of the ligand; not yet calibrated",
@@ -291,7 +291,7 @@
           "result": "pass",
           "message": "7XLP.cif holo: FZC in the site",
           "evidence": "7XLP.cif holo: FZC in the site \u00b7 state=holo, site_ligands=1",
-          "ms": 14,
+          "ms": 23,
           "measurements": [
             {
               "name": "state",
@@ -313,7 +313,7 @@
           "message": "receptor has no hydrogens (protonation not assigned)",
           "tool": "propka 3.5.1",
           "evidence": "receptor has no hydrogens (protonation not assigned) \u00b7 hydrogens_present=False, ph=7.4, pocket_titratable=12",
-          "ms": 356,
+          "ms": 416,
           "threshold": {
             "value": "> 1",
             "origin": "Harness rule: a titratable pocket residue with PROPKA pKa within 1 unit of the stated pH has an ambiguous state; not yet calibrated",
@@ -359,7 +359,7 @@
           "message": "ligand: 16 states",
           "tool": "dimorphite_dl 2.1.0",
           "evidence": "ligand: 16 states \u00b7 ph=7.4, max_states=16, declared_not_enumerated=0",
-          "ms": 95,
+          "ms": 111,
           "threshold": {
             "value": "== 1",
             "origin": "Harness rule: states enumerated by Dimorphite-DL within 1 pH unit of the stated pH; not yet calibrated",
@@ -412,7 +412,7 @@
           "message": "10 ETKDG conformers per ligand, MMFF minimised",
           "tool": "rdkit",
           "evidence": "10 ETKDG conformers per ligand, MMFF minimised \u00b7 ligands=1, failed=0, min_embedded=10",
-          "ms": 1410,
+          "ms": 1484,
           "threshold": {
             "value": ">= 10",
             "origin": "Harness default number of ETKDG conformers; not yet calibrated",
@@ -452,7 +452,7 @@
           "result": "warn",
           "message": "no box declared; derived box encloses 19 contact residues and the FZC ligand with 2.0 \u00c5 margin",
           "evidence": "no box declared; derived box encloses 19 contact residues and the FZC ligand with 2.0 \u00c5 margin \u00b7 volume_A3=5697, ligand_atoms_inside_margin=33, ligand_atoms=33",
-          "ms": 14,
+          "ms": 13,
           "threshold": {
             "value": ">= 2",
             "origin": "Harness rule: every pocket heavy atom lies at least 2 \u00c5 inside the box; not yet calibrated",
@@ -503,7 +503,7 @@
           ]
         }
       ],
-      "durationMs": 2198,
+      "durationMs": 2309,
       "figures": [
         [
           "near site",
@@ -599,7 +599,7 @@
           "result": "pass",
           "message": "max similarity 20.8 to 3ZLY (YSO, SuCOS 0.608, coverage 0.343), released before 2019-01-01",
           "evidence": "max similarity 20.8 to 3ZLY (YSO, SuCOS 0.608, coverage 0.343), released before 2019-01-01 \u00b7 cutoff=2019-01-01, entries_compared=5, max_similarity=20.8",
-          "ms": 445,
+          "ms": 475,
           "threshold": {
             "value": "<= 50",
             "origin": "Specification layer 3: warn above a pocket similarity (SuCOS times pocket coverage) of 50",
@@ -740,7 +740,7 @@
           "result": "pass",
           "message": "modalities protein, protein_ligand inside the validated set; 381 tokens",
           "evidence": "modalities protein, protein_ligand inside the validated set; 381 tokens \u00b7 modalities=2, tokens=381, outside=0",
-          "ms": 8,
+          "ms": 9,
           "measurements": [
             {
               "name": "modalities",
@@ -800,7 +800,7 @@
           ]
         }
       ],
-      "durationMs": 457,
+      "durationMs": 490,
       "figures": [
         [
           "executors",
@@ -857,7 +857,7 @@
           "message": "20 of 20 tests pass for diffdock/seed9/mode0; 3 of 3 poses pass all",
           "tool": "posebusters 0.6.5",
           "evidence": "20 of 20 tests pass for diffdock/seed9/mode0; 3 of 3 poses pass all \u00b7 poses=3, passed=20, total=20",
-          "ms": 3476,
+          "ms": 2924,
           "threshold": {
             "value": "== 0",
             "origin": "Specification, Layer 4 (output validity): stop on failure",
@@ -903,7 +903,7 @@
           "message": "0 of 7 torsions above 2.5 kcal/mol in diffdock/seed9/mode0; strain 1.51 kcal/mol",
           "tool": "rdkit MMFF94",
           "evidence": "0 of 7 torsions above 2.5 kcal/mol in diffdock/seed9/mode0; strain 1.51 kcal/mol \u00b7 poses=3, unlikely_torsions=0, torsions=7",
-          "ms": 7411,
+          "ms": 8306,
           "threshold": {
             "value": "<= 2.5",
             "origin": "Harness rule: a rotatable torsion whose MMFF energy lies more than 2.5 kcal/mol above the minimum of its rigid scan is unlikely; not yet calibrated",
@@ -954,7 +954,7 @@
           "message": "10 interactions in diffdock/seed9/mode0 (halogen, hbond, hydrophobic); 11 distinct across 3 poses (reported)",
           "tool": "plip 3.0.1",
           "evidence": "10 interactions in diffdock/seed9/mode0 (halogen, hbond, hydrophobic); 11 distinct across 3 poses (reported) \u00b7 poses=3, interactions_representative=10, distinct=11",
-          "ms": 1146,
+          "ms": 1008,
           "measurements": [
             {
               "name": "poses",
@@ -986,7 +986,7 @@
           "message": "2 of 4 buried polar ligand atoms without a partner in diffdock/seed9/mode0",
           "tool": "freesasa 2.2.1",
           "evidence": "2 of 4 buried polar ligand atoms without a partner in diffdock/seed9/mode0 \u00b7 poses=3, unsatisfied=2, buried_charged=0",
-          "ms": 249,
+          "ms": 250,
           "threshold": {
             "value": "< 0.1",
             "origin": "Harness rule: a ligand polar atom with relative SASA below 0.1 in the complex is buried; not yet calibrated",
@@ -1039,7 +1039,7 @@
           "message": "nonpolar fraction of protein contacts around 14 buried nonpolar ligand atoms in diffdock/seed9/mode0: 0.692",
           "tool": "freesasa",
           "evidence": "nonpolar fraction of protein contacts around 14 buried nonpolar ligand atoms in diffdock/seed9/mode0: 0.692 \u00b7 poses=3, complementarity=0.692, buried_nonpolar=14",
-          "ms": 250,
+          "ms": 366,
           "threshold": {
             "value": ">= 0.35",
             "origin": "Harness default anchored on 3PTB: the crystal benzamidine scores 0.51, Vina and Boltz-2 poses within 0.5 \u00c5 of it score 0.45 and 0.49; not calibrated on the benchmark",
@@ -1087,7 +1087,7 @@
           "message": "diffdock/seed9/mode0 reproduces none of 3 FZC interactions",
           "tool": "plip 3.0.1",
           "evidence": "diffdock/seed9/mode0 reproduces none of 3 FZC interactions \u00b7 key_interactions=3, reproduced=0, poses_reproducing_all=0",
-          "ms": 438,
+          "ms": 489,
           "threshold": {
             "value": ">= 1",
             "origin": "Specification layer 4: warn when no key interaction is reproduced",
@@ -1125,10 +1125,10 @@
           "name": "Pose stability under short restrained minimisation (OpenMM, AMBER14 and OpenFF)",
           "gate": "Stop",
           "result": "pass",
-          "message": "diffdock/seed9/mode0 moves 0.689 \u00c5 under restrained minimisation; 0 of 3 poses above 2.0 \u00c5",
+          "message": "diffdock/seed9/mode0 moves 0.647 \u00c5 under restrained minimisation; 0 of 3 poses above 2.0 \u00c5",
           "tool": "openmm 8.6.1",
-          "evidence": "diffdock/seed9/mode0 moves 0.689 \u00c5 under restrained minimisation; 0 of 3 poses above 2.0 \u00c5 \u00b7 poses=3, drift_A=0.689, max_drift_A=0.689",
-          "ms": 134789,
+          "evidence": "diffdock/seed9/mode0 moves 0.647 \u00c5 under restrained minimisation; 0 of 3 poses above 2.0 \u00c5 \u00b7 poses=3, drift_A=0.647, max_drift_A=0.677",
+          "ms": 126630,
           "threshold": {
             "value": "<= 2",
             "origin": "Specification layer 4: warn when the pose moves beyond 2 \u00c5 under restrained minimisation",
@@ -1151,12 +1151,12 @@
             },
             {
               "name": "drift_A",
-              "value": 0.689,
+              "value": 0.647,
               "unit": null
             },
             {
               "name": "max_drift_A",
-              "value": 0.689,
+              "value": 0.677,
               "unit": null
             },
             {
@@ -1172,7 +1172,7 @@
           ]
         }
       ],
-      "durationMs": 147765,
+      "durationMs": 139982,
       "figures": [
         [
           "poses",
@@ -1290,7 +1290,7 @@
           "message": "medoid diffdock/seed9/mode0; 1 clusters, largest 3 of 3; pairwise RMSD median 0.34 \u00c5 (IQR 0.25 to 0.37); 3 of 3 poses within 4.0 \u00c5 of the site (FZC in 7XLP); 3 of 3 poses within 2.0 \u00c5 of the medoid",
           "tool": "spyrmsd 0.9.0",
           "evidence": "medoid diffdock/seed9/mode0; 1 clusters, largest 3 of 3; pairwise RMSD median 0.34 \u00c5 (IQR 0.25 to 0.37); 3 of 3 poses within 4.0 \u00c5 of the site (FZC in 7XLP); 3 of 3 poses within 2.0 \u00c5 of the medoid \u00b7 poses=3, clusters=1, largest_cluster=3",
-          "ms": 382,
+          "ms": 301,
           "threshold": {
             "value": "<= 2",
             "origin": "Specification layer 5: 2 \u00c5 symmetry-aware ligand RMSD (spyrmsd) separates pose clusters",
@@ -1365,7 +1365,7 @@
           "message": "diffdock vs boltz2 2.785 \u00c5 (high); diffdock vs crystal 7XLP 1.494 \u00c5 (decisive); boltz2 vs crystal 7XLP 2.886 \u00c5 (decisive)",
           "tool": "spyrmsd",
           "evidence": "diffdock vs boltz2 2.785 \u00c5 (high); diffdock vs crystal 7XLP 1.494 \u00c5 (decisive); boltz2 vs crystal 7XLP 2.886 \u00c5 (decisive) \u00b7 methods=2, comparisons=3, disagreeing=2",
-          "ms": 147,
+          "ms": 129,
           "threshold": {
             "value": "<= 2",
             "origin": "Specification layer 5: pose agreement by symmetry-aware ligand RMSD at 2 \u00c5",
@@ -1427,7 +1427,7 @@
           ]
         }
       ],
-      "durationMs": 533,
+      "durationMs": 439,
       "figures": [
         [
           "poses",
@@ -1744,7 +1744,7 @@
         "torsionsTotal": 7,
         "unsatisfied": 1,
         "buriedCharged": 0,
-        "drift": 0.678,
+        "drift": 0.677,
         "converged": true,
         "seed": 7
       },
@@ -1757,7 +1757,7 @@
         "torsionsTotal": 7,
         "unsatisfied": 1,
         "buriedCharged": 0,
-        "drift": 0.636,
+        "drift": 0.674,
         "converged": true,
         "seed": 8
       },
@@ -1770,7 +1770,7 @@
         "torsionsTotal": 7,
         "unsatisfied": 2,
         "buriedCharged": 0,
-        "drift": 0.689,
+        "drift": 0.647,
         "converged": true,
         "seed": 9
       }
@@ -2398,7 +2398,7 @@
     }
   ],
   "source": "pah",
-  "createdAt": "2026-10-17T19:29:20.054186Z",
+  "createdAt": "2026-10-17T23:47:26.885875Z",
   "verdict": {
     "claim": "Predicted pose of FZC in MEK1 is valid",
     "outcome": "refused",
