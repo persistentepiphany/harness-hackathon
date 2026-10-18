@@ -82,7 +82,7 @@ class Recorder:
 
 def test_dispatch_config_matches_builders() -> None:
     cfg = load_dispatch()
-    assert cfg.guard.max_concurrent_gpu_runs == 1 and cfg.guard.max_seeds == 5
+    assert cfg.guard.max_concurrent_gpu_runs == 3 and cfg.guard.max_seeds == 5
     assert cfg.modal.app("protenix_v2") == "pah-gpu-protenix-v2"
     for spec in cfg.executors.values():
         if spec.route == "modal":
