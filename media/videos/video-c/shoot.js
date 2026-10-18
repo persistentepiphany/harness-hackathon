@@ -6,7 +6,7 @@ const path = require('path');
 const WORK = process.argv[2];
 const MODE = process.argv[3] || 'scenes';
 const RUN = '/home/user/harness-hackathon/bench/runs/2026-10-17T1859Z-849c856/harness/cdk2_pert_boltz2/run';
-const EXE = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const EXE = '/opt/pw-browsers/chromium';
 
 (async () => {
   const browser = await chromium.launch({ executablePath: EXE, args: ['--allow-file-access-from-files'] });

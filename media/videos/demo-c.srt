@@ -1,124 +1,120 @@
 1
-00:00:05,000 --> 00:00:08,750
-A high confidence score does not show that a pose is right.
+00:00:00,400 --> 00:00:05,450
+12 perturbed Boltz-2 predictions: four systems, three runs each, every pocket broken on purpose.
 
 2
-00:00:08,900 --> 00:00:12,900
-In published evaluations the best confidence metrics reach about 75 ROC AUC.
+00:00:05,600 --> 00:00:09,900
+Shown only ipTM and pLDDT, an LLM agent called all 12 valid.
 
 3
-00:00:13,600 --> 00:00:18,250
-Given only the score, an LLM agent called all 12 perturbed Boltz-2 poses valid.
+00:00:10,600 --> 00:00:14,050
+Given the harness fact file, the same agent rejected all 12.
 
 4
-00:00:18,400 --> 00:00:22,600
-The pockets were cut to glycine, so all of these poses are invalid.
+00:00:14,200 --> 00:00:18,850
+The facts: crystal contacts lost, buried polar atoms unpaired, a failed PoseBusters test.
 
 5
-00:00:23,000 --> 00:00:27,450
-Six layers. The first three check the inputs before any model runs.
+00:00:19,000 --> 00:00:21,800
+None of it shows in the confidence score.
 
 6
-00:00:27,600 --> 00:00:30,350
-Layer three: does the model apply to this target?
+00:00:22,400 --> 00:00:27,950
+PoseBusters: deep-learning docking often returns physically implausible poses, and RMSD does not catch it.
 
 7
-00:00:30,500 --> 00:00:34,000
-Layers four and five check the outputs.
+00:00:28,100 --> 00:00:33,550
+On 557 Mac1 complexes, the best confidence score reached ROC AUC 0.76 for poses within 2 Å.
 
 8
-00:00:34,700 --> 00:00:37,350
-Each check returns pass, warn, stop or skip.
+00:00:33,700 --> 00:00:37,300
+Runs N' Poses: co-folding methods largely memorise ligand poses.
 
 9
-00:00:37,500 --> 00:00:41,800
-It records the evidence and the threshold, and says where the threshold comes from.
+00:00:37,800 --> 00:00:42,500
+The old way: CDK2 and ATP into Boltz-2. Back come a structure and ipTM 0.925.
 
 10
-00:00:42,188 --> 00:00:51,308
-New run: describe the run in plain words.
+00:00:42,900 --> 00:00:47,000
+The score stays high. Nothing flags the failure.
 
 11
-00:00:51,458 --> 00:00:58,773
-Quick setup reads the request and looks up the target and ligand in UniProt, PubChem and RCSB.
+00:00:47,500 --> 00:00:51,550
+With the harness, the same input runs through 70 checks in six layers.
 
 12
-00:00:58,923 --> 00:01:05,408
-Tools can also be picked from the menu. Here AutoDock Vina is added.
+00:00:51,700 --> 00:00:56,350
+Each group names the tool that measures it: SIFTS, RDKit, PoseBusters, PLIP, OpenMM, spyrmsd.
 
 13
-00:01:05,558 --> 00:01:12,232
-Start run. Executors are dispatched to Modal and checks stream into the log.
+00:00:56,500 --> 00:00:59,500
+Each check returns a value, a threshold and its origin.
 
 14
-00:01:12,382 --> 00:01:15,732
-Input checks report first. The GPU runs on Modal take longer.
+00:01:00,000 --> 00:01:03,350
+Same CDK2 input: verdict stop, each issue with its measured value.
 
 15
-00:01:15,882 --> 00:01:23,222
-Jobs lists every run with its six layer bars and verdict.
+00:01:03,500 --> 00:01:07,200
+Both stops are missing inputs: the Mg ion and a redocking control.
 
 16
-00:01:23,372 --> 00:01:29,155
-The report opens on the issues that limit the claim, each with its value and threshold.
+00:01:07,700 --> 00:01:11,650
+Boltz, Chai-1, Protenix, ColabFold, OpenFold3, DiffDock-L and Gnina run on Modal A100.
 
 17
-00:01:29,305 --> 00:01:35,529
-Ensemble lays out every structure in a run. This one holds the 3PTB reference.
+00:01:11,800 --> 00:01:15,100
+Vina runs on CPU. AlphaFold3, HADDOCK3 and pyDock outputs are checked.
 
 18
-00:01:36,029 --> 00:01:40,029
-Each run renders up to 10 structures as PyMOL sessions and PNG files.
+00:01:15,896 --> 00:01:20,469
+New run. Target, ligand, tools and seeds are picked from the menus.
 
 19
-00:01:40,529 --> 00:01:45,129
-report.html is written from the run record, with every value, threshold and origin.
+00:01:20,619 --> 00:01:25,337
+Each pick is looked up live: UniProt, RCSB PDB, AlphaFold DB, PubChem, PDB CCD.
 
 20
-00:01:45,629 --> 00:01:51,029
-The provenance graph links sources, files, tools, checks and the verdict, with checksums.
+00:01:25,487 --> 00:01:36,211
+Tools: Boltz-2, Chai-1, DiffDock-L and AutoDock Vina, five seeds each.
 
 21
-00:01:51,529 --> 00:01:55,729
-Figures for PoseBusters tests, seed spread and contacts come from the same record.
+00:01:36,361 --> 00:01:40,450
+Start run is not pressed. Next: a finished trypsin run with seven tools.
 
 22
-00:01:56,329 --> 00:02:00,279
-Four systems, wild type and perturbed, on Boltz-2 and DiffDock-L (Modal A100).
+00:01:40,950 --> 00:01:47,350
+The finished run: request and 3PTB crystal beside the verdict, its issues and the Boltz-2 medoid.
 
 23
-00:02:00,429 --> 00:02:04,429
-The agent judges each pose from the score, then from the fact file.
+00:01:47,850 --> 00:01:51,750
+Six tools ran on Modal A100, timed per seed. Vina ran on CPU.
 
 24
-00:02:05,029 --> 00:02:08,979
-Run 3: balanced accuracy 0.50 from the score, 0.75 with the fact file.
+00:01:51,900 --> 00:01:54,950
+The Ensemble lists each structure with pLDDT, confidence and PoseBusters.
 
 25
-00:02:09,129 --> 00:02:11,529
-95% CI 0.50 to 1.0, McNemar p 0.125.
+00:01:55,745 --> 00:02:05,974
+Every verdict carries its evidence: sources, files, thresholds and their origin.
 
 26
-00:02:12,129 --> 00:02:15,779
-With the fact file, the agent rejected all 12 perturbed Boltz-2 poses.
+00:02:06,768 --> 00:02:11,821
+Agents call it through MCP and the HTTP API. Their steps appear in the Agent view.
 
 27
-00:02:15,929 --> 00:02:18,629
-It also rejected some valid poses, most often DiffDock-L.
+00:02:12,321 --> 00:02:16,971
+Run 3: balanced accuracy 0.50 vs 0.75 with the fact file, McNemar p 0.125.
 
 28
-00:02:19,129 --> 00:02:22,179
-CDK2, pocket cut to glycine: ipTM 0.925, pocket pLDDT 82.3.
+00:02:17,121 --> 00:02:21,371
+Over three runs: 12 of 12 perturbed Boltz-2 poses rejected, against 0 of 12.
 
 29
-00:02:22,329 --> 00:02:26,529
-It recovers 1 of 9 deposited contacts. The wild type recovers 6 of 9.
+00:02:21,521 --> 00:02:23,721
+It also rejected valid DiffDock-L poses.
 
 30
-00:02:27,129 --> 00:02:29,279
-371 Python tests and 203 web tests.
-
-31
-00:02:29,429 --> 00:02:33,029
-An example with seven planted input faults gives seven stops.
+00:02:24,221 --> 00:02:31,221
+Every run writes report.html, a provenance graph with sha256 checksums, PyMOL renders and figures.
 

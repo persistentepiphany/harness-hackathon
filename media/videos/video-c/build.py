@@ -1,7 +1,8 @@
-"""Assemble demo film C: stills + UI recording -> xfade timeline, captions, music, sfx, two MP4s.
+"""Assemble demo film C: stills + live UI takes -> xfade timeline, captions, music, sfx, two MP4s.
 
-Usage: .venv/bin/python build.py <work_dir> <rec_dir> <version>
-Reads <work>/shots.json, <work>/stills/*.png and <rec>/{frames.txt,events.json}.
+Usage: .venv/bin/python build.py <work_dir> <version>
+Reads <work>/shots.json, <work>/stills/*.png and, for each shot of kind "ui", the take written by
+record3.js in <work>/r3_<take>/{frames.txt,events.json} (UI_input -> r3_input, and so on).
 Writes <work>/<version>/{demo-c.mp4, demo-c-nosfx.mp4, demo-c.srt, contact.jpg} and the mixes.
 """
 
@@ -20,15 +21,14 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).parent))
 import make_sfx as S  # noqa: E402
 
-WORK, REC, VER = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]
+WORK, VER = Path(sys.argv[1]), sys.argv[2]
 OUT = WORK / VER
 OUT.mkdir(parents=True, exist_ok=True)
 CL = WORK / "clips"
 CL.mkdir(exist_ok=True)
 FPS = 30
 SR = S.SR
-GRAPH_XY = (708, 75)
-GRAPH_WH = (1120, 790)
+MUSIC_DB = -2.0  # music bus 20 % quieter than v1 (20*log10(0.8) = -1.9 dB)
 
 
 def run(cmd: list[str]) -> None:
@@ -47,13 +47,16 @@ def hold(s: str) -> float:
 
 
 shots = json.loads((WORK / "shots.json").read_text())
-ev = json.loads((REC / "events.json").read_text())
-# cut the Jobs page loading state out of the recording (seconds in recording time)
-UI_CUTS = [(35.9, 37.7)]
+# UI segments: recording dir, end of the part used (s, recording time), cuts inside it
+UISEG = {s["name"]: (WORK / ("r3_" + s["name"].split("_", 1)[1].lower()), None, []) for s in shots
+         if s.get("kind") == "ui"}
+CAP_FIX: dict[str, str] = {'Each pick is looked up live in UniProt, RCSB PDB, AlphaFold DB, PubChem and the PDB CCD.': 'Each pick is looked up live: UniProt, RCSB PDB, AlphaFold DB, PubChem, PDB CCD.',
+    'Start run is not pressed here. Next, a finished run on the same target with seven tools.': 'Start run is not pressed. Next: a finished trypsin run with seven tools.',
+    'Agents call the harness through MCP and the HTTP API. Their steps appear in the Agent view.': 'Agents call it through MCP and the HTTP API. Their steps appear in the Agent view.'}  # takes recorded before the record3.js caption edit
 
 
-def apply_cuts() -> Path:
-    lines = (REC / "frames.txt").read_text().splitlines()
+def apply_cuts(rec: Path, cuts: list, end: float | None) -> Path:
+    lines = (rec / "frames.txt").read_text().splitlines()
     out = ["ffconcat version 1.0"]
     tcur = 0.0
     last = None
@@ -61,22 +64,25 @@ def apply_cuts() -> Path:
         if l.startswith("file") and i + 1 < len(lines) and lines[i + 1].startswith("duration"):
             d = float(lines[i + 1].split()[1])
             a, b = tcur, tcur + d
-            keep = d
-            for c0, c1 in UI_CUTS:
+            if end is not None:
+                b = min(b, end)
+            keep = max(0.0, b - a)
+            for c0, c1 in cuts:
                 keep -= max(0.0, min(b, c1) - max(a, c0))
             if keep > 1e-4:
-                out += [l, f"duration {keep:.4f}"]
-                last = l
-            tcur = b
+                fpath = rec / l.split("'")[1]
+                out += [f"file '{fpath}'", f"duration {keep:.4f}"]
+                last = f"file '{fpath}'"
+            tcur += d
     if last:
         out.append(last)
-    p = REC / "frames_cut.txt"
+    p = rec / "frames_cut.txt"
     p.write_text("\n".join(out) + "\n")
     return p
 
 
-def shift(t_: float) -> float:
-    for c0, c1 in UI_CUTS:
+def shift(t_: float, cuts: list) -> float:
+    for c0, c1 in cuts:
         if t_ >= c1:
             t_ -= c1 - c0
         elif t_ > c0:
@@ -84,23 +90,26 @@ def shift(t_: float) -> float:
     return t_
 
 
-FRAMES = apply_cuts()
-CAP_FIX = {"Ensemble shows every structure the run produced, with its values.":
-           "Ensemble lays out every structure in a run. This one holds the 3PTB reference."}
-ev["ev"] = [[shift(t_), k, CAP_FIX.get(v, v) if k == "cap" else v] for t_, k, v in ev["ev"]]
-ui_dur = round(ev["duration"] - sum(c1 - c0 for c0, c1 in UI_CUTS), 3)
+SEG: dict[str, dict] = {}
+for nm, (rec, end, cuts) in UISEG.items():
+    e = json.loads((rec / "events.json").read_text())
+    dur = e["duration"] if end is None else min(end, e["duration"])
+    evs_ = [[shift(t_, cuts), k, CAP_FIX.get(v, v) if k == "cap" else v] for t_, k, v in e["ev"] if t_ < dur]
+    SEG[nm] = {"frames": apply_cuts(rec, cuts, end), "ev": evs_,
+               "dur": round(dur - sum(c1 - c0 for c0, c1 in cuts), 3)}
 
 # ------------------------------------------------------------------ clips
 clips = []
 for s in shots:
     name = s["name"]
     out = CL / f"{name}.mp4"
-    if name == "UI":
+    if name.startswith("UI"):
+        ui_dur = SEG[name]["dur"]
         s["dur"] = ui_dur
         if os.environ.get("REUSE") and (OUT / "video.mp4").exists():
             clips.append(out)
             continue
-        run(["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", str(FRAMES),
+        run(["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", str(SEG[name]["frames"]),
              "-loop", "1", "-i", str(WORK / "stills/zz_uiband.png"),
              "-filter_complex",
              f"[0:v]scale=1920:940:flags=lanczos,setsar=1,fps={FPS}[ui];[1:v][ui]overlay=0:0:shortest=0,"
@@ -109,17 +118,6 @@ for s in shots:
              "-crf", "12", str(out)])
     elif os.environ.get("REUSE") and (OUT / "video.mp4").exists():
         pass
-    elif name == "s5_graph":
-        d = s["dur"]
-        gh = 2655
-        travel = gh - GRAPH_WH[1]
-        # hold 1.2 s, one smooth scroll of 3.4 s, then look
-        y = (f"{travel}*(0.5-0.5*cos(PI*min(max((t-1.2)/3.4,0),1)))")
-        run(["ffmpeg", "-y", "-v", "error", "-loop", "1", "-framerate", str(FPS), "-i", str(WORK / f"stills/{name}.png"),
-             "-loop", "1", "-framerate", str(FPS), "-i", str(WORK / "stills/graph_tall.png"),
-             "-filter_complex",
-             f"[1:v]crop={GRAPH_WH[0]}:{GRAPH_WH[1]}:0:'{y}'[g];[0:v][g]overlay={GRAPH_XY[0]}:{GRAPH_XY[1]},format=yuv420p[v]",
-             "-map", "[v]", "-t", str(d), "-r", str(FPS), "-c:v", "libx264", "-preset", "veryfast", "-crf", "12", str(out)])
     else:
         run(["ffmpeg", "-y", "-v", "error", "-loop", "1", "-framerate", str(FPS), "-i", str(WORK / f"stills/{name}.png"),
              "-vf", "format=yuv420p", "-t", str(s["dur"]), "-r", str(FPS), "-c:v", "libx264", "-preset", "veryfast",
@@ -140,7 +138,7 @@ caps: list[tuple[float, float, str]] = []
 
 
 def group(name: str) -> str:
-    return name.rstrip("0123456789")
+    return name
 
 
 ends: dict[str, float] = {}
@@ -148,8 +146,10 @@ for i, (s, st) in enumerate(zip(shots, starts)):
     ends[group(s["name"])] = st + s["dur"] - (shots[i + 1]["xf"] if i + 1 < len(shots) else 0) - 0.1
 raw: list[tuple[float, str, str]] = []
 for s, st in zip(shots, starts):
-    if s["name"] == "UI":
-        raw += [(st + t_, v, "UI") for t_, k, v in ev["ev"] if k == "cap"]
+    if s["name"].startswith("UI"):
+        # the first caption of a later segment waits for the crossfade to finish
+        lag = 0.4
+        raw += [(st + t_ + (lag if t_ < 1 else 0), v, s["name"]) for t_, k, v in SEG[s["name"]]["ev"] if k == "cap"]
     else:
         raw += [(st + o, txt, group(s["name"])) for o, txt in s["caps"]]
 raw.sort()
@@ -291,7 +291,8 @@ fo0 = int((T - fade_out) * SR)
 g[fo0:] = np.linspace(1, 0, N - fo0).clip(0, 1)
 music *= g
 music = np.stack([music, music * 0.98], axis=1)
-music *= 0.06 / (np.sqrt(np.mean(music ** 2)) + 1e-9)  # about -18 dBFS RMS, then the master gain
+music *= 0.06 / (np.sqrt(np.mean(music ** 2)) + 1e-9)  # about -18 dBFS RMS as in v1
+music *= 10 ** (MUSIC_DB / 20)
 
 # ------------------------------------------------------------------ sfx
 fx = np.zeros((N, 2))
@@ -322,19 +323,20 @@ for i, (s, st) in enumerate(zip(shots, starts)):
         put(WHOOSH, st - 0.15, 10 ** (-30 / 20)); n_whoosh += 1
     elif kind == "tick":
         put(TICK, st + 0.05, 10 ** (-31 / 20))
-ui_st = starts[[s["name"] for s in shots].index("UI")]
-evs = ev["ev"]
-type_t = [(tt_, v) for tt_, k, v in evs if k == "type"]
-type_end = [tt_ for tt_, k, v in evs if k == "typeEnd"]
-for tt_, k, v in evs:
-    if k == "click":
-        put(CLICK, ui_st + tt_, 10 ** (-28 / 20)); n_click += 1
-    if k == "route":
-        put(WHOOSH, ui_st + tt_ + 0.1, 10 ** (-36 / 20))
-for (a, nchar), b in zip(type_t, type_end):
-    step = (b - a) / max(nchar, 1)
-    for c in range(nchar):
-        put(TICK, ui_st + a + c * step + rng.uniform(-0.01, 0.01), 10 ** ((-35 + rng.uniform(-2, 1)) / 20)); n_key += 1
+for nm in SEG:
+    ui_st = starts[[s["name"] for s in shots].index(nm)]
+    evs = SEG[nm]["ev"]
+    type_t = [(tt_, v) for tt_, k, v in evs if k == "type"]
+    type_end = [tt_ for tt_, k, v in evs if k == "typeEnd"]
+    for tt_, k, v in evs:
+        if k == "click":
+            put(CLICK, ui_st + tt_, 10 ** (-28 / 20)); n_click += 1
+        if k == "route":
+            put(WHOOSH, ui_st + tt_ + 0.1, 10 ** (-36 / 20))
+    for (a, nchar), b in zip(type_t, type_end):
+        step = (b - a) / max(nchar, 1)
+        for c in range(nchar):
+            put(TICK, ui_st + a + c * step + rng.uniform(-0.01, 0.01), 10 ** ((-35 + rng.uniform(-2, 1)) / 20)); n_key += 1
 print(f"sfx: {n_click} clicks, {n_key} key ticks, {n_whoosh} scene whooshes")
 
 MASTER = 0.9

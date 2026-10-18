@@ -194,3 +194,65 @@ out/videos/a2/work/record.sh v6 warm press   # third argument: press or page (in
 .venv/bin/python out/videos/a2/work/build.py v6   # add --webm for a WebM copy
 out/videos/a2/work/publish.sh v6
 ```
+
+## Video C: the leading result, the problem and the harness
+
+`demo-c.mp4` is a 157.3 s edited film (1920x1080, 30 fps, H.264 + AAC 192 kb/s, +faststart) built from
+HTML scene stills, PyMOL renders and three takes of the live web UI. `demo-c-nosfx.mp4` is the same
+edit and the same music without the interface sounds. `demo-c.srt` holds the captions that are burned
+into both files. A section number and title sit on each scene, and every scene that shows a number
+carries a source tag in the bottom right.
+
+### What it shows
+
+| Time | Scene | Data |
+| --- | --- | --- |
+| 0:00 | 12 perturbed Boltz-2 predictions (CDK2 1B38, FtsE 8X61, MEK1 7XLP, glucose dehydrogenase 2VWH; 3 runs each) in a 4x3 grid of PyMOL renders, each with ipTM and pocket pLDDT, first marked "Without the harness: called valid", then "With the fact file: rejected" with that structure's contacts recovered, buried unsatisfied polar atoms, PoseBusters result or torsion strain | `bench/runs/*`, images and values in `media/figures/twelve/` |
+| 0:22 | 1 The problem: three citation cards (PoseBusters, the Mac1 prospective co-folding study, Runs N' Poses) | `video-c/REFERENCES.md` |
+| 0:37 | 2 The old way: CDK2 and ATP into Boltz-2, the raw `confidence_*.json` beside the structure, then what the score hides (13 residues cut to glycine, 1 of 9 crystal contacts, 4 buried polar atoms unpaired) | bench run 3 |
+| 0:47 | 3 With the harness: what a model gives (pLDDT, ipTM, maybe a docking score) beside the harness checks grouped by layer with the tool that measures each; then the harness verdict for the same CDK2 input (stop) and its issues | `README.md` check tables; bench run 3 `record.json` |
+| 1:07 | Models it runs and checks, with A100 or CPU | `README.md` Tools used |
+| 1:15 | 4 Input and output: a new run picked from the menus in the live UI (Trypsin, benzamidine, Boltz-2, Chai-1, DiffDock-L, AutoDock Vina, 5 seeds; Start run is not pressed); the finished run `ligand_pose-249098d10007` beside its request and the 3PTB crystal (verdict, issues, Boltz-2 medoid), execution rows with A100 timings and the Ensemble; a scroll through one expanded check, the artifact list and the thresholds with their origin | live UI |
+| 2:06 | Agents: the live Agent view with an agent's steps | live UI |
+| 2:12 | 5 The AI agent result: GLM-4.6, temperature 0, 3 repeats; run 3 balanced accuracy 0.50 vs 0.75 (95% CI 0.50 to 1.0, McNemar p 0.125); 12 of 12 vs 0 of 12 perturbed Boltz-2 poses rejected; the agent with the fact file also rejected 3 of 6 valid poses | `bench/runs/2026-10-17T1859Z-849c856/results/stats.json` |
+| 2:24 | Files every run writes: report.html, provenance graph, PyMOL renders, figures | bench run 3, run ui-vina |
+| 2:31 | "Every number traceable to a check, a tool and a source.", the site URL and a references line | |
+
+### Sources and checks
+
+The three studies were checked against Europe PMC records on 2026-10-18; `video-c/REFERENCES.md`
+lists each citation, what it supports and what was verified. The specification's "489 complexes",
+"about 75 ROC AUC" and "53.8 ROC AUC" figures could not be traced to an opened source version and are
+not in the film; the film shows the verified values from version 2 of the Mac1 study (557 ligands,
+AUC 0.76 and 0.73) instead.
+
+The 12 renders were made for this film by `video-c/render_twelve.py` from the medoid pose named in
+each run's harness record. The live UI takes were recorded on 2026-10-18 against
+https://persistentepiphany--pah-web.us-east.modal.run with a CDP screencast (1280x627 CSS px at 1.5x);
+the report, ensemble and agent element shots were taken the same day at 2x by `video-c/shoot_live.js`.
+
+### Sound
+
+Music is the v1 sequence (`build.py`, numpy: pad chords in D major at 100 BPM, sub bass, light kick,
+off-beat hats, sparse pluck) with the music bus 2 dB lower than v1. Interface sounds come from
+`video-c/make_sfx.py` (synthesised, no API): a soft click on each recorded pointer press (10), a soft
+whoosh at each scene change (14) and a tick on the reveal in "The old way". No text is typed in this
+film, so there are no key ticks.
+
+### Rebuild
+
+```bash
+uv pip install --python .venv/bin/python pymol-open-source-whl pillow scipy
+W=/home/user/harness-hackathon/out/videos/c
+.venv/bin/python media/videos/video-c/render_twelve.py          # media/figures/twelve/*
+node media/videos/video-c/shoot_live.js $W/live                 # live UI element shots
+.venv/bin/python media/videos/video-c/render_3ptb.py                # $W/live/3ptb_pocket.png
+for t in input evidence agent; do node media/videos/video-c/record3.js $W/r3_$t $t; done
+node media/videos/video-c/shoot.js $W prep                      # report.html and graph.svg stills
+.venv/bin/python media/videos/video-c/scenes.py $W              # html/*.html, shots.json
+node media/videos/video-c/shoot.js $W scenes                    # stills/*.png
+.venv/bin/python media/videos/video-c/build.py $W v9            # both MP4s, SRT, contact sheet
+```
+
+Final take: `out/videos/c/v9`. `record.js` and `record2.js` are the takes of the first version and are
+kept for reference; the first version pressed Start run, which this version does not.
