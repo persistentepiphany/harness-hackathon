@@ -25,57 +25,47 @@ test.describe('mock mode', () => {
     test.skip((await appMode(page)) !== 'mock', 'app is not in mock mode');
   });
 
-  test('new run: pickers, detail cards, sources and manual setup', async ({ page }) => {
+  test('new run: menus, sources and manual setup', async ({ page }) => {
     await expect(page.getByTestId('page-new-run')).toBeVisible();
     await expect(page.getByTestId('quick-setup')).toBeDisabled();
-    await expect(page.getByTestId('target-chip')).toHaveCount(7);
-    await expect(page.getByTestId('target-chip').first()).toHaveAttribute('data-state', 'selected');
-    await expect(page.getByTestId('ligand-chip').first()).toHaveAttribute('data-state', 'selected');
-
-    await page.getByTestId('target-chip').filter({ hasText: 'KRAS' }).click();
-    await expect(page.getByTestId('target-detail')).toContainText('RASK_HUMAN');
+    const target = page.getByTestId('menu-target');
+    await target.getByRole('button', { name: 'Target' }).click();
+    await expect(target.getByTestId('menu-item')).toHaveCount(7);
+    await expect(target.getByTestId('menu-item').first()).toHaveAttribute('aria-selected', 'true');
+    await target.getByTestId('menu-item').filter({ hasText: 'KRAS' }).click();
+    await expect(target.getByRole('button', { name: 'Target' })).toContainText('KRAS');
     await expect(page.getByTestId('entity-row').first()).toBeVisible();
     await expect(page.getByTestId('sources-panel')).toHaveAttribute('data-state', 'ready');
+
+    const tools = page.getByTestId('menu-tools');
+    await tools.getByRole('button', { name: 'Tools' }).click();
+    await expect(tools.locator('[data-testid=menu-item]:disabled').first()).toBeVisible();
+    await page.keyboard.press('Escape');
 
     await page.getByTestId('manual-setup').click();
     await expect(page.getByTestId('task-chip')).toHaveCount(14);
     await expect(page.locator('[data-testid=task-chip][data-group=docking]')).toHaveCount(5);
-    const unavailable = page.locator('[data-testid=executor-chip][data-state=unavailable]');
-    await expect(unavailable.first()).toBeDisabled();
-    await expect(unavailable.first()).toHaveAttribute('title', /not available/);
     await page.locator('[data-testid=task-chip][data-task=interaction_discovery]').click();
     await expect(page.getByTestId('input-partner')).toHaveValue('P04049');
-    await expect(page.getByTestId('ligand-picker')).toHaveCount(0);
-    await expect(page.getByTestId('plan-tools')).toHaveText('Boltz-2 · Protenix');
-  });
-
-  test('+ executor keeps focus, joins the plan and the started job', async ({ page }) => {
-    await page.getByTestId('manual-setup').click();
-    const add = page.getByTestId('add-executor');
-    await add.fill('rosettafold:1.0');
-    await add.press('Enter');
-    await expect(page.locator('[data-testid=executor-chip][data-tool=rosettafold]')).toHaveAttribute('data-state', 'selected');
-    await expect(page.getByTestId('plan-tools')).toContainText('rosettafold');
-    // the input stays focused for the next executor
-    await expect(add).toBeFocused();
-    await expect(add).toHaveValue('');
-    await page.locator('[data-testid=run-plan] [data-testid=start-run]').click();
-    // Start run opens the live report, which lists the executors of the run
-    await expect(page).toHaveURL(/\/reports\/run_/);
-    await expect(page.getByTestId('report-details')).toContainText('rosettafold');
+    await expect(page.getByTestId('menu-ligand')).toHaveCount(0);
   });
 
   test('custom target and ligand are looked up and shown as not in the mock catalog', async ({ page }) => {
-    await page.getByTestId('add-target').fill('Q9Y6K9');
-    await page.getByTestId('add-target').press('Enter');
+    await page.getByTestId('menu-target').getByRole('button', { name: 'Target' }).click();
+    const t = page.getByLabel('other: UniProt accession or name');
+    await t.fill('Q9Y6K9');
+    await t.press('Enter');
     await expect(page.locator('[data-testid=entity-row][data-source=UniProt][data-state=error]')).toContainText('not in the mock catalog');
-    await page.getByTestId('add-ligand').fill('ATP');
-    await page.getByTestId('add-ligand').press('Enter');
+    await page.getByTestId('menu-ligand').getByRole('button', { name: 'Ligand' }).click();
+    const l = page.getByLabel('other: SMILES, CCD code or name');
+    await l.fill('ATP');
+    await l.press('Enter');
     await expect(page.locator('[data-testid=entity-row][data-source="PDB CCD"][data-state=error]')).toBeVisible();
   });
 
   test('quick setup streams decisions, Start run opens the job and its log streams', async ({ page }) => {
-    await page.getByTestId('sample-prompt').first().click();
+    await page.getByTestId('sample-prompts').getByRole('button', { name: 'Examples' }).click();
+    await page.getByTestId('sample-prompts').getByTestId('menu-item').first().click();
     await page.getByTestId('quick-setup').click();
     const rows = page.getByTestId('decision-row');
     await expect(rows.first()).toBeVisible();
@@ -240,19 +230,16 @@ test.describe('live-shaped (fixtures)', () => {
     await expect(page.locator('[data-testid=layer-strip] [data-testid=layer-cell][data-state=not_run]')).toHaveCount(notRun);
   });
 
-  test('new run: register drives the chips, + executor shows the 501, Start run opens a queued job', async ({ page }) => {
+  test('new run: register drives the tool menu, Start run opens a queued job', async ({ page }) => {
     await page.goto('/runs/new');
-    await expect(page.getByTestId('target-chip')).toHaveAttribute('data-state', 'selected');
-    await page.getByTestId('manual-setup').click();
-    const boltz = page.locator('[data-testid=executor-chip][data-tool=boltz2]');
-    await expect(boltz).toHaveAttribute('data-state', 'selected');
-    await expect(page.locator('[data-testid=executor-chip][data-tool=protenix]')).toBeDisabled();
+    const tools = page.getByTestId('menu-tools');
+    await tools.getByRole('button', { name: 'Tools' }).click();
+    await expect(tools.locator('[data-testid=menu-item][data-item=boltz2]')).toHaveAttribute('aria-selected', 'true');
+    await expect(tools.locator('[data-testid=menu-item][data-item=protenix]')).toBeDisabled();
     // a selected tool the host cannot run can still be removed
-    await page.locator('[data-testid=executor-chip][data-tool=gnina]').click();
-    await expect(page.getByTestId('plan-tools')).toHaveText('Boltz-2');
-    await page.getByTestId('add-executor').fill('mytool:1.0');
-    await page.getByTestId('add-executor').press('Enter');
-    await expect(page.getByTestId('add-executor-message')).toContainText('501 not_implemented');
+    await tools.locator('[data-testid=menu-item][data-item=gnina]').click();
+    await expect(tools.getByRole('button', { name: 'Tools' })).toHaveText('Boltz-2');
+    await page.keyboard.press('Escape');
     await page.getByTestId('start-run').click();
     await expect(page).toHaveURL(/\/jobs\/ui-queued$/);
     expect(posts[0]).toMatchObject({ task: 'ligand_pose', tools: ['boltz2'], target: 'P00760', reference: '3PTB', ligand: 'NC(=N)c1ccccc1', seeds: 5, ph: 7.4 });

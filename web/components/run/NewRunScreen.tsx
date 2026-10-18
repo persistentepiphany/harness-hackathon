@@ -11,42 +11,33 @@ import { getHarnessApi, isAbortError, toApiError } from '@/lib/harness-api';
 import { useAction, useCatalog, useEntities, useJobs, useTasks, useTools } from '@/lib/hooks';
 import {
   applyStep,
+  DEFAULT_SEEDS,
   defaultForm,
-  executorGroups,
-  findLigand,
-  findProtein,
   fmtStep,
   formText,
   inputVisibility,
   ligandFromInput,
-  planTools,
   requestSummary,
   selectTask,
   settingsFromForm,
   stepLabel,
-  suggestName,
   targetFromInput,
   taskGroups,
   taskHint,
   toggleTool,
   insertToken,
-  removeToken,
   type LigandOption,
   type RunForm,
   type TargetOption,
 } from '@/lib/selectors/run';
-import { groupEntities, uniprotRelease } from '@/lib/selectors/run';
-import type { InterpretResult, StartRunResult, Step, Tool } from '@/lib/types';
+import { groupEntities } from '@/lib/selectors/run';
+import type { InterpretResult, StartRunResult, Step } from '@/lib/types';
 import { DecisionStream, type DecisionRow } from './DecisionStream';
-import { ToolPalette } from './ToolPalette';
 import { DropZone, type FileChipModel } from './DropZone';
-import { ExecutorChips } from './ExecutorChips';
 import { InputsForm, type InputKey } from './InputsForm';
-import { LigandPicker } from './LigandPicker';
 import { PromptBox } from './PromptBox';
-import { RunPlan } from './RunPlan';
+import { SetupRow } from './SetupRow';
 import { SourcesPanel } from './SourcesPanel';
-import { TargetPicker } from './TargetPicker';
 import { TaskPicker } from './TaskPicker';
 
 type Mode = 'quick' | 'manual' | null;
@@ -80,13 +71,9 @@ export function NewRunScreen() {
 
   const [nl, setNl] = useState<NlState>({ text: '', mode: null, rows: [], done: false });
   const [lookup, setLookup] = useState('');
-  const [add, setAdd] = useState({ target: '', ligand: '', tool: '' });
   const [customTargets, setCustomTargets] = useState<TargetOption[]>([]);
   const [customLigands, setCustomLigands] = useState<LigandOption[]>([]);
-  const [customTools, setCustomTools] = useState<Tool[]>([]);
-  const [detail, setDetail] = useState<{ target: string | null; ligand: string | null }>({ target: null, ligand: null });
   const [files, setFiles] = useState<FileChipModel[]>([]);
-  const [addTool, setAddTool] = useState<{ busy: boolean; message: { code: string; message: string; status?: number } | null }>({ busy: false, message: null });
 
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const uploads = useRef(new Set<AbortController>());
@@ -109,11 +96,10 @@ export function NewRunScreen() {
 
   const toolList = useMemo(() => {
     const reg = register.data ?? [];
-    return [...reg, ...customTools.filter((c) => !reg.some((t) => t.id === c.id))];
-  }, [register.data, customTools]);
+    return reg;
+  }, [register.data]);
   const task = tasks.data?.find((t) => t.id === form.task);
   const show = inputVisibility(task);
-  const groups = useMemo(() => executorGroups(toolList, form.tools), [toolList, form.tools]);
   const tg = useMemo(() => taskGroups(tasks.data), [tasks.data]);
   const entities = useEntities(lookup);
   const entityGroups = useMemo(() => groupEntities(entities.data), [entities.data]);
@@ -128,8 +114,6 @@ export function NewRunScreen() {
     for (const c of customLigands) if (!list.some((l) => l.smiles === c.smiles)) list.push(c);
     return list;
   }, [catalog.data, customLigands]);
-  const targetDetail = detail.target && detail.target === form.target ? (targetOptions.find((p) => p.accession === detail.target) ?? null) : null;
-  const ligandDetail = detail.ligand && detail.ligand === form.ligand ? (ligandOptions.find((l) => l.smiles === detail.ligand) ?? null) : null;
 
   // ---------------------------------------------------------------- handlers
 
@@ -138,13 +122,11 @@ export function NewRunScreen() {
   const selectTarget = (p: TargetOption) => {
     const next = { ...form, target: p.accession, reference: p.pdb || form.reference };
     setFormState(next);
-    setDetail((d) => ({ ...d, target: p.accession }));
     lookupForm(next);
   };
   const selectLigand = (l: LigandOption) => {
     const next = { ...form, ligand: l.smiles };
     setFormState(next);
-    setDetail((d) => ({ ...d, ligand: l.smiles }));
     lookupForm(next);
   };
   const addTarget = (v: string) => {
@@ -152,33 +134,12 @@ export function NewRunScreen() {
     if (!p) return;
     if (p.custom) setCustomTargets((list) => (list.some((x) => x.accession === p.accession) ? list : [...list, p]));
     selectTarget(p);
-    setAdd((a) => ({ ...a, target: '' }));
   };
   const addLigand = (v: string) => {
     const l = ligandFromInput(v, catalog.data);
     if (!l) return;
     if (l.custom) setCustomLigands((list) => (list.some((x) => x.smiles === l.smiles) ? list : [...list, l]));
     selectLigand(l);
-    setAdd((a) => ({ ...a, ligand: '' }));
-  };
-
-  const addExecutor = async (v: string) => {
-    const [name, version] = v.split(':');
-    if (!name.trim()) return;
-    // live: POST /ui/tools (501 until the register accepts writes); mock: session register
-    setAddTool({ busy: true, message: null });
-    try {
-      const tool = await getHarnessApi().addTool({ name, version: version || null, image: v });
-      setAddTool({ busy: false, message: null });
-      if (!toolList.some((t) => t.id === tool.id)) setCustomTools((list) => [...list, tool]);
-      update((f) => ({ ...f, tools: f.tools.includes(tool.id) ? f.tools : [...f.tools, tool.id] }));
-      setAdd((a) => ({ ...a, tool: '' }));
-      register.reload();
-    } catch (e) {
-      if (isAbortError(e)) return;
-      const err = toApiError(e);
-      setAddTool({ busy: false, message: { code: err.code, message: err.message, status: err.status || undefined } });
-    }
   };
 
   const setInput = (key: InputKey, value: string) => {
@@ -203,11 +164,6 @@ export function NewRunScreen() {
       t += STEP_MS;
       later(t, () => {
         update((f) => applyStep(f, s));
-        if (s.field === 'target' && typeof s.value === 'string' && findProtein(catalog.data, s.value)) setDetail((d) => ({ ...d, target: String(s.value).toUpperCase() }));
-        if (s.field === 'ligand' && typeof s.value === 'string') {
-          const lig = findLigand(catalog.data, s.value);
-          if (lig) setDetail((d) => ({ ...d, ligand: lig.smiles }));
-        }
         setNl((n) => ({ ...n, rows: [...n.rows, { label: stepLabel(s.field), value: fmtStep(s, tasks.data, toolList), status: 'loading', field: s.field }] }));
       });
       later(t + CHECK_MS, () => setNl((n) => ({ ...n, rows: n.rows.map((r, k) => (k === i + 1 ? { ...r, status: 'ok', because: s.because } : r)) })));
@@ -224,7 +180,7 @@ export function NewRunScreen() {
   };
 
   const submit = async () => {
-    const settings = settingsFromForm(form, catalog.data, tasks.data);
+    const settings = settingsFromForm(form, catalog.data, tasks.data, toolList);
     const r = await start.run((api, signal) => api.startRun(settings, { signal }));
     if (!r) return;
     jobs.reload();
@@ -268,16 +224,17 @@ export function NewRunScreen() {
     nl.mode === 'quick' && interpret.error && nl.rows.length <= 1
       ? [{ label: 'Request', value: `${interpret.error.message} (${interpret.error.code})`, status: 'error' }]
       : nl.rows;
+  const side = entityGroups.length > 0 || entities.loading;
   const setupError = catalog.error ?? tasks.error ?? register.error;
   const loadingSetup = catalog.loading || tasks.loading;
 
   return (
     <main
-      className="mx-auto grid w-full max-w-[1160px] animate-fade-up grid-cols-[minmax(0,1fr)_300px] items-start gap-12 px-6 pt-11 pb-20"
+      className={`mx-auto grid w-full animate-fade-up grid-cols-1 items-start gap-12 px-6 pt-11 pb-20 ${side ? 'max-w-[1080px] lg:grid-cols-[minmax(0,720px)_300px]' : 'max-w-[768px]'}`}
       data-testid="page-new-run"
       data-state={nl.mode ?? 'idle'}
     >
-      <div className="flex min-w-0 flex-col gap-[30px]">
+      <div className="flex min-w-0 flex-col gap-6">
         <h1 className="m-0 text-[18px] font-semibold tracking-[-0.01em]">New run</h1>
         <PromptBox
           text={nl.text}
@@ -312,19 +269,6 @@ export function NewRunScreen() {
           }}
         />
 
-        {register.data && (
-          <ToolPalette
-            register={register.data}
-            selected={form.tools}
-            task={tasks.data?.find((t) => t.id === form.task)}
-            onPick={(tool) => {
-              const on = form.tools.includes(tool.id);
-              update((f) => ({ ...f, tools: toggleTool(f.tools, tool.id) }));
-              setNl((n) => ({ ...n, text: on ? removeToken(n.text, tool.name) : insertToken(n.text, tool.name).text }));
-            }}
-          />
-        )}
-
         {nl.mode === 'quick' && (
           <DecisionStream
             rows={quickRows}
@@ -353,28 +297,25 @@ export function NewRunScreen() {
           </div>
         )}
 
-        {catalog.data && (
-          <TargetPicker
-            options={targetOptions}
-            selected={form.target.trim().toUpperCase()}
-            detail={targetDetail}
-            release={uniprotRelease(entities.data, targetDetail?.accession)}
-            onSelect={selectTarget}
-            addValue={add.target}
-            onAddValue={(v) => setAdd((a) => ({ ...a, target: v }))}
-            onAdd={addTarget}
-          />
-        )}
-
-        {catalog.data && show.ligand && (
-          <LigandPicker
-            options={ligandOptions}
-            selected={form.ligand}
-            detail={ligandDetail}
-            onSelect={selectLigand}
-            addValue={add.ligand}
-            onAddValue={(v) => setAdd((a) => ({ ...a, ligand: v }))}
-            onAdd={addLigand}
+        {catalog.data && register.data && (
+          <SetupRow
+            register={toolList}
+            tools={form.tools}
+            onToggleTool={(id) => update((f) => ({ ...f, tools: toggleTool(f.tools, id) }))}
+            targets={targetOptions}
+            target={form.target.trim().toUpperCase()}
+            onTarget={selectTarget}
+            onAddTarget={addTarget}
+            ligands={show.ligand ? ligandOptions : null}
+            ligand={form.ligand}
+            onLigand={selectLigand}
+            onAddLigand={addLigand}
+            seeds={Number(form.seeds) || DEFAULT_SEEDS}
+            onSeeds={(n) => update((f) => ({ ...f, seeds: String(n) }))}
+            onStart={submit}
+            starting={start.loading}
+            error={nl.mode === 'quick' ? null : start.error}
+            hideStart={nl.mode === 'quick'}
           />
         )}
 
@@ -389,45 +330,16 @@ export function NewRunScreen() {
               hint={taskHint(task)}
               onSelect={(t) => update((f) => selectTask(f, t, catalog.data))}
             />
-            {register.loading && !register.data ? (
-              <div className="flex items-center gap-2 text-[12.5px] text-muted">
-                <Spinner size={9} /> loading executors
-              </div>
-            ) : (
-              <ExecutorChips
-                groups={groups}
-                onToggle={(id) => update((f) => ({ ...f, tools: toggleTool(f.tools, id) }))}
-                addValue={add.tool}
-                onAddValue={(v) => {
-                  setAdd((a) => ({ ...a, tool: v }));
-                  if (addTool.message) setAddTool({ busy: false, message: null });
-                }}
-                onAdd={addExecutor}
-                addBusy={addTool.busy}
-                addMessage={addTool.message}
-              />
-            )}
             <InputsForm form={form} show={show} onChange={setInput} />
           </div>
         )}
       </div>
 
-      <div className="sticky top-[68px] flex min-w-0 flex-col gap-7">
-        <SourcesPanel groups={entityGroups} busy={entities.loading} error={entities.error} />
-        {nl.mode === 'manual' && (
-          <RunPlan
-            name={form.name}
-            suggestion={suggestName(form, catalog.data, tasks.data)}
-            onName={(v) => update((f) => ({ ...f, name: v }))}
-            claim={task?.claim ?? ''}
-            tools={planTools(form.tools, toolList)}
-            controls={task?.controls.join(', ') ?? ''}
-            onStart={submit}
-            starting={start.loading}
-            error={start.error}
-          />
-        )}
-      </div>
+      {side && (
+        <div className="sticky top-[68px] flex min-w-0 flex-col gap-7">
+          <SourcesPanel groups={entityGroups} busy={entities.loading} error={entities.error} />
+        </div>
+      )}
     </main>
   );
 }
