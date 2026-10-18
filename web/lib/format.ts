@@ -122,8 +122,17 @@ export function tallyResults(items: { result: Result }[]): Partial<Record<Result
 
 function fmtValue(v: number | string | boolean | null | undefined): string {
   if (isMissing(v)) return DASH;
-  if (typeof v === 'boolean') return v ? 'true' : 'false';
+  if (typeof v === 'boolean') return v ? 'yes' : 'no';
   return fmtNum(v);
+}
+
+/** A threshold as a reader's limit: `required`, `must not hold`, `at most 8 Å`. */
+function limitText(t: { comparator: string; value: number | string | boolean }, unit = ''): string {
+  if (typeof t.value === 'boolean') {
+    const want = t.comparator === '!=' ? !t.value : t.value;
+    return want ? 'required' : 'must not hold';
+  }
+  return `${limitWord(t.comparator)} ${fmtValue(t.value)}${unit}`;
 }
 
 /**
@@ -133,8 +142,13 @@ function fmtValue(v: number | string | boolean | null | undefined): string {
  */
 export function thresholdText(check: Pick<UiCheck, 'thresholds' | 'threshold'>): string | null {
   const t = check.thresholds?.[0];
-  if (t) return `${t.name} ${t.comparator} ${fmtValue(t.value)}`;
-  return check.threshold ? `threshold ${check.threshold.value}` : null;
+  if (t) return `${humanName(t.measurement ?? t.name)} ${limitText(t)}`;
+  if (!check.threshold) return null;
+  const m = check.threshold.value.match(/^\s*([\w.]+)\s*(==|!=|<=|>=|<|>)\s*(.+?)\s*$/);
+  if (!m) return `threshold ${check.threshold.value}`;
+  const raw = m[3];
+  const value = raw === 'true' ? true : raw === 'false' ? false : Number.isFinite(Number(raw)) ? Number(raw) : raw;
+  return `${humanName(m[1])} ${limitText({ comparator: m[2], value })}`;
 }
 
 /**
@@ -147,7 +161,8 @@ export function measuredVsThreshold(check: Pick<UiCheck, 'measurements' | 'thres
   if (!pair) return null;
   const { m, t } = pair;
   const unit = m.unit ? `${THIN}${m.unit}` : '';
-  return `${humanName(m.name)} ${fmtValue(m.value)}${unit} · ${limitWord(t.comparator)} ${fmtValue(t.value)}${unit}`;
+  if (typeof m.value === 'boolean') return `${humanName(m.name)}: ${fmtValue(m.value)} · ${limitText(t)}`;
+  return `${humanName(m.name)} ${fmtValue(m.value)}${unit} · ${limitText(t, unit)}`;
 }
 
 /** `max_states` → `max states`: measurement names read as words. */

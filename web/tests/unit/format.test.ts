@@ -134,10 +134,11 @@ describe('measuredVsThreshold', () => {
 });
 
 describe('thresholdText', () => {
-  it('names the threshold and formats its value like the Thresholds list', () => {
+  it('names the threshold as a readable limit', () => {
     const t = { name: 'pocket_distance', value: 8.0, comparator: '<=', origin: 'spec', evidenceLevel: 'published' };
-    expect(thresholdText({ thresholds: [t], threshold: { value: '<= 8.0', origin: 'spec', evidenceLevel: 'published' } })).toBe('pocket_distance <= 8');
-    expect(thresholdText({ thresholds: [{ ...t, name: 'relative_sasa', value: 0.1, comparator: '<' }] })).toBe('relative_sasa < 0.1');
+    expect(thresholdText({ thresholds: [t], threshold: { value: '<= 8.0', origin: 'spec', evidenceLevel: 'published' } })).toBe('pocket distance at most 8');
+    expect(thresholdText({ thresholds: [{ ...t, name: 'relative_sasa', value: 0.1, comparator: '<' }] })).toBe('relative sasa below 0.1');
+    expect(thresholdText({ threshold: { value: 'inchikey_equal == true', origin: 'spec', evidenceLevel: 'x' } })).toBe('inchikey equal required');
     expect(thresholdText({ threshold: { value: '> 1.0', origin: 'spec', evidenceLevel: 'x' } })).toBe('threshold > 1.0');
     expect(thresholdText({})).toBeNull();
   });

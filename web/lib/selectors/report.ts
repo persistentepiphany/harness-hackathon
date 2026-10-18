@@ -567,7 +567,8 @@ export function flaggedResidues(record: Pick<UiRunRecord, 'layers'>): FlaggedRes
 /** Chip selected first: medoid, else the first structure with coordinates, else the first chip. */
 export function defaultStructureId(targets: StructureTarget[]): string | null {
   if (!targets.length) return null;
-  return (targets.find((t) => t.id === 'medoid') ?? targets.find((t) => t.load.length && t.kind !== 'overlay') ?? targets[0]).id;
+  const predicted = (t: StructureTarget) => t.load.length > 0 && t.kind !== 'overlay' && t.kind !== 'crystal';
+  return (targets.find((t) => t.id === 'medoid') ?? targets.find(predicted) ?? targets.find((t) => t.load.length && t.kind !== 'overlay') ?? targets[0]).id;
 }
 
 /** Caption above the viewer (prototype structCaption). */

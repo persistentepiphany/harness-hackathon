@@ -41,6 +41,7 @@ export function StructurePanel({ record, tools, className, cards = false, select
   };
   const refRenders = record.renders ?? [];
   const refOnly = referenceOnly(record);
+  const running = (record.execution ?? []).filter((e) => ['queued', 'building', 'running'].includes(e.phase));
   const residues = useMemo(() => focus?.residues ?? [], [focus]);
   const flagged = useMemo(() => residues.map((r) => ({ num: r.num, chain: r.chain })), [residues]);
   // ligand checks frame the ligand of the shown pose (no residues to colour)
@@ -51,8 +52,8 @@ export function StructurePanel({ record, tools, className, cards = false, select
       <div className="mb-2 flex min-h-[30px] min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
         <div className="flex min-w-0 flex-wrap items-center gap-1">
           {refOnly && (
-            <span className="mr-2 text-[12px] font-medium text-ink" data-testid="reference-label">
-              Reference structure (input) · not a prediction
+            <span className="mr-2 text-[12px] text-muted" data-testid="reference-label">
+              {running.length ? 'Predicting' : 'Input'}
             </span>
           )}
           {shown.map((t) => {
@@ -88,6 +89,18 @@ export function StructurePanel({ record, tools, className, cards = false, select
         </span>
       </div>
       <div className={clsx('relative', fill && 'min-h-0 flex-1')}>
+        {refOnly && running.length > 0 && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-card bg-surface/90 text-center" data-testid="predicting">
+            <span className="h-3 w-3 animate-spin rounded-full border-2 border-line border-t-accent" />
+            <span className="text-[13px] font-medium text-ink">
+              {running.map((e) => e.name).join(', ')} predicting on {running.some((e) => e.route !== 'local') ? 'Modal A100' : 'CPU'}
+            </span>
+            <span className="max-w-[80%] font-mono text-[11px] text-muted">
+              {running.map((e) => `${e.name} ${e.phase}${e.callId ? ` · ${e.callId}` : ''}`).join(' · ')}
+            </span>
+            <span className="text-[11.5px] text-muted">the predicted structure replaces the input when the first seed returns</span>
+          </div>
+        )}
         <StructureViewer
           target={target}
           mode={cfg.mode}
@@ -100,7 +113,7 @@ export function StructurePanel({ record, tools, className, cards = false, select
           className={clsx('rounded-card border border-line', fill ? 'h-full min-h-[280px]' : 'h-[400px]')}
         />
         <div
-          className={clsx('pointer-events-none absolute top-2.5 left-3 max-w-[80%] rounded-[6px] border border-line bg-white/95 px-2.5 py-1.5 text-[12px] text-ink2 shadow-sm transition-opacity duration-200', focus ? 'opacity-100' : 'opacity-0')}
+          className={clsx('pointer-events-none absolute bottom-2.5 left-3 max-w-[80%] rounded-[6px] border border-line bg-white/95 px-2.5 py-1.5 text-[12px] text-ink2 shadow-sm transition-opacity duration-200', focus ? 'opacity-100' : 'opacity-0')}
           data-testid="viewer-highlight"
           data-check={focus?.check}
           aria-hidden={!focus}
