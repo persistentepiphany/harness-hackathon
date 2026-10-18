@@ -5,14 +5,25 @@ Web UI: https://persistentepiphany--pah-web.us-east.modal.run
 HTTP API: https://persistentepiphany--pah-api.us-east.modal.run (health at `/health`)
 
 A co-folding or docking model reports its own confidence, and that score does not establish that
-the result is valid. In the perturbation benchmark below, Boltz-2 confidence and PoseBusters stayed
-clean on ATP poses that had moved 16 Å from the deposited site. `pah` decides whether a co-folding
-or docking result can support the claim its user declares, such as "the predicted pose of ATP in
-CDK2 is valid". It checks the inputs before the prediction and the
+the result is valid. PoseBusters showed that deep-learning docking methods often produce physically
+implausible poses that RMSD alone does not reveal, and that none of the five it tested yet
+outperformed classical docking on physical plausibility or on novel sequences
+([Buttenschoen, Morris and Deane, Chem. Sci. 2024](https://doi.org/10.1039/d3sc04185a)). In the
+perturbation benchmark below, an agent given only ipTM and pLDDT called all 12 Boltz-2 poses valid
+after the pocket contacts had been cut to glycine; given the harness fact file it rejected all 12.
+
+`pah` decides whether a co-folding or docking result can support the claim its user declares, such
+as "the predicted pose of ATP in CDK2 is valid". It checks the inputs before the prediction and the
 outputs after it in six layers: L0 provenance, L1 input integrity, L2 input adequacy,
 L3 applicability, L4 output validity and L5 output support. Every check returns pass, warn, stop
-or skip with the measured values, the thresholds with their origin, and the evidence. The design
-is in [docs/SPECIFICATION.md](docs/SPECIFICATION.md) and the architecture in
+or skip with the measured values, the thresholds with their origin, and the evidence.
+
+Models it runs and checks: Boltz-1, Boltz-2, Chai-1, Protenix, ColabFold (AlphaFold2), OpenFold3,
+DiffDock-L and Gnina on Modal A100 GPUs, AutoDock Vina on CPU, and AlphaFold3, HADDOCK3 and pyDock
+outputs supplied by the user. Agents call it through the MCP server and the HTTP API, and their
+steps appear in the web UI's Agent view.
+
+The design is in [docs/SPECIFICATION.md](docs/SPECIFICATION.md) and the architecture in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Working rules for contributors are in
 [CLAUDE.md](CLAUDE.md).
 
@@ -553,7 +564,7 @@ citations for the main methods:
 - DiffDock-L: Corso G, Deng A, Fry B, Polizzi N, Barzilay R, Jaakkola T. Deep confident steps to new pockets: strategies for docking generalization. ICLR, 2024.
 - Gnina: McNutt AT, Francoeur P, Aggarwal R, et al. GNINA 1.0: molecular docking with deep learning. J Cheminform 13, 43 (2021).
 - AutoDock Vina: Trott O, Olson AJ. J Comput Chem 31, 455-461 (2010). Eberhardt J, Santos-Martins D, Tillack AF, Forli S. AutoDock Vina 1.2.0. J Chem Inf Model 61, 3891-3898 (2021).
-- PoseBusters: Buttenschoen M, Morris GM, Deane CM. PoseBusters: AI-based docking methods fail to generate physically valid poses or generalise to novel sequences. Chem Sci 15, 3130-3139 (2024).
+- PoseBusters: Buttenschoen M, Morris GM, Deane CM. PoseBusters: AI-based docking methods fail to generate physically valid poses or generalise to novel sequences. Chem Sci 15, 3130-3139 (2024). https://doi.org/10.1039/d3sc04185a
 - PLIP: Salentin S, Schreiber S, Haupt VJ, Adasme MF, Schroeder M. Nucleic Acids Res 43, W443-W447 (2015). Adasme MF, Linnemann KL, Bolz SN, et al. PLIP 2021. Nucleic Acids Res 49, W530-W534 (2021).
 - RDKit: RDKit, open-source cheminformatics, https://www.rdkit.org.
 - gemmi: Wojdyr M. GEMMI: a library for structural biology. J Open Source Softw 7(73), 4200 (2022).
